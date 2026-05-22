@@ -76,7 +76,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="it" className={`${sansGrotesk.variable} ${monoJetbrains.variable}`}>
-      <body>
+      {/*
+        suppressHydrationWarning on <body>: some browser extensions (ColorZilla,
+        Grammarly, Dark Reader, password managers) inject attributes on <body>
+        before React hydrates. This silences the false-positive React warning;
+        it does NOT mask real mismatches inside the tree.
+      */}
+      <body suppressHydrationWarning>
         <a href="#main" className="skip-link">Vai al contenuto</a>
         {children}
         <script
