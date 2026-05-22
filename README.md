@@ -1,6 +1,8 @@
 # Fosforonero — sito istituzionale
 
-Sito statico (Next.js 15 + App Router) per lo studio indipendente di Matteo Pizzi.
+Sito statico (Next.js 16 + App Router) per lo studio indipendente di Matteo Pizzi.
+
+> **🚀 Stato corrente del progetto**: vedi [`docs/HANDOFF.md`](docs/HANDOFF.md) — riepilogo deploy, GA, DNS, todo prossima sessione.
 
 ---
 
