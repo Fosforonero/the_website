@@ -14,7 +14,8 @@ export const site = {
     since: 2017,
   },
   socials: {
-    github: "https://github.com/fosforonero",
+    // GitHub temporaneamente nascosto su richiesta del proprietario.
+    // I repository pubblici esistono ma non vogliamo linkarli dal sito.
     linkedin: "https://www.linkedin.com/in/matteo-pizzi-72a49321/",
     huggingface: "https://huggingface.co/Fosforonero",
     instagram: "https://www.instagram.com/fosforonero/",

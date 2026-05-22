@@ -1,7 +1,13 @@
 # Fosforonero — Handoff
 
 > Documento di passaggio tra sessioni. Aggiornato a fine sessione corrente.
-> **Ultimo aggiornamento: 2026-05-22**
+> **Ultimo aggiornamento: 2026-05-22** (sessione 1)
+>
+> ⚠️ **Stato attuale**: la home `/` e `/en` servono una pagina **Coming Soon**.
+> Il sito completo (Landing) è pronto nel codice ma temporaneamente
+> disattivato — vedi sezione "Coming Soon mode" sotto.
+> ⚠️ **GitHub link rimossi** da `lib/site.ts.socials` (e quindi anche dal
+> JSON-LD `sameAs`) su richiesta del proprietario.
 
 ---
 
@@ -24,7 +30,35 @@
 
 ---
 
-## Cosa è nel branch `responsive` (10 commit sopra `init`)
+## Coming Soon mode
+
+Da `app/page.tsx` e `app/en/page.tsx`, la home renderizza
+`<ComingSoon locale={...} />` (`components/parts/coming-soon.tsx`) invece di
+`<Landing>`. Gli import di `Landing`, `getAllPosts`, `projectsListLd`
+restano nel file come commento, pronti da scommentare. Le route
+`/blog`, `/blog/[slug]`, `/en/blog`, `/en/blog/[slug]`, `/privacy`,
+`/cookies` continuano a funzionare normalmente — il blog è raggiunto da
+un link discreto nel footer della coming soon.
+
+### Per riaccendere il sito completo
+1. `app/page.tsx`: ripristina `Landing` + `projectsListLd` (commenti già pronti)
+2. `app/en/page.tsx`: stessa cosa
+3. `scripts/seo/audit.ts`: aggiungi di nuovo `"ItemList"` agli `expectLdTypes` di `/` e `/en`
+4. `pnpm seo:audit -- --json --update-baseline` per ricalibrare il baseline
+5. Commit e push: `feat: reactivate full landing (coming soon retired)`
+
+### GitHub temporaneamente rimosso
+- `lib/site.ts.socials` non contiene più la chiave `github`
+- La `<Landing>` contact section e la `<ComingSoon>` social list mostrano
+  solo LinkedIn, Hugging Face, Instagram
+- JSON-LD `sameAs` di Person/Organization è automaticamente più corto
+- Per ripristinare: in `lib/site.ts` ri-aggiungi
+  `github: "https://github.com/fosforonero"` e in `components/landing.tsx`
+  ri-aggiungi la riga `["GitHub", "github.com/fosforonero", site.socials.github]`
+
+---
+
+## Cosa è nel branch `responsive` (11+ commit sopra `init`)
 
 ```
 88e1d95  feat(analytics): hardcode GA Measurement ID G-K1QTXSDVD8 as production fallback

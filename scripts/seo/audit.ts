@@ -29,9 +29,12 @@ type Args = {
   updateBaseline: boolean;
 };
 
+// NOTE: while "/" and "/en" serve the ComingSoon screen, ItemList JSON-LD is
+// intentionally absent (no project list to enumerate). Restore "ItemList" in
+// the expected types when reactivating the Landing.
 const ROUTES_TO_AUDIT = [
-  { path: "/", expectLdTypes: ["Organization", "Person", "ItemList"] },
-  { path: "/en", expectLdTypes: ["Organization", "Person", "ItemList"] },
+  { path: "/", expectLdTypes: ["Organization", "Person"] },
+  { path: "/en", expectLdTypes: ["Organization", "Person"] },
   { path: "/blog", expectLdTypes: ["Organization", "Person"] },
   { path: "/en/blog", expectLdTypes: ["Organization", "Person"] },
   { path: "/privacy", expectLdTypes: ["Organization", "Person"] },

@@ -99,6 +99,14 @@ type Dict = {
     cookieTitle: string;
     lastUpdated: (iso: string) => string;
   };
+  comingSoon: {
+    eyebrow: string;
+    title: string;
+    body: string;
+    emailLabel: string;
+    socials: string;
+    blogLink: string;
+  };
 };
 
 const it: Dict = {
@@ -199,6 +207,14 @@ const it: Dict = {
     cookieTitle: "Cookie Policy",
     lastUpdated: (iso) => `Ultimo aggiornamento: ${new Date(iso).toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" })}`,
   },
+  comingSoon: {
+    eyebrow: "● IN ARRIVO",
+    title: "Prossimamente.",
+    body: "Il sito istituzionale di Fosforonero è in fase di completamento. Per qualsiasi richiesta, scrivimi via email.",
+    emailLabel: "EMAIL",
+    socials: "Altrove",
+    blogLink: "Leggi gli appunti tecnici sul blog",
+  },
 };
 
 const en: Dict = {
@@ -298,6 +314,14 @@ const en: Dict = {
     privacyTitle: "Privacy Policy",
     cookieTitle: "Cookie Policy",
     lastUpdated: (iso) => `Last updated: ${new Date(iso).toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" })}`,
+  },
+  comingSoon: {
+    eyebrow: "● LAUNCHING SOON",
+    title: "Coming soon.",
+    body: "The Fosforonero studio site is being finalised. For anything in the meantime, drop me an email.",
+    emailLabel: "EMAIL",
+    socials: "Elsewhere",
+    blogLink: "Read the technical notes on the blog",
   },
 };
 

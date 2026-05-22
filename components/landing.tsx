@@ -602,7 +602,6 @@ export function Landing({ locale, posts }: Props) {
               <div style={{ display: "flex", gap: 14, marginTop: 18, flexWrap: "wrap" }}>
                 {(
                   [
-                    ["GitHub", "github.com/fosforonero", site.socials.github],
                     ["LinkedIn", "in/matteo-pizzi", site.socials.linkedin],
                     ["Hugging Face", "huggingface.co/Fosforonero", site.socials.huggingface],
                     ["Instagram", "instagram.com/fosforonero", site.socials.instagram],
