@@ -7,9 +7,16 @@ import { site } from "@/lib/site";
 import { organizationLd, personLd } from "@/lib/jsonld";
 import { CookieBanner } from "@/components/client/cookie-banner";
 
-// GA Measurement ID is optional: when empty we skip loading gtag entirely,
-// which is the right behaviour for local development.
-const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
+// GA Measurement ID resolution:
+// 1) NEXT_PUBLIC_GA_ID env var wins (Vercel project setting) — lets future
+//    property swaps happen without a code change.
+// 2) In production we fall back to the hardcoded ID so the deploy keeps
+//    tracking even if the env var slot is empty.
+// 3) In local dev with no env var, GA is not loaded at all.
+const GA_ID_FALLBACK = "G-K1QTXSDVD8";
+const GA_ID =
+  process.env.NEXT_PUBLIC_GA_ID ||
+  (process.env.NODE_ENV === "production" ? GA_ID_FALLBACK : undefined);
 
 // Self-hosted via next/font — zero CLS, no third-party request at runtime.
 const sansGrotesk = Space_Grotesk({
