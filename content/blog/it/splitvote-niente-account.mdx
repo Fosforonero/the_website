@@ -1,0 +1,35 @@
+---
+title: "Perché SplitVote non ha un sistema di account"
+excerpt: "Un giro veloce sul perché la registrazione è il primo punto di abbandono in uno strumento di voto rapido, e come l'ho aggirata."
+date: "2026-02-04"
+tag: "SplitVote"
+---
+
+SplitVote è uno strumento per decidere in gruppo: "dove andiamo a mangiare?", "quale logo scegliamo?", "votiamo questa proposta?". L'80% degli utilizzi è una tantum, in chat di gruppo, con persone che non si vedranno mai più sulla mia app.
+
+Per questo non c'è un sistema di account.
+
+## Cosa significa nella pratica
+
+Quando crei un poll:
+
+1. Generi un link con uno slug random
+2. Diventi automaticamente l'admin di quel poll (cookie locale)
+3. Condividi il link in chat
+4. Chi clicca, vota — niente registrazione
+
+Per chi vota: identità basata su un fingerprint leggero del browser, niente IP loggato lato server. Un utente può votare una sola volta per poll, ma se cambia browser può votare di nuovo. È un tradeoff accettabile: SplitVote non è uno strumento per elezioni, è uno strumento per amici.
+
+## I problemi che mi ha risolto
+
+- **Zero email da inviare**: niente verifica, niente reset password, niente trigger di Supabase Auth da debuggare.
+- **Zero compliance**: niente account = niente dati personali = niente preoccupazioni GDPR oltre al cookie strettamente necessario.
+- **Funnel pulito**: dal click al voto in 2 secondi. Conversione altissima rispetto a strumenti analoghi.
+
+## I problemi che mi ha creato
+
+- **Account recovery**: se perdi il cookie admin, perdi il controllo del poll. Soluzione: l'admin può scaricare un "recovery token" alla creazione.
+- **Spam protection**: senza account è più facile per i bot manipolare. Per ora basta un rate limit aggressivo a livello Edge.
+- **Onboarding to mobile app**: nella versione mobile in costruzione, dovrò aggiungere account opzionali per chi vuole vedere i propri poll nel tempo.
+
+> La domanda giusta non è "devo avere un sistema di account?". È "qual è il primo punto di abbandono e come lo elimino?".

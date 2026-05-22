@@ -1,0 +1,9 @@
+.next
+node_modules
+out
+build
+coverage
+public
+_design_reference
+*.lock
+pnpm-lock.yaml

@@ -1,0 +1,35 @@
+---
+title: "Note dal primo anno di FitMesh in produzione"
+excerpt: "Cosa ha tenuto, cosa ho riscritto, cosa cambierei. Una retrospettiva di un'app indie con utenti veri."
+date: "2026-01-18"
+tag: "Retrospettiva"
+---
+
+FitMesh è online da poco più di un anno. Ecco cosa ho imparato.
+
+## Cosa ha tenuto
+
+**Lo schema Postgres.** L'ho disegnato con un'ora di pensiero in più rispetto al "primo schema che funziona" e mi ha ripagato cento volte. Le query analytics e gli export funzionano ancora oggi senza che debba ristrutturare nulla.
+
+**La separazione client/server.** Il wearable parla solo con il telefono. Il telefono parla solo con il backend. Il backend parla solo con il database. Niente shortcut, niente API extra. Ogni volta che ho aggiunto una feature, sapevo esattamente dove andava.
+
+**Flutter su Wear OS.** Era la scelta più rischiosa e mi ha sorpreso: hot reload funzionante anche sull'orologio, performance accettabili, distribuzione via Play Store senza problemi.
+
+## Cosa ho riscritto
+
+**Il sync layer.** La prima versione faceva polling ogni 60s. Aveva senso al lancio (debug più facile), ma non scalava: il telefono si svegliava in continuazione. L'ho riscritto in `WorkManager` con triggering basato su eventi del Data Layer. Risultato: -70% di consumo batteria sul telefono.
+
+**La home dell'app.** La prima versione mostrava tutti i dati in un'unica dashboard. Confusionaria. Adesso è una serie di "card" stackate, ognuna con una metrica primaria. Più leggibile, più mobile-friendly.
+
+## Cosa cambierei se lo rifacessi oggi
+
+- Userei `androidx.health.connect.client` come livello aggiuntivo dall'inizio
+- Aggiungerei i grafici trend già nella v1 — gli utenti li chiedono da settimana 1
+- Investirei prima in onboarding: il 40% degli utenti abbandona durante il setup permessi
+- Non userei Supabase Storage per gli avatar — uno spreco. Una semplice URL + S3 sarebbero più economici
+
+## Numeri di contesto
+
+Niente dati segreti, niente bullshit metrics. FitMesh ha utenti veri ma piccoli numeri. Non è il punto. Il punto è che è un esperimento che funziona, è online, è mantenuto, e mi insegna cose ogni settimana.
+
+> Un'app indie in produzione vale dieci app indie nel cassetto.

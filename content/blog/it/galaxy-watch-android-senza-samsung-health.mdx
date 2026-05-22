@@ -1,0 +1,32 @@
+---
+title: "Sincronizzare Galaxy Watch su Android senza Samsung Health"
+excerpt: "Cosa ho imparato integrando Health Services di Wear OS in FitMesh, e perché Samsung Health non era la strada giusta."
+date: "2026-03-12"
+tag: "FitMesh"
+---
+
+Quando ho iniziato a costruire FitMesh, la strada apparentemente più semplice era usare Samsung Health come fonte dati. Il problema l'ho capito presto: Samsung Health non espone una API stabile pubblica per leggere i dati grezzi di terze parti su Android. Esisteva, è stata deprecata, è tornata sotto altra forma, e oggi è di fatto un walled garden.
+
+## La via giusta: Health Services di Wear OS
+
+Health Services è l'API ufficiale di Google per dati biometrici su Wear OS. Funziona così:
+
+1. Sul wearable installi un piccolo client (Wear OS app)
+2. Il client si registra come listener per i dati: `HEART_RATE_BPM`, `STEPS_DAILY`, `CALORIES_DAILY`, etc.
+3. I dati arrivano in streaming mentre l'utente indossa l'orologio
+4. Periodicamente, il client li sincronizza con il telefono via `Wearable Data Layer`
+5. Sul telefono Android, l'app FitMesh li riceve e li passa al backend
+
+## Le insidie che ho incontrato
+
+**Battery drain.** All'inizio campionavo battiti cardiaci ogni 5 secondi. Risultato: orologio scarico in 6 ore. Sono passato a `MEASURE_TYPE_DAILY` per le aggregazioni e a sample on-demand solo durante un workout esplicito.
+
+**Permessi.** L'utente deve concedere i permessi sia sul telefono che sull'orologio, separatamente. Ho dovuto progettare un'esperienza che renda chiaro questo doppio passaggio senza confondere.
+
+**Offline-first.** L'orologio non è sempre connesso al telefono. Il client Wear OS scrive in un database SQLite locale, e il sync avviene quando il Data Layer si connette.
+
+## Cosa rifarei
+
+Userei `androidx.health.connect.client` come livello aggiuntivo: permette di leggere dati anche da altre app salute (Strava, Adidas, ecc.), espandendo la base di utenti senza dover scrivere integrazioni custom.
+
+> Per ora, il design "Watch → Phone → Cloud" funziona, ma sento che il modello giusto è "Watch → Health Connect → Apps". Vediamo se Google ci arriverà davvero.
