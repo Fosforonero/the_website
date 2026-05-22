@@ -117,9 +117,9 @@ const it: Dict = {
   projects: {
     eyebrow: "§ II — Progetti",
     headline: "Progetti.",
-    statusLine: "02 ATTIVI · 01 IN SVILUPPO",
+    statusLine: "02 LIVE · 01 IN BETA",
     openProject: "Apri progetto",
-    pendingLabel: "03 · IN SVILUPPO",
+    pendingLabel: "04 · IN ARRIVO",
     pendingText: "Progetto non ancora pubblico",
     pendingCta: "PROSSIMAMENTE",
   },
@@ -190,9 +190,9 @@ const en: Dict = {
   projects: {
     eyebrow: "§ II — Projects",
     headline: "Projects.",
-    statusLine: "02 SHIPPING · 01 IN PROGRESS",
+    statusLine: "02 LIVE · 01 IN BETA",
     openProject: "Open project",
-    pendingLabel: "03 · IN PROGRESS",
+    pendingLabel: "04 · IN PROGRESS",
     pendingText: "Not public yet",
     pendingCta: "COMING SOON",
   },

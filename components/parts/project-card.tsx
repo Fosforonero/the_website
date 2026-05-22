@@ -1,13 +1,20 @@
 import { Pill } from "./pill";
 import { FitMeshMock } from "./fitmesh-mock";
 import { SplitVoteMock } from "./splitvote-mock";
+import { ChatbotMock } from "./chatbot-mock";
 import type { Project } from "@/lib/projects";
 import type { Locale } from "@/lib/site";
 
 type Props = { project: Project; idx: number; locale: Locale; openLabel: string };
 
+const MOCKS: Record<string, (props: { accent?: string }) => React.JSX.Element> = {
+  fitmesh: FitMeshMock,
+  splitvote: SplitVoteMock,
+  "chatbot-ai": ChatbotMock,
+};
+
 export function ProjectCard({ project: p, idx, locale, openLabel }: Props) {
-  const Mock = p.id === "fitmesh" ? FitMeshMock : SplitVoteMock;
+  const Mock = MOCKS[p.id] ?? FitMeshMock;
   const copy = p.copy[locale];
 
   return (
@@ -36,22 +43,36 @@ export function ProjectCard({ project: p, idx, locale, openLabel }: Props) {
           </Pill>
           <Pill>{p.year}</Pill>
         </div>
-        <a
-          href={p.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="fn-link-underline"
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: 12,
-            color: "var(--color-ink)",
-            letterSpacing: "0.06em",
-            textDecoration: "none",
-            fontWeight: 500,
-          }}
-        >
-          {p.handle} <span style={{ color: "var(--color-accent)" }}>↗</span>
-        </a>
+        {p.url ? (
+          <a
+            href={p.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="fn-link-underline"
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 12,
+              color: "var(--color-ink)",
+              letterSpacing: "0.06em",
+              textDecoration: "none",
+              fontWeight: 500,
+            }}
+          >
+            {p.handle} <span style={{ color: "var(--color-accent)" }}>↗</span>
+          </a>
+        ) : (
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 12,
+              color: "var(--color-dim)",
+              letterSpacing: "0.06em",
+              fontWeight: 500,
+            }}
+          >
+            {p.handle}
+          </span>
+        )}
       </div>
       <div
         className="fn-grid-project"
@@ -118,27 +139,29 @@ export function ProjectCard({ project: p, idx, locale, openLabel }: Props) {
               </span>
             ))}
           </div>
-          <a
-            href={p.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "10px 18px",
-              background: "var(--color-ink)",
-              color: "#fff",
-              borderRadius: 8,
-              fontFamily: "var(--font-sans)",
-              fontSize: 14,
-              fontWeight: 600,
-              textDecoration: "none",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {openLabel} <span style={{ color: "var(--color-accent)" }}>↗</span>
-          </a>
+          {p.url ? (
+            <a
+              href={p.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "10px 18px",
+                background: "var(--color-ink)",
+                color: "#fff",
+                borderRadius: 8,
+                fontFamily: "var(--font-sans)",
+                fontSize: 14,
+                fontWeight: 600,
+                textDecoration: "none",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {openLabel} <span style={{ color: "var(--color-accent)" }}>↗</span>
+            </a>
+          ) : null}
         </div>
         <div>
           <Mock accent={p.brand} />

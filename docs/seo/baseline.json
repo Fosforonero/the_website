@@ -1,22 +1,9 @@
 {
-  "ranAt": "2026-05-22T17:51:36.778Z",
+  "ranAt": "2026-05-22T18:06:01.921Z",
   "origin": "http://localhost:3000",
   "totals": {
     "errors": 0,
-    "warnings": 2
+    "warnings": 0
   },
-  "findings": [
-    {
-      "severity": "warn",
-      "check": "mdx.title.length",
-      "where": "content/blog/en/stack-2026.mdx",
-      "message": "Title length 23 (target 30–65)"
-    },
-    {
-      "severity": "warn",
-      "check": "mdx.title.length",
-      "where": "content/blog/it/stack-2026.mdx",
-      "message": "Title length 25 (target 30–65)"
-    }
-  ]
+  "findings": []
 }

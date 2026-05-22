@@ -13,7 +13,6 @@ import { P15Box } from "@/components/parts/p15-box";
 import { Pill } from "@/components/parts/pill";
 import { RotatingWord } from "@/components/parts/rotating-word";
 import { TechTicker } from "@/components/parts/tech-ticker";
-import { Cursor } from "@/components/parts/cursor";
 import { Nav } from "@/components/parts/nav";
 import { ProjectCard } from "@/components/parts/project-card";
 import { BlogRow } from "@/components/parts/blog-row";
@@ -484,42 +483,6 @@ export function Landing({ locale, posts }: Props) {
                 />
               </Reveal>
             ))}
-            <Reveal delay={180}>
-              <div
-                className="fn-pending-row"
-                style={{
-                  background: "#fff",
-                  border: "1px dashed var(--color-rule)",
-                  borderRadius: 14,
-                  padding: "clamp(22px, 4vw, 32px) clamp(20px, 4vw, 36px)",
-                }}
-              >
-                <div style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
-                  <Pill>{t.projects.pendingLabel}</Pill>
-                  <div
-                    style={{
-                      fontSize: "clamp(18px, 2.5vw, 24px)",
-                      color: "var(--color-dim)",
-                      fontWeight: 500,
-                    }}
-                  >
-                    {t.projects.pendingText}
-                    <Cursor height={20} />
-                  </div>
-                </div>
-                <span
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: 12,
-                    color: "var(--color-dim)",
-                    fontWeight: 600,
-                    letterSpacing: "0.24em",
-                  }}
-                >
-                  {t.projects.pendingCta}
-                </span>
-              </div>
-            </Reveal>
           </div>
         </section>
 
