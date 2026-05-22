@@ -16,12 +16,11 @@ export function BlogRow({ post, idx, readLabel }: Props) {
   return (
     <Link
       href={href}
-      className="fn-card-hover"
+      className="fn-card-hover fn-grid-blogrow"
       style={{
         display: "grid",
-        gridTemplateColumns: "120px 1fr auto",
         gap: 32,
-        padding: "28px 32px",
+        padding: "clamp(20px, 3vw, 28px) clamp(20px, 4vw, 32px)",
         background: "var(--color-card)",
         border: "1px solid var(--color-rule)",
         borderRadius: 14,
@@ -73,7 +72,7 @@ export function BlogRow({ post, idx, readLabel }: Props) {
         <h3
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: 24,
+            fontSize: "clamp(18px, 2.5vw, 24px)",
             fontWeight: 600,
             color: "var(--color-ink)",
             margin: "0 0 6px",

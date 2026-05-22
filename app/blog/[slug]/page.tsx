@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { Nav } from "@/components/parts/nav";
@@ -122,13 +123,13 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
             }}
           >
             <span>{site.author.name}</span>
-            <a
+            <Link
               href="/blog"
               className="fn-link-underline"
               style={{ color: "var(--color-ink)", textDecoration: "none", fontWeight: 600 }}
             >
               ← TUTTI GLI ARTICOLI
-            </a>
+            </Link>
           </footer>
         </article>
       </main>

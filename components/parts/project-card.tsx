@@ -22,16 +22,14 @@ export function ProjectCard({ project: p, idx, locale, openLabel }: Props) {
       }}
     >
       <div
+        className="fn-projectcard-header"
         style={{
-          padding: "18px 22px",
+          padding: "clamp(14px, 2.5vw, 18px) clamp(16px, 3vw, 22px)",
           borderBottom: "1px solid var(--color-rule)",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
           background: "var(--color-bg)",
         }}
       >
-        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
           <Pill>0{idx + 1}</Pill>
           <Pill background="var(--color-accent-soft)" color="var(--color-accent)">
             ● {p.status}
@@ -56,11 +54,11 @@ export function ProjectCard({ project: p, idx, locale, openLabel }: Props) {
         </a>
       </div>
       <div
+        className="fn-grid-project"
         style={{
           display: "grid",
-          gridTemplateColumns: "1fr 1.1fr",
-          gap: 36,
-          padding: 36,
+          gap: "clamp(24px, 4vw, 36px)",
+          padding: "clamp(20px, 4vw, 36px)",
           alignItems: "center",
         }}
       >
@@ -68,7 +66,7 @@ export function ProjectCard({ project: p, idx, locale, openLabel }: Props) {
           <h3
             style={{
               fontFamily: "var(--font-sans)",
-              fontSize: 48,
+              fontSize: "clamp(28px, 4.5vw, 48px)",
               fontWeight: 600,
               color: "var(--color-ink)",
               margin: "0 0 10px",

@@ -3,6 +3,10 @@
 //
 // All "reveal on scroll" client logic lives in <Reveal>; everything else is
 // statically rendered. The rotating word and tech ticker are CSS-only.
+//
+// Inline styles use clamp() for fluid scaling between mobile and desktop;
+// responsive layout shifts (grid recolumning, flex-stacking, show/hide) live
+// in app/globals.css as .fn-* helper classes applied via className.
 
 import { Reveal } from "@/components/client/reveal";
 import { P15Box } from "@/components/parts/p15-box";
@@ -32,6 +36,10 @@ const TECH = [
   "Wear OS",
   "Edge runtime",
 ];
+
+// Fluid spacing tokens shared across sections.
+const SECTION_PAD_X = "clamp(20px, 5vw, 64px)";
+const SECTION_PAD_Y = "clamp(64px, 12vw, 120px)";
 
 type Props = { locale: Locale; posts: BlogPostMeta[] };
 
@@ -68,7 +76,13 @@ export function Landing({ locale, posts }: Props) {
 
       <main id="main">
         {/* ───────── HERO ───────── */}
-        <section id="top" style={{ padding: "80px 64px 120px", position: "relative" }}>
+        <section
+          id="top"
+          style={{
+            padding: `clamp(48px, 10vw, 80px) ${SECTION_PAD_X} ${SECTION_PAD_Y}`,
+            position: "relative",
+          }}
+        >
           <Reveal>
             <div
               style={{
@@ -104,11 +118,11 @@ export function Landing({ locale, posts }: Props) {
             <h1
               style={{
                 fontFamily: "var(--font-sans)",
-                fontSize: 128,
+                fontSize: "clamp(48px, 9vw, 128px)",
                 fontWeight: 600,
                 lineHeight: 0.95,
                 color: "var(--color-ink)",
-                margin: "32px 0 0",
+                margin: "clamp(20px, 3vw, 32px) 0 0",
                 letterSpacing: "-0.045em",
                 maxWidth: 1100,
               }}
@@ -123,12 +137,12 @@ export function Landing({ locale, posts }: Props) {
             <p
               style={{
                 fontFamily: "var(--font-sans)",
-                fontSize: 22,
+                fontSize: "clamp(17px, 2.2vw, 22px)",
                 color: "var(--color-ink-2)",
                 opacity: 0.75,
                 maxWidth: 640,
                 lineHeight: 1.5,
-                marginTop: 36,
+                marginTop: "clamp(24px, 4vw, 36px)",
               }}
             >
               {t.hero.paragraph(site.author.name, site.name)}
@@ -136,11 +150,11 @@ export function Landing({ locale, posts }: Props) {
           </Reveal>
 
           <Reveal delay={340}>
-            <div style={{ display: "flex", gap: 12, marginTop: 36 }}>
+            <div style={{ display: "flex", gap: 12, marginTop: "clamp(24px, 4vw, 36px)", flexWrap: "wrap" }}>
               <a
                 href="#progetti"
                 style={{
-                  padding: "14px 22px",
+                  padding: "clamp(12px, 2vw, 14px) clamp(18px, 3vw, 22px)",
                   background: "var(--color-ink)",
                   color: "#fff",
                   borderRadius: 10,
@@ -158,7 +172,7 @@ export function Landing({ locale, posts }: Props) {
               <a
                 href="#contatti"
                 style={{
-                  padding: "14px 22px",
+                  padding: "clamp(12px, 2vw, 14px) clamp(18px, 3vw, 22px)",
                   background: "#fff",
                   color: "var(--color-ink)",
                   border: "1px solid var(--color-rule)",
@@ -177,15 +191,15 @@ export function Landing({ locale, posts }: Props) {
           {/* metric strip */}
           <Reveal delay={120}>
             <div
+              className="fn-grid-metrics"
               style={{
-                marginTop: 80,
-                padding: "28px 32px",
+                marginTop: "clamp(48px, 8vw, 80px)",
+                padding: "clamp(20px, 3vw, 28px) clamp(20px, 4vw, 32px)",
                 background: "#fff",
                 border: "1px solid var(--color-rule)",
                 borderRadius: 14,
                 display: "grid",
-                gridTemplateColumns: "repeat(4, 1fr)",
-                gap: 32,
+                gap: "clamp(18px, 3vw, 32px)",
                 boxShadow: "0 1px 3px rgba(10,10,10,0.04)",
               }}
             >
@@ -209,7 +223,7 @@ export function Landing({ locale, posts }: Props) {
                   <div
                     style={{
                       fontFamily: "var(--font-sans)",
-                      fontSize: 36,
+                      fontSize: "clamp(28px, 4vw, 36px)",
                       color: "var(--color-ink)",
                       fontWeight: 600,
                       marginTop: 8,
@@ -260,13 +274,17 @@ export function Landing({ locale, posts }: Props) {
         {/* ───────── ABOUT ───────── */}
         <section
           id="about"
-          style={{ padding: "120px 64px", background: "var(--color-surface)", position: "relative" }}
+          style={{
+            padding: `${SECTION_PAD_Y} ${SECTION_PAD_X}`,
+            background: "var(--color-surface)",
+            position: "relative",
+          }}
         >
           <div
+            className="fn-grid-about"
             style={{
               display: "grid",
-              gridTemplateColumns: "1fr 1.5fr",
-              gap: 80,
+              gap: "clamp(40px, 6vw, 80px)",
               maxWidth: 1280,
               margin: "0 auto",
             }}
@@ -278,10 +296,10 @@ export function Landing({ locale, posts }: Props) {
               <h2
                 style={{
                   fontFamily: "var(--font-sans)",
-                  fontSize: 64,
+                  fontSize: "clamp(36px, 5.5vw, 64px)",
                   fontWeight: 600,
                   color: "var(--color-ink)",
-                  margin: "24px 0 0",
+                  margin: "clamp(16px, 3vw, 24px) 0 0",
                   letterSpacing: "-0.035em",
                   lineHeight: 1,
                 }}
@@ -305,15 +323,15 @@ export function Landing({ locale, posts }: Props) {
                 }}
               >
                 <div>
-                  <span style={{ color: "var(--color-dim)" }}>// sede</span>
+                  <span style={{ color: "var(--color-dim)" }}>{"// sede"}</span>
                 </div>
                 <div>{site.author.city}, Italia</div>
                 <div style={{ marginTop: 6 }}>
-                  <span style={{ color: "var(--color-dim)" }}>// stack</span>
+                  <span style={{ color: "var(--color-dim)" }}>{"// stack"}</span>
                 </div>
                 <div>Flutter · Next.js · Supabase · TypeScript</div>
                 <div style={{ marginTop: 6 }}>
-                  <span style={{ color: "var(--color-dim)" }}>// dal</span>
+                  <span style={{ color: "var(--color-dim)" }}>{"// dal"}</span>
                 </div>
                 <div>
                   <span style={{ color: "var(--color-accent)" }}>{site.author.since}</span>
@@ -324,10 +342,10 @@ export function Landing({ locale, posts }: Props) {
               <div
                 style={{
                   fontFamily: "var(--font-sans)",
-                  fontSize: 21,
+                  fontSize: "clamp(17px, 2vw, 21px)",
                   lineHeight: 1.55,
                   color: "var(--color-ink-2)",
-                  paddingTop: 32,
+                  paddingTop: "clamp(0px, 3vw, 32px)",
                 }}
               >
                 {t.about.paragraphs.map((p, i) => (
@@ -367,16 +385,12 @@ export function Landing({ locale, posts }: Props) {
         </section>
 
         {/* ───────── PROJECTS ───────── */}
-        <section id="progetti" style={{ padding: "120px 64px", position: "relative" }}>
+        <section
+          id="progetti"
+          style={{ padding: `${SECTION_PAD_Y} ${SECTION_PAD_X}`, position: "relative" }}
+        >
           <Reveal>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "baseline",
-                marginBottom: 48,
-              }}
-            >
+            <div className="fn-row-stack" style={{ marginBottom: "clamp(28px, 5vw, 48px)" }}>
               <div>
                 <Pill background="var(--color-accent-soft)" color="var(--color-accent)">
                   {t.projects.eyebrow}
@@ -384,7 +398,7 @@ export function Landing({ locale, posts }: Props) {
                 <h2
                   style={{
                     fontFamily: "var(--font-sans)",
-                    fontSize: 72,
+                    fontSize: "clamp(40px, 7vw, 72px)",
                     fontWeight: 600,
                     color: "var(--color-ink)",
                     margin: "14px 0 0",
@@ -400,7 +414,6 @@ export function Landing({ locale, posts }: Props) {
                   fontFamily: "var(--font-mono)",
                   fontSize: 12,
                   color: "var(--color-dim)",
-                  textAlign: "right",
                   letterSpacing: "0.16em",
                   lineHeight: 1.8,
                 }}
@@ -422,19 +435,23 @@ export function Landing({ locale, posts }: Props) {
             ))}
             <Reveal delay={180}>
               <div
+                className="fn-pending-row"
                 style={{
                   background: "#fff",
                   border: "1px dashed var(--color-rule)",
                   borderRadius: 14,
-                  padding: "32px 36px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
+                  padding: "clamp(22px, 4vw, 32px) clamp(20px, 4vw, 36px)",
                 }}
               >
-                <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+                <div style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
                   <Pill>{t.projects.pendingLabel}</Pill>
-                  <div style={{ fontSize: 24, color: "var(--color-dim)", fontWeight: 500 }}>
+                  <div
+                    style={{
+                      fontSize: "clamp(18px, 2.5vw, 24px)",
+                      color: "var(--color-dim)",
+                      fontWeight: 500,
+                    }}
+                  >
                     {t.projects.pendingText}
                     <Cursor height={20} />
                   </div>
@@ -460,89 +477,77 @@ export function Landing({ locale, posts }: Props) {
           <section
             id="blog"
             style={{
-              padding: "120px 64px",
+              padding: `${SECTION_PAD_Y} ${SECTION_PAD_X}`,
               background: "var(--color-surface)",
               position: "relative",
             }}
           >
-            <Reveal>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "baseline",
-                  marginBottom: 48,
-                  maxWidth: 1280,
-                  margin: "0 auto 48px",
-                }}
-              >
-                <div>
-                  <Pill background="var(--color-accent-soft)" color="var(--color-accent)">
-                    {t.blog.eyebrow}
-                  </Pill>
-                  <h2
+            <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+              <Reveal>
+                <div className="fn-row-stack" style={{ marginBottom: "clamp(28px, 5vw, 48px)" }}>
+                  <div>
+                    <Pill background="var(--color-accent-soft)" color="var(--color-accent)">
+                      {t.blog.eyebrow}
+                    </Pill>
+                    <h2
+                      style={{
+                        fontFamily: "var(--font-sans)",
+                        fontSize: "clamp(40px, 7vw, 72px)",
+                        fontWeight: 600,
+                        color: "var(--color-ink)",
+                        margin: "14px 0 12px",
+                        letterSpacing: "-0.04em",
+                        lineHeight: 1,
+                      }}
+                    >
+                      {t.blog.headline}
+                    </h2>
+                    <p
+                      style={{
+                        fontFamily: "var(--font-sans)",
+                        fontSize: "clamp(16px, 2vw, 18px)",
+                        color: "var(--color-ink-2)",
+                        opacity: 0.75,
+                        margin: 0,
+                        maxWidth: 520,
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      {t.blog.paragraph}
+                    </p>
+                  </div>
+                  <a
+                    href={locale === "it" ? "/blog" : "/en/blog"}
+                    className="fn-link-underline"
                     style={{
-                      fontFamily: "var(--font-sans)",
-                      fontSize: 72,
-                      fontWeight: 600,
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 12,
                       color: "var(--color-ink)",
-                      margin: "14px 0 12px",
-                      letterSpacing: "-0.04em",
-                      lineHeight: 1,
+                      letterSpacing: "0.16em",
+                      textDecoration: "none",
+                      fontWeight: 600,
                     }}
                   >
-                    {t.blog.headline}
-                  </h2>
-                  <p
-                    style={{
-                      fontFamily: "var(--font-sans)",
-                      fontSize: 18,
-                      color: "var(--color-ink-2)",
-                      opacity: 0.75,
-                      margin: 0,
-                      maxWidth: 520,
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    {t.blog.paragraph}
-                  </p>
+                    {t.blog.allPostsCta} <span style={{ color: "var(--color-accent)" }}>→</span>
+                  </a>
                 </div>
-                <a
-                  href={locale === "it" ? "/blog" : "/en/blog"}
-                  className="fn-link-underline"
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: 12,
-                    color: "var(--color-ink)",
-                    letterSpacing: "0.16em",
-                    textDecoration: "none",
-                    fontWeight: 600,
-                  }}
-                >
-                  {t.blog.allPostsCta} <span style={{ color: "var(--color-accent)" }}>→</span>
-                </a>
+              </Reveal>
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                {posts.slice(0, 4).map((post, i) => (
+                  <Reveal key={post.slug} delay={i * 80}>
+                    <BlogRow post={post} idx={i} readLabel={t.blog.read} />
+                  </Reveal>
+                ))}
               </div>
-            </Reveal>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 14,
-                maxWidth: 1280,
-                margin: "0 auto",
-              }}
-            >
-              {posts.slice(0, 4).map((post, i) => (
-                <Reveal key={post.slug} delay={i * 80}>
-                  <BlogRow post={post} idx={i} readLabel={t.blog.read} />
-                </Reveal>
-              ))}
             </div>
           </section>
         ) : null}
 
         {/* ───────── CONTACT ───────── */}
-        <section id="contatti" style={{ padding: "120px 64px", position: "relative" }}>
+        <section
+          id="contatti"
+          style={{ padding: `${SECTION_PAD_Y} ${SECTION_PAD_X}`, position: "relative" }}
+        >
           <div style={{ maxWidth: 1280, margin: "0 auto" }}>
             <Reveal>
               <Pill background="var(--color-accent-soft)" color="var(--color-accent)">
@@ -551,10 +556,10 @@ export function Landing({ locale, posts }: Props) {
               <h2
                 style={{
                   fontFamily: "var(--font-sans)",
-                  fontSize: 112,
+                  fontSize: "clamp(48px, 10vw, 112px)",
                   fontWeight: 600,
                   color: "var(--color-ink)",
-                  margin: "24px 0 0",
+                  margin: "clamp(16px, 3vw, 24px) 0 0",
                   letterSpacing: "-0.045em",
                   lineHeight: 0.95,
                 }}
@@ -563,11 +568,11 @@ export function Landing({ locale, posts }: Props) {
               </h2>
               <p
                 style={{
-                  fontSize: 22,
+                  fontSize: "clamp(17px, 2.2vw, 22px)",
                   color: "var(--color-ink-2)",
                   opacity: 0.75,
                   maxWidth: 620,
-                  marginTop: 24,
+                  marginTop: "clamp(16px, 3vw, 24px)",
                   lineHeight: 1.45,
                 }}
               >
@@ -578,26 +583,28 @@ export function Landing({ locale, posts }: Props) {
               <a
                 href={`mailto:${site.email}`}
                 style={{
-                  marginTop: 48,
+                  marginTop: "clamp(28px, 5vw, 48px)",
                   display: "flex",
                   gap: 14,
                   alignItems: "center",
-                  padding: "18px 22px",
+                  padding: "clamp(14px, 2.5vw, 18px) clamp(16px, 3vw, 22px)",
                   background: "#fff",
                   border: "1.5px solid var(--color-ink)",
                   borderRadius: 14,
                   maxWidth: 580,
                   textDecoration: "none",
                   boxShadow: "0 2px 0 var(--color-ink), 0 12px 32px rgba(10,10,10,0.08)",
+                  flexWrap: "wrap",
                 }}
               >
                 <Pill>{t.contact.emailLabel}</Pill>
                 <span
                   style={{
                     fontFamily: "var(--font-sans)",
-                    fontSize: 22,
+                    fontSize: "clamp(17px, 2.2vw, 22px)",
                     color: "var(--color-ink)",
                     fontWeight: 500,
+                    wordBreak: "break-all",
                   }}
                 >
                   {site.email}
@@ -664,12 +671,10 @@ export function Landing({ locale, posts }: Props) {
 
       {/* ───────── FOOTER ───────── */}
       <footer
+        className="fn-footer-row"
         style={{
-          padding: "48px 64px",
+          padding: `clamp(32px, 5vw, 48px) ${SECTION_PAD_X}`,
           borderTop: "1px solid var(--color-rule)",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-end",
         }}
       >
         <div>

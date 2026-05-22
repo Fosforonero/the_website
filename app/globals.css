@@ -79,6 +79,12 @@ body {
   100%          { transform: translateY(-3em); }
 }
 @keyframes fnTicker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+@keyframes fnDrawerIn {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+.fn-drawer-panel { animation: fnDrawerIn .28s cubic-bezier(0.16, 1, 0.3, 1); }
 
 .fn-rotator { animation: fnRotate3 9s infinite; }
 .fn-ticker  { animation: fnTicker 50s linear infinite; }
@@ -114,7 +120,86 @@ body {
   .fn-rotator, .fn-ticker { animation: none !important; }
   .fn-card-hover:hover { transform: none !important; }
   .fn-link-underline::after { transition: none !important; }
+  .fn-drawer-panel { animation: none !important; }
 }
+
+/* ────────────────────────────────────────────────────────────────
+   RESPONSIVE HELPERS
+   Applied next to inline styles in the landing components.
+   Mobile-first: defaults match desktop, media queries narrow down.
+   Breakpoints: 480 (xs), 768 (md — primary stack), 900 (project card),
+   1280 (xl, baseline desktop).
+   ──────────────────────────────────────────────────────────────── */
+
+/* 4-column metric grid -> 2 columns under 768, 1 under 480. */
+.fn-grid-metrics { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 767px) { .fn-grid-metrics { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 479px) { .fn-grid-metrics { grid-template-columns: 1fr; } }
+
+/* About: 1fr 1.5fr -> single column under 900. */
+.fn-grid-about { grid-template-columns: 1fr 1.5fr; }
+@media (max-width: 899px) { .fn-grid-about { grid-template-columns: 1fr; } }
+
+/* Project card body: 1fr 1.1fr -> single column under 900 (stack copy + mock). */
+.fn-grid-project { grid-template-columns: 1fr 1.1fr; }
+@media (max-width: 899px) { .fn-grid-project { grid-template-columns: 1fr; } }
+
+/* Blog row: 120px 1fr auto -> single column under 768 (stack meta/title/cta). */
+.fn-grid-blogrow { grid-template-columns: 120px 1fr auto; }
+@media (max-width: 767px) {
+  .fn-grid-blogrow { grid-template-columns: 1fr; gap: 14px !important; }
+}
+
+/* Section header rows that stack under 768 (projects/blog header, footer). */
+.fn-row-stack { display: flex; justify-content: space-between; align-items: baseline; }
+@media (max-width: 767px) {
+  .fn-row-stack {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+}
+
+/* Pending project row (label left, cta right) — stack with wrap. */
+.fn-pending-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+/* Project card header strip (pills + handle) — wraps on small screens. */
+.fn-projectcard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Footer flex — stacks under 768. */
+.fn-footer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+}
+@media (max-width: 767px) {
+  .fn-footer-row { flex-direction: column; align-items: flex-start; }
+  .fn-footer-row > :last-child { text-align: left !important; }
+}
+
+/* Show/hide by breakpoint (mobile = <768). */
+.fn-hide-mobile { display: flex; }
+.fn-show-mobile { display: none; }
+@media (max-width: 767px) {
+  .fn-hide-mobile { display: none !important; }
+  .fn-show-mobile { display: flex !important; }
+}
+
+/* Lock body scroll when the mobile drawer is open. */
+body.fn-no-scroll { overflow: hidden; }
 
 /* ────────────────────────────────────────────────────────────────
    PROSE — typography for MDX blog content

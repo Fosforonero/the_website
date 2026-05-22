@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { P15Box } from "./p15-box";
 import { Pill } from "./pill";
+import { MobileNav } from "@/components/client/mobile-nav";
 import { getDictionary } from "@/lib/i18n";
 import { site, type Locale, getLocalePath } from "@/lib/site";
 
@@ -11,6 +12,7 @@ export function Nav({ locale }: Props) {
   const homeHref = getLocalePath(locale, "/");
   const otherLocale: Locale = locale === "it" ? "en" : "it";
   const otherLocaleHref = getLocalePath(otherLocale, "/");
+  const ariaLabel = locale === "it" ? "Menu di navigazione" : "Navigation menu";
 
   const links: Array<{ label: string; href: string }> = [
     { label: t.nav.about, href: `${homeHref}#about` },
@@ -25,10 +27,10 @@ export function Nav({ locale }: Props) {
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        padding: "20px 32px",
-        margin: "24px 32px",
+        padding: "clamp(14px, 3vw, 20px) clamp(16px, 4vw, 32px)",
+        margin: "clamp(12px, 3vw, 24px) clamp(12px, 4vw, 32px)",
         position: "sticky",
-        top: 24,
+        top: "clamp(12px, 3vw, 24px)",
         zIndex: 50,
         background: "rgba(255,255,255,0.7)",
         backdropFilter: "blur(12px)",
@@ -58,8 +60,8 @@ export function Nav({ locale }: Props) {
       </Link>
 
       <nav
+        className="fn-hide-mobile"
         style={{
-          display: "flex",
           gap: 4,
           fontSize: 14,
           color: "var(--color-ink-2)",
@@ -97,6 +99,14 @@ export function Nav({ locale }: Props) {
           <Pill>{otherLocale.toUpperCase()}</Pill>
         </Link>
       </nav>
+
+      <MobileNav
+        links={links}
+        currentLocaleLabel={locale.toUpperCase()}
+        otherLocaleLabel={otherLocale.toUpperCase()}
+        otherLocaleHref={otherLocaleHref}
+        ariaLabel={ariaLabel}
+      />
     </header>
   );
 }

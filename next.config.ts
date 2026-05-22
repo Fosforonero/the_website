@@ -1,13 +1,21 @@
 import type { NextConfig } from "next";
+import path from "node:path";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // Pin Turbopack to this project root — there's an outer package-lock.json
+  // higher up the filesystem that Turbopack would otherwise infer.
+  turbopack: {
+    root: path.resolve(),
+  },
   experimental: {
     optimizePackageImports: ["lucide-react"],
   },
-  // Best practice 2026: enable strict typed routes
-  typedRoutes: true,
+  // typedRoutes disabled: getLocalePath / interpolated href strings can't
+  // satisfy Next 16's literal route types. Re-enable when navigation is
+  // refactored around the Route<T> helper.
+  typedRoutes: false,
   // Long-term immutable caching for static assets is handled by Next; we only
   // override response headers where SEO requires it.
   async headers() {
