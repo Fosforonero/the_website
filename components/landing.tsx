@@ -618,8 +618,9 @@ export function Landing({ locale, posts }: Props) {
                 {(
                   [
                     ["GitHub", "github.com/fosforonero", site.socials.github],
-                    ["LinkedIn", "in/matteopizzi", site.socials.linkedin],
-                    ["Hugging Face", "huggingface.co/fosforonero", site.socials.huggingface],
+                    ["LinkedIn", "in/matteo-pizzi", site.socials.linkedin],
+                    ["Hugging Face", "huggingface.co/Fosforonero", site.socials.huggingface],
+                    ["Instagram", "instagram.com/fosforonero", site.socials.instagram],
                   ] as const
                 ).map(([k, v, href]) => (
                   <a

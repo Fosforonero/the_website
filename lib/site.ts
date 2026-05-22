@@ -15,8 +15,9 @@ export const site = {
   },
   socials: {
     github: "https://github.com/fosforonero",
-    linkedin: "https://linkedin.com/in/matteopizzi",
-    huggingface: "https://huggingface.co/fosforonero",
+    linkedin: "https://www.linkedin.com/in/matteo-pizzi-72a49321/",
+    huggingface: "https://huggingface.co/Fosforonero",
+    instagram: "https://www.instagram.com/fosforonero/",
   },
 } as const;
 
