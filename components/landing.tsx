@@ -608,11 +608,13 @@ export function Landing({ locale, posts }: Props) {
             </Reveal>
             <Reveal delay={200}>
               <div style={{ display: "flex", gap: 14, marginTop: 18, flexWrap: "wrap" }}>
-                {[
-                  ["GitHub", "github.com/fosforonero", site.socials.github],
-                  ["LinkedIn", "in/matteopizzi", site.socials.linkedin],
-                  ["Hugging Face", "huggingface.co/fosforonero", site.socials.huggingface],
-                ].map(([k, v, href]) => (
+                {(
+                  [
+                    ["GitHub", "github.com/fosforonero", site.socials.github],
+                    ["LinkedIn", "in/matteopizzi", site.socials.linkedin],
+                    ["Hugging Face", "huggingface.co/fosforonero", site.socials.huggingface],
+                  ] as const
+                ).map(([k, v, href]) => (
                   <a
                     key={k}
                     href={href}
