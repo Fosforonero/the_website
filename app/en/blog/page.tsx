@@ -11,7 +11,7 @@ export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "Writing · Technical notes",
-  description: `Working notes, project retrospectives and technical decisions by ${site.author.name}, software engineer at ${site.name}. Updated whenever there's something concrete worth sharing.`,
+  description: `Working notes, project retrospectives and technical decisions by ${site.author.name}, independent software engineer. Updated when there's something concrete to share.`,
   alternates: {
     canonical: "/en/blog",
     languages: { it: "/blog", en: "/en/blog", "x-default": "/blog" },
