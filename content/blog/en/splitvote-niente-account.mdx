@@ -1,0 +1,35 @@
+---
+title: "Why SplitVote has no account system"
+excerpt: "A short take on why sign-up is the first drop-off point in a quick-poll tool, and how I worked around it."
+date: "2026-02-04"
+tag: "SplitVote"
+---
+
+SplitVote is a tool for group decisions: "where do we eat tonight?", "which logo do we go with?", "should we vote yes on this proposal?". 80% of the use cases are one-off, inside a group chat, with people who will never come back to the app.
+
+That's why there's no account system.
+
+## What this means in practice
+
+When you create a poll:
+
+1. You get a link with a random slug
+2. You automatically become the admin of that poll (local cookie)
+3. You share the link in chat
+4. Whoever clicks, votes — no sign-up
+
+For voters: identity comes from a lightweight browser fingerprint, with no IP logged server-side. A user can only vote once per poll, but if they switch browsers they can vote again. That's an acceptable tradeoff: SplitVote isn't a tool for elections, it's a tool for friends.
+
+## Problems this solved for me
+
+- **Zero emails to send**: no verification, no password reset, no Supabase Auth triggers to debug.
+- **Zero compliance overhead**: no accounts = no personal data = no GDPR concerns beyond the strictly-necessary cookie.
+- **Clean funnel**: from click to vote in 2 seconds. Conversion rate is far higher than comparable tools.
+
+## Problems it created
+
+- **Account recovery**: if you lose the admin cookie, you lose control of the poll. Fix: the admin can download a "recovery token" at creation time.
+- **Spam protection**: without accounts, bots have an easier time gaming the vote. For now an aggressive rate limit at the edge does the job.
+- **Mobile onboarding**: in the mobile version I'm building, I'll need to add optional accounts for users who want to keep their polls over time.
+
+> The right question isn't "do I need an account system?". It's "what's the first drop-off point, and how do I remove it?".

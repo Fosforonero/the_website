@@ -5,4 +5,26 @@ date: "2025-12-02"
 tag: "Stack"
 ---
 
-> ⚠️ Placeholder. Translate from `content/blog/it/stack-2026.mdx`.
+Every few years I redraw my mental stack — not for fun, but to stay grounded. What follows is where I am right now, at the start of 2026.
+
+## The three core technologies
+
+**Flutter** for the mobile client. After a couple of years on React Native, I came back to Flutter for two reasons above all: consistent cross-platform rendering and a developer experience that holds up (reliable hot reload, mature devtools). FitMesh is the proof — a single codebase running on Android and Wear OS.
+
+**Next.js** on the web. App Router, React Server Components, security defaults you don't have to fight. Has it become too complex? Maybe. But for a solo indie dev, the alternative is wiring together five separate libraries yourself. I'll take the opinionated framework.
+
+**Supabase** as the backend. Real Postgres, integrated auth, realtime when you need it. It's the one vendor I actively design *not* to lock me in — so I structure the schema in a way that lets me export the data out without depending on their advanced features.
+
+## What I dropped, and why
+
+- **Firebase**: I used it for years, but the pricing curve gets brutal at scale and Firestore isn't a real relational database. The moment you need joins, you feel it.
+- **Prisma**: nice tool, but for small projects Supabase plus its auto-generated types is leaner.
+- **tRPC**: when you have an external client (a mobile app), it doesn't fit. I stay on plain REST.
+
+## What holds it all together
+
+A single shared types file, generated from Supabase, imported in both the web client and the Flutter app (via a small script that converts the TS types into Dart models). Old trick, still does its job.
+
+> The right stack isn't the objectively best one. It's the one you can maintain alone for ten years.
+
+I'll revisit this post in a year. Let's see what changes.

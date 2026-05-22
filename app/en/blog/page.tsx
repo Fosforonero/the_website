@@ -10,21 +10,21 @@ import { site } from "@/lib/site";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: "Blog · Note tecniche",
-  description: `Note di lavoro, retrospettive e scelte tecniche di ${site.author.name}.`,
+  title: "Writing · Technical notes",
+  description: `Working notes, retrospectives and technical decisions by ${site.author.name}.`,
   alternates: {
-    canonical: "/blog",
+    canonical: "/en/blog",
     languages: { it: "/blog", en: "/en/blog", "x-default": "/blog" },
   },
 };
 
-export default async function BlogIndexPage() {
-  const t = getDictionary("it");
-  const posts = await getAllPosts("it");
+export default async function EnBlogIndexPage() {
+  const t = getDictionary("en");
+  const posts = await getAllPosts("en");
 
   return (
     <div style={{ minHeight: "100vh" }}>
-      <Nav locale="it" />
+      <Nav locale="en" />
       <main
         id="main"
         style={{

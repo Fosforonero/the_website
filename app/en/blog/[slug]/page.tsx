@@ -8,9 +8,8 @@ import { getAllSlugs, getPost } from "@/lib/blog";
 import { blogPostingLd } from "@/lib/jsonld";
 import { site } from "@/lib/site";
 
-// Static generation for every known post; built once at deploy.
 export async function generateStaticParams() {
-  const slugs = await getAllSlugs("it");
+  const slugs = await getAllSlugs("en");
   return slugs.map((slug) => ({ slug }));
 }
 
@@ -24,13 +23,13 @@ export async function generateMetadata({
   params: Promise<Params>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const post = await getPost("it", slug);
-  if (!post) return { title: "Articolo non trovato" };
+  const post = await getPost("en", slug);
+  if (!post) return { title: "Post not found" };
   return {
     title: post.title,
     description: post.excerpt,
     alternates: {
-      canonical: `/blog/${post.slug}`,
+      canonical: `/en/blog/${post.slug}`,
       languages: {
         it: `/blog/${post.slug}`,
         en: `/en/blog/${post.slug}`,
@@ -38,6 +37,7 @@ export async function generateMetadata({
     },
     openGraph: {
       type: "article",
+      locale: "en_US",
       title: post.title,
       description: post.excerpt,
       publishedTime: post.date,
@@ -47,20 +47,22 @@ export async function generateMetadata({
   };
 }
 
-export default async function BlogPostPage({ params }: { params: Promise<Params> }) {
+export default async function EnBlogPostPage({ params }: { params: Promise<Params> }) {
   const { slug } = await params;
-  const post = await getPost("it", slug);
+  const post = await getPost("en", slug);
   if (!post) notFound();
 
-  const dateStr = new Date(post.date).toLocaleDateString("it-IT", {
+  const dateStr = new Date(post.date).toLocaleDateString("en-US", {
     day: "numeric",
     month: "long",
     year: "numeric",
   });
 
+  const ld = JSON.stringify(blogPostingLd(post));
+
   return (
     <div style={{ minHeight: "100vh" }}>
-      <Nav locale="it" />
+      <Nav locale="en" />
       <main
         id="main"
         style={{
@@ -83,7 +85,7 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
                   letterSpacing: "0.08em",
                 }}
               >
-                {dateStr} · {post.readingMinutes} min di lettura
+                {dateStr} · {post.readingMinutes} min read
               </span>
             </div>
             <h1
@@ -133,19 +135,24 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
           >
             <span>{site.author.name}</span>
             <Link
-              href="/blog"
+              href="/en/blog"
               className="fn-link-underline"
               style={{ color: "var(--color-ink)", textDecoration: "none", fontWeight: 600 }}
             >
-              ← TUTTI GLI ARTICOLI
+              ← ALL POSTS
             </Link>
           </footer>
         </article>
+        {/* Structured data injected via JsonLdScript below */}
       </main>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostingLd(post)) }}
-      />
+      <JsonLdScript json={ld} />
     </div>
   );
+}
+
+// Server-only helper. The JSON is built on the server from controlled inputs
+// (frontmatter from our own MDX files + site constants), so this is the
+// documented Next.js pattern for embedding structured data on a page.
+function JsonLdScript({ json }: { json: string }) {
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: json }} />;
 }

@@ -34,6 +34,14 @@ type Dict = {
     headline2: string;
     paragraphs: string[];
     closingNote: string;
+    meta: {
+      basedLabel: string;
+      basedValue: string;
+      stackLabel: string;
+      stackValue: string;
+      sinceLabel: string;
+      teachesLabel: string;
+    };
   };
   projects: {
     eyebrow: string;
@@ -93,9 +101,18 @@ const it: Dict = {
     paragraphs: [
       "Sviluppo software dal 2017. Ho lavorato in agenzie e team di prodotto; da qualche tempo dedico la maggior parte del tempo a progetti propri.",
       "Fosforonero è il nome sotto cui raggruppo questi progetti. Niente azienda, niente team — solo un punto unico per chi vuole sapere a cosa lavoro.",
+      "In parallelo al lavoro indipendente, insegno sviluppo software presso Orangee Academy. Confrontarsi con chi sta imparando è il modo migliore per restare onesti con i fondamentali.",
     ],
     closingNote:
-      "Disponibile per consulenze tecniche, sviluppo di prototipi e supporto a progetti esistenti. Per richieste, contattami via email.",
+      "Disponibile per consulenze tecniche, sviluppo di prototipi e supporto a progetti esistenti. Per richieste, scrivimi via email.",
+    meta: {
+      basedLabel: "// sede",
+      basedValue: "Roma, Italia",
+      stackLabel: "// stack",
+      stackValue: "Flutter · Next.js · Supabase · TypeScript",
+      sinceLabel: "// dal",
+      teachesLabel: "// insegna",
+    },
   },
   projects: {
     eyebrow: "§ II — Progetti",
@@ -134,17 +151,17 @@ const en: Dict = {
   hero: {
     eyebrow: "INDEPENDENT DEVELOPER · Rome · Since 2017",
     title1: "Building software",
-    titleRotating: ["independently.", "sustainably.", "on purpose."],
+    titleRotating: ["independently.", "sustainably.", "tailored."],
     paragraph: (name, brand) =>
-      `I'm ${name}, a software developer based in Rome. ${brand} is the name I publish my projects under: apps, dashboards and tools for web and mobile.`,
+      `I'm ${name}, a software engineer based in Rome. ${brand} is the name I publish my projects under: applications, dashboards and tooling for web and mobile.`,
     ctaProjects: "Browse projects",
     ctaContact: "Get in touch",
   },
   metrics: {
     projects: "PROJECTS",
-    projectsSub: "active",
+    projectsSub: "shipping",
     since: "SINCE",
-    sinceSub: "writing software",
+    sinceSub: "building software",
     base: "BASED IN",
     baseSub: "Italy",
     stack: "STACK",
@@ -155,16 +172,25 @@ const en: Dict = {
     headline1: "Matteo",
     headline2: "Pizzi.",
     paragraphs: [
-      "Writing software since 2017. Worked in agencies and product teams; lately I've been focusing most of my time on my own work.",
-      "Fosforonero is the umbrella for those projects. No company, no team — just a single place for anyone curious about what I'm working on.",
+      "Building software since 2017. I've worked across agencies and product teams; lately, most of my time goes into my own projects.",
+      "Fosforonero is the umbrella for that work. No company, no team — a single place for anyone curious about what I'm shipping.",
+      "Alongside the independent practice, I teach software development at Orangee Academy. Working with people who are still learning is the best way to stay honest about the fundamentals.",
     ],
     closingNote:
-      "Open to technical consulting, prototype work and support on existing codebases. For inquiries, send me an email.",
+      "Available for technical consulting, prototyping and support on existing codebases. For inquiries, send me an email.",
+    meta: {
+      basedLabel: "// based",
+      basedValue: "Rome, Italy",
+      stackLabel: "// stack",
+      stackValue: "Flutter · Next.js · Supabase · TypeScript",
+      sinceLabel: "// since",
+      teachesLabel: "// teaches at",
+    },
   },
   projects: {
     eyebrow: "§ II — Projects",
     headline: "Projects.",
-    statusLine: "02 ACTIVE · 01 IN PROGRESS",
+    statusLine: "02 SHIPPING · 01 IN PROGRESS",
     openProject: "Open project",
     pendingLabel: "03 · IN PROGRESS",
     pendingText: "Not public yet",
@@ -174,7 +200,7 @@ const en: Dict = {
     eyebrow: "§ III — Writing",
     headline: "Technical notes.",
     paragraph:
-      "Working notes, project retrospectives, technical decisions. Updated whenever there's something concrete to share.",
+      "Working notes, project retrospectives, technical decisions. Updated whenever there's something concrete worth sharing.",
     allPostsCta: "ALL POSTS",
     read: "READ",
     minRead: (n) => `${n} min read`,
@@ -182,12 +208,13 @@ const en: Dict = {
   contact: {
     eyebrow: "§ IV — Contact",
     headline: "Contact.",
-    paragraph: "For any inquiry, please send a direct email. I usually reply within a few days.",
+    paragraph:
+      "For any inquiry, please send a direct email. I usually reply within a couple of days.",
     emailLabel: "EMAIL",
   },
   footer: {
     line1: "© MMXXVI · FOSFORONERO · ROME, ITALY",
-    line2: "Matteo Pizzi · Developer",
+    line2: "Matteo Pizzi · Software engineer",
     status: "● Active since 2017",
   },
 };

@@ -17,10 +17,62 @@ import { Cursor } from "@/components/parts/cursor";
 import { Nav } from "@/components/parts/nav";
 import { ProjectCard } from "@/components/parts/project-card";
 import { BlogRow } from "@/components/parts/blog-row";
+import type { ReactNode } from "react";
 import { projects } from "@/lib/projects";
 import { getDictionary } from "@/lib/i18n";
 import { site, type Locale } from "@/lib/site";
 import type { BlogPostMeta } from "@/lib/blog";
+
+// Splits a paragraph on known tokens (brand name, teaching org) and replaces
+// each occurrence with rich markup: brand → accent span, teaching → external
+// link. Tokens that don't appear in the input are no-ops.
+function renderAboutParagraph(text: string): ReactNode[] {
+  type Token = { key: string; match: string; render: (s: string) => ReactNode };
+  const tokens: Token[] = [
+    {
+      key: "brand",
+      match: site.name,
+      render: (s) => (
+        <span style={{ color: "var(--color-accent)", fontWeight: 500 }}>{s}</span>
+      ),
+    },
+    {
+      key: "teaching",
+      match: site.teaching.name,
+      render: (s) => (
+        <a
+          href={site.teaching.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fn-link-underline"
+          style={{ color: "var(--color-ink)", textDecoration: "none", fontWeight: 500 }}
+        >
+          {s}
+        </a>
+      ),
+    },
+  ];
+
+  let parts: ReactNode[] = [text];
+  for (const token of tokens) {
+    const next: ReactNode[] = [];
+    parts.forEach((part) => {
+      if (typeof part !== "string") {
+        next.push(part);
+        return;
+      }
+      const segments = part.split(token.match);
+      segments.forEach((seg, i) => {
+        if (seg) next.push(seg);
+        if (i < segments.length - 1) {
+          next.push(<span key={`${token.key}-${next.length}`}>{token.render(token.match)}</span>);
+        }
+      });
+    });
+    parts = next;
+  }
+  return parts;
+}
 
 const TECH = [
   "TypeScript",
@@ -323,18 +375,32 @@ export function Landing({ locale, posts }: Props) {
                 }}
               >
                 <div>
-                  <span style={{ color: "var(--color-dim)" }}>{"// sede"}</span>
+                  <span style={{ color: "var(--color-dim)" }}>{t.about.meta.basedLabel}</span>
                 </div>
-                <div>{site.author.city}, Italia</div>
+                <div>{t.about.meta.basedValue}</div>
                 <div style={{ marginTop: 6 }}>
-                  <span style={{ color: "var(--color-dim)" }}>{"// stack"}</span>
+                  <span style={{ color: "var(--color-dim)" }}>{t.about.meta.stackLabel}</span>
                 </div>
-                <div>Flutter · Next.js · Supabase · TypeScript</div>
+                <div>{t.about.meta.stackValue}</div>
                 <div style={{ marginTop: 6 }}>
-                  <span style={{ color: "var(--color-dim)" }}>{"// dal"}</span>
+                  <span style={{ color: "var(--color-dim)" }}>{t.about.meta.sinceLabel}</span>
                 </div>
                 <div>
                   <span style={{ color: "var(--color-accent)" }}>{site.author.since}</span>
+                </div>
+                <div style={{ marginTop: 6 }}>
+                  <span style={{ color: "var(--color-dim)" }}>{t.about.meta.teachesLabel}</span>
+                </div>
+                <div>
+                  <a
+                    href={site.teaching.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="fn-link-underline"
+                    style={{ color: "var(--color-ink-2)", textDecoration: "none" }}
+                  >
+                    {site.teaching.name} <span style={{ color: "var(--color-accent)" }}>↗</span>
+                  </a>
                 </div>
               </div>
             </Reveal>
@@ -350,22 +416,7 @@ export function Landing({ locale, posts }: Props) {
               >
                 {t.about.paragraphs.map((p, i) => (
                   <p key={i} style={{ margin: "0 0 24px" }}>
-                    {p.includes(site.name) ? (
-                      <>
-                        {p.split(site.name).map((chunk, j, arr) => (
-                          <span key={j}>
-                            {chunk}
-                            {j < arr.length - 1 ? (
-                              <span style={{ color: "var(--color-accent)", fontWeight: 500 }}>
-                                {site.name}
-                              </span>
-                            ) : null}
-                          </span>
-                        ))}
-                      </>
-                    ) : (
-                      p
-                    )}
+                    {renderAboutParagraph(p)}
                   </p>
                 ))}
                 <p

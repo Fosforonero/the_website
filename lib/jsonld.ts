@@ -35,6 +35,11 @@ export function personLd() {
     url: site.url,
     jobTitle: site.author.role,
     worksFor: { "@type": "Organization", name: site.name, url: site.url },
+    affiliation: {
+      "@type": "EducationalOrganization",
+      name: site.teaching.name,
+      url: site.teaching.url,
+    },
     address: {
       "@type": "PostalAddress",
       addressLocality: site.author.city,

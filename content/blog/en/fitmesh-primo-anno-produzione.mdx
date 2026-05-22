@@ -1,0 +1,35 @@
+---
+title: "Notes from FitMesh's first year in production"
+excerpt: "What held up, what I rewrote, what I'd change. A retrospective of an indie app with real users."
+date: "2026-01-18"
+tag: "Retrospective"
+---
+
+FitMesh has been live for just over a year. Here's what I learned.
+
+## What held up
+
+**The Postgres schema.** I spent one extra hour thinking it through, rather than shipping the first schema that worked — and it paid me back a hundred times over. The analytics queries and the export jobs still run today without any restructuring.
+
+**The client/server separation.** The wearable talks only to the phone. The phone talks only to the backend. The backend talks only to the database. No shortcuts, no extra APIs. Every time I added a feature, I knew exactly where it belonged.
+
+**Flutter on Wear OS.** This was the riskiest call and it surprised me: hot reload working on the watch, acceptable performance, distribution through the Play Store without friction.
+
+## What I rewrote
+
+**The sync layer.** The first version polled every 60s. It made sense at launch (easier debugging), but it didn't scale: the phone kept waking up constantly. I rewrote it with `WorkManager` triggered by Data Layer events. Result: −70% battery drain on the phone.
+
+**The app's home screen.** The first version showed every metric on a single dashboard. Cluttered. It's now a stack of cards, each carrying one primary metric. More legible, more mobile-friendly.
+
+## What I'd change today
+
+- I would adopt `androidx.health.connect.client` as an extra layer from day one
+- I would ship the trend charts in v1 — users have been asking for them since week one
+- I would invest earlier in onboarding: 40% of users drop off during the permissions setup
+- I wouldn't use Supabase Storage for avatars — overkill. A simple URL + S3 would be cheaper
+
+## Numbers, for context
+
+No secret data, no vanity metrics. FitMesh has real users but small numbers. That's not the point. The point is that it's an experiment that works, it's live, it's maintained, and it teaches me something new every week.
+
+> One indie app in production is worth ten indie apps in the drawer.
