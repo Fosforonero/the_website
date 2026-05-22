@@ -11,11 +11,21 @@ export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "Writing · Technical notes",
-  description: `Working notes, retrospectives and technical decisions by ${site.author.name}.`,
+  description: `Working notes, project retrospectives and technical decisions by ${site.author.name}, software engineer at ${site.name}. Updated whenever there's something concrete worth sharing.`,
   alternates: {
     canonical: "/en/blog",
     languages: { it: "/blog", en: "/en/blog", "x-default": "/blog" },
   },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: `${site.url}/en/blog`,
+    siteName: site.name,
+    title: `Writing · Technical notes · ${site.name}`,
+    description: `Working notes, project retrospectives and technical decisions by ${site.author.name}.`,
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: site.name }],
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 export default async function EnBlogIndexPage() {

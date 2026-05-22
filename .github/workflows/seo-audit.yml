@@ -1,0 +1,161 @@
+name: SEO audit
+
+on:
+  schedule:
+    # 06:00 UTC every day (~07-08 Europe/Rome)
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Audit a specific origin (default: localhost build)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: seo-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      ISSUE_LABEL: "seo:regression"
+      AUDIT_REPORT_PATH: docs/seo/last-audit.json
+      AUDIT_URL_INPUT: ${{ github.event.inputs.url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.2.2
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        if: ${{ env.AUDIT_URL_INPUT == '' }}
+        run: pnpm build
+
+      - name: Start server
+        if: ${{ env.AUDIT_URL_INPUT == '' }}
+        run: |
+          pnpm start &
+          echo "$!" > .next-pid
+          for i in {1..30}; do
+            if curl -sf http://localhost:3000/ -o /dev/null; then
+              echo "Server is up"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Server never came up"
+          exit 1
+
+      - name: Run audit (localhost)
+        if: ${{ env.AUDIT_URL_INPUT == '' }}
+        run: pnpm seo:audit -- --json
+        continue-on-error: true
+
+      - name: Run audit (remote URL)
+        if: ${{ env.AUDIT_URL_INPUT != '' }}
+        run: pnpm seo:audit -- --url="$AUDIT_URL_INPUT" --json
+        continue-on-error: true
+
+      - name: Stop server
+        if: ${{ env.AUDIT_URL_INPUT == '' && always() }}
+        run: |
+          if [ -f .next-pid ]; then
+            kill "$(cat .next-pid)" 2>/dev/null || true
+            rm .next-pid
+          fi
+
+      - name: Build issue body
+        id: body
+        if: always()
+        run: |
+          if [ ! -f "$AUDIT_REPORT_PATH" ]; then
+            echo "No report file produced." > /tmp/issue-body.md
+            echo "had_errors=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          errors=$(jq -r '.totals.errors' "$AUDIT_REPORT_PATH")
+          warnings=$(jq -r '.totals.warnings' "$AUDIT_REPORT_PATH")
+          ran_at=$(jq -r '.ranAt' "$AUDIT_REPORT_PATH")
+          origin=$(jq -r '.origin' "$AUDIT_REPORT_PATH")
+          {
+            echo "## Daily SEO audit"
+            echo ""
+            echo "- Ran at: \`$ran_at\`"
+            echo "- Origin: \`$origin\`"
+            echo "- Errors: **$errors**"
+            echo "- Warnings: **$warnings**"
+            echo ""
+            if [ "$errors" -gt 0 ]; then
+              echo "### Errors"
+              jq -r '.findings[] | select(.severity=="error") | "- **\(.check)** @ \(.where) — \(.message)"' "$AUDIT_REPORT_PATH"
+              echo ""
+            fi
+            if [ "$warnings" -gt 0 ]; then
+              echo "### Warnings"
+              jq -r '.findings[] | select(.severity=="warn") | "- **\(.check)** @ \(.where) — \(.message)"' "$AUDIT_REPORT_PATH"
+              echo ""
+            fi
+            echo "---"
+            echo "Reference: [\`docs/seo/governance.md\`](../blob/main/docs/seo/governance.md)"
+          } > /tmp/issue-body.md
+          if [ "$errors" -gt 0 ]; then
+            echo "had_errors=true"  >> "$GITHUB_OUTPUT"
+          else
+            echo "had_errors=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open or update issue on regression
+        if: ${{ steps.body.outputs.had_errors == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          existing=$(gh issue list --label "$ISSUE_LABEL" --state open --json number --jq '.[0].number' || echo "")
+          today=$(date -u +%Y-%m-%d)
+          title="SEO audit: regressions detected ($today)"
+          if [ -n "$existing" ]; then
+            gh issue edit "$existing" --title "$title" --body-file /tmp/issue-body.md
+            echo "Updated issue #$existing"
+          else
+            gh issue create \
+              --title "$title" \
+              --body-file /tmp/issue-body.md \
+              --label "$ISSUE_LABEL"
+          fi
+
+      - name: Close stale issues on green audit
+        if: ${{ steps.body.outputs.had_errors == 'false' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          numbers=$(gh issue list --label "$ISSUE_LABEL" --state open --json number --jq '.[].number')
+          for n in $numbers; do
+            gh issue close "$n" --comment "Resolved by the daily SEO audit: $(date -u +%Y-%m-%dT%H:%M:%SZ)."
+          done
+
+      - name: Upload audit report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: seo-audit-report
+          path: docs/seo/last-audit.json
+          if-no-files-found: ignore
+          retention-days: 30
