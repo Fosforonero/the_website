@@ -19,10 +19,6 @@ export const site = {
     huggingface: "https://huggingface.co/Fosforonero",
     instagram: "https://www.instagram.com/fosforonero/",
   },
-  teaching: {
-    name: "Orangee Academy",
-    url: "https://academy.orangee.it/",
-  },
 } as const;
 
 export type Locale = "it" | "en";

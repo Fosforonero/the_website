@@ -83,6 +83,10 @@ body {
   from { transform: translateX(100%); }
   to   { transform: translateX(0); }
 }
+@keyframes fnBannerIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
 .fn-drawer-panel { animation: fnDrawerIn .28s cubic-bezier(0.16, 1, 0.3, 1); }
 
@@ -121,6 +125,7 @@ body {
   .fn-card-hover:hover { transform: none !important; }
   .fn-link-underline::after { transition: none !important; }
   .fn-drawer-panel { animation: none !important; }
+  [role="dialog"][aria-modal="false"] { animation: none !important; }
 }
 
 /* ────────────────────────────────────────────────────────────────

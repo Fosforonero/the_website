@@ -17,6 +17,7 @@ export type BlogPostMeta = {
   readingTime: string;
   readingMinutes: number;
   locale: Locale;
+  draft: boolean;
 };
 
 export type BlogPost = BlogPostMeta & {
@@ -24,6 +25,10 @@ export type BlogPost = BlogPostMeta & {
 };
 
 const ROOT = path.join(process.cwd(), "content", "blog");
+
+// In production we hide posts with frontmatter `draft: true`. In dev they
+// remain visible so the author can review them in-context.
+const HIDE_DRAFTS = process.env.NODE_ENV === "production";
 
 async function safeReadDir(dir: string): Promise<string[]> {
   try {
@@ -52,10 +57,13 @@ export async function getAllPosts(locale: Locale): Promise<BlogPostMeta[]> {
         readingTime: rt.text,
         readingMinutes: Math.max(1, Math.round(rt.minutes)),
         locale,
+        draft: data.draft === true,
       } satisfies BlogPostMeta;
     }),
   );
-  return posts.sort((a, b) => (a.date < b.date ? 1 : -1));
+  return posts
+    .filter((p) => !(HIDE_DRAFTS && p.draft))
+    .sort((a, b) => (a.date < b.date ? 1 : -1));
 }
 
 export async function getPost(locale: Locale, slug: string): Promise<BlogPost | null> {
@@ -63,6 +71,7 @@ export async function getPost(locale: Locale, slug: string): Promise<BlogPost | 
   try {
     const raw = await fs.readFile(fp, "utf8");
     const { data, content } = matter(raw);
+    if (HIDE_DRAFTS && data.draft === true) return null;
     const rt = readingTime(content);
     return {
       slug,
@@ -73,6 +82,7 @@ export async function getPost(locale: Locale, slug: string): Promise<BlogPost | 
       readingTime: rt.text,
       readingMinutes: Math.max(1, Math.round(rt.minutes)),
       locale,
+      draft: data.draft === true,
       content,
     };
   } catch {
@@ -82,7 +92,16 @@ export async function getPost(locale: Locale, slug: string): Promise<BlogPost | 
 
 export async function getAllSlugs(locale: Locale): Promise<string[]> {
   const dir = path.join(ROOT, locale);
-  return (await safeReadDir(dir))
-    .filter((f) => f.endsWith(".mdx"))
-    .map((f) => f.replace(/\.mdx$/, ""));
+  const files = (await safeReadDir(dir)).filter((f) => f.endsWith(".mdx"));
+  if (!HIDE_DRAFTS) return files.map((f) => f.replace(/\.mdx$/, ""));
+  // In production, parse frontmatter to skip drafts at build time.
+  const slugs: string[] = [];
+  for (const file of files) {
+    const fp = path.join(ROOT, locale, file);
+    const raw = await fs.readFile(fp, "utf8");
+    const { data } = matter(raw);
+    if (data.draft === true) continue;
+    slugs.push(file.replace(/\.mdx$/, ""));
+  }
+  return slugs;
 }

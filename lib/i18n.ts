@@ -40,7 +40,6 @@ type Dict = {
       stackLabel: string;
       stackValue: string;
       sinceLabel: string;
-      teachesLabel: string;
     };
   };
   projects: {
@@ -70,6 +69,35 @@ type Dict = {
     line1: string;
     line2: string;
     status: string;
+    legal: {
+      privacy: string;
+      cookies: string;
+      cookieSettings: string;
+    };
+  };
+  cookie: {
+    title: string;
+    body: string;
+    bodyLink: string;
+    acceptAll: string;
+    rejectAll: string;
+    manage: string;
+    savePrefs: string;
+    close: string;
+    necessary: {
+      name: string;
+      desc: string;
+    };
+    analytics: {
+      name: string;
+      desc: string;
+    };
+    learnMore: string;
+  };
+  legal: {
+    privacyTitle: string;
+    cookieTitle: string;
+    lastUpdated: (iso: string) => string;
   };
 };
 
@@ -101,7 +129,6 @@ const it: Dict = {
     paragraphs: [
       "Sviluppo software dal 2017. Ho lavorato in agenzie e team di prodotto; da qualche tempo dedico la maggior parte del tempo a progetti propri.",
       "Fosforonero è il nome sotto cui raggruppo questi progetti. Niente azienda, niente team — solo un punto unico per chi vuole sapere a cosa lavoro.",
-      "In parallelo al lavoro indipendente, insegno sviluppo software presso Orangee Academy. Confrontarsi con chi sta imparando è il modo migliore per restare onesti con i fondamentali.",
     ],
     closingNote:
       "Disponibile per consulenze tecniche, sviluppo di prototipi e supporto a progetti esistenti. Per richieste, scrivimi via email.",
@@ -111,7 +138,6 @@ const it: Dict = {
       stackLabel: "// stack",
       stackValue: "Flutter · Next.js · Supabase · TypeScript · PHP · WordPress · SEO",
       sinceLabel: "// dal",
-      teachesLabel: "// insegna",
     },
   },
   projects: {
@@ -143,6 +169,35 @@ const it: Dict = {
     line1: "© MMXXVI · FOSFORONERO · ROMA, ITALIA",
     line2: "Matteo Pizzi · Sviluppatore",
     status: "● Attivo dal 2017",
+    legal: {
+      privacy: "Privacy",
+      cookies: "Cookie",
+      cookieSettings: "Preferenze cookie",
+    },
+  },
+  cookie: {
+    title: "Le tue preferenze sui cookie",
+    body: "Questo sito usa cookie tecnici necessari al funzionamento. Per misurare l'audience in forma aggregata usiamo Google Analytics 4 in modalità consenso (Consent Mode v2), con cookie attivati solo dopo la tua scelta esplicita.",
+    bodyLink: "Maggiori dettagli nella Cookie Policy.",
+    acceptAll: "Accetta tutti",
+    rejectAll: "Rifiuta tutti",
+    manage: "Personalizza",
+    savePrefs: "Salva preferenze",
+    close: "Chiudi (equivale a rifiuto)",
+    necessary: {
+      name: "Necessari",
+      desc: "Indispensabili per il funzionamento del sito. Includono la memorizzazione delle tue preferenze sui cookie. Sempre attivi.",
+    },
+    analytics: {
+      name: "Analitici",
+      desc: "Google Analytics 4 con IP anonimizzato. Aiutano a capire come viene usato il sito, senza profilazione individuale.",
+    },
+    learnMore: "Leggi la Cookie Policy",
+  },
+  legal: {
+    privacyTitle: "Privacy Policy",
+    cookieTitle: "Cookie Policy",
+    lastUpdated: (iso) => `Ultimo aggiornamento: ${new Date(iso).toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" })}`,
   },
 };
 
@@ -174,7 +229,6 @@ const en: Dict = {
     paragraphs: [
       "Building software since 2017. I've worked across agencies and product teams; lately, most of my time goes into my own projects.",
       "Fosforonero is the umbrella for that work. No company, no team — a single place for anyone curious about what I'm shipping.",
-      "Alongside the independent practice, I teach software development at Orangee Academy. Working with people who are still learning is the best way to stay honest about the fundamentals.",
     ],
     closingNote:
       "Available for technical consulting, prototyping and support on existing codebases. For inquiries, send me an email.",
@@ -184,7 +238,6 @@ const en: Dict = {
       stackLabel: "// stack",
       stackValue: "Flutter · Next.js · Supabase · TypeScript · PHP · WordPress · SEO",
       sinceLabel: "// since",
-      teachesLabel: "// teaches at",
     },
   },
   projects: {
@@ -216,6 +269,35 @@ const en: Dict = {
     line1: "© MMXXVI · FOSFORONERO · ROME, ITALY",
     line2: "Matteo Pizzi · Software engineer",
     status: "● Active since 2017",
+    legal: {
+      privacy: "Privacy",
+      cookies: "Cookies",
+      cookieSettings: "Cookie preferences",
+    },
+  },
+  cookie: {
+    title: "Your cookie preferences",
+    body: "This site uses technical cookies that are strictly necessary. For aggregate audience measurement we use Google Analytics 4 in Consent Mode v2 — analytics cookies only fire after your explicit choice.",
+    bodyLink: "Full details in the Cookie Policy.",
+    acceptAll: "Accept all",
+    rejectAll: "Reject all",
+    manage: "Customise",
+    savePrefs: "Save preferences",
+    close: "Close (counts as reject)",
+    necessary: {
+      name: "Necessary",
+      desc: "Required for the site to work. They include storing your cookie choice. Always on.",
+    },
+    analytics: {
+      name: "Analytics",
+      desc: "Google Analytics 4 with anonymised IP. Helps us understand how the site is used, without individual profiling.",
+    },
+    learnMore: "Read the Cookie Policy",
+  },
+  legal: {
+    privacyTitle: "Privacy Policy",
+    cookieTitle: "Cookie Policy",
+    lastUpdated: (iso) => `Last updated: ${new Date(iso).toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" })}`,
   },
 };
 

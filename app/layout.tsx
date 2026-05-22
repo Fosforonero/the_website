@@ -1,8 +1,15 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import { site } from "@/lib/site";
 import { organizationLd, personLd } from "@/lib/jsonld";
+import { CookieBanner } from "@/components/client/cookie-banner";
+
+// GA Measurement ID is optional: when empty we skip loading gtag entirely,
+// which is the right behaviour for local development.
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
 // Self-hosted via next/font — zero CLS, no third-party request at runtime.
 const sansGrotesk = Space_Grotesk({
@@ -83,8 +90,31 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         it does NOT mask real mismatches inside the tree.
       */}
       <body suppressHydrationWarning>
+        {/*
+          Google Consent Mode v2 — default = denied for everything.
+          Runs before any gtag/Analytics script via strategy=beforeInteractive,
+          so GA4 starts in cookie-less ping mode. The CookieBanner upgrades
+          the consent state on user action.
+        */}
+        <Script id="ga-consent-default" strategy="beforeInteractive">
+          {`window.dataLayer = window.dataLayer || [];
+            function gtag(){window.dataLayer.push(arguments);}
+            window.gtag = gtag;
+            gtag('consent', 'default', {
+              'ad_storage': 'denied',
+              'ad_user_data': 'denied',
+              'ad_personalization': 'denied',
+              'analytics_storage': 'denied',
+              'wait_for_update': 500
+            });`}
+        </Script>
+
         <a href="#main" className="skip-link">Vai al contenuto</a>
         {children}
+
+        {GA_ID ? <GoogleAnalytics gaId={GA_ID} /> : null}
+        <CookieBanner />
+
         <script
           type="application/ld+json"
           // Inline JSON-LD is the documented Next.js pattern for SEO structured data.

@@ -7,8 +7,8 @@ export const dynamic = "force-static";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
-  // Static pages: home + blog index, per locale
-  const staticPaths = ["/", "/blog"];
+  // Static pages: home + blog index + legal pages, per locale
+  const staticPaths = ["/", "/blog", "/privacy", "/cookies"];
   const staticEntries: MetadataRoute.Sitemap = staticPaths.map((p) => ({
     url: `${site.url}${getLocalePath(defaultLocale, p)}`,
     lastModified: now,

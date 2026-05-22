@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Nav } from "@/components/parts/nav";
+import { Footer } from "@/components/parts/footer";
 import { BlogRow } from "@/components/parts/blog-row";
 import { Pill } from "@/components/parts/pill";
 import { Reveal } from "@/components/client/reveal";
@@ -33,14 +34,16 @@ export default async function BlogIndexPage() {
   const posts = await getAllPosts("it");
 
   return (
-    <div style={{ minHeight: "100vh" }}>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <Nav locale="it" />
       <main
         id="main"
         style={{
+          flex: 1,
           padding: "clamp(40px, 8vw, 60px) clamp(20px, 5vw, 64px) clamp(64px, 12vw, 120px)",
           maxWidth: 1280,
           margin: "0 auto",
+          width: "100%",
         }}
       >
         <Reveal>
@@ -82,6 +85,7 @@ export default async function BlogIndexPage() {
           ))}
         </div>
       </main>
+      <Footer locale="it" />
     </div>
   );
 }

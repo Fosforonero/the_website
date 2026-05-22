@@ -34,6 +34,10 @@ const ROUTES_TO_AUDIT = [
   { path: "/en", expectLdTypes: ["Organization", "Person", "ItemList"] },
   { path: "/blog", expectLdTypes: ["Organization", "Person"] },
   { path: "/en/blog", expectLdTypes: ["Organization", "Person"] },
+  { path: "/privacy", expectLdTypes: ["Organization", "Person"] },
+  { path: "/en/privacy", expectLdTypes: ["Organization", "Person"] },
+  { path: "/cookies", expectLdTypes: ["Organization", "Person"] },
+  { path: "/en/cookies", expectLdTypes: ["Organization", "Person"] },
 ];
 
 function parseArgs(argv: string[]): Args {

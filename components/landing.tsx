@@ -9,11 +9,11 @@
 // in app/globals.css as .fn-* helper classes applied via className.
 
 import { Reveal } from "@/components/client/reveal";
-import { P15Box } from "@/components/parts/p15-box";
 import { Pill } from "@/components/parts/pill";
 import { RotatingWord } from "@/components/parts/rotating-word";
 import { TechTicker } from "@/components/parts/tech-ticker";
 import { Nav } from "@/components/parts/nav";
+import { Footer } from "@/components/parts/footer";
 import { ProjectCard } from "@/components/parts/project-card";
 import { BlogRow } from "@/components/parts/blog-row";
 import type { ReactNode } from "react";
@@ -22,9 +22,9 @@ import { getDictionary } from "@/lib/i18n";
 import { site, type Locale } from "@/lib/site";
 import type { BlogPostMeta } from "@/lib/blog";
 
-// Splits a paragraph on known tokens (brand name, teaching org) and replaces
-// each occurrence with rich markup: brand → accent span, teaching → external
-// link. Tokens that don't appear in the input are no-ops.
+// Splits a paragraph on known tokens (currently just the brand name) and
+// replaces each occurrence with rich markup. Extra tokens can be added to the
+// array without changing the splitter logic.
 function renderAboutParagraph(text: string): ReactNode[] {
   type Token = { key: string; match: string; render: (s: string) => ReactNode };
   const tokens: Token[] = [
@@ -33,21 +33,6 @@ function renderAboutParagraph(text: string): ReactNode[] {
       match: site.name,
       render: (s) => (
         <span style={{ color: "var(--color-accent)", fontWeight: 500 }}>{s}</span>
-      ),
-    },
-    {
-      key: "teaching",
-      match: site.teaching.name,
-      render: (s) => (
-        <a
-          href={site.teaching.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="fn-link-underline"
-          style={{ color: "var(--color-ink)", textDecoration: "none", fontWeight: 500 }}
-        >
-          {s}
-        </a>
       ),
     },
   ];
@@ -387,20 +372,6 @@ export function Landing({ locale, posts }: Props) {
                 <div>
                   <span style={{ color: "var(--color-accent)" }}>{site.author.since}</span>
                 </div>
-                <div style={{ marginTop: 6 }}>
-                  <span style={{ color: "var(--color-dim)" }}>{t.about.meta.teachesLabel}</span>
-                </div>
-                <div>
-                  <a
-                    href={site.teaching.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="fn-link-underline"
-                    style={{ color: "var(--color-ink-2)", textDecoration: "none" }}
-                  >
-                    {site.teaching.name} <span style={{ color: "var(--color-accent)" }}>↗</span>
-                  </a>
-                </div>
               </div>
             </Reveal>
             <Reveal delay={140}>
@@ -684,43 +655,7 @@ export function Landing({ locale, posts }: Props) {
         </section>
       </main>
 
-      {/* ───────── FOOTER ───────── */}
-      <footer
-        className="fn-footer-row"
-        style={{
-          padding: `clamp(32px, 5vw, 48px) ${SECTION_PAD_X}`,
-          borderTop: "1px solid var(--color-rule)",
-        }}
-      >
-        <div>
-          <P15Box size={28} />
-          <div
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: 11,
-              color: "var(--color-dim)",
-              marginTop: 14,
-              letterSpacing: "0.12em",
-            }}
-          >
-            {t.footer.line1}
-          </div>
-        </div>
-        <div
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: 11,
-            color: "var(--color-dim)",
-            textAlign: "right",
-            letterSpacing: "0.12em",
-            lineHeight: 1.8,
-          }}
-        >
-          {t.footer.line2}
-          <br />
-          <span style={{ color: "var(--color-accent)", fontWeight: 600 }}>{t.footer.status}</span>
-        </div>
-      </footer>
+      <Footer locale={locale} />
     </div>
   );
 }

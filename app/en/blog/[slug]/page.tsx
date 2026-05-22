@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { Nav } from "@/components/parts/nav";
+import { Footer } from "@/components/parts/footer";
 import { Pill } from "@/components/parts/pill";
 import { getAllSlugs, getPost } from "@/lib/blog";
 import { blogPostingLd } from "@/lib/jsonld";
@@ -61,14 +62,16 @@ export default async function EnBlogPostPage({ params }: { params: Promise<Param
   const ld = JSON.stringify(blogPostingLd(post));
 
   return (
-    <div style={{ minHeight: "100vh" }}>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <Nav locale="en" />
       <main
         id="main"
         style={{
+          flex: 1,
           padding: "clamp(40px, 8vw, 60px) clamp(20px, 5vw, 64px) clamp(64px, 12vw, 120px)",
           maxWidth: 760,
           margin: "0 auto",
+          width: "100%",
         }}
       >
         <article>
@@ -145,6 +148,7 @@ export default async function EnBlogPostPage({ params }: { params: Promise<Param
         </article>
         {/* Structured data injected via JsonLdScript below */}
       </main>
+      <Footer locale="en" />
       <JsonLdScript json={ld} />
     </div>
   );
