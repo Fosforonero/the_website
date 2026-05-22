@@ -5,7 +5,7 @@
 import Link from "next/link";
 import { P15Box } from "./p15-box";
 import { Pill } from "./pill";
-import { Footer } from "./footer";
+import { CookieSettingsLink } from "@/components/client/cookie-settings-link";
 import { getDictionary } from "@/lib/i18n";
 import { getLocalePath, site, type Locale } from "@/lib/site";
 
@@ -198,26 +198,43 @@ export function ComingSoon({ locale }: Props) {
           </div>
         </div>
 
-        {/* Discreet blog link — the rest of the site keeps working */}
-        <div style={{ marginTop: "clamp(32px, 5vw, 48px)" }}>
-          <Link
-            href={getLocalePath(locale, "/blog")}
-            className="fn-link-underline"
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: 11,
-              letterSpacing: "0.16em",
-              color: "var(--color-dim)",
-              textDecoration: "none",
-              textTransform: "uppercase",
-            }}
-          >
-            {t.comingSoon.blogLink} →
-          </Link>
-        </div>
       </main>
 
-      <Footer locale={locale} />
+      {/* Micro legal footer — required by GDPR while GA + cookie banner are
+          active. Plain mono row, no copyright, no nav. */}
+      <div
+        style={{
+          padding: "clamp(20px, 4vw, 32px) clamp(20px, 5vw, 64px)",
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "center",
+          gap: "10px 18px",
+          fontFamily: "var(--font-mono)",
+          fontSize: 11,
+          color: "var(--color-dim)",
+          letterSpacing: "0.12em",
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
+        <Link
+          href={getLocalePath(locale, "/privacy")}
+          className="fn-link-underline"
+          style={{ color: "var(--color-dim)", textDecoration: "none" }}
+        >
+          {t.footer.legal.privacy}
+        </Link>
+        <Link
+          href={getLocalePath(locale, "/cookies")}
+          className="fn-link-underline"
+          style={{ color: "var(--color-dim)", textDecoration: "none" }}
+        >
+          {t.footer.legal.cookies}
+        </Link>
+        <CookieSettingsLink className="fn-link-underline">
+          {t.footer.legal.cookieSettings}
+        </CookieSettingsLink>
+      </div>
     </div>
   );
 }
