@@ -1,20 +1,18 @@
+// Project card — single-column layout. No invented mock screenshots: we
+// surface the project through copy (name, tagline, description, stack) and
+// a CTA, with the brand colour expressed as an accent bar on the left rim.
+//
+// Mock SVG components (fitmesh-mock, splitvote-mock, chatbot-mock) are kept
+// in the repo as legacy until we decide whether to replace them with real
+// screenshots.
+
 import { Pill } from "./pill";
-import { FitMeshMock } from "./fitmesh-mock";
-import { SplitVoteMock } from "./splitvote-mock";
-import { ChatbotMock } from "./chatbot-mock";
 import type { Project } from "@/lib/projects";
 import type { Locale } from "@/lib/site";
 
 type Props = { project: Project; idx: number; locale: Locale; openLabel: string };
 
-const MOCKS: Record<string, (props: { accent?: string }) => React.JSX.Element> = {
-  fitmesh: FitMeshMock,
-  splitvote: SplitVoteMock,
-  "chatbot-ai": ChatbotMock,
-};
-
 export function ProjectCard({ project: p, idx, locale, openLabel }: Props) {
-  const Mock = MOCKS[p.id] ?? FitMeshMock;
   const copy = p.copy[locale];
 
   return (
@@ -23,6 +21,7 @@ export function ProjectCard({ project: p, idx, locale, openLabel }: Props) {
       style={{
         background: "var(--color-card)",
         border: "1px solid var(--color-rule)",
+        borderLeft: `4px solid ${p.brand}`,
         borderRadius: 14,
         overflow: "hidden",
         boxShadow: "0 1px 3px rgba(10,10,10,0.04), 0 12px 32px rgba(10,10,10,0.06)",
@@ -75,53 +74,59 @@ export function ProjectCard({ project: p, idx, locale, openLabel }: Props) {
         )}
       </div>
       <div
-        className="fn-grid-project"
         style={{
-          display: "grid",
-          gap: "clamp(24px, 4vw, 36px)",
-          padding: "clamp(20px, 4vw, 36px)",
-          alignItems: "center",
+          padding: "clamp(24px, 4vw, 40px)",
         }}
       >
-        <div>
-          <h3
-            style={{
-              fontFamily: "var(--font-sans)",
-              fontSize: "clamp(28px, 4.5vw, 48px)",
-              fontWeight: 600,
-              color: "var(--color-ink)",
-              margin: "0 0 10px",
-              letterSpacing: "-0.025em",
-              lineHeight: 1.02,
-            }}
-          >
-            {p.name}
-          </h3>
-          <div
-            style={{
-              fontFamily: "var(--font-sans)",
-              fontSize: 18,
-              color: "var(--color-accent)",
-              fontWeight: 500,
-              marginBottom: 18,
-            }}
-          >
-            {copy.tagline}
-          </div>
-          <p
-            style={{
-              fontFamily: "var(--font-sans)",
-              fontSize: 15,
-              color: "var(--color-ink-2)",
-              opacity: 0.78,
-              lineHeight: 1.65,
-              margin: "0 0 22px",
-              maxWidth: 380,
-            }}
-          >
-            {copy.description}
-          </p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 24 }}>
+        <h3
+          style={{
+            fontFamily: "var(--font-sans)",
+            fontSize: "clamp(28px, 4.5vw, 48px)",
+            fontWeight: 600,
+            color: "var(--color-ink)",
+            margin: "0 0 12px",
+            letterSpacing: "-0.025em",
+            lineHeight: 1.02,
+          }}
+        >
+          {p.name}
+        </h3>
+        <div
+          style={{
+            fontFamily: "var(--font-sans)",
+            fontSize: "clamp(17px, 2.2vw, 21px)",
+            color: "var(--color-accent)",
+            fontWeight: 500,
+            marginBottom: 20,
+            maxWidth: 720,
+            lineHeight: 1.35,
+          }}
+        >
+          {copy.tagline}
+        </div>
+        <p
+          style={{
+            fontFamily: "var(--font-sans)",
+            fontSize: "clamp(15px, 1.8vw, 17px)",
+            color: "var(--color-ink-2)",
+            opacity: 0.82,
+            lineHeight: 1.65,
+            margin: "0 0 24px",
+            maxWidth: 720,
+          }}
+        >
+          {copy.description}
+        </p>
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            gap: 14,
+            justifyContent: "space-between",
+          }}
+        >
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
             {p.stack.map((s) => (
               <span
                 key={s}
@@ -162,9 +167,6 @@ export function ProjectCard({ project: p, idx, locale, openLabel }: Props) {
               {openLabel} <span style={{ color: "var(--color-accent)" }}>↗</span>
             </a>
           ) : null}
-        </div>
-        <div>
-          <Mock accent={p.brand} />
         </div>
       </div>
     </article>
