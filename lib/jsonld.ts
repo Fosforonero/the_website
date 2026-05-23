@@ -6,6 +6,35 @@ import { site } from "./site";
 import { projects } from "./projects";
 import type { BlogPostMeta } from "./blog";
 
+/** WebSite — declares the brand/site entity to Google. Without an internal
+ *  search endpoint we skip SearchAction (Google ignores it without a real
+ *  search URL pattern, and we don't have one). */
+export function websiteLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: site.name,
+    url: site.url,
+    inLanguage: ["it-IT", "en-US"],
+    publisher: { "@type": "Organization", name: site.name, url: site.url },
+  };
+}
+
+/** BreadcrumbList — wire on deep pages (blog post, legal) for rich result
+ *  breadcrumb in SERPs. Pass plain {name, url} items in display order. */
+export function breadcrumbLd(items: ReadonlyArray<{ name: string; url: string }>) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: item.name,
+      item: item.url,
+    })),
+  };
+}
+
 export function organizationLd() {
   return {
     "@context": "https://schema.org",

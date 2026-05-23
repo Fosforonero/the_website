@@ -11,6 +11,8 @@ type Props = {
   label?: string;
   /** Soft outer glow ring. */
   glow?: boolean;
+  /** Inverted variant: dark background, light glyph, accent details. */
+  negative?: boolean;
 };
 
 export function P15Box({
@@ -19,7 +21,17 @@ export function P15Box({
   dim = "var(--color-dim)",
   label,
   glow = false,
+  negative = false,
 }: Props) {
+  // Negative variant inverts the palette: ink-filled tile, white text, accent
+  // for the "15", and the inner "3p³" picks up the brand colour.
+  const bg = negative ? "var(--color-ink)" : "transparent";
+  const border = negative ? color : color;
+  const numberColor = negative ? color : "currentColor";
+  const symbolColor = negative ? "#fff" : "currentColor";
+  const massColor = negative ? "rgba(255,255,255,0.65)" : "currentColor";
+  const orbitalColor = negative ? color : dim;
+
   return (
     <div
       style={{
@@ -36,7 +48,8 @@ export function P15Box({
         style={{
           width: size,
           height: size,
-          border: `1.5px solid ${color}`,
+          border: `1.5px solid ${border}`,
+          background: bg,
           padding: size * 0.09,
           boxSizing: "border-box",
           display: "flex",
@@ -47,8 +60,25 @@ export function P15Box({
         }}
         aria-hidden
       >
-        <div style={{ fontSize: size * 0.18, opacity: 0.85, letterSpacing: "0.06em" }}>15</div>
-        <div style={{ fontSize: size * 0.52, fontWeight: 700, lineHeight: 1, marginTop: -size * 0.04 }}>
+        <div
+          style={{
+            fontSize: size * 0.18,
+            opacity: negative ? 1 : 0.85,
+            letterSpacing: "0.06em",
+            color: numberColor,
+          }}
+        >
+          15
+        </div>
+        <div
+          style={{
+            fontSize: size * 0.52,
+            fontWeight: 700,
+            lineHeight: 1,
+            marginTop: -size * 0.04,
+            color: symbolColor,
+          }}
+        >
           P
         </div>
         <div
@@ -57,12 +87,13 @@ export function P15Box({
             justifyContent: "space-between",
             alignItems: "flex-end",
             fontSize: size * 0.14,
-            opacity: 0.75,
+            opacity: negative ? 1 : 0.75,
             letterSpacing: "0.04em",
+            color: massColor,
           }}
         >
           <span>30.97</span>
-          <span style={{ color: dim }}>3p³</span>
+          <span style={{ color: orbitalColor }}>3p³</span>
         </div>
       </div>
       {label ? (
@@ -73,6 +104,7 @@ export function P15Box({
             letterSpacing: "0.32em",
             fontWeight: 500,
             textTransform: "uppercase",
+            color: negative ? "#fff" : color,
           }}
         >
           {label}

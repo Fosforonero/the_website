@@ -16,8 +16,9 @@ const nextConfig: NextConfig = {
   // satisfy Next 16's literal route types. Re-enable when navigation is
   // refactored around the Route<T> helper.
   typedRoutes: false,
-  // Long-term immutable caching for static assets is handled by Next; we only
-  // override response headers where SEO requires it.
+  // Response headers: aggressive cache on static assets + site-wide security
+  // headers. HSTS is already added automatically by Vercel
+  // (strict-transport-security: max-age=63072000), so we don't duplicate it.
   async headers() {
     return [
       {
@@ -25,6 +26,19 @@ const nextConfig: NextConfig = {
         source: "/(favicon.ico|icon.svg|apple-icon.png|opengraph-image|twitter-image)",
         headers: [
           { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
+      },
+      {
+        // Security baseline applied to every response
+        source: "/(.*)",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "X-DNS-Prefetch-Control", value: "on" },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=(), browsing-topics=(), interest-cohort=()",
+          },
         ],
       },
     ];

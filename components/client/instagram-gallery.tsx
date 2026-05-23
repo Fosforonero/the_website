@@ -1,19 +1,21 @@
 "use client";
 
-// Instagram bento gallery — 2026 design.
-// - Asymmetric bento grid (1x1 / 2x1 / 1x2 / 2x2) with `grid-auto-flow: dense`
-// - Mobile-first: 2 cols on phone, 3 on tablet, 4 on desktop
-// - 3D tilt on hover (pointer-driven, capped at 6deg, eased)
-// - Halo: per-tile dominant colour bleeds as a glow on hover
-// - Lightbox modal on click: image + full caption + link to original post
+// Instagram gallery — 2026 elegant refresh.
+// Design choices after first review:
+// - NO asymmetric bento (1x1/2x1/1x2/2x2) — it looked chaotic with mixed
+//   sizes + placeholders. Uniform grid is more editorial.
+// - NO multi-colour halos — the rainbow effect competed with the brand
+//   palette. Hover now uses a single subtle phosphor border-bottom + lift.
+// - NO 3D tilt — gimmick, breaks the calm aesthetic.
+// - YES one optional "featured" hero tile at the top, full width.
+// - YES scroll-stagger reveal (fade + rise) for cinematic entrance.
+// - YES placeholder tiles with a barely-there neutral gradient (no colour).
 
-import { useCallback, useEffect, useId, useRef, useState } from "react";
-import type { CSSProperties, ReactNode } from "react";
-import type { InstaPost, InstaTileSize } from "@/lib/instagram";
+import { useCallback, useEffect, useId, useState } from "react";
+import type { ReactNode } from "react";
+import type { InstaPost } from "@/lib/instagram";
+import { Reveal } from "@/components/client/reveal";
 
-// We accept a precomputed map of type labels rather than a function — React
-// Server Components can only serialise plain data when handing props to a
-// client component.
 type TypeLabels = Record<"image" | "video" | "carousel", string>;
 
 type T = {
@@ -24,13 +26,6 @@ type T = {
 };
 
 type Props = { posts: InstaPost[]; t: T };
-
-const SIZE_SPAN: Record<InstaTileSize, { col: number; row: number }> = {
-  "1x1": { col: 1, row: 1 },
-  "2x1": { col: 2, row: 1 },
-  "1x2": { col: 1, row: 2 },
-  "2x2": { col: 2, row: 2 },
-};
 
 export function InstagramGallery({ posts, t }: Props) {
   const [active, setActive] = useState<InstaPost | null>(null);
@@ -52,21 +47,34 @@ export function InstagramGallery({ posts, t }: Props) {
     );
   }
 
+  // The first post becomes the featured hero. The rest fall into a uniform
+  // grid. If no posts are flagged, the very first becomes hero implicitly.
+  const [hero, ...rest] = posts;
+
   return (
     <>
-      <div
-        className="fn-ig-grid"
-        style={{
-          display: "grid",
-          gridAutoFlow: "dense",
-          gridAutoRows: "minmax(140px, auto)",
-          gap: "clamp(10px, 1.4vw, 16px)",
-        }}
-      >
-        {posts.map((post) => (
-          <Tile key={post.id} post={post} onOpen={() => setActive(post)} t={t} />
-        ))}
-      </div>
+      {hero ? (
+        <Reveal>
+          <HeroTile post={hero} onOpen={() => setActive(hero)} t={t} />
+        </Reveal>
+      ) : null}
+
+      {rest.length > 0 ? (
+        <div
+          className="fn-ig-grid"
+          style={{
+            display: "grid",
+            gap: "clamp(14px, 1.8vw, 20px)",
+            marginTop: "clamp(20px, 3vw, 32px)",
+          }}
+        >
+          {rest.map((post, i) => (
+            <Reveal key={post.id} delay={i * 60}>
+              <Tile post={post} onOpen={() => setActive(post)} t={t} />
+            </Reveal>
+          ))}
+        </div>
+      ) : null}
 
       {active ? <Lightbox post={active} onClose={() => setActive(null)} t={t} /> : null}
     </>
@@ -74,105 +82,75 @@ export function InstagramGallery({ posts, t }: Props) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Tile — 3D tilt + halo on hover
+// Featured hero tile — full width, 21:9 aspect, larger caption.
 // ─────────────────────────────────────────────────────────────
 
-function Tile({ post, onOpen, t }: { post: InstaPost; onOpen: () => void; t: T }) {
-  const ref = useRef<HTMLButtonElement | null>(null);
-  const span = SIZE_SPAN[post.size ?? "1x1"];
-  const halo = post.halo ?? "var(--color-accent)";
-
-  const onMove = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
-    const el = ref.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    const x = (e.clientX - r.left) / r.width - 0.5;
-    const y = (e.clientY - r.top) / r.height - 0.5;
-    const maxDeg = 6;
-    el.style.setProperty("--tilt-x", `${-(y * maxDeg).toFixed(2)}deg`);
-    el.style.setProperty("--tilt-y", `${(x * maxDeg).toFixed(2)}deg`);
-    el.style.setProperty("--halo-opacity", "0.55");
-  }, []);
-
-  const reset = useCallback(() => {
-    const el = ref.current;
-    if (!el) return;
-    el.style.setProperty("--tilt-x", "0deg");
-    el.style.setProperty("--tilt-y", "0deg");
-    el.style.setProperty("--halo-opacity", "0");
-  }, []);
-
+function HeroTile({ post, onOpen, t }: { post: InstaPost; onOpen: () => void; t: T }) {
   return (
     <button
-      ref={ref}
       type="button"
       onClick={onOpen}
-      onPointerMove={onMove}
-      onPointerLeave={reset}
-      onBlur={reset}
       aria-label={`Apri post: ${post.caption.slice(0, 60)}`}
-      style={
-        {
-          gridColumn: `span ${span.col}`,
-          gridRow: `span ${span.row}`,
-          position: "relative",
-          border: 0,
-          padding: 0,
-          background: "transparent",
-          cursor: "pointer",
-          borderRadius: 14,
-          transformStyle: "preserve-3d",
-          transform:
-            "perspective(900px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg))",
-          transition: "transform .35s cubic-bezier(0.16, 1, 0.3, 1)",
-          // Halo behind the tile
-          boxShadow: `0 0 28px 0 ${halo}`,
-          // Default halo invisible; pointer moves up the opacity via a sibling layer
-          "--halo-opacity": 0,
-        } as CSSProperties
-      }
       className="fn-ig-tile"
+      style={{
+        position: "relative",
+        width: "100%",
+        aspectRatio: "21 / 9",
+        minHeight: 220,
+        padding: 0,
+        border: "1px solid var(--color-rule)",
+        borderRadius: 14,
+        overflow: "hidden",
+        background: "var(--color-card)",
+        cursor: "pointer",
+        textAlign: "left",
+        transition: "transform .35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow .35s ease",
+      }}
     >
-      {/* Halo layer (controls opacity to avoid box-shadow opacity quirks) */}
-      <span
-        aria-hidden
-        style={{
-          position: "absolute",
-          inset: -4,
-          borderRadius: 18,
-          background: `radial-gradient(closest-side, ${halo}55, transparent 70%)`,
-          opacity: "var(--halo-opacity, 0)" as unknown as number,
-          transition: "opacity .35s ease",
-          pointerEvents: "none",
-          filter: "blur(8px)",
-          zIndex: -1,
-        }}
-      />
-
-      <TileBody post={post} t={t} halo={halo} />
+      <TileVisual post={post} t={t} />
+      <TileCaption post={post} hero />
     </button>
   );
 }
 
-function TileBody({ post, t, halo }: { post: InstaPost; t: T; halo: string }) {
+// ─────────────────────────────────────────────────────────────
+// Regular tile — uniform 1:1.
+// ─────────────────────────────────────────────────────────────
+
+function Tile({ post, onOpen, t }: { post: InstaPost; onOpen: () => void; t: T }) {
   return (
-    <div
+    <button
+      type="button"
+      onClick={onOpen}
+      aria-label={`Apri post: ${post.caption.slice(0, 60)}`}
+      className="fn-ig-tile"
       style={{
         position: "relative",
         width: "100%",
-        height: "100%",
-        minHeight: 140,
+        aspectRatio: "1 / 1",
+        padding: 0,
+        border: "1px solid var(--color-rule)",
         borderRadius: 14,
         overflow: "hidden",
-        border: "1px solid var(--color-rule)",
-        background: post.image
-          ? "var(--color-card)"
-          : `linear-gradient(135deg, ${halo}22 0%, ${halo}44 100%), var(--color-card)`,
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
+        background: "var(--color-card)",
+        cursor: "pointer",
+        textAlign: "left",
+        transition: "transform .35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow .35s ease",
       }}
     >
+      <TileVisual post={post} t={t} />
+      <TileCaption post={post} />
+    </button>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Sub-pieces: visual layer + caption overlay
+// ─────────────────────────────────────────────────────────────
+
+function TileVisual({ post, t }: { post: InstaPost; t: T }) {
+  return (
+    <>
       {post.image ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -193,40 +171,25 @@ function TileBody({ post, t, halo }: { post: InstaPost; t: T; halo: string }) {
           style={{
             position: "absolute",
             inset: 0,
+            background:
+              "linear-gradient(135deg, var(--color-surface) 0%, var(--color-card) 100%)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            color: halo,
-            opacity: 0.7,
+            color: "var(--color-rule)",
           }}
         >
-          <InstaIcon size={32} />
+          <InstaIcon size={28} />
         </div>
       )}
 
-      {/* Bottom gradient veil for readability */}
-      <div
-        aria-hidden
-        style={{
-          position: "absolute",
-          left: 0,
-          right: 0,
-          bottom: 0,
-          height: "60%",
-          background: post.image
-            ? "linear-gradient(to top, rgba(10,10,10,0.78), transparent)"
-            : "linear-gradient(to top, rgba(10,10,10,0.06), transparent)",
-          pointerEvents: "none",
-        }}
-      />
-
-      {/* Top-right type chip */}
+      {/* Type chip — only for video/carousel */}
       {post.type && post.type !== "image" ? (
         <span
           style={{
             position: "absolute",
-            top: 10,
-            right: 10,
+            top: 12,
+            right: 12,
             fontFamily: "var(--font-mono)",
             fontSize: 9,
             letterSpacing: "0.16em",
@@ -241,51 +204,76 @@ function TileBody({ post, t, halo }: { post: InstaPost; t: T; halo: string }) {
           {t.typeLabels[post.type]}
         </span>
       ) : null}
+    </>
+  );
+}
 
-      {/* Caption + date pinned bottom-left */}
+function TileCaption({ post, hero }: { post: InstaPost; hero?: boolean }) {
+  const hasImage = !!post.image;
+
+  return (
+    <>
+      {/* Gradient veil only when there's a real image, otherwise the
+          placeholder is already pale and the caption reads against it. */}
+      {hasImage ? (
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: hero ? "55%" : "65%",
+            background: "linear-gradient(to top, rgba(10,10,10,0.85), transparent)",
+            pointerEvents: "none",
+          }}
+        />
+      ) : null}
+
       <div
         style={{
           position: "absolute",
-          left: 12,
-          right: 12,
-          bottom: 12,
-          textAlign: "left",
-          color: post.image ? "#fff" : "var(--color-ink)",
+          left: hero ? "clamp(20px, 3vw, 32px)" : 14,
+          right: hero ? "clamp(20px, 3vw, 32px)" : 14,
+          bottom: hero ? "clamp(20px, 3vw, 32px)" : 14,
+          color: hasImage ? "#fff" : "var(--color-ink)",
         }}
       >
         <div
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: "clamp(11px, 1.2vw, 13px)",
+            fontSize: hero ? "clamp(15px, 2vw, 19px)" : "clamp(12px, 1.3vw, 14px)",
             lineHeight: 1.4,
             fontWeight: 500,
             display: "-webkit-box",
-            WebkitLineClamp: 3,
+            WebkitLineClamp: hero ? 3 : 2,
             WebkitBoxOrient: "vertical",
             overflow: "hidden",
             textOverflow: "ellipsis",
+            letterSpacing: hero ? "-0.015em" : 0,
           }}
         >
           {post.caption}
         </div>
         <div
           style={{
-            marginTop: 6,
+            marginTop: hero ? 10 : 6,
             fontFamily: "var(--font-mono)",
-            fontSize: 10,
-            letterSpacing: "0.12em",
-            opacity: 0.8,
+            fontSize: hero ? 11 : 10,
+            letterSpacing: "0.16em",
+            opacity: hasImage ? 0.85 : 0.6,
+            textTransform: "uppercase",
           }}
         >
           {formatDate(post.date)}
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
 // ─────────────────────────────────────────────────────────────
-// Lightbox modal
+// Lightbox modal (unchanged from previous version)
 // ─────────────────────────────────────────────────────────────
 
 function Lightbox({
@@ -299,9 +287,11 @@ function Lightbox({
 }) {
   const titleId = useId();
 
+  const close = useCallback(() => onClose(), [onClose]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") close();
     };
     document.addEventListener("keydown", onKey);
     document.body.classList.add("fn-no-scroll");
@@ -309,9 +299,7 @@ function Lightbox({
       document.removeEventListener("keydown", onKey);
       document.body.classList.remove("fn-no-scroll");
     };
-  }, [onClose]);
-
-  const halo = post.halo ?? "var(--color-accent)";
+  }, [close]);
 
   return (
     <div
@@ -328,15 +316,14 @@ function Lightbox({
         padding: "clamp(16px, 3vw, 32px)",
       }}
     >
-      {/* Backdrop */}
       <button
         type="button"
         aria-label={t.close}
-        onClick={onClose}
+        onClick={close}
         style={{
           position: "absolute",
           inset: 0,
-          background: "rgba(10,10,10,0.7)",
+          background: "rgba(10,10,10,0.75)",
           backdropFilter: "blur(14px)",
           WebkitBackdropFilter: "blur(14px)",
           border: 0,
@@ -345,7 +332,6 @@ function Lightbox({
         }}
       />
 
-      {/* Panel */}
       <div
         style={{
           position: "relative",
@@ -358,11 +344,10 @@ function Lightbox({
           overflow: "hidden",
           display: "flex",
           flexDirection: "column",
-          boxShadow: `0 0 40px ${halo}22, 0 20px 60px rgba(10,10,10,0.4)`,
+          boxShadow: "0 20px 60px rgba(10,10,10,0.4)",
           animation: "fnBannerIn .28s cubic-bezier(0.16, 1, 0.3, 1)",
         }}
       >
-        {/* Image / placeholder area */}
         <div
           style={{
             position: "relative",
@@ -370,7 +355,7 @@ function Lightbox({
             aspectRatio: "4 / 3",
             background: post.image
               ? "var(--color-bg)"
-              : `linear-gradient(135deg, ${halo}22, ${halo}55)`,
+              : "linear-gradient(135deg, var(--color-surface), var(--color-card))",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -382,22 +367,17 @@ function Lightbox({
             <img
               src={post.image}
               alt={post.caption.slice(0, 80)}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "contain",
-              }}
+              style={{ width: "100%", height: "100%", objectFit: "contain" }}
             />
           ) : (
-            <div style={{ color: halo, opacity: 0.8 }}>
-              <InstaIcon size={64} />
+            <div style={{ color: "var(--color-rule)" }}>
+              <InstaIcon size={56} />
             </div>
           )}
 
-          {/* Close button */}
           <button
             type="button"
-            onClick={onClose}
+            onClick={close}
             aria-label={t.close}
             style={{
               position: "absolute",
@@ -405,7 +385,7 @@ function Lightbox({
               right: 12,
               width: 36,
               height: 36,
-              background: "rgba(255,255,255,0.9)",
+              background: "rgba(255,255,255,0.92)",
               color: "var(--color-ink)",
               border: 0,
               borderRadius: 999,
@@ -423,7 +403,6 @@ function Lightbox({
           </button>
         </div>
 
-        {/* Caption + meta + CTA */}
         <div
           style={{
             padding: "clamp(20px, 3vw, 28px)",
@@ -483,7 +462,7 @@ function Lightbox({
                 textDecoration: "none",
               }}
             >
-              {t.openOriginal} <span style={{ color: halo }}>↗</span>
+              {t.openOriginal} <span style={{ color: "var(--color-accent)" }}>↗</span>
             </a>
           ) : null}
         </div>

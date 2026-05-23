@@ -4,7 +4,7 @@ import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import { site } from "@/lib/site";
-import { organizationLd, personLd } from "@/lib/jsonld";
+import { organizationLd, personLd, websiteLd } from "@/lib/jsonld";
 import { CookieBanner } from "@/components/client/cookie-banner";
 
 // GA Measurement ID resolution:
@@ -84,9 +84,9 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  // Site-wide JSON-LD: Organization + Person. Per-page JSON-LD (ItemList,
-  // BlogPosting) is rendered inside the corresponding page.tsx.
-  const ld = [organizationLd(), personLd()];
+  // Site-wide JSON-LD: WebSite + Organization + Person. Per-page JSON-LD
+  // (ItemList, BlogPosting, BreadcrumbList) is rendered inside each page.
+  const ld = [websiteLd(), organizationLd(), personLd()];
 
   return (
     <html lang="it" className={`${sansGrotesk.variable} ${monoJetbrains.variable}`}>

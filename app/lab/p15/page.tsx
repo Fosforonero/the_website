@@ -1,6 +1,5 @@
 // /lab/p15 — internal design lab.
-// After May 2026 review only V0 (current P15Box) and V6 (P15Mono) survive.
-// V1-V5 were removed because of alignment issues.
+// V0 (boxed) and V6 (mono) — each shown both light and negative.
 
 import type { Metadata } from "next";
 import { P15Box } from "@/components/parts/p15-box";
@@ -15,20 +14,25 @@ type Variant = {
   id: string;
   name: string;
   caption: string;
-  Component: React.ComponentType<{ size?: number; color?: string; dim?: string }>;
+  Component: React.ComponentType<{
+    size?: number;
+    color?: string;
+    dim?: string;
+    negative?: boolean;
+  }>;
 };
 
 const VARIANTS: Variant[] = [
   {
-    id: "v0-original",
+    id: "v0-boxed",
     name: "V0 · Boxed",
-    caption: "La tile attuale, periodic-table style. È quella già in uso ovunque (Coming Soon, manifest, OG image, futuro Landing).",
+    caption: "La tile periodic-table style. Già in uso ovunque (Coming Soon, OG image, futuro Landing).",
     Component: P15Box,
   },
   {
     id: "v6-mono",
     name: "V6 · Mono / Typographic",
-    caption: 'Senza cornice. Lockup tipografico "P + 15 + 30.97". Esportato come <P15Mono>, usabile in footer / signature / contesti più sobri.',
+    caption: 'Senza cornice. Lockup tipografico "P + 15 + 30.97". Esportato come <P15Mono>.',
     Component: P15Mono,
   },
 ];
@@ -67,7 +71,7 @@ export default function P15LabPage() {
             margin: "16px 0 12px",
           }}
         >
-          P¹⁵ — varianti del logo
+          P¹⁵ — light + negative
         </h1>
         <p
           style={{
@@ -79,10 +83,10 @@ export default function P15LabPage() {
             margin: "0 0 48px",
           }}
         >
-          Due varianti tenute dopo la review di maggio 2026: la box originale
-          (V0) e il lockup tipografico (V6 / <code>&lt;P15Mono&gt;</code>).
-          Ogni riga le mostra a tre dimensioni: 56px (favicon-scale), 88px
-          (header-scale), 144px (hero-scale).
+          Due varianti — V0 (boxed) e V6 (mono) — ciascuna in due trattamenti:
+          chiara per sfondi light, negativa per sfondi dark / overlay /
+          favicon su browser scuri. Prop <code>negative</code> già disponibile
+          su entrambi i componenti.
         </p>
       </header>
 
@@ -94,20 +98,19 @@ export default function P15LabPage() {
               background: "var(--color-card)",
               border: "1px solid var(--color-rule)",
               borderRadius: 14,
-              padding: "clamp(24px, 4vw, 36px)",
+              overflow: "hidden",
               boxShadow: "0 1px 3px rgba(10,10,10,0.04), 0 12px 32px rgba(10,10,10,0.04)",
             }}
           >
             <div
               style={{
+                padding: "clamp(20px, 3vw, 28px) clamp(24px, 4vw, 36px)",
+                borderBottom: "1px dashed var(--color-rule)",
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "baseline",
                 flexWrap: "wrap",
                 gap: 12,
-                marginBottom: 24,
-                paddingBottom: 18,
-                borderBottom: "1px dashed var(--color-rule)",
               }}
             >
               <div>
@@ -147,39 +150,23 @@ export default function P15LabPage() {
               </code>
             </div>
 
-            <div
-              style={{
-                display: "flex",
-                gap: "clamp(28px, 5vw, 56px)",
-                alignItems: "flex-end",
-                flexWrap: "wrap",
-              }}
-            >
-              {SIZES.map((s) => (
-                <div
-                  key={s}
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: 12,
-                  }}
-                >
-                  <div style={{ minHeight: 160, display: "flex", alignItems: "center" }}>
-                    <Component size={s} />
-                  </div>
-                  <div
-                    style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: 10,
-                      color: "var(--color-dim)",
-                      letterSpacing: "0.16em",
-                    }}
-                  >
-                    {s}px
-                  </div>
-                </div>
-              ))}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 0 }}>
+              {/* Light row */}
+              <VariantRow
+                label="Light · su sfondo chiaro"
+                bg="var(--color-bg)"
+                inkOnTop={false}
+                Component={Component}
+                negative={false}
+              />
+              {/* Negative row */}
+              <VariantRow
+                label="Negative · su sfondo dark"
+                bg="var(--color-ink)"
+                inkOnTop
+                Component={Component}
+                negative
+              />
             </div>
           </article>
         ))}
@@ -203,3 +190,84 @@ export default function P15LabPage() {
     </main>
   );
 }
+
+function VariantRow({
+  label,
+  bg,
+  inkOnTop,
+  Component,
+  negative,
+}: {
+  label: string;
+  bg: string;
+  inkOnTop: boolean;
+  Component: React.ComponentType<{
+    size?: number;
+    color?: string;
+    dim?: string;
+    negative?: boolean;
+  }>;
+  negative: boolean;
+}) {
+  return (
+    <div
+      style={{
+        background: bg,
+        padding: "clamp(28px, 5vw, 48px) clamp(24px, 4vw, 36px)",
+        borderTop: "1px solid var(--color-rule)",
+        display: "flex",
+        flexDirection: "column",
+        gap: 24,
+      }}
+    >
+      <div
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: 10,
+          letterSpacing: "0.32em",
+          textTransform: "uppercase",
+          color: inkOnTop ? "rgba(255,255,255,0.5)" : "var(--color-dim)",
+        }}
+      >
+        {label}
+      </div>
+      <div
+        style={{
+          display: "flex",
+          gap: "clamp(28px, 5vw, 56px)",
+          alignItems: "flex-end",
+          flexWrap: "wrap",
+        }}
+      >
+        {[56, 88, 144].map((s) => (
+          <div
+            key={s}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 12,
+            }}
+          >
+            <div style={{ minHeight: 160, display: "flex", alignItems: "center" }}>
+              <Component size={s} negative={negative} />
+            </div>
+            <div
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 10,
+                letterSpacing: "0.16em",
+                color: inkOnTop ? "rgba(255,255,255,0.5)" : "var(--color-dim)",
+              }}
+            >
+              {s}px
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Unused import suppression — page only needs SIZES if we expose it.
+void SIZES;

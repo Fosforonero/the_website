@@ -203,16 +203,28 @@ body {
   .fn-show-mobile { display: flex !important; }
 }
 
-/* Instagram bento grid — responsive column count.
+/* Instagram gallery — uniform grid with elegant hover.
    Mobile: 2 cols. Tablet: 3 cols. Desktop: 4 cols. */
 .fn-ig-grid { grid-template-columns: repeat(2, 1fr); }
 @media (min-width: 640px)  { .fn-ig-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (min-width: 1024px) { .fn-ig-grid { grid-template-columns: repeat(4, 1fr); } }
 
-/* Disable 3D tilt + halo on reduced motion (handled below already, but
-   also kill the transform so the tile sits flat). */
+/* Tile hover: small lift + soft phosphor accent shadow. No tilt. */
+.fn-ig-tile:hover,
+.fn-ig-tile:focus-visible {
+  transform: translateY(-3px);
+  box-shadow:
+    0 6px 20px rgba(10, 10, 10, 0.10),
+    0 0 0 1px var(--color-accent);
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .fn-ig-tile { transform: none !important; transition: none !important; }
+  .fn-ig-tile,
+  .fn-ig-tile:hover,
+  .fn-ig-tile:focus-visible {
+    transform: none !important;
+    transition: none !important;
+  }
 }
 
 /* Lock body scroll when the mobile drawer is open. */
