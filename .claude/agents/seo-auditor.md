@@ -19,19 +19,29 @@ Apri `docs/seo/governance.md` ad ogni invocazione. È la fonte di verità delle 
 4. **Crawlability**: `<meta robots>`, link interni rotti accessibili dalla pagina
 
 ### Su un MDX nel repo (`content/blog/**/*.mdx`)
-1. **Frontmatter**: `title`, `excerpt`, `date` (ISO), `tag` presenti
+1. **Frontmatter**: `title`, `excerpt`, `date` (ISO), `tag` presenti.
+   `draft: true` è un campo legittimo che nasconde il post in produzione.
 2. **Lengths**: title 30–65, excerpt 80–160
 3. **Slug**: il nome file matcha lo slug usato in URL (no spazi, lowercase, kebab-case)
-4. **Internal linking**: almeno 1 link interno e 1 esterno qualificato
+4. **Internal linking**: almeno 1 link interno e 1 esterno qualificato.
+   Nota: il componente `PostNav` aggiunge automaticamente prev/next + 3
+   correlati, quindi l'internal linking strutturale è coperto a livello di
+   layout — il check qui riguarda solo i link nel corpo del post.
 5. **Heading hierarchy**: solo `## / ###`, niente `#` o salti
-6. **Slug parity IT/EN**: se esiste in `it/`, esiste anche in `en/` con lo stesso slug
+6. **Parità IT/EN**: ogni articolo deve avere una controparte nell'altra lingua.
+   Gli slug **possono differire** (es. `splitvote-account-opzionali` /
+   `splitvote-optional-accounts`) — verifica che esista almeno un file con
+   lo stesso `tag` e `date` nella cartella dell'altra lingua, e che gli URL
+   reciproci siano dichiarati negli `alternates.languages` del metadata.
 
 ### Su una modifica al codice del sito
 1. Se cambia `lib/i18n.ts` → verifica che IT ed EN abbiano le stesse chiavi e dizionari simmetrici
-2. Se cambia `lib/site.ts.socials` → verifica `sameAs` rifletta gli URL
-3. Se cambia `lib/site.ts.teaching` → verifica `personLd().affiliation`
-4. Se cambia `app/sitemap.ts` → verifica che includa locali nuove
-5. Se cambia un componente di layout (`Nav`, `Landing`) → verifica che H1/H2 e structured data ancora presenti
+2. Se cambia `lib/site.ts.socials` → verifica `sameAs` (in `organizationLd` e `personLd`) rifletta gli URL
+3. Se cambia `lib/site.ts.author` → verifica `personLd()` (`name`, `jobTitle`, `worksFor`, `address`)
+4. Se cambia `app/sitemap.ts` → verifica che includa tutte le route nuove e che le route con slug differenti tra lingue dichiarino le `alternates.languages`
+5. Se cambia un componente di layout (`Nav`, `Landing`, `IdentityPage`, `Footer`) → verifica che H1/H2 e structured data restino presenti
+6. Se cambia `lib/jsonld.ts` → run un check rapido: ogni schema esportato deve avere `@context` e `@type`, e i campi obbligatori della tabella in `governance.md`
+7. Se cambia `app/identita/page.tsx` o `app/en/identity/page.tsx` → verifica che il `BreadcrumbList` JSON-LD sia ancora emesso (è il pattern `<Script id="ld-...">` o raw `<script>`)
 
 ## Come reporti
 

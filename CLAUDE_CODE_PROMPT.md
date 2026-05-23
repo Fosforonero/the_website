@@ -1,6 +1,22 @@
 # Claude Code — istruzioni per Fosforonero
 
-Questo è lo scaffold del sito istituzionale di **Fosforonero**, lo studio indipendente di Matteo Pizzi. Il design è stato approvato in fase di mockup; quello che trovi qui è già un'impalcatura Next.js 15 funzionante che implementa la variante **"Cool Studio"** approvata.
+> ⚠️ **DOCUMENTO STORICO — brief iniziale dello scaffold (gennaio 2026).**
+> Quasi tutti i task elencati in "Cosa DEVI completare" sono **stati fatti**
+> (vedi check di stato sotto). Per lo stato attuale del progetto, le decisioni
+> prese e i prossimi passi, fai sempre riferimento a **`docs/HANDOFF.md`** e
+> alla **`README.md`**. Questo file serve come contesto di provenienza del
+> progetto e come riferimento ai principi originali (tono copy, design system,
+> convenzioni di codice) che restano validi.
+>
+> **Aggiornamenti rispetto al brief originale**:
+> - Next.js 15 → **Next.js 16** (Turbopack)
+> - "Niente Google Analytics" → ora **GA4 + Consent Mode v2** (richiesto dal
+>   proprietario, con cookie banner GDPR-compliant)
+> - Aggiunti: cookie banner, privacy/cookies policy IT+EN, IndexNow,
+>   security headers, /identita brand page, PostNav (prev/next + correlati),
+>   BreadcrumbList JSON-LD, gallery Instagram
+
+Questo è lo scaffold del sito istituzionale di **Fosforonero**, lo studio indipendente di Matteo Pizzi. Il design è stato approvato in fase di mockup; quello che trovi qui è già un'impalcatura Next.js 16 funzionante che implementa la variante **"Cool Studio"** approvata.
 
 ## Cosa ti serve sapere subito
 
@@ -44,50 +60,56 @@ Apri `http://localhost:3000` e confronta con `_design_reference/Fosforonero.html
 | Favicon SVG (P¹⁵ glyph) | ✅ | `public/icon.svg` |
 | `prefers-reduced-motion` + `:focus-visible` + skip link | ✅ | `app/globals.css` |
 
-## Cosa DEVI completare
+## Cosa DEVI completare — STATO
 
-### A. Blog EN
-- Tradurre i 4 articoli MDX da `content/blog/it/` a `content/blog/en/`. **Non inventare contenuto** — chiedi a Matteo se la traduzione automatica va bene, altrimenti placeholder.
-- Replicare le route `app/en/blog/page.tsx` e `app/en/blog/[slug]/page.tsx` (copia da IT e cambia il locale a `"en"` nei chiamanti di `getDictionary`, `getAllPosts`, `getPost`, `getAllSlugs`, e la cartella `_design_reference/Fosforonero.html` da consultare per il tono).
+> Tutti gli item qui sotto sono stati affrontati nelle sessioni successive
+> al brief. Il riepilogo è qui per memoria storica; per i task ancora
+> aperti vedi sempre **`docs/HANDOFF.md`**.
 
-### B. Apple touch icon
-- Generare `public/apple-icon.png` 180×180 dal glyph SVG. Sono ok con `pnpm dlx sharp-cli ...` o uno script `scripts/generate-icons.ts`. Il manifest e il layout già lo referenziano.
+### A. Blog EN — ✅ FATTO
+- 4 articoli MDX in `content/blog/en/` (stack-2026, fitmesh, galaxy-watch, splitvote-optional-accounts)
+- Route `app/en/blog/page.tsx` + `app/en/blog/[slug]/page.tsx` attive
 
-### C. Responsive
-- La landing è scritta in px fissi per matchare il mockup desktop. Devi rendere **tutto responsive** (mobile-first) preservando l'identità:
-  - Hero h1: scala con `clamp(48px, 9vw, 128px)`
-  - Grid metriche: 4→2 colonne sotto 768px
-  - Project card: stacking dell'`<article>` interno sotto 900px
-  - Nav: mobile menu con drawer (nuovo Client Component `components/client/mobile-nav.tsx`)
-- Test su 375 / 768 / 1280 / 1920.
+### B. Apple touch icon — ✅ FATTO
+- `public/apple-icon.png` 180×180 generato via `scripts/generate-icons.ts` (sharp)
 
-### D. Mobile nav
-- Aggiungere `<MobileNav>` ("use client") con drawer + bottone hamburger. Visible solo `<768px`. Anim slide-in da destra. Hide bottoni desktop sotto 768px.
+### C. Responsive — ✅ FATTO
+- `clamp()` ovunque + helper classes `.fn-*` in `globals.css` per i breakpoint 480/768/900/1280
+- Testato su 375 / 768 / 1280 / 1920
 
-### E. Verifica accessibilità
-- Run Axe DevTools o `pnpm lighthouse` localmente
-- Tutti i contrasti devono passare AA. Il `--color-dim: #6B6B66` su `--color-bg: #FBFBFA` ha contrast ratio 4.5+ — verifica.
-- Tab order coerente.
-- Mobile drawer: trap focus + `Esc` per chiudere.
+### D. Mobile nav — ✅ FATTO
+- `components/client/mobile-nav.tsx` con drawer, focus trap, ESC = chiudi, scroll lock
 
-### F. Performance pre-deploy
-- `pnpm build` deve completare senza warning.
-- Run `pnpm lighthouse` (o usa PageSpeed Insights dopo deploy). Tutti i 4 score ≥95.
-- Se il bundle JS supera 100KB sull'home, verifica che `<Reveal>` non si stia tirando dietro qualcosa di pesante.
+### E. Accessibilità — ✅ FATTO (gli essenziali)
+- Skip link, focus-visible, prefers-reduced-motion ovunque
+- Focus trap su mobile drawer + cookie banner
+- Semantic HTML completo
+- Da fare di nuovo in pre-go-live (sessione 3): Lighthouse audit + axe scan sulla `/preview` (Landing)
 
-### G. Deploy
-- Push su GitHub
-- Connetti a Vercel
-- Set env vars: `NEXT_PUBLIC_SITE_URL=https://fosforonero.com`
-- Configura il dominio in Vercel + DNS (Namecheap o Cloudflare)
-- Verifica `https://fosforonero.com/sitemap.xml`, `/robots.txt`, `/manifest.webmanifest`, `/opengraph-image`
-- Submit la sitemap a Google Search Console
+### F. Performance pre-deploy — ⏳ PARZIALE
+- `pnpm build` pulito ✅
+- Lighthouse vero su `/preview` da rifare prima del go-live (sessione 3)
 
-### H. Optional (chiedi a Matteo)
-- **Analytics**: Vercel Analytics built-in (free tier), o Plausible self-hosted. Niente Google Analytics.
-- **Form contatti**: per ora `mailto:`. Se vuole un form, aggiungere route `/api/contact` con Resend o simile.
-- **RSS feed**: `/feed.xml` per il blog (`app/feed.xml/route.ts`).
-- **View Transitions**: Next 15 supporta nativamente le View Transitions per route transitions — testare su Chrome.
+### G. Deploy — ✅ FATTO (sito live in Coming Soon mode)
+- Su Vercel · branch `responsive` · dominio `fosforonero.com` (apex 307 → www)
+- ⚠️ Vedi `docs/HANDOFF.md` per il **"Vercel Framework Preset trap"** — bug subdolo da non ripetere
+
+### H. Optional — DECISIONI PRESE
+- **Analytics**: GA4 (richiesto dal proprietario), NON Vercel Analytics. Vercel Analytics resta un'opzione futura come secondo segnale cookie-less.
+- **Form contatti**: rimasto `mailto:` (decisione: non vogliamo gestire infrastruttura form per ora)
+- **RSS feed**: non implementato (non richiesto)
+- **View Transitions**: non implementato (Next 16 supporta, ma per il design attuale non porta valore)
+
+### Nuove cose aggiunte rispetto al brief
+- **Cookie banner GDPR + Consent Mode v2** (richiesto dal proprietario per la conformità EU)
+- **Privacy + Cookie Policy IT + EN** (`/privacy`, `/cookies` + EN)
+- **Pagina `/identita` + `/en/identity`** — brand identity page pubblica con il sistema visivo, varianti logo (V0 + V6 positivo/negativo), palette, tipografia, chimica dietro al nome
+- **PostNav** sotto ogni post (prev/next chronological + 3 correlati per tag)
+- **BreadcrumbList JSON-LD** su tutte le deep pages
+- **IndexNow** (Bing/Yandex/Yep/Seznam/Naver) + GitHub Actions cron daily
+- **Security headers** in `next.config.ts`
+- **Instagram gallery** elegante (`/instagram`)
+- **Coming Soon** temporanea sulla home (sostituirà la Landing al go-live)
 
 ## Convenzioni che devi mantenere
 

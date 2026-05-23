@@ -31,10 +31,12 @@ workflow `.github/workflows/seo-audit.yml`.
 ### Structured data (JSON-LD)
 | Schema | Su quali pagine | Campi obbligatori |
 |---|---|---|
+| `WebSite` | tutte (root layout) | `name`, `url`, `inLanguage`, `publisher` |
 | `Organization` | tutte (root layout) | `name`, `url`, `sameAs`, `address` |
-| `Person` | tutte (root layout) | `name`, `url`, `jobTitle`, `affiliation`, `sameAs` |
-| `ItemList` | home `/` e `/en` | `itemListElement[]` con `position`, `url`, `name` |
+| `Person` | tutte (root layout) | `name`, `url`, `jobTitle`, `worksFor`, `sameAs` |
+| `ItemList` | home `/` e `/en` (Landing, NON ComingSoon) | `itemListElement[]` con `position`, `url`, `name` |
 | `BlogPosting` | ogni post `/blog/<slug>`, `/en/blog/<slug>` | `headline`, `datePublished`, `author`, `inLanguage`, `mainEntityOfPage` |
+| `BreadcrumbList` | blog post, `/identita`+`/en/identity`, `/privacy`+EN, `/cookies`+EN | `itemListElement[]` con `position`, `name`, `item` |
 | Tutti | sempre | `@context: https://schema.org`, JSON valido |
 
 ### Performance (Lighthouse, mobile)
@@ -64,7 +66,11 @@ Le stesse soglie su desktop sono ≥ 95 per Performance.
 
 ### Internazionalizzazione
 - Ogni route IT esiste anche in EN (`/x` ↔ `/en/x`)
-- Slug blog identici tra IT ed EN (semplifica `alternates.languages`)
+- Slug blog **possono differire** tra IT ed EN (es. `splitvote-account-opzionali`
+  / `splitvote-optional-accounts`): in questo caso `alternates.languages` nel
+  metadata della pagina deve dichiarare entrambi gli URL espliciti, e la
+  sitemap deve includere `xhtml:link` reciproci. Verificato per la pagina
+  identità (`/identita` ↔ `/en/identity`).
 - `<html lang>` corretto per locale (riapertura prevista quando si introduce
   route group `[locale]`)
 
@@ -73,10 +79,15 @@ Le stesse soglie su desktop sono ≥ 95 per Performance.
 - **H1**: una sola per pagina, contiene la keyword primaria della pagina
 - **H2-H3**: gerarchia coerente, niente salti `H1 → H4`
 - **Internal linking**: ogni blog post ha almeno un link interno (a un altro
-  post o a un progetto) e uno esterno qualificato
+  post o a un progetto) e uno esterno qualificato. Il componente `PostNav`
+  (`components/parts/post-nav.tsx`) aggiunge automaticamente prev/next +
+  fino a 3 correlati per tag sotto ogni post — questi contano come
+  internal linking strutturale.
 - **Tag/categoria blog**: 1 tag primario per post (campo `tag` nel frontmatter)
 - **Date frontmatter**: ISO `YYYY-MM-DD`, monotonicamente crescente nella history
 - **Excerpt frontmatter**: 80–160 caratteri, è la base della meta description
+- **Draft posts**: `draft: true` nel frontmatter nasconde il post in produzione
+  (visibile solo in dev). Usalo finché un articolo non è verificato.
 
 Queste linee guida le verifica il subagent `seo-auditor` su singoli file
 quando glielo si chiede manualmente; il workflow daily NON le impone in
