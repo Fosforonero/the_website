@@ -1,0 +1,82 @@
+[
+  {
+    "id": "placeholder-01",
+    "caption": "Placeholder — sostituisci con un post reale del feed @fosforonero. Carica l'immagine in /public/instagram/<id>.webp e cambia il valore di `image` qui sotto.",
+    "date": "2026-05-22",
+    "permalink": "https://www.instagram.com/fosforonero/",
+    "image": null,
+    "type": "image",
+    "size": "2x2",
+    "halo": "#00A341"
+  },
+  {
+    "id": "placeholder-02",
+    "caption": "Placeholder. Le caption più lunghe vengono troncate a 3 righe nella tile e viste per intero nel lightbox.",
+    "date": "2026-05-20",
+    "permalink": "https://www.instagram.com/fosforonero/",
+    "image": null,
+    "type": "image",
+    "size": "1x1",
+    "halo": "#22c55e"
+  },
+  {
+    "id": "placeholder-03",
+    "caption": "Placeholder.",
+    "date": "2026-05-18",
+    "permalink": "https://www.instagram.com/fosforonero/",
+    "image": null,
+    "type": "video",
+    "size": "1x2",
+    "halo": "#06b6d4"
+  },
+  {
+    "id": "placeholder-04",
+    "caption": "Placeholder. Tile orizzontale (2x1) — buono per panoramiche / screenshot di dashboard.",
+    "date": "2026-05-15",
+    "permalink": "https://www.instagram.com/fosforonero/",
+    "image": null,
+    "type": "image",
+    "size": "2x1",
+    "halo": "#c084fc"
+  },
+  {
+    "id": "placeholder-05",
+    "caption": "Placeholder.",
+    "date": "2026-05-12",
+    "permalink": "https://www.instagram.com/fosforonero/",
+    "image": null,
+    "type": "carousel",
+    "size": "1x1",
+    "halo": "#f97316"
+  },
+  {
+    "id": "placeholder-06",
+    "caption": "Placeholder.",
+    "date": "2026-05-08",
+    "permalink": "https://www.instagram.com/fosforonero/",
+    "image": null,
+    "type": "image",
+    "size": "1x1",
+    "halo": "#0ea5e9"
+  },
+  {
+    "id": "placeholder-07",
+    "caption": "Placeholder.",
+    "date": "2026-05-04",
+    "permalink": "https://www.instagram.com/fosforonero/",
+    "image": null,
+    "type": "image",
+    "size": "1x1",
+    "halo": "#a3e635"
+  },
+  {
+    "id": "placeholder-08",
+    "caption": "Placeholder.",
+    "date": "2026-05-01",
+    "permalink": "https://www.instagram.com/fosforonero/",
+    "image": null,
+    "type": "image",
+    "size": "1x1",
+    "halo": "#00A341"
+  }
+]

@@ -108,6 +108,15 @@ type Dict = {
     socials: string;
     blogLink: string;
   };
+  instagram: {
+    eyebrow: string;
+    title: string;
+    body: string;
+    openOriginal: string;
+    close: string;
+    typeLabel: (t: "image" | "video" | "carousel") => string;
+    empty: string;
+  };
 };
 
 const it: Dict = {
@@ -217,6 +226,15 @@ const it: Dict = {
     socials: "Altrove",
     blogLink: "Leggi gli appunti tecnici sul blog",
   },
+  instagram: {
+    eyebrow: "§ V — Instagram",
+    title: "Dietro le quinte.",
+    body: "Frammenti di build, screenshot, dietro le quinte. Aggiornato manualmente dal feed @fosforonero.",
+    openOriginal: "Apri su Instagram",
+    close: "Chiudi",
+    typeLabel: (t) => (t === "video" ? "VIDEO" : t === "carousel" ? "CAROSELLO" : "IMMAGINE"),
+    empty: "Nessun post ancora. Aggiorna content/instagram/posts.json per popolare la gallery.",
+  },
 };
 
 const en: Dict = {
@@ -325,6 +343,15 @@ const en: Dict = {
     projectsLabel: "Live projects",
     socials: "Elsewhere",
     blogLink: "Read the technical notes on the blog",
+  },
+  instagram: {
+    eyebrow: "§ V — Instagram",
+    title: "Behind the scenes.",
+    body: "Build fragments, screenshots, work-in-progress shots. Manually curated from the @fosforonero feed.",
+    openOriginal: "Open on Instagram",
+    close: "Close",
+    typeLabel: (t) => (t === "video" ? "VIDEO" : t === "carousel" ? "CAROUSEL" : "IMAGE"),
+    empty: "No posts yet. Update content/instagram/posts.json to populate the gallery.",
   },
 };
 

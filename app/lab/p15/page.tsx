@@ -1,16 +1,10 @@
-// /lab/p15 — internal design lab to compare P¹⁵ logo variants.
-// noindex/nofollow: not for the public, only for choosing the variant.
+// /lab/p15 — internal design lab.
+// After May 2026 review only V0 (current P15Box) and V6 (P15Mono) survive.
+// V1-V5 were removed because of alignment issues.
 
 import type { Metadata } from "next";
 import { P15Box } from "@/components/parts/p15-box";
-import {
-  P15Rounded,
-  P15Circle,
-  P15Heavy,
-  P15Filled,
-  P15Glitch,
-  P15Mono,
-} from "@/components/lab/p15-variants";
+import { P15Mono } from "@/components/lab/p15-variants";
 
 export const metadata: Metadata = {
   title: "P¹⁵ — design lab",
@@ -27,44 +21,14 @@ type Variant = {
 const VARIANTS: Variant[] = [
   {
     id: "v0-original",
-    name: "V0 · Original",
-    caption: "Baseline corrente. Cornice quadrata stroke 1.5px, layout pieno.",
+    name: "V0 · Boxed",
+    caption: "La tile attuale, periodic-table style. È quella già in uso ovunque (Coming Soon, manifest, OG image, futuro Landing).",
     Component: P15Box,
-  },
-  {
-    id: "v1-rounded",
-    name: "V1 · Rounded",
-    caption: "Identica all'originale ma con corner radius 14% — più amichevole.",
-    Component: P15Rounded,
-  },
-  {
-    id: "v2-circle",
-    name: "V2 · Circle",
-    caption: "Cornice circolare, layout centrato. Più friendly / token-style.",
-    Component: P15Circle,
-  },
-  {
-    id: "v3-heavy",
-    name: "V3 · Heavy",
-    caption: "Stroke 3px + outline doppia. Più presente, brand più forte.",
-    Component: P15Heavy,
-  },
-  {
-    id: "v4-filled",
-    name: "V4 · Filled",
-    caption: "Fondo ink pieno, P verde phosphor su nero. Inversione massima.",
-    Component: P15Filled,
-  },
-  {
-    id: "v5-glitch",
-    name: "V5 · Glitch",
-    caption: "Due tile sovrapposte sfalsate. Effetto duotone / 3D sottile.",
-    Component: P15Glitch,
   },
   {
     id: "v6-mono",
     name: "V6 · Mono / Typographic",
-    caption: 'Senza cornice. Solo lockup tipografico "P + 15 + 30.97".',
+    caption: 'Senza cornice. Lockup tipografico "P + 15 + 30.97". Esportato come <P15Mono>, usabile in footer / signature / contesti più sobri.',
     Component: P15Mono,
   },
 ];
@@ -115,10 +79,10 @@ export default function P15LabPage() {
             margin: "0 0 48px",
           }}
         >
-          7 versioni del glifo (originale + 6 esplorazioni). Ogni riga mostra la
-          variante a 3 dimensioni: 56px (favicon-scale), 88px (header-scale),
-          144px (hero-scale). Scegli quella che ti convince e ti compilo il
-          components/parts/p15-box.tsx.
+          Due varianti tenute dopo la review di maggio 2026: la box originale
+          (V0) e il lockup tipografico (V6 / <code>&lt;P15Mono&gt;</code>).
+          Ogni riga le mostra a tre dimensioni: 56px (favicon-scale), 88px
+          (header-scale), 144px (hero-scale).
         </p>
       </header>
 
@@ -162,7 +126,7 @@ export default function P15LabPage() {
                     margin: "4px 0 0",
                     fontSize: 14,
                     color: "var(--color-dim)",
-                    maxWidth: 620,
+                    maxWidth: 720,
                   }}
                 >
                   {caption}
