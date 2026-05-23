@@ -5,8 +5,10 @@ import { MDXRemote } from "next-mdx-remote/rsc";
 import { Nav } from "@/components/parts/nav";
 import { Footer } from "@/components/parts/footer";
 import { Pill } from "@/components/parts/pill";
-import { getAllSlugs, getPost } from "@/lib/blog";
-import { blogPostingLd } from "@/lib/jsonld";
+import { PostNav } from "@/components/parts/post-nav";
+import { getAdjacentPosts, getAllSlugs, getPost, getRelatedPosts } from "@/lib/blog";
+import { blogPostingLd, breadcrumbLd } from "@/lib/jsonld";
+import { getDictionary } from "@/lib/i18n";
 import { site } from "@/lib/site";
 
 export async function generateStaticParams() {
@@ -53,13 +55,28 @@ export default async function EnBlogPostPage({ params }: { params: Promise<Param
   const post = await getPost("en", slug);
   if (!post) notFound();
 
+  const t = getDictionary("en");
+  const [{ prev, next }, related] = await Promise.all([
+    getAdjacentPosts("en", slug),
+    getRelatedPosts("en", slug, 3),
+  ]);
+
   const dateStr = new Date(post.date).toLocaleDateString("en-US", {
     day: "numeric",
     month: "long",
     year: "numeric",
   });
 
-  const ld = JSON.stringify(blogPostingLd(post));
+  // BlogPosting + BreadcrumbList in a single JSON-LD payload (array form is
+  // supported by Schema.org consumers; cuts down on inline <script> tags).
+  const ld = JSON.stringify([
+    blogPostingLd(post),
+    breadcrumbLd([
+      { name: "Home", url: `${site.url}/en` },
+      { name: "Blog", url: `${site.url}/en/blog` },
+      { name: post.title, url: `${site.url}/en/blog/${post.slug}` },
+    ]),
+  ]);
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
@@ -145,6 +162,19 @@ export default async function EnBlogPostPage({ params }: { params: Promise<Param
               ← ALL POSTS
             </Link>
           </footer>
+
+          <PostNav
+            locale="en"
+            prev={prev}
+            next={next}
+            related={related}
+            labels={{
+              prev: t.blog.prevLabel,
+              next: t.blog.nextLabel,
+              related: t.blog.relatedTitle,
+              minRead: t.blog.minRead,
+            }}
+          />
         </article>
         {/* Structured data injected via JsonLdScript below */}
       </main>

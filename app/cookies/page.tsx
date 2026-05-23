@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Nav } from "@/components/parts/nav";
 import { Footer } from "@/components/parts/footer";
 import { Pill } from "@/components/parts/pill";
 import { CookieSettingsLink } from "@/components/client/cookie-settings-link";
 import { getDictionary } from "@/lib/i18n";
+import { breadcrumbLd } from "@/lib/jsonld";
 import { site } from "@/lib/site";
 
 export const revalidate = 86400;
@@ -22,6 +24,12 @@ export const metadata: Metadata = {
 
 export default function CookiesPageIT() {
   const t = getDictionary("it");
+  const ld = JSON.stringify(
+    breadcrumbLd([
+      { name: "Home", url: site.url },
+      { name: "Cookie Policy", url: `${site.url}/cookies` },
+    ]),
+  );
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
@@ -135,6 +143,9 @@ export default function CookiesPageIT() {
         </article>
       </main>
       <Footer locale="it" />
+      <Script id="ld-breadcrumb-cookies-it" type="application/ld+json">
+        {ld}
+      </Script>
     </div>
   );
 }

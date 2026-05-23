@@ -5,8 +5,10 @@ import { MDXRemote } from "next-mdx-remote/rsc";
 import { Nav } from "@/components/parts/nav";
 import { Footer } from "@/components/parts/footer";
 import { Pill } from "@/components/parts/pill";
-import { getAllSlugs, getPost } from "@/lib/blog";
-import { blogPostingLd } from "@/lib/jsonld";
+import { PostNav } from "@/components/parts/post-nav";
+import { getAdjacentPosts, getAllSlugs, getPost, getRelatedPosts } from "@/lib/blog";
+import { blogPostingLd, breadcrumbLd } from "@/lib/jsonld";
+import { getDictionary } from "@/lib/i18n";
 import { site } from "@/lib/site";
 
 // Static generation for every known post; built once at deploy.
@@ -53,11 +55,28 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
   const post = await getPost("it", slug);
   if (!post) notFound();
 
+  const t = getDictionary("it");
+  const [{ prev, next }, related] = await Promise.all([
+    getAdjacentPosts("it", slug),
+    getRelatedPosts("it", slug, 3),
+  ]);
+
   const dateStr = new Date(post.date).toLocaleDateString("it-IT", {
     day: "numeric",
     month: "long",
     year: "numeric",
   });
+
+  // JSON-LD: BlogPosting + BreadcrumbList. Built server-side, serialised
+  // together so the page emits a single <script> tag.
+  const ld = JSON.stringify([
+    blogPostingLd(post),
+    breadcrumbLd([
+      { name: "Home", url: site.url },
+      { name: "Blog", url: `${site.url}/blog` },
+      { name: post.title, url: `${site.url}/blog/${post.slug}` },
+    ]),
+  ]);
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
@@ -143,12 +162,25 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
               ← TUTTI GLI ARTICOLI
             </Link>
           </footer>
+
+          <PostNav
+            locale="it"
+            prev={prev}
+            next={next}
+            related={related}
+            labels={{
+              prev: t.blog.prevLabel,
+              next: t.blog.nextLabel,
+              related: t.blog.relatedTitle,
+              minRead: t.blog.minRead,
+            }}
+          />
         </article>
       </main>
       <Footer locale="it" />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostingLd(post)) }}
+        dangerouslySetInnerHTML={{ __html: ld }}
       />
     </div>
   );

@@ -90,6 +90,43 @@ export async function getPost(locale: Locale, slug: string): Promise<BlogPost | 
   }
 }
 
+/**
+ * Adjacent posts in chronological order, for prev/next navigation on a post.
+ * Posts are sorted newest-first, so visually:
+ *   "← Older post" = posts[idx + 1]  (we expose as `prev`)
+ *   "Newer post →" = posts[idx - 1]  (we expose as `next`)
+ */
+export async function getAdjacentPosts(
+  locale: Locale,
+  slug: string,
+): Promise<{ prev: BlogPostMeta | null; next: BlogPostMeta | null }> {
+  const posts = await getAllPosts(locale);
+  const idx = posts.findIndex((p) => p.slug === slug);
+  if (idx === -1) return { prev: null, next: null };
+  return {
+    next: idx > 0 ? posts[idx - 1] ?? null : null,
+    prev: idx < posts.length - 1 ? posts[idx + 1] ?? null : null,
+  };
+}
+
+/**
+ * Related posts: same tag first (most relevant), then fill with chronological
+ * neighbours up to `limit`. Always excludes the current post.
+ */
+export async function getRelatedPosts(
+  locale: Locale,
+  slug: string,
+  limit = 3,
+): Promise<BlogPostMeta[]> {
+  const posts = await getAllPosts(locale);
+  const current = posts.find((p) => p.slug === slug);
+  if (!current) return [];
+  const others = posts.filter((p) => p.slug !== slug);
+  const sameTag = others.filter((p) => p.tag === current.tag);
+  const otherTags = others.filter((p) => p.tag !== current.tag);
+  return [...sameTag, ...otherTags].slice(0, limit);
+}
+
 export async function getAllSlugs(locale: Locale): Promise<string[]> {
   const dir = path.join(ROOT, locale);
   const files = (await safeReadDir(dir)).filter((f) => f.endsWith(".mdx"));

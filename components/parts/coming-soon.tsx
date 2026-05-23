@@ -268,6 +268,27 @@ export function ComingSoon({ locale }: Props) {
           </div>
         </div>
 
+        {/* Identity page link — discoverable even from the Coming Soon, since
+            it's the only fully built-out page that explains the brand. */}
+        <div style={{ marginTop: "clamp(28px, 4vw, 40px)" }}>
+          <Link
+            href={locale === "it" ? "/identita" : "/en/identity"}
+            className="fn-link-underline"
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 12,
+              letterSpacing: "0.18em",
+              color: "var(--color-ink-2)",
+              textDecoration: "none",
+              fontWeight: 600,
+              textTransform: "uppercase",
+            }}
+          >
+            {locale === "it" ? "Scopri l'identità del marchio" : "Discover the brand identity"}{" "}
+            <span style={{ color: "var(--color-accent)" }}>→</span>
+          </Link>
+        </div>
+
       </main>
 
       {/* Micro legal footer — required by GDPR while GA + cookie banner are

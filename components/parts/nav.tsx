@@ -14,10 +14,15 @@ export function Nav({ locale }: Props) {
   const otherLocaleHref = getLocalePath(otherLocale, "/");
   const ariaLabel = locale === "it" ? "Menu di navigazione" : "Navigation menu";
 
+  // Identity page has different slugs per locale (identita vs identity), so
+  // it's computed explicitly rather than via getLocalePath.
+  const identityHref = locale === "it" ? "/identita" : "/en/identity";
+
   const links: Array<{ label: string; href: string }> = [
     { label: t.nav.about, href: `${homeHref}#about` },
     { label: t.nav.projects, href: `${homeHref}#progetti` },
     { label: t.nav.blog, href: `${homeHref === "/" ? "" : homeHref}/blog` },
+    { label: t.nav.identity, href: identityHref },
     { label: t.nav.contact, href: `${homeHref}#contatti` },
   ];
 

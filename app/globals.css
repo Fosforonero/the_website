@@ -149,6 +149,10 @@ body {
 .fn-grid-project { grid-template-columns: 1fr 1.1fr; }
 @media (max-width: 899px) { .fn-grid-project { grid-template-columns: 1fr; } }
 
+/* Post navigation (prev/next adjacent cards): 2 columns -> single under 600. */
+.fn-grid-postnav { grid-template-columns: 1fr 1fr; }
+@media (max-width: 599px) { .fn-grid-postnav { grid-template-columns: 1fr; } }
+
 /* Blog row: 120px 1fr auto -> single column under 768 (stack meta/title/cta). */
 .fn-grid-blogrow { grid-template-columns: 120px 1fr auto; }
 @media (max-width: 767px) {

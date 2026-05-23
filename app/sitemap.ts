@@ -21,6 +21,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   }));
 
+  // Identity page — slug differs per locale (identita / identity), so it
+  // can't use the shared staticPaths loop and is declared explicitly.
+  const identityEntry: MetadataRoute.Sitemap = [
+    {
+      url: `${site.url}/identita`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+      alternates: {
+        languages: {
+          it: `${site.url}/identita`,
+          en: `${site.url}/en/identity`,
+        },
+      },
+    },
+  ];
+
   // Blog posts — separate per locale (slugs may differ across languages)
   const postEntries: MetadataRoute.Sitemap = [];
   for (const locale of locales) {
@@ -35,5 +52,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  return [...staticEntries, ...postEntries];
+  return [...staticEntries, ...identityEntry, ...postEntries];
 }

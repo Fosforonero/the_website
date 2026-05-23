@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Nav } from "@/components/parts/nav";
 import { Footer } from "@/components/parts/footer";
 import { Pill } from "@/components/parts/pill";
 import { getDictionary } from "@/lib/i18n";
+import { breadcrumbLd } from "@/lib/jsonld";
 import { site } from "@/lib/site";
 
 export const revalidate = 86400;
@@ -21,6 +23,12 @@ export const metadata: Metadata = {
 
 export default function PrivacyPageEN() {
   const t = getDictionary("en");
+  const ld = JSON.stringify(
+    breadcrumbLd([
+      { name: "Home", url: `${site.url}/en` },
+      { name: "Privacy Policy", url: `${site.url}/en/privacy` },
+    ]),
+  );
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
@@ -143,6 +151,9 @@ export default function PrivacyPageEN() {
         </article>
       </main>
       <Footer locale="en" />
+      <Script id="ld-breadcrumb-privacy-en" type="application/ld+json">
+        {ld}
+      </Script>
     </div>
   );
 }
