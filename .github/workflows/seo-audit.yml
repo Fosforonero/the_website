@@ -159,3 +159,10 @@ jobs:
           path: docs/seo/last-audit.json
           if-no-files-found: ignore
           retention-days: 30
+
+      # IndexNow ping — only on a green audit, and only when auditing remote
+      # (skipping local audits avoids pinging the wrong host).
+      - name: Ping IndexNow (Bing / Yandex / Yep / Seznam / Naver)
+        if: ${{ steps.body.outputs.had_errors == 'false' && env.AUDIT_URL_INPUT != '' }}
+        run: pnpm seo:indexnow -- --site="$AUDIT_URL_INPUT"
+        continue-on-error: true

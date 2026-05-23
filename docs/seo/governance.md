@@ -122,4 +122,24 @@ pnpm seo:audit -- --url=https://fosforonero.com/blog/stack-2026
 # update del baseline (usare con cautela, da fare quando si accetta una
 # riduzione di score motivata)
 pnpm seo:audit -- --update-baseline
+
+# IndexNow — notifica Bing/Yandex/Yep/Seznam/Naver delle URL aggiornate
+pnpm seo:indexnow                                        # tutte le URL del sitemap
+pnpm seo:indexnow -- --url=https://www.fosforonero.com/blog/nuovo  # singola URL
 ```
+
+## IndexNow
+
+Il sito supporta il protocollo [IndexNow](https://www.indexnow.org/) per
+notificare istantaneamente i motori di ricerca dei contenuti aggiornati.
+
+- **Motori coperti**: Bing, Yandex, Yep, Seznam, Naver, DuckDuckGo (via Bing).
+- **Google**: non supporta IndexNow (per Google resta il flusso classico
+  Search Console + sitemap).
+- **Chiave**: `b6c7991c983eeddfaa4cbf51d26f61eb` (32 hex, generata una volta).
+  Validata via `public/<key>.txt` che contiene la stessa chiave.
+- **Trigger automatico**: il workflow `.github/workflows/seo-audit.yml`
+  pinga IndexNow ogni notte dopo un audit verde (skipped per audit locali
+  per evitare di dichiarare host sbagliato).
+- **Trigger manuale**: `pnpm seo:indexnow` dopo aver pubblicato contenuti
+  significativi (nuovo post, nuovo progetto, restyling di una pagina).
