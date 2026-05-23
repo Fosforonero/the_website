@@ -104,6 +104,7 @@ type Dict = {
     title: string;
     body: string;
     emailLabel: string;
+    projectsLabel: string;
     socials: string;
     blogLink: string;
   };
@@ -212,6 +213,7 @@ const it: Dict = {
     title: "Prossimamente.",
     body: "Il sito istituzionale di Fosforonero è in fase di completamento. Per qualsiasi richiesta, scrivimi via email.",
     emailLabel: "EMAIL",
+    projectsLabel: "Progetti live",
     socials: "Altrove",
     blogLink: "Leggi gli appunti tecnici sul blog",
   },
@@ -320,6 +322,7 @@ const en: Dict = {
     title: "Coming soon.",
     body: "The Fosforonero studio site is being finalised. For anything in the meantime, drop me an email.",
     emailLabel: "EMAIL",
+    projectsLabel: "Live projects",
     socials: "Elsewhere",
     blogLink: "Read the technical notes on the blog",
   },

@@ -7,12 +7,17 @@ import { P15Box } from "./p15-box";
 import { Pill } from "./pill";
 import { CookieSettingsLink } from "@/components/client/cookie-settings-link";
 import { getDictionary } from "@/lib/i18n";
+import { projects } from "@/lib/projects";
 import { getLocalePath, site, type Locale } from "@/lib/site";
 
 type Props = { locale: Locale };
 
 export function ComingSoon({ locale }: Props) {
   const t = getDictionary(locale);
+  // Only surface projects that actually have a public URL.
+  const liveProjects = projects.filter((p): p is typeof p & { url: string } =>
+    p.status === "LIVE" && typeof p.url === "string",
+  );
 
   return (
     <div
@@ -144,10 +149,75 @@ export function ComingSoon({ locale }: Props) {
           <span style={{ color: "var(--color-accent)", fontSize: 20, fontWeight: 600 }}>↗</span>
         </a>
 
+        {/* Live projects (FitMesh, SplitVote) — phosphor-tinted pills */}
+        {liveProjects.length > 0 ? (
+          <div
+            style={{
+              marginTop: "clamp(28px, 4vw, 40px)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 12,
+            }}
+          >
+            <div
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 10,
+                letterSpacing: "0.32em",
+                color: "var(--color-dim)",
+                textTransform: "uppercase",
+              }}
+            >
+              {t.comingSoon.projectsLabel}
+            </div>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
+              {liveProjects.map((p) => (
+                <a
+                  key={p.id}
+                  href={p.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="fn-link-underline"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "10px 16px",
+                    border: "1.5px solid var(--color-ink)",
+                    borderRadius: 999,
+                    background: "var(--color-card)",
+                    textDecoration: "none",
+                    fontFamily: "var(--font-sans)",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: "var(--color-ink)",
+                    letterSpacing: "-0.005em",
+                    boxShadow: "0 1px 2px rgba(10,10,10,0.04)",
+                  }}
+                >
+                  <span
+                    aria-hidden
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      background: p.brand,
+                      flex: "0 0 8px",
+                    }}
+                  />
+                  {p.name}
+                  <span style={{ color: "var(--color-accent)" }}>↗</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
         {/* Socials (no GitHub) */}
         <div
           style={{
-            marginTop: "clamp(28px, 4vw, 40px)",
+            marginTop: "clamp(20px, 3vw, 28px)",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
