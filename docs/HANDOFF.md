@@ -1,13 +1,40 @@
 # Fosforonero — Handoff
 
 > Documento di passaggio tra sessioni. Aggiornato a fine sessione corrente.
-> **Ultimo aggiornamento: 2026-05-22** (sessione 1)
+> **Ultimo aggiornamento: 2026-05-22** (sessione 1, fine giornata)
 >
-> ⚠️ **Stato attuale**: la home `/` e `/en` servono una pagina **Coming Soon**.
-> Il sito completo (Landing) è pronto nel codice ma temporaneamente
-> disattivato — vedi sezione "Coming Soon mode" sotto.
+> ✅ **SITO LIVE su https://fosforonero.com** (Coming Soon mode).
+> Tutte le 10 route (`/`, `/en`, `/blog`, `/en/blog`, `/privacy`, `/cookies`,
+> `/sitemap.xml`, `/robots.txt`, `/apple-icon.png`, `/opengraph-image`)
+> servono 200. GA `G-K1QTXSDVD8` attivo con Consent Mode v2 default = denied.
+>
+> ⚠️ **La home `/` e `/en` servono una pagina Coming Soon** con email CTA +
+> 3 pill social (LinkedIn, Hugging Face, Instagram) + 2 pill progetti
+> live (FitMesh, SplitVote) + micro footer legale. Il Landing completo
+> è pronto nel codice ma temporaneamente disattivato — vedi sezione
+> "Coming Soon mode" sotto.
+>
 > ⚠️ **GitHub link rimossi** da `lib/site.ts.socials` (e quindi anche dal
 > JSON-LD `sameAs`) su richiesta del proprietario.
+
+---
+
+## ⚠️ Vercel "Framework Preset" trap — leggere SEMPRE prima di toccare Vercel
+
+Bug subdolo che ha fatto perdere ~1h alla sessione 1: il progetto Vercel
+fu creato con **Framework Preset = `Other`** invece di `Next.js`. Sintomo:
+tutte le route App Router rispondevano 404, ma gli asset in `/public/*`
+funzionavano (es. `/apple-icon.png` → 200). Vercel non runnava `next build`
+e pubblicava solo il contenuto static di `/public/`.
+
+**Fix**: Project → Settings → Build and Deployment → Framework Settings →
+**Framework Preset** dropdown → **Next.js** → Save → Redeploy.
+
+Lasciando Framework Preset = Next.js, gli altri campi (Build/Output/Install
+Command) **vanno lasciati vuoti**: Vercel autocompleta i defaults corretti.
+
+Se domani vedi 404 su `/` ma 200 su `/icon.svg` o `/apple-icon.png`,
+questo è il primo posto da guardare.
 
 ---
 
