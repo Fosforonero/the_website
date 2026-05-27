@@ -7,9 +7,10 @@ import { Footer } from "@/components/parts/footer";
 import { Pill } from "@/components/parts/pill";
 import { Reveal } from "@/components/client/reveal";
 import { SiteBrainMock } from "@/components/parts/sitebrain-mock";
+import { SiteBrainPricing, type SiteBrainPrices } from "@/components/client/sitebrain-pricing";
 import { site } from "@/lib/site";
 
-export const revalidate = 86400;
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: "SiteBrain AI — Chatbot RAG per WordPress",
@@ -69,71 +70,28 @@ const FEATURES = [
   },
 ] as const;
 
-const PRICING = [
-  {
-    name: "Free",
-    priceDisplay: "Gratis",
-    period: "GPL",
-    tagline: "Per siti personali e test.",
-    features: [
-      "RAG keyword search",
-      "OpenAI · Anthropic · OpenRouter",
-      "Handoff lead (3/giorno)",
-      "Quick questions configurabili",
-      "Temi colore base",
-    ],
-    cta: { label: "Download gratuito", href: "https://wordpress.org/plugins/sitebrain-ai/", primary: false },
-    highlight: false,
-  },
-  {
-    name: "Pro",
-    priceDisplay: "$79",
-    period: "/anno",
-    tagline: "Per siti professionali e piccoli team.",
-    features: [
-      "RAG semantico + embeddings",
-      "Upload documenti (PDF, DOCX, TXT, MD)",
-      "Handoff lead illimitati + contesto chat",
-      "Statistiche avanzate",
-      "WooCommerce integrato",
-    ],
-    cta: { label: "Acquista Pro", href: "#buy-pro", primary: true },
-    highlight: true,
-  },
-  {
-    name: "Studio",
-    priceDisplay: "$299",
-    period: "/anno",
-    tagline: "Per agenzie e siti multipli.",
-    features: [
-      "Tutto di Pro",
-      "Fino a 5 installazioni",
-      "API access",
-      "Audit log completo",
-      "GDPR avanzato",
-    ],
-    cta: { label: "Acquista Studio", href: "#buy-studio", primary: false },
-    highlight: false,
-  },
-  {
-    name: "Agency",
-    priceDisplay: "$499",
-    period: "/anno",
-    tagline: "Installazioni illimitate.",
-    features: [
-      "Tutto di Studio",
-      "Installazioni illimitate",
-      "Priorità supporto",
-      "Accesso funzionalità beta",
-    ],
-    cta: { label: "Acquista Agency", href: "#buy-agency", primary: false },
-    highlight: false,
-  },
-] as const;
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+function getPrices(): SiteBrainPrices {
+  return {
+    pro: {
+      annual:   { usd: process.env.SB_PRICE_PRO ?? "",          eur: process.env.SB_PRICE_PRO_EUR ?? "" },
+      lifetime: { usd: process.env.SB_PRICE_PRO_LIFETIME ?? "", eur: process.env.SB_PRICE_PRO_LIFETIME_EUR ?? "" },
+    },
+    studio: {
+      annual:   { usd: process.env.SB_PRICE_STUDIO ?? "",          eur: process.env.SB_PRICE_STUDIO_EUR ?? "" },
+      lifetime: { usd: process.env.SB_PRICE_STUDIO_LIFETIME ?? "", eur: process.env.SB_PRICE_STUDIO_LIFETIME_EUR ?? "" },
+    },
+    agency: {
+      annual:   { usd: process.env.SB_PRICE_AGENCY ?? "",          eur: process.env.SB_PRICE_AGENCY_EUR ?? "" },
+      lifetime: { usd: process.env.SB_PRICE_AGENCY_LIFETIME ?? "", eur: process.env.SB_PRICE_AGENCY_LIFETIME_EUR ?? "" },
+    },
+  };
+}
+
 export default function SiteBrainPage() {
+  const prices = getPrices();
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <Nav locale="it" />
@@ -418,176 +376,7 @@ export default function SiteBrainPage() {
             </h2>
           </Reveal>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
-              gap: 14,
-              alignItems: "stretch",
-            }}
-          >
-            {PRICING.map((tier, i) => (
-              <Reveal key={tier.name} delay={i * 55}>
-                <div
-                  style={{
-                    background: tier.highlight
-                      ? "var(--color-ink)"
-                      : "var(--color-card)",
-                    border: tier.highlight
-                      ? "none"
-                      : "1px solid var(--color-rule)",
-                    borderLeft: `4px solid ${
-                      tier.highlight ? "#00A341" : "var(--color-rule)"
-                    }`,
-                    borderRadius: 14,
-                    padding: "clamp(22px, 3vw, 32px)",
-                    display: "flex",
-                    flexDirection: "column",
-                    height: "100%",
-                    boxSizing: "border-box",
-                  }}
-                >
-                  {/* Tier name */}
-                  <span
-                    style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: 10,
-                      letterSpacing: "0.18em",
-                      color: tier.highlight
-                        ? "rgba(255,255,255,0.45)"
-                        : "var(--color-dim)",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    {tier.name}
-                  </span>
-
-                  {/* Price */}
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "baseline",
-                      gap: 4,
-                      marginTop: 10,
-                      marginBottom: 6,
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontFamily: "var(--font-sans)",
-                        fontSize: "clamp(30px, 4vw, 42px)",
-                        fontWeight: 700,
-                        color: tier.highlight ? "#fff" : "var(--color-ink)",
-                        letterSpacing: "-0.03em",
-                        lineHeight: 1,
-                      }}
-                    >
-                      {tier.priceDisplay}
-                    </span>
-                    <span
-                      style={{
-                        fontFamily: "var(--font-mono)",
-                        fontSize: 11,
-                        color: tier.highlight
-                          ? "rgba(255,255,255,0.45)"
-                          : "var(--color-dim)",
-                        letterSpacing: "0.06em",
-                      }}
-                    >
-                      {tier.period}
-                    </span>
-                  </div>
-
-                  <p
-                    style={{
-                      fontFamily: "var(--font-sans)",
-                      fontSize: 12.5,
-                      color: tier.highlight
-                        ? "rgba(255,255,255,0.52)"
-                        : "var(--color-dim)",
-                      margin: "0 0 20px",
-                      lineHeight: 1.45,
-                    }}
-                  >
-                    {tier.tagline}
-                  </p>
-
-                  {/* Feature list */}
-                  <ul
-                    style={{
-                      listStyle: "none",
-                      padding: 0,
-                      margin: "0 0 24px",
-                      flex: 1,
-                    }}
-                  >
-                    {tier.features.map((feat) => (
-                      <li
-                        key={feat}
-                        style={{
-                          fontFamily: "var(--font-sans)",
-                          fontSize: 13,
-                          color: tier.highlight
-                            ? "rgba(255,255,255,0.80)"
-                            : "var(--color-ink-2)",
-                          padding: "7px 0",
-                          borderBottom: `1px solid ${
-                            tier.highlight
-                              ? "rgba(255,255,255,0.07)"
-                              : "var(--color-rule)"
-                          }`,
-                          display: "flex",
-                          alignItems: "flex-start",
-                          gap: 9,
-                        }}
-                      >
-                        <span
-                          style={{
-                            color: "#00A341",
-                            flexShrink: 0,
-                            fontSize: 10,
-                            marginTop: 2,
-                            fontWeight: 700,
-                          }}
-                        >
-                          ✓
-                        </span>
-                        {feat}
-                      </li>
-                    ))}
-                  </ul>
-
-                  {/* CTA */}
-                  <a
-                    href={tier.cta.href}
-                    style={{
-                      display: "block",
-                      textAlign: "center",
-                      padding: "11px 18px",
-                      background: tier.cta.primary
-                        ? "#00A341"
-                        : tier.highlight
-                          ? "rgba(255,255,255,0.1)"
-                          : "var(--color-surface)",
-                      color: tier.cta.primary
-                        ? "#fff"
-                        : tier.highlight
-                          ? "#fff"
-                          : "var(--color-ink)",
-                      borderRadius: 8,
-                      fontFamily: "var(--font-sans)",
-                      fontSize: 14,
-                      fontWeight: 600,
-                      textDecoration: "none",
-                      transition: "opacity 0.15s",
-                    }}
-                  >
-                    {tier.cta.label}
-                  </a>
-                </div>
-              </Reveal>
-            ))}
-          </div>
+          <SiteBrainPricing prices={prices} />
 
           <Reveal delay={300}>
             <p
@@ -600,8 +389,8 @@ export default function SiteBrainPage() {
                 letterSpacing: "0.06em",
               }}
             >
-              Fatturazione annuale · Nessun rinnovo automatico senza consenso ·
-              Pagamento con carta via Stripe
+              Pagamento sicuro via Stripe · IVA inclusa per utenti EU ·
+              Lifetime: accesso permanente senza rinnovi
             </p>
           </Reveal>
         </section>
@@ -674,7 +463,7 @@ export default function SiteBrainPage() {
                   ↓ Download gratuito
                 </a>
                 <a
-                  href="mailto:matteo@fosforonero.com?subject=SiteBrain AI PRO"
+                  href="#pricing"
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
@@ -690,8 +479,8 @@ export default function SiteBrainPage() {
                     border: "1px solid var(--color-rule)",
                   }}
                 >
-                  Contatta per PRO{" "}
-                  <span style={{ color: "var(--color-accent)" }}>→</span>
+                  Vedi prezzi PRO{" "}
+                  <span style={{ color: "var(--color-accent)" }}>↑</span>
                 </a>
               </div>
             </div>
