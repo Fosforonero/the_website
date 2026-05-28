@@ -217,7 +217,7 @@ export function ComingSoon({ locale }: Props) {
                         lineHeight: 1,
                       }}
                     >
-                      {isExternal ? "↗" : "→"}
+                      ↗
                     </span>
                   </a>
                 );

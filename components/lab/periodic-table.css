@@ -927,6 +927,41 @@
   color: #0a0a0a;
 }
 
+/* ── Van der Waals radius toggle ── */
+.pt-vdw-toggle {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.15);
+  color: rgba(216,216,232,0.55);
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  padding: 5px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.pt-vdw-toggle:hover { border-color: rgba(255,255,255,0.28); color: #eeeef8; }
+.pt-vdw-toggle.active {
+  border-color: rgba(122,176,255,0.55);
+  color: #7ab0ff;
+  background: rgba(122,176,255,0.08);
+}
+.pt-root--light .pt-vdw-toggle {
+  border-color: rgba(10,10,10,0.18);
+  color: rgba(10,10,10,0.55);
+}
+.pt-root--light .pt-vdw-toggle:hover {
+  border-color: rgba(10,10,10,0.35);
+  color: #0a0a0a;
+}
+.pt-root--light .pt-vdw-toggle.active {
+  border-color: rgba(58,95,192,0.55);
+  color: #3a5fc0;
+  background: rgba(58,95,192,0.08);
+}
+
 /* ── Touch: bigger tap targets ── */
 @media (pointer: coarse) {
   .pt-cell {

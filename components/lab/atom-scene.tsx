@@ -642,6 +642,28 @@ function QuantumAtom({ el, radiusMul, reduced, lightMode }: {
   return <group ref={groupRef} />;
 }
 
+// ─── Van der Waals radius sphere ─────────────────────────────────────────────
+
+function VanDerWaalsSphere({ element, radiusMul, lightMode }: {
+  element: Element; radiusMul: number; lightMode: boolean;
+}) {
+  const shellCount = useMemo(() => computeShellFills(element.z).length, [element.z]);
+  const r = (SHELL_BASE_R[shellCount - 1] ?? SHELL_BASE_R.at(-1)!) * radiusMul * 1.42;
+  const col = lightMode ? "#3a5fc0" : "#7ab0ff";
+  return (
+    <group>
+      <mesh>
+        <sphereGeometry args={[r, 32, 24]} />
+        <meshStandardMaterial color={col} transparent opacity={0.04} depthWrite={false} side={THREE.DoubleSide} />
+      </mesh>
+      <mesh>
+        <sphereGeometry args={[r, 18, 13]} />
+        <meshBasicMaterial wireframe color={col} transparent opacity={lightMode ? 0.20 : 0.17} />
+      </mesh>
+    </group>
+  );
+}
+
 // ─── Light-mode star field ────────────────────────────────────────────────────
 
 const LIGHT_STARS_COUNTS = [0, 2000, 5000] as const;
@@ -694,13 +716,15 @@ export type AtomSceneProps = {
   lightMode?: boolean;
   lightBg?: string;
   starsIntensity?: number;
+  showVdWRadius?: boolean;
   className?: string;
 };
 
 export function AtomScene({
   element, model = "bohr", realScale = false,
   speedMultiplier = 1, lightMode = false,
-  lightBg = "#e8ecf5", starsIntensity = 1, className,
+  lightBg = "#e8ecf5", starsIntensity = 1,
+  showVdWRadius = false, className,
 }: AtomSceneProps) {
   const reduced =
     typeof window !== "undefined"
@@ -760,6 +784,10 @@ export function AtomScene({
       )}
       {model === "quantum" && (
         <QuantumAtom el={element} radiusMul={sc.radiusMul} reduced={reduced} lightMode={lightMode} />
+      )}
+
+      {showVdWRadius && (
+        <VanDerWaalsSphere element={element} radiusMul={sc.radiusMul} lightMode={lightMode} />
       )}
 
       <OrbitControls

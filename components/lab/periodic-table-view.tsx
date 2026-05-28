@@ -602,6 +602,25 @@ function StarsToggle({ value, onChange, locale }: { value: number; onChange: (v:
   );
 }
 
+// ─── Van der Waals toggle ─────────────────────────────────────────────────────
+
+function VdWToggle({ on, onToggle, locale }: { on: boolean; onToggle: () => void; locale: Locale }) {
+  const label = on
+    ? (locale === "en" ? "Hide van der Waals radius" : "Nascondi raggio di van der Waals")
+    : (locale === "en" ? "Show van der Waals radius" : "Mostra raggio di van der Waals");
+  return (
+    <button
+      className={`pt-vdw-toggle${on ? " active" : ""}`}
+      onClick={onToggle}
+      aria-pressed={on}
+      title={label}
+      aria-label={label}
+    >
+      vdW
+    </button>
+  );
+}
+
 // ─── Model switch ─────────────────────────────────────────────────────────────
 
 function ModelSwitch({ current, onChange, locale }: { current: AtomModel; onChange: (m: AtomModel) => void; locale: Locale }) {
@@ -702,6 +721,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
   const [searchQuery,     setSearchQuery]     = useState("");
   const [starsIntensity,  setStarsIntensity]  = useState(1);
   const [lightBgKey,      setLightBgKey]      = useState<LightBgKey>("sky");
+  const [showVdW,         setShowVdW]         = useState(false);
 
   const [showHeader,      setShowHeader]      = useState(true);
   const lastScrollTop                         = useRef(0);
@@ -809,6 +829,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
               <ScaleToggle on={realScale} onToggle={() => setRealScale(v => !v)} locale={locale} />
               <SpeedSlider value={speedMultiplier} onChange={setSpeedMultiplier} locale={locale} />
               <StarsToggle value={starsIntensity} onChange={setStarsIntensity} locale={locale} />
+              <VdWToggle on={showVdW} onToggle={() => setShowVdW(v => !v)} locale={locale} />
               {lightMode && <LightBgSelector value={lightBgKey} onChange={setLightBgKey} locale={locale} />}
             </>
           )}
@@ -884,6 +905,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
               lightMode={lightMode}
               starsIntensity={starsIntensity}
               lightBg={lightBgColor}
+              showVdWRadius={showVdW}
               className="pt-canvas"
             />
             <ModelDesc model={model} locale={locale} />
