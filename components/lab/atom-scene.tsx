@@ -575,7 +575,7 @@ function QuantumAtom({ el, radiusMul, reduced, lightMode }: {
     if (el.z === 0) return;
 
     const fills = computeShellFills(el.z);
-    const POINTS_PER_E = 200;
+    const POINTS_PER_E = 350;
     const positions: number[] = [];
 
     fills.forEach((count, si) => {
@@ -617,9 +617,13 @@ function QuantumAtom({ el, radiusMul, reduced, lightMode }: {
     const geo = new THREE.BufferGeometry();
     geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
     const cloud = new THREE.Points(geo, new THREE.PointsMaterial({
-      color: eColor, size: lightMode ? 0.038 : 0.048,
-      transparent: true, opacity: lightMode ? 0.55 : 0.48,
-      sizeAttenuation: true, depthWrite: false,
+      color: eColor,
+      size: lightMode ? 0.072 : 0.085,
+      transparent: true,
+      opacity: lightMode ? 0.78 : 0.72,
+      sizeAttenuation: true,
+      depthWrite: false,
+      blending: lightMode ? THREE.NormalBlending : THREE.AdditiveBlending,
     }));
     g.add(cloud);
     cloudRef.current = cloud;
@@ -713,7 +717,7 @@ export function AtomScene({
       camera={{ fov: 38, near: 0.1, far: 600, position: [0, 0, 14] }}
     >
       <CameraSetup shells={element.shells.length} realScale={realScale} />
-      <color attach="background" args={[lightMode ? lightBg : "#060610"]} />
+      {!lightMode && <color attach="background" args={["#060610"]} />}
 
       {lightMode ? (
         <>

@@ -473,6 +473,9 @@
   background: var(--pt-light-bg, #e8ecf5);
   color: #0a0a0a;
 }
+.pt-root--light .pt-canvas-wrap {
+  background: radial-gradient(circle at center, rgba(15, 23, 42, 0.11) 0%, transparent 65%), var(--pt-light-bg, #e8ecf5);
+}
 .pt-root--light .pt-header {
   background: rgba(251,251,250,0.95);
   border-bottom-color: rgba(10,10,10,0.08);

@@ -14,6 +14,7 @@ type Props = { project: Project; idx: number; locale: Locale; openLabel: string 
 
 export function ProjectCard({ project: p, idx, locale, openLabel }: Props) {
   const copy = p.copy[locale];
+  const isExternal = p.url?.startsWith("http");
 
   return (
     <article
@@ -45,8 +46,8 @@ export function ProjectCard({ project: p, idx, locale, openLabel }: Props) {
         {p.url ? (
           <a
             href={p.url}
-            target="_blank"
-            rel="noopener noreferrer"
+            target={isExternal ? "_blank" : undefined}
+            rel={isExternal ? "noopener noreferrer" : undefined}
             className="fn-link-underline"
             style={{
               fontFamily: "var(--font-mono)",
@@ -57,7 +58,7 @@ export function ProjectCard({ project: p, idx, locale, openLabel }: Props) {
               fontWeight: 500,
             }}
           >
-            {p.handle} <span style={{ color: "var(--color-accent)" }}>↗</span>
+            {p.handle} <span style={{ color: "var(--color-accent)" }}>{isExternal ? "↗" : "→"}</span>
           </a>
         ) : (
           <span
@@ -147,8 +148,8 @@ export function ProjectCard({ project: p, idx, locale, openLabel }: Props) {
           {p.url ? (
             <a
               href={p.url}
-              target="_blank"
-              rel="noopener noreferrer"
+              target={isExternal ? "_blank" : undefined}
+              rel={isExternal ? "noopener noreferrer" : undefined}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -164,7 +165,7 @@ export function ProjectCard({ project: p, idx, locale, openLabel }: Props) {
                 whiteSpace: "nowrap",
               }}
             >
-              {openLabel} <span style={{ color: "var(--color-accent)" }}>↗</span>
+              {openLabel} <span style={{ color: "var(--color-accent)" }}>{isExternal ? "↗" : "→"}</span>
             </a>
           ) : null}
         </div>

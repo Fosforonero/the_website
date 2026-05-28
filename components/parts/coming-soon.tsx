@@ -209,7 +209,7 @@ export function ComingSoon({ locale }: Props) {
                     }}
                   />
                   {p.name}
-                  {isExternal && <span style={{ color: "var(--color-accent)" }}>↗</span>}
+                  <span style={{ color: "var(--color-accent)" }}>{isExternal ? "↗" : "→"}</span>
                 </a>
                 );})}
             </div>
