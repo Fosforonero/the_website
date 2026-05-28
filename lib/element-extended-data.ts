@@ -39,12 +39,18 @@ export interface ElementExtended {
   discoverer: string | null;
   /** Concise Italian scientific description (~2 sentences, university level) */
   description: string;
+  /** All known oxidation states (integers; empty for noble gases with no stable chemistry) */
+  oxidationStates: number[];
+  /** Most common / textbook oxidation state; null if ambiguous or noble gas */
+  commonOxidation: number | null;
 }
 
 // ─── Data table ───────────────────────────────────────────────────────────────
 // Columns: z, config, block, state, EN, atomR, IE1, density, Tm(K), Tb(K), EA, crust(mg/kg), year, discoverer, description
+// oxidationStates / commonOxidation are merged separately via OX lookup below.
 
-const RAW: ElementExtended[] = [
+type ElementRaw = Omit<ElementExtended, "oxidationStates" | "commonOxidation">;
+const RAW: ElementRaw[] = [
   { z:1,   config:"1s¹",                  block:"s", state:"gas",       electronegativity:2.20, atomicRadius:120, ionizationEnergy:1312.0, density:0.0899, meltingPoint:14.0,   boilingPoint:20.3,    electronAffinity:72.8,  crustAbundance:1400,   discoveryYear:1766, discoverer:"Henry Cavendish",       description:"Elemento più leggero e abbondante dell'universo (≈75% della massa barionica). Alimenta le reazioni di fusione stellare e costituisce la base delle molecole organiche; l'elettrolisi dell'acqua ne è la principale fonte industriale." },
   { z:2,   config:"1s²",                  block:"s", state:"gas",       electronegativity:null, atomicRadius:140, ionizationEnergy:2372.3, density:0.1785, meltingPoint:0.95,   boilingPoint:4.2,     electronAffinity:-48,   crustAbundance:0.008,  discoveryYear:1868, discoverer:"Pierre Janssen / Norman Lockyer", description:"Gas nobile con il secondo punto di ebollizione più basso di qualsiasi sostanza (4,22 K). Prodotto primordiale del Big Bang e dalla fusione dell'idrogeno nelle stelle; usato come refrigerante in superconduttori e acceleratori di particelle." },
   { z:3,   config:"[He] 2s¹",             block:"s", state:"solid",     electronegativity:0.98, atomicRadius:182, ionizationEnergy:520.2,  density:0.534,  meltingPoint:453.7,  boilingPoint:1615.0,  electronAffinity:59.6,  crustAbundance:20,     discoveryYear:1817, discoverer:"Johan August Arfwedson",  description:"Metallo alcalino più leggero (ρ = 0,534 g/cm³), galleggia sull'acqua. Fondamentale per le batterie agli ioni di litio che alimentano l'elettronica moderna; il suo carbonato è usato in psichiatria come stabilizzante dell'umore." },
@@ -165,9 +171,136 @@ const RAW: ElementExtended[] = [
   { z:118, config:"[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁶", block:"p", state:"solid",  electronegativity:null, atomicRadius:null, ionizationEnergy:null,   density:null,   meltingPoint:null,   boilingPoint:null,    electronAffinity:null,  crustAbundance:null,   discoveryYear:2002, discoverer:"JINR/LLNL",               description:"Elemento più pesante sintetizzato; omolgo del Rn nel gruppo 18 (gas nobili). Nonostante la configurazione di gas nobile, i calcoli relativistici prevedono reattività non nulla e probabile stato solido; prodotto per fusione di ²⁴⁹Cf con ⁴⁸Ca; ²⁹⁴Og (T½ ≈ 0,9 ms), confermato IUPAC nel 2016." },
 ];
 
+// ─── Oxidation states lookup [states[], commonOxidation] ─────────────────────
+// Sources: IUPAC Red Book 2005, CRC Handbook 103rd ed., WebElements.
+// Synthetic/transactinide values are predicted from periodic trends.
+const OX: Record<number, [number[], number | null]> = {
+    1: [[-1, 1],          1],   // H
+    2: [[],            null],   // He
+    3: [[1],              1],   // Li
+    4: [[2],              2],   // Be
+    5: [[3],              3],   // B
+    6: [[-4, 2, 4],       4],   // C
+    7: [[-3, 3, 5],      -3],   // N
+    8: [[-2, -1],        -2],   // O
+    9: [[-1],            -1],   // F
+   10: [[],            null],   // Ne
+   11: [[1],              1],   // Na
+   12: [[2],              2],   // Mg
+   13: [[3],              3],   // Al
+   14: [[-4, 4],          4],   // Si
+   15: [[-3, 3, 5],       5],   // P
+   16: [[-2, 4, 6],      -2],   // S
+   17: [[-1, 1, 3, 5, 7],-1],   // Cl
+   18: [[],            null],   // Ar
+   19: [[1],              1],   // K
+   20: [[2],              2],   // Ca
+   21: [[3],              3],   // Sc
+   22: [[2, 3, 4],        4],   // Ti
+   23: [[2, 3, 4, 5],     5],   // V
+   24: [[2, 3, 6],        3],   // Cr
+   25: [[2, 4, 7],        2],   // Mn
+   26: [[2, 3],           3],   // Fe
+   27: [[2, 3],           2],   // Co
+   28: [[2, 3],           2],   // Ni
+   29: [[1, 2],           2],   // Cu
+   30: [[2],              2],   // Zn
+   31: [[3],              3],   // Ga
+   32: [[2, 4],           4],   // Ge
+   33: [[-3, 3, 5],       3],   // As
+   34: [[-2, 4, 6],      -2],   // Se
+   35: [[-1, 1, 3, 5],   -1],   // Br
+   36: [[2],           null],   // Kr (KrF2 only)
+   37: [[1],              1],   // Rb
+   38: [[2],              2],   // Sr
+   39: [[3],              3],   // Y
+   40: [[4],              4],   // Zr
+   41: [[3, 5],           5],   // Nb
+   42: [[4, 6],           6],   // Mo
+   43: [[4, 7],           7],   // Tc
+   44: [[3, 4],           4],   // Ru
+   45: [[3],              3],   // Rh
+   46: [[2, 4],           2],   // Pd
+   47: [[1],              1],   // Ag
+   48: [[2],              2],   // Cd
+   49: [[3],              3],   // In
+   50: [[2, 4],           4],   // Sn
+   51: [[-3, 3, 5],       3],   // Sb
+   52: [[-2, 4, 6],      -2],   // Te
+   53: [[-1, 1, 5, 7],   -1],   // I
+   54: [[2, 4, 6],     null],   // Xe
+   55: [[1],              1],   // Cs
+   56: [[2],              2],   // Ba
+   57: [[3],              3],   // La
+   58: [[3, 4],           3],   // Ce
+   59: [[3, 4],           3],   // Pr
+   60: [[3],              3],   // Nd
+   61: [[3],              3],   // Pm
+   62: [[2, 3],           3],   // Sm
+   63: [[2, 3],           3],   // Eu
+   64: [[3],              3],   // Gd
+   65: [[3, 4],           3],   // Tb
+   66: [[3],              3],   // Dy
+   67: [[3],              3],   // Ho
+   68: [[3],              3],   // Er
+   69: [[3],              3],   // Tm
+   70: [[2, 3],           3],   // Yb
+   71: [[3],              3],   // Lu
+   72: [[4],              4],   // Hf
+   73: [[5],              5],   // Ta
+   74: [[4, 6],           6],   // W
+   75: [[4, 7],           7],   // Re
+   76: [[4, 8],           4],   // Os
+   77: [[3, 4],           3],   // Ir
+   78: [[2, 4],           2],   // Pt
+   79: [[1, 3],           3],   // Au
+   80: [[1, 2],           2],   // Hg
+   81: [[1, 3],           1],   // Tl
+   82: [[2, 4],           2],   // Pb
+   83: [[3, 5],           3],   // Bi
+   84: [[2, 4],           4],   // Po
+   85: [[-1, 1, 3, 5],   -1],   // At
+   86: [[2],           null],   // Rn
+   87: [[1],              1],   // Fr
+   88: [[2],              2],   // Ra
+   89: [[3],              3],   // Ac
+   90: [[4],              4],   // Th
+   91: [[5],              5],   // Pa
+   92: [[3, 4, 5, 6],     6],   // U
+   93: [[3, 4, 5, 6],     5],   // Np
+   94: [[3, 4, 5, 6],     4],   // Pu
+   95: [[3, 4, 5, 6],     3],   // Am
+   96: [[3],              3],   // Cm
+   97: [[3, 4],           3],   // Bk
+   98: [[3],              3],   // Cf
+   99: [[3],              3],   // Es
+  100: [[3],              3],   // Fm
+  101: [[2, 3],           3],   // Md
+  102: [[2, 3],           2],   // No
+  103: [[3],              3],   // Lr
+  104: [[4],              4],   // Rf
+  105: [[5],              5],   // Db
+  106: [[6],              6],   // Sg
+  107: [[7],              7],   // Bh
+  108: [[8],              8],   // Hs
+  109: [[],            null],   // Mt
+  110: [[],            null],   // Ds
+  111: [[],            null],   // Rg
+  112: [[2],              2],   // Cn (predicted)
+  113: [[1, 3],           1],   // Nh (predicted)
+  114: [[2],              2],   // Fl (predicted)
+  115: [[1, 3],           1],   // Mc (predicted)
+  116: [[2, 4],           2],   // Lv (predicted)
+  117: [[-1, 1, 3, 5], null],   // Ts (predicted)
+  118: [[0, 2, 4],     null],   // Og (predicted)
+};
+
 // ─── Map indexed by Z ─────────────────────────────────────────────────────────
 export const EXTENDED: Record<number, ElementExtended> = Object.fromEntries(
-  RAW.map(e => [e.z, e])
+  RAW.map(e => {
+    const [oxidationStates, commonOxidation] = OX[e.z] ?? [[], null];
+    return [e.z, { ...e, oxidationStates, commonOxidation }];
+  })
 );
 
 // ─── Thematic property definitions ───────────────────────────────────────────

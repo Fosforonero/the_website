@@ -80,6 +80,25 @@ const getThematicProperties = (locale: Locale): ThematicPropertyDefinition[] => 
   ];
 };
 
+// ─── Temperature / oxidation helpers ─────────────────────────────────────────
+
+function fmtTemp(k: number | null): string {
+  if (k === null) return "—";
+  const c = k - 273.15;
+  const f = c * 9 / 5 + 32;
+  return `${k.toFixed(0)} K · ${c.toFixed(0)} °C · ${f.toFixed(0)} °F`;
+}
+
+function oxColor(n: number): string {
+  if (n === 0) return "#6b7280";
+  if (n > 0) {
+    const p = ["#fbbf24", "#f97316", "#ef4444", "#b91c1c", "#7f1d1d", "#4c0519"];
+    return p[Math.min(n - 1, p.length - 1)]!;
+  }
+  const p = ["#93c5fd", "#60a5fa", "#3b82f6", "#1d4ed8"];
+  return p[Math.min(-n - 1, p.length - 1)]!;
+}
+
 // ─── Share helper ─────────────────────────────────────────────────────────────
 
 function shareElement(el: Element, locale: Locale, name: string) {
@@ -405,12 +424,29 @@ function InfoPanel({ el, locale }: { el: Element; locale: Locale }) {
             <dd>{fmt(ext.density, 3, "g/cm³")}</dd>
           </div>
           <div>
-            <dt>{t.infoMeltingBoiling}</dt>
-            <dd>
-              {fmt(ext.meltingPoint, 0, "K")}
-              {ext.boilingPoint !== null && ` / ${fmt(ext.boilingPoint, 0, "K")}`}
-            </dd>
+            <dt>{t.infoMelting}</dt>
+            <dd>{fmtTemp(ext.meltingPoint)}</dd>
           </div>
+          <div>
+            <dt>{t.infoBoiling}</dt>
+            <dd>{fmtTemp(ext.boilingPoint)}</dd>
+          </div>
+          {ext.oxidationStates.length > 0 && (
+            <div className="pt-info__ox-row">
+              <dt>{t.infoOxidation}</dt>
+              <dd className="pt-info__ox-states">
+                {ext.oxidationStates.map(n => (
+                  <span
+                    key={n}
+                    className={`pt-info__ox-badge${n === ext.commonOxidation ? " pt-info__ox-badge--common" : ""}`}
+                    style={{ "--ox-color": oxColor(n) } as React.CSSProperties}
+                  >
+                    {n > 0 ? `+${n}` : n === 0 ? "0" : String(n)}
+                  </span>
+                ))}
+              </dd>
+            </div>
+          )}
           {ext.discoverer && (
             <div>
               <dt>{t.infoDiscoveredBy}</dt>
@@ -553,21 +589,6 @@ function ThematicLegend({
       />
       <span className="pt-thematic-legend__max">{fmtVal(range[1])} {def.unit}</span>
     </div>
-  );
-}
-
-// ─── Print button ────────────────────────────────────────────────────────────
-
-function PrintButton({ locale }: { locale: Locale }) {
-  return (
-    <button
-      className="pt-print-btn"
-      onClick={() => window.print()}
-      title={locale === "en" ? "Print / Save as PDF" : "Stampa / Salva come PDF"}
-      aria-label={locale === "en" ? "Print periodic table" : "Stampa la tavola periodica"}
-    >
-      {locale === "en" ? "↓ PDF" : "↓ PDF"}
-    </button>
   );
 }
 
@@ -925,7 +946,6 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
               <Link href={locale === "en" ? "/en/lab/tavola-periodica/about" : "/lab/tavola-periodica/about"} className="pt-about-link">
                 {t.aboutLink}
               </Link>
-              <PrintButton locale={locale} />
               <DonateButton locale={locale} />
             </>
           )}
@@ -987,14 +1007,6 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
       {/* ── Table view ── */}
       {view === "table" && (
         <div className="pt-table-view">
-          {/* Print-only header — hidden on screen */}
-          <div className="pt-print-header" aria-hidden="true">
-            <span className="pt-print-header__title">
-              {locale === "en" ? "Periodic Table of the Elements" : "Tavola Periodica degli Elementi"}
-            </span>
-            <span className="pt-print-header__url">lab.fosforonero.com</span>
-          </div>
-
           {/* Portrait mode hint (mobile only) */}
           <div className="pt-portrait-hint" aria-hidden="true">
             ↻ {locale === "en" ? "Rotate for best experience" : "Ruota il dispositivo"}
