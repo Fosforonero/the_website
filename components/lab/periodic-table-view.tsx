@@ -129,6 +129,30 @@ const getThematicPropertiesRangeMap = (thematicProp: ThematicProperty) => {
   return [Math.min(...values), Math.max(...values)] as [number, number];
 };
 
+function getThematicValueText(el: Element, prop: ThematicProperty, locale: Locale): string {
+  if (prop === "none") return "";
+  const ext = EXTENDED[el.z];
+  if (!ext) return "—";
+  if (prop === "state") return STATE_LABELS[locale][ext.state];
+  if (prop === "block") return BLOCK_LABELS[locale][ext.block];
+  const raw = ext[prop as keyof ElementExtended] as number | null;
+  if (raw === null) return "—";
+  const [dec, unit] = ((): [number, string] => {
+    switch (prop) {
+      case "electronegativity": return [2, "Pauling"];
+      case "atomicRadius":      return [0, "pm"];
+      case "ionizationEnergy":  return [1, "kJ/mol"];
+      case "density":           return [3, "g/cm³"];
+      case "meltingPoint":      return [0, "K"];
+      case "boilingPoint":      return [0, "K"];
+      case "electronAffinity":  return [1, "kJ/mol"];
+      case "crustAbundance":    return [2, "mg/kg"];
+      default:                  return [2, ""];
+    }
+  })();
+  return `${raw.toFixed(dec)} ${unit}`.trim();
+}
+
 function getThematicColor(el: Element, prop: ThematicProperty, range: [number,number] | null): string {
   if (prop === "none") return CATEGORY_COLOR[el.category]!;
   const ext = EXTENDED[el.z];
@@ -169,21 +193,24 @@ function matchesSearch(el: Element, q: string, locale: Locale): boolean {
 
 type CellProps = {
   el: Element; selected: boolean; onSelect: (el: Element) => void;
-  thematicColor?: string; dimmed?: boolean; locale: Locale;
+  thematicColor?: string; thematicValue?: string; negativeMode?: boolean;
+  dimmed?: boolean; locale: Locale;
 };
 
-function ElementCell({ el, selected, onSelect, thematicColor, dimmed, locale }: CellProps) {
+function ElementCell({ el, selected, onSelect, thematicColor, thematicValue, negativeMode, dimmed, locale }: CellProps) {
   const color = thematicColor ?? CATEGORY_COLOR[el.category];
   const name = locale === "en" ? (ELEMENT_NAMES_EN[el.z] || el.name) : el.name;
   const labelText = locale === "en" ? `${name}, atomic number ${el.z}` : `${name}, numero atomico ${el.z}`;
+  const isNeg = negativeMode && thematicColor !== undefined;
   return (
     <button
-      className={`pt-cell${selected ? " pt-cell--active" : ""}${dimmed ? " pt-cell--dim" : ""}`}
+      className={`pt-cell${selected ? " pt-cell--active" : ""}${dimmed ? " pt-cell--dim" : ""}${isNeg ? " pt-cell--neg" : ""}`}
       style={{ "--cat-color": color } as React.CSSProperties}
       onClick={() => onSelect(el)}
       title={`${name} — Z=${el.z}`}
       aria-label={labelText}
       aria-pressed={selected}
+      data-val={thematicValue || undefined}
     >
       <span className="pt-cell__z" aria-hidden="true">{el.z}</span>
       <span className="pt-cell__sym">{el.sym}</span>
@@ -196,7 +223,7 @@ const C = (col: number) => col + 1;
 const R = (row: number) => row + 1;
 
 function PeriodicGrid({
-  selected, onSelect, thematicProp, propRange, searchQuery, locale,
+  selected, onSelect, thematicProp, propRange, searchQuery, locale, negativeMode,
 }: {
   selected: Element | null;
   onSelect: (el: Element) => void;
@@ -204,6 +231,7 @@ function PeriodicGrid({
   propRange: [number, number] | null;
   searchQuery: string;
   locale: Locale;
+  negativeMode: boolean;
 }) {
   const hasSearch = searchQuery.trim().length > 0;
   const titleText = locale === "en" ? "Periodic table of elements" : "Tavola periodica degli elementi";
@@ -237,6 +265,10 @@ function PeriodicGrid({
               thematicColor={thematicProp !== "none"
                 ? getThematicColor(el, thematicProp, propRange)
                 : undefined}
+              thematicValue={thematicProp !== "none"
+                ? getThematicValueText(el, thematicProp, locale)
+                : undefined}
+              negativeMode={negativeMode}
               dimmed={hasSearch && !matchesSearch(el, searchQuery, locale)}
             />
           </div>
@@ -427,15 +459,18 @@ function Legend({ locale }: { locale: Locale }) {
 // ─── Thematic property selector ───────────────────────────────────────────────
 
 function ThematicSelector({
-  current, onChange, locale,
+  current, onChange, locale, negativeMode, onToggleNeg,
 }: {
   current: ThematicProperty;
   onChange: (p: ThematicProperty) => void;
   locale: Locale;
+  negativeMode: boolean;
+  onToggleNeg: () => void;
 }) {
   const t = LAB_UI_TRANSLATIONS[locale];
   const props = getThematicProperties(locale);
   const grpLabel = locale === "en" ? "Thematic view property" : "Proprietà tematica";
+  const negTitle = locale === "en" ? "Invert: fill cells with color" : "Inverti: colora il quadratino";
   return (
     <div className="pt-thematic-selector" role="group" aria-label={grpLabel}>
       <span className="pt-thematic-selector__lbl">{t.viewLabel}</span>
@@ -450,6 +485,19 @@ function ThematicSelector({
           {label}
         </button>
       ))}
+      {current !== "none" && (
+        <>
+          <span className="pt-thematic-sep" aria-hidden="true" />
+          <button
+            className={`pt-thematic-neg${negativeMode ? " active" : ""}`}
+            onClick={onToggleNeg}
+            title={negTitle}
+            aria-pressed={negativeMode}
+          >
+            NEG
+          </button>
+        </>
+      )}
     </div>
   );
 }
@@ -505,6 +553,21 @@ function ThematicLegend({
       />
       <span className="pt-thematic-legend__max">{fmtVal(range[1])} {def.unit}</span>
     </div>
+  );
+}
+
+// ─── Print button ────────────────────────────────────────────────────────────
+
+function PrintButton({ locale }: { locale: Locale }) {
+  return (
+    <button
+      className="pt-print-btn"
+      onClick={() => window.print()}
+      title={locale === "en" ? "Print / Save as PDF" : "Stampa / Salva come PDF"}
+      aria-label={locale === "en" ? "Print periodic table" : "Stampa la tavola periodica"}
+    >
+      {locale === "en" ? "↓ PDF" : "↓ PDF"}
+    </button>
   );
 }
 
@@ -727,6 +790,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
   const [starsIntensity,  setStarsIntensity]  = useState(1);
   const [lightBgKey,      setLightBgKey]      = useState<LightBgKey>("sky");
   const [vdwStyle,        setVdwStyle]        = useState<VdWStyle>("off");
+  const [negativeMode,    setNegativeMode]    = useState(false);
 
   const [showHeader,      setShowHeader]      = useState(true);
   const lastScrollTop                         = useRef(0);
@@ -861,6 +925,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
               <Link href={locale === "en" ? "/en/lab/tavola-periodica/about" : "/lab/tavola-periodica/about"} className="pt-about-link">
                 {t.aboutLink}
               </Link>
+              <PrintButton locale={locale} />
               <DonateButton locale={locale} />
             </>
           )}
@@ -922,8 +987,27 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
       {/* ── Table view ── */}
       {view === "table" && (
         <div className="pt-table-view">
+          {/* Print-only header — hidden on screen */}
+          <div className="pt-print-header" aria-hidden="true">
+            <span className="pt-print-header__title">
+              {locale === "en" ? "Periodic Table of the Elements" : "Tavola Periodica degli Elementi"}
+            </span>
+            <span className="pt-print-header__url">lab.fosforonero.com</span>
+          </div>
+
+          {/* Portrait mode hint (mobile only) */}
+          <div className="pt-portrait-hint" aria-hidden="true">
+            ↻ {locale === "en" ? "Rotate for best experience" : "Ruota il dispositivo"}
+          </div>
+
           {showLegend && thematicProp === "none" && <Legend locale={locale} />}
-          <ThematicSelector current={thematicProp} onChange={setThematicProp} locale={locale} />
+          <ThematicSelector
+            current={thematicProp}
+            onChange={(p) => { setThematicProp(p); if (p === "none") setNegativeMode(false); }}
+            locale={locale}
+            negativeMode={negativeMode}
+            onToggleNeg={() => setNegativeMode(v => !v)}
+          />
           <ThematicLegend prop={thematicProp} range={propRange} locale={locale} />
           <div className="pt-scroll" ref={scrollRef}>
             <PeriodicGrid
@@ -933,13 +1017,18 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
               propRange={propRange}
               searchQuery={searchQuery}
               locale={locale}
+              negativeMode={negativeMode}
             />
           </div>
           {selected && (
             <div className="pt-footer-hint">
               <strong style={{ color: CATEGORY_COLOR[selected.category] }}>
                 {selectedName}
-              </strong>{" "}({selected.sym}) — Z={selected.z} —{" "}
+              </strong>{" "}({selected.sym}) — Z={selected.z}
+              {thematicProp !== "none" && (
+                <> — <span className="pt-footer-hint__val">{getThematicValueText(selected, thematicProp, locale)}</span></>
+              )}
+              {" — "}
               <span style={{ opacity: 0.5 }}>{t.footerHint}</span>
             </div>
           )}
