@@ -1,22 +1,38 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { ELEMENTS, CATEGORY_COLOR, gridPosition, type Element } from "@/lib/elements-data";
 import {
-  EXTENDED, THEMATIC_PROPERTIES, STATE_COLOR, BLOCK_COLOR,
+  EXTENDED, STATE_COLOR, BLOCK_COLOR,
   type ThematicProperty, type ElementExtended,
+  type ElementState, type ElementBlock,
 } from "@/lib/element-extended-data";
 import type { AtomModel } from "./atom-scene";
+import type { Locale } from "@/lib/site";
+import {
+  ELEMENT_NAMES_EN, CATEGORY_LABELS_EN, STATE_LABELS, BLOCK_LABELS,
+  LAB_UI_TRANSLATIONS, ELEMENT_DESCRIPTIONS_EN,
+} from "@/lib/elements-i18n";
+
+export interface ThematicPropertyDefinition {
+  key: ThematicProperty;
+  label: string;
+  unit: string;
+  description: string;
+  logScale?: boolean;
+}
 
 const AtomScene = dynamic(
   () => import("./atom-scene").then((m) => m.AtomScene),
-  { ssr: false, loading: () => <div className="atom-loading">caricamento...</div> }
+  { ssr: false, loading: () => <div className="atom-loading">...</div> }
 );
 
-// ─── Static data ──────────────────────────────────────────────────────────────
+// ─── Static data (Italian defaults) ──────────────────────────────────────────
 
-const CATEGORY_LABELS: Record<string, string> = {
+const CATEGORY_LABELS_IT: Record<string, string> = {
   "alkali-metal":          "Metalli alcalini",
   "alkaline-earth":        "Alcalino-terrosi",
   "transition-metal":      "Metalli di transizione",
@@ -30,20 +46,48 @@ const CATEGORY_LABELS: Record<string, string> = {
   "unknown":               "Sconosciuto",
 };
 
-const MODELS: { key: AtomModel; label: string; desc: string; year: number }[] = [
-  { key: "thomson",    label: "Thomson",     year: 1904, desc: "Sfera di carica positiva diffusa con elettroni incorporati — il modello «plum pudding» di J.J. Thomson" },
-  { key: "rutherford", label: "Rutherford",  year: 1911, desc: "Nucleo denso e positivo attorniato da elettroni su orbite casuali — confermato dall'esperimento della lamina d'oro" },
-  { key: "bohr",       label: "Bohr",        year: 1913, desc: "Orbite circolari quantizzate a livelli energetici discreti — spiega le righe spettrali dell'idrogeno" },
-  { key: "sommerfeld", label: "Sommerfeld",  year: 1916, desc: "Orbite ellittiche kepleriane: l'elettrone accelera avvicinandosi al nucleo (2ª legge di Keplero)" },
-  { key: "quantum",    label: "Quantistico", year: 1926, desc: "Orbitali come regioni di probabilità (nube elettronica s, p, d, f) — equazione di Schrödinger" },
-];
+const getCategoryLabel = (cat: string, locale: Locale): string => {
+  if (locale === "en") {
+    return CATEGORY_LABELS_EN[cat as keyof typeof CATEGORY_LABELS_EN] || cat;
+  }
+  return CATEGORY_LABELS_IT[cat] || cat;
+};
+
+const getModels = (locale: Locale) => {
+  const t = LAB_UI_TRANSLATIONS[locale];
+  return [
+    { key: "thomson",    label: "Thomson",     year: 1904, desc: t.modelDescThomson },
+    { key: "rutherford", label: "Rutherford",  year: 1911, desc: t.modelDescRutherford },
+    { key: "bohr",       label: "Bohr",        year: 1913, desc: t.modelDescBohr },
+    { key: "sommerfeld", label: "Sommerfeld",  year: 1916, desc: t.modelDescSommerfeld },
+    { key: "quantum",    label: locale === "en" ? "Quantum" : "Quantistico", year: 1926, desc: t.modelDescQuantum },
+  ] as const;
+};
+
+const getThematicProperties = (locale: Locale): ThematicPropertyDefinition[] => {
+  return [
+    { key: "none",              label: locale === "en" ? "Category" : "Categoria",          unit: "",        description: locale === "en" ? "Color by chemical category" : "Colore per categoria chimica" },
+    { key: "electronegativity", label: locale === "en" ? "Electronegativity" : "Elettronegatività",  unit: "Pauling", description: locale === "en" ? "Pauling scale (0.79 – 3.98)" : "Scala di Pauling (0,79 – 3,98)" },
+    { key: "atomicRadius",      label: locale === "en" ? "Atomic radius" : "Raggio atomico",     unit: "pm",      description: locale === "en" ? "Van der Waals radius (pm)" : "Raggio di van der Waals (pm)" },
+    { key: "ionizationEnergy",  label: locale === "en" ? "Ionization I" : "Ionizzazione I",     unit: "kJ/mol",  description: locale === "en" ? "First ionization energy (kJ/mol)" : "Prima energia di ionizzazione (kJ/mol)" },
+    { key: "density",           label: locale === "en" ? "Density" : "Densità",            unit: "g/cm³",   description: locale === "en" ? "Density at standard conditions (g/cm³)" : "Densità a condizioni standard (g/cm³)" },
+    { key: "meltingPoint",      label: locale === "en" ? "Melting" : "Fusione",            unit: "K",       description: locale === "en" ? "Melting temperature (K)" : "Temperatura di fusione (K)" },
+    { key: "boilingPoint",      label: locale === "en" ? "Boiling" : "Ebollizione",        unit: "K",       description: locale === "en" ? "Boiling temperature (K)" : "Temperatura di ebollizione (K)" },
+    { key: "electronAffinity",  label: locale === "en" ? "Electron affinity" : "Affinità e⁻",        unit: "kJ/mol",  description: locale === "en" ? "Electron affinity (kJ/mol; positive = exothermic)" : "Affinità elettronica (kJ/mol; positivo = esotermica)" },
+    { key: "crustAbundance",    label: locale === "en" ? "Crust abundance" : "Abbondanza crosta",  unit: "mg/kg",   description: locale === "en" ? "Abundance in Earth's crust (logarithmic scale)" : "Abbondanza nella crosta terrestre (scala logaritmica)", logScale: true },
+    { key: "state",             label: locale === "en" ? "Physical state" : "Stato fisico",       unit: "",        description: locale === "en" ? "State at 25°C, 1 atm" : "Stato a 25°C, 1 atm" },
+    { key: "block",             label: locale === "en" ? "Electron block" : "Blocco elettronico", unit: "",        description: locale === "en" ? "s, p, d or f block of the configuration" : "Blocco s, p, d o f della configurazione" },
+  ];
+};
 
 // ─── Share helper ─────────────────────────────────────────────────────────────
 
-function shareElement(el: Element) {
-  const url = `${typeof window !== "undefined" ? window.location.origin : ""}/lab/tavola-periodica?z=${el.z}`;
+function shareElement(el: Element, locale: Locale, name: string) {
+  const prefix = locale === "en" ? "/en" : "";
+  const url = `${typeof window !== "undefined" ? window.location.origin : ""}${prefix}/lab/tavola-periodica?z=${el.z}`;
+  const shareTitle = locale === "en" ? "Interactive Periodic Table 3D" : "Tavola Periodica Interattiva";
   if (navigator.share) {
-    navigator.share({ title: `${el.name} (${el.sym}) — Tavola Periodica`, url }).catch(() => {});
+    navigator.share({ title: `${name} (${el.sym}) — ${shareTitle}`, url }).catch(() => {});
   } else {
     navigator.clipboard.writeText(url).catch(() => {});
   }
@@ -75,6 +119,16 @@ function heatmapColor(t: number): string {
   return lerpColor(HEAT_STOPS[idx]!, HEAT_STOPS[idx + 1]!, frac);
 }
 
+const getThematicPropertiesRangeMap = (thematicProp: ThematicProperty) => {
+  const def = getThematicProperties("it").find(p => p.key === thematicProp);
+  const values = Object.values(EXTENDED)
+    .map(e => e[thematicProp as keyof ElementExtended])
+    .filter((v): v is number => typeof v === "number" && v > 0)
+    .map(v => def?.logScale ? Math.log10(v) : v);
+  if (values.length === 0) return null;
+  return [Math.min(...values), Math.max(...values)] as [number, number];
+};
+
 function getThematicColor(el: Element, prop: ThematicProperty, range: [number,number] | null): string {
   if (prop === "none") return CATEGORY_COLOR[el.category]!;
   const ext = EXTENDED[el.z];
@@ -83,30 +137,29 @@ function getThematicColor(el: Element, prop: ThematicProperty, range: [number,nu
   if (prop === "block") return BLOCK_COLOR[ext.block] ?? "#6b7280";
   const raw = ext[prop as keyof ElementExtended] as number | null;
   if (raw === null || !range) return "#4b5563";
-  const def = THEMATIC_PROPERTIES.find(p => p.key === prop);
+  const def = getThematicProperties("it").find(p => p.key === prop);
   const value = def?.logScale ? Math.log10(Math.max(raw, 1e-12)) : raw;
   return heatmapColor((value - range[0]) / (range[1] - range[0]));
 }
 
-// ─── Element cell ─────────────────────────────────────────────────────────────
-
 // ─── Light mode background options ───────────────────────────────────────────
 
 const LIGHT_BACKGROUNDS = [
-  { key: "sky",      color: "#e8ecf5", label: "cielo" },
-  { key: "cream",    color: "#f2ede4", label: "crema" },
-  { key: "lavender", color: "#edeaf5", label: "lavanda" },
+  { key: "sky",      color: "#e8ecf5", label: { it: "cielo", en: "sky" } },
+  { key: "cream",    color: "#f2ede4", label: { it: "crema", en: "cream" } },
+  { key: "lavender", color: "#edeaf5", label: { it: "lavanda", en: "lavender" } },
 ] as const;
 
 type LightBgKey = typeof LIGHT_BACKGROUNDS[number]["key"];
 
 // ─── Search helpers ───────────────────────────────────────────────────────────
 
-function matchesSearch(el: Element, q: string): boolean {
+function matchesSearch(el: Element, q: string, locale: Locale): boolean {
   if (!q.trim()) return true;
   const lower = q.toLowerCase().trim();
+  const name = locale === "en" ? (ELEMENT_NAMES_EN[el.z] || el.name) : el.name;
   return (
-    el.name.toLowerCase().includes(lower) ||
+    name.toLowerCase().includes(lower) ||
     el.sym.toLowerCase() === lower ||
     el.z.toString() === lower.replace(/^0+/, "")
   );
@@ -116,18 +169,20 @@ function matchesSearch(el: Element, q: string): boolean {
 
 type CellProps = {
   el: Element; selected: boolean; onSelect: (el: Element) => void;
-  thematicColor?: string; dimmed?: boolean;
+  thematicColor?: string; dimmed?: boolean; locale: Locale;
 };
 
-function ElementCell({ el, selected, onSelect, thematicColor, dimmed }: CellProps) {
+function ElementCell({ el, selected, onSelect, thematicColor, dimmed, locale }: CellProps) {
   const color = thematicColor ?? CATEGORY_COLOR[el.category];
+  const name = locale === "en" ? (ELEMENT_NAMES_EN[el.z] || el.name) : el.name;
+  const labelText = locale === "en" ? `${name}, atomic number ${el.z}` : `${name}, numero atomico ${el.z}`;
   return (
     <button
       className={`pt-cell${selected ? " pt-cell--active" : ""}${dimmed ? " pt-cell--dim" : ""}`}
       style={{ "--cat-color": color } as React.CSSProperties}
       onClick={() => onSelect(el)}
-      title={`${el.name} — Z=${el.z}`}
-      aria-label={`${el.name}, numero atomico ${el.z}`}
+      title={`${name} — Z=${el.z}`}
+      aria-label={labelText}
       aria-pressed={selected}
     >
       <span className="pt-cell__z" aria-hidden="true">{el.z}</span>
@@ -141,17 +196,19 @@ const C = (col: number) => col + 1;
 const R = (row: number) => row + 1;
 
 function PeriodicGrid({
-  selected, onSelect, thematicProp, propRange, searchQuery,
+  selected, onSelect, thematicProp, propRange, searchQuery, locale,
 }: {
   selected: Element | null;
   onSelect: (el: Element) => void;
   thematicProp: ThematicProperty;
   propRange: [number, number] | null;
   searchQuery: string;
+  locale: Locale;
 }) {
   const hasSearch = searchQuery.trim().length > 0;
+  const titleText = locale === "en" ? "Periodic table of elements" : "Tavola periodica degli elementi";
   return (
-    <div className="pt-grid" role="grid" aria-label="Tavola periodica degli elementi">
+    <div className="pt-grid" role="grid" aria-label={titleText}>
 
       {/* ── Group headers (row 1, cols 2–19) ── */}
       {Array.from({ length: 18 }, (_, i) => i + 1).map(g => (
@@ -176,10 +233,11 @@ function PeriodicGrid({
               el={el}
               selected={selected?.z === el.z}
               onSelect={onSelect}
+              locale={locale}
               thematicColor={thematicProp !== "none"
                 ? getThematicColor(el, thematicProp, propRange)
                 : undefined}
-              dimmed={hasSearch && !matchesSearch(el, searchQuery)}
+              dimmed={hasSearch && !matchesSearch(el, searchQuery, locale)}
             />
           </div>
         );
@@ -215,24 +273,30 @@ function fmt(val: number | null, decimals = 2, suffix = ""): string {
   return `${val.toFixed(decimals)}${suffix ? " " + suffix : ""}`;
 }
 
-function InfoPanel({ el }: { el: Element }) {
+function InfoPanel({ el, locale }: { el: Element; locale: Locale }) {
+  const t = LAB_UI_TRANSLATIONS[locale];
   const [descExpanded, setDescExpanded] = useState(false);
   const color = CATEGORY_COLOR[el.category];
   const A   = el.z + el.stableN;
   const ext: ElementExtended | undefined = EXTENDED[el.z];
   const DESC_LIMIT = 120;
 
+  const name = locale === "en" ? (ELEMENT_NAMES_EN[el.z] || el.name) : el.name;
+  const description = locale === "en" ? (ELEMENT_DESCRIPTIONS_EN[el.z] || ext?.description) : ext?.description;
+  const descLabel = locale === "en" ? `Details of ${name}` : `Dettagli ${name}`;
+  const shareLabel = locale === "en" ? `Share ${name}` : `Condividi ${name}`;
+
   return (
-    <div className="pt-info" role="complementary" aria-label={`Dettagli ${el.name}`}>
+    <div className="pt-info" role="complementary" aria-label={descLabel}>
       {/* Header */}
       <div className="pt-info__header" style={{ borderLeftColor: color }}>
         <div className="pt-info__header-top">
           <span className="pt-info__z">Z = {el.z}</span>
           <button
             className="pt-info__share"
-            onClick={() => shareElement(el)}
-            title="Condividi elemento"
-            aria-label={`Condividi ${el.name}`}
+            onClick={() => shareElement(el, locale, name)}
+            title={shareLabel}
+            aria-label={shareLabel}
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
@@ -242,7 +306,7 @@ function InfoPanel({ el }: { el: Element }) {
           </button>
         </div>
         <div className="pt-info__name-row">
-          <h2 className="pt-info__name">{el.name}</h2>
+          <h2 className="pt-info__name">{name}</h2>
           <span className="pt-info__sym" style={{ color }}>{el.sym}</span>
         </div>
         {ext && (
@@ -253,20 +317,20 @@ function InfoPanel({ el }: { el: Element }) {
       </div>
 
       {/* Scientific description — collapsible */}
-      {ext?.description && (
+      {description && (
         <div className="pt-info__desc-wrap">
           <p className="pt-info__desc">
-            {descExpanded || ext.description.length <= DESC_LIMIT
-              ? ext.description
-              : ext.description.slice(0, DESC_LIMIT) + "…"}
+            {descExpanded || description.length <= DESC_LIMIT
+              ? description
+              : description.slice(0, DESC_LIMIT) + "…"}
           </p>
-          {ext.description.length > DESC_LIMIT && (
+          {description.length > DESC_LIMIT && (
             <button
               className="pt-info__desc-toggle"
               onClick={() => setDescExpanded(v => !v)}
               aria-expanded={descExpanded}
             >
-              {descExpanded ? "meno" : "di più"}
+              {descExpanded ? t.readLess : t.readMore}
             </button>
           )}
         </div>
@@ -274,42 +338,42 @@ function InfoPanel({ el }: { el: Element }) {
 
       {/* Properties */}
       <dl className="pt-info__dl">
-        <div><dt>Massa atomica</dt><dd>{el.mass} u</dd></div>
+        <div><dt>{t.infoAtomicMass}</dt><dd>{el.mass} u</dd></div>
         <div>
-          <dt>Isotopo stabile</dt>
+          <dt>{t.infoStableIsotope}</dt>
           <dd><sup>{A}</sup>{el.sym}</dd>
         </div>
         <div>
-          <dt>Configurazione shell</dt>
+          <dt>{t.infoShellConfig}</dt>
           <dd className="pt-info__shells">{el.shells.join(" · ")} e⁻</dd>
         </div>
         {ext && <>
           <div>
-            <dt>Blocco / Stato</dt>
+            <dt>{t.infoBlockState}</dt>
             <dd>
-              <span className="pt-info__block-badge" data-block={ext.block}>{ext.block}</span>
+              <span className="pt-info__block-badge" data-block={ext.block}>{BLOCK_LABELS[locale][ext.block]}</span>
               {" · "}
-              <span style={{ color: STATE_COLOR[ext.state] }}>{ext.state}</span>
+              <span style={{ color: STATE_COLOR[ext.state] }}>{STATE_LABELS[locale][ext.state]}</span>
             </dd>
           </div>
           <div>
-            <dt>Elettronegatività</dt>
+            <dt>{t.infoElectronegativity}</dt>
             <dd>{fmt(ext.electronegativity, 2, "Pauling")}</dd>
           </div>
           <div>
-            <dt>Raggio atomico</dt>
+            <dt>{t.infoAtomicRadius}</dt>
             <dd>{fmt(ext.atomicRadius, 0, "pm")}</dd>
           </div>
           <div>
-            <dt>Ionizzazione I</dt>
+            <dt>{t.infoIonization}</dt>
             <dd>{fmt(ext.ionizationEnergy, 1, "kJ/mol")}</dd>
           </div>
           <div>
-            <dt>Densità</dt>
+            <dt>{t.infoDensity}</dt>
             <dd>{fmt(ext.density, 3, "g/cm³")}</dd>
           </div>
           <div>
-            <dt>Fusione / Ebollizione</dt>
+            <dt>{t.infoMeltingBoiling}</dt>
             <dd>
               {fmt(ext.meltingPoint, 0, "K")}
               {ext.boilingPoint !== null && ` / ${fmt(ext.boilingPoint, 0, "K")}`}
@@ -317,27 +381,27 @@ function InfoPanel({ el }: { el: Element }) {
           </div>
           {ext.discoverer && (
             <div>
-              <dt>Scoperto da</dt>
+              <dt>{t.infoDiscoveredBy}</dt>
               <dd>{ext.discoverer}{ext.discoveryYear ? `, ${ext.discoveryYear}` : ""}</dd>
             </div>
           )}
         </>}
         <div>
-          <dt>Categoria</dt>
-          <dd style={{ color }}>{CATEGORY_LABELS[el.category] ?? el.category}</dd>
+          <dt>{t.infoCategory}</dt>
+          <dd style={{ color }}>{getCategoryLabel(el.category, locale)}</dd>
         </div>
-        <div><dt>Periodo / Gruppo</dt><dd>{el.period} / {el.group}</dd></div>
+        <div><dt>{t.infoPeriodGroup}</dt><dd>{el.period} / {el.group}</dd></div>
       </dl>
       <div className="pt-info__footer">
-        <p className="pt-info__hint">trascina · scroll · Esc per tornare</p>
+        <p className="pt-info__hint">{t.infoHint}</p>
         <a
           href="https://ko-fi.com/fosforonero"
           target="_blank"
           rel="noopener noreferrer"
           className="pt-info__kofi"
-          title="Supporta il progetto su Ko-fi"
+          title={locale === "en" ? "Support the project on Ko-fi" : "Supporta il progetto su Ko-fi"}
         >
-          ♥ supporta
+          {t.infoSupport}
         </a>
       </div>
     </div>
@@ -346,13 +410,14 @@ function InfoPanel({ el }: { el: Element }) {
 
 // ─── Category legend ──────────────────────────────────────────────────────────
 
-function Legend() {
+function Legend({ locale }: { locale: Locale }) {
+  const legendLabel = locale === "en" ? "Element categories" : "Categorie degli elementi";
   return (
-    <div className="pt-legend" role="list" aria-label="Categorie degli elementi">
+    <div className="pt-legend" role="list" aria-label={legendLabel}>
       {Object.entries(CATEGORY_COLOR).map(([cat, color]) => (
         <div key={cat} className="pt-legend__item" role="listitem">
           <span className="pt-legend__dot" style={{ background: color }} aria-hidden="true" />
-          <span className="pt-legend__label">{CATEGORY_LABELS[cat]}</span>
+          <span className="pt-legend__label">{getCategoryLabel(cat, locale)}</span>
         </div>
       ))}
     </div>
@@ -362,20 +427,24 @@ function Legend() {
 // ─── Thematic property selector ───────────────────────────────────────────────
 
 function ThematicSelector({
-  current, onChange,
+  current, onChange, locale,
 }: {
   current: ThematicProperty;
   onChange: (p: ThematicProperty) => void;
+  locale: Locale;
 }) {
+  const t = LAB_UI_TRANSLATIONS[locale];
+  const props = getThematicProperties(locale);
+  const grpLabel = locale === "en" ? "Thematic view property" : "Proprietà tematica";
   return (
-    <div className="pt-thematic-selector" role="group" aria-label="Proprietà tematica">
-      <span className="pt-thematic-selector__lbl">vista</span>
-      {THEMATIC_PROPERTIES.map(({ key, label }) => (
+    <div className="pt-thematic-selector" role="group" aria-label={grpLabel}>
+      <span className="pt-thematic-selector__lbl">{t.viewLabel}</span>
+      {props.map(({ key, label, description }) => (
         <button
           key={key}
           className={`pt-thematic-btn${current === key ? " active" : ""}`}
           onClick={() => onChange(key)}
-          title={THEMATIC_PROPERTIES.find(p => p.key === key)?.description}
+          title={description}
           aria-pressed={current === key}
         >
           {label}
@@ -388,12 +457,13 @@ function ThematicSelector({
 // ─── Thematic heat-map legend bar ─────────────────────────────────────────────
 
 function ThematicLegend({
-  prop, range,
+  prop, range, locale,
 }: {
   prop: ThematicProperty;
   range: [number, number] | null;
+  locale: Locale;
 }) {
-  const def = THEMATIC_PROPERTIES.find(p => p.key === prop);
+  const def = getThematicProperties(locale).find(p => p.key === prop);
   if (!def || prop === "none") return null;
 
   if (prop === "state") {
@@ -402,7 +472,7 @@ function ThematicLegend({
         {Object.entries(STATE_COLOR).map(([state, color]) => (
           <div key={state} className="pt-thematic-legend__item">
             <span className="pt-thematic-legend__dot" style={{ background: color }} />
-            <span>{state}</span>
+            <span>{STATE_LABELS[locale][state as ElementState]}</span>
           </div>
         ))}
       </div>
@@ -414,7 +484,7 @@ function ThematicLegend({
         {Object.entries(BLOCK_COLOR).map(([block, color]) => (
           <div key={block} className="pt-thematic-legend__item">
             <span className="pt-thematic-legend__dot" style={{ background: color }} />
-            <span>Blocco {block}</span>
+            <span>{BLOCK_LABELS[locale][block as ElementBlock]}</span>
           </div>
         ))}
       </div>
@@ -431,7 +501,7 @@ function ThematicLegend({
       <div
         className="pt-thematic-legend__bar"
         style={{ background: `linear-gradient(to right, ${stops})` }}
-        aria-label={`Scala ${def.label}: da ${fmtVal(range[0])} a ${fmtVal(range[1])} ${def.unit}`}
+        aria-label={`${locale === "en" ? "Scale" : "Scala"} ${def.label}: da ${fmtVal(range[0])} a ${fmtVal(range[1])} ${def.unit}`}
       />
       <span className="pt-thematic-legend__max">{fmtVal(range[1])} {def.unit}</span>
     </div>
@@ -440,32 +510,36 @@ function ThematicLegend({
 
 // ─── Search bar ───────────────────────────────────────────────────────────────
 
-function SearchBar({ value, onChange, matchCount, onEnter }: {
+function SearchBar({ value, onChange, matchCount, onEnter, locale }: {
   value: string;
   onChange: (v: string) => void;
   matchCount: number;
   onEnter: () => void;
+  locale: Locale;
 }) {
+  const t = LAB_UI_TRANSLATIONS[locale];
+  const inputLabel = locale === "en" ? "Search element by name, symbol or atomic number" : "Cerca elemento per nome, simbolo o numero atomico";
+  const clearLabel = locale === "en" ? "Clear search" : "Cancella ricerca";
   return (
     <div className="pt-search">
       <input
         className="pt-search__input"
         type="search"
-        placeholder="cerca elemento…"
+        placeholder={t.searchPlaceholder}
         value={value}
         onChange={e => onChange(e.target.value)}
         onKeyDown={e => {
           if (e.key === "Enter") onEnter();
           if (e.key === "Escape") onChange("");
         }}
-        aria-label="Cerca elemento per nome, simbolo o numero atomico"
+        aria-label={inputLabel}
         autoComplete="off"
         spellCheck={false}
       />
       {value && (
         <>
           <span className="pt-search__count">{matchCount}</span>
-          <button className="pt-search__clear" onClick={() => onChange("")} aria-label="Cancella ricerca">×</button>
+          <button className="pt-search__clear" onClick={() => onChange("")} aria-label={clearLabel}>×</button>
         </>
       )}
     </div>
@@ -474,34 +548,36 @@ function SearchBar({ value, onChange, matchCount, onEnter }: {
 
 // ─── Donate button ────────────────────────────────────────────────────────────
 
-function DonateButton() {
+function DonateButton({ locale }: { locale: Locale }) {
+  const t = LAB_UI_TRANSLATIONS[locale];
   return (
     <a
       href="https://ko-fi.com/fosforonero"
       target="_blank"
       rel="noopener noreferrer"
       className="pt-donate-btn"
-      title="Supporta il progetto — Ko-fi"
+      title={locale === "en" ? "Support the project — Ko-fi" : "Supporta il progetto — Ko-fi"}
     >
-      ♥ supporta
+      {t.infoSupport}
     </a>
   );
 }
 
 // ─── Light background selector ───────────────────────────────────────────────
 
-function LightBgSelector({ value, onChange }: { value: LightBgKey; onChange: (k: LightBgKey) => void }) {
+function LightBgSelector({ value, onChange, locale }: { value: LightBgKey; onChange: (k: LightBgKey) => void; locale: Locale }) {
+  const grpLabel = locale === "en" ? "Light theme background" : "Sfondo versione chiara";
   return (
-    <div className="pt-lightbg-selector" role="group" aria-label="Sfondo versione chiara">
+    <div className="pt-lightbg-selector" role="group" aria-label={grpLabel}>
       {LIGHT_BACKGROUNDS.map(({ key, color, label }) => (
         <button
           key={key}
           className={`pt-lightbg-btn${value === key ? " active" : ""}`}
           style={{ "--swatch": color } as React.CSSProperties}
           onClick={() => onChange(key)}
-          title={label}
+          title={label[locale]}
           aria-pressed={value === key}
-          aria-label={label}
+          aria-label={label[locale]}
         />
       ))}
     </div>
@@ -510,28 +586,31 @@ function LightBgSelector({ value, onChange }: { value: LightBgKey; onChange: (k:
 
 // ─── Stars intensity toggle ───────────────────────────────────────────────────
 
-const STARS_LABELS = ["stelle off", "stelle ·", "stelle ··"] as const;
-
-function StarsToggle({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+function StarsToggle({ value, onChange, locale }: { value: number; onChange: (v: number) => void; locale: Locale }) {
+  const t = LAB_UI_TRANSLATIONS[locale];
+  const labels = [t.starsOff, t.starsMid, t.starsHigh];
+  const btnLabels = [t.starsBtnOff, t.starsBtnMid, t.starsBtnHigh];
   return (
     <button
       className="pt-stars-toggle"
       onClick={() => onChange((value + 1) % 3)}
-      aria-label={STARS_LABELS[value]}
-      title={STARS_LABELS[value]}
+      aria-label={labels[value]}
+      title={labels[value]}
     >
-      {value === 0 ? "✦ off" : value === 1 ? "✦" : "✦✦"}
+      {btnLabels[value]}
     </button>
   );
 }
 
 // ─── Model switch ─────────────────────────────────────────────────────────────
 
-function ModelSwitch({ current, onChange }: { current: AtomModel; onChange: (m: AtomModel) => void }) {
+function ModelSwitch({ current, onChange, locale }: { current: AtomModel; onChange: (m: AtomModel) => void; locale: Locale }) {
+  const models = getModels(locale);
+  const grpLabel = locale === "en" ? "Select atomic model" : "Seleziona modello atomico";
   return (
-    <div className="pt-model-switch" role="group" aria-label="Seleziona modello atomico">
+    <div className="pt-model-switch" role="group" aria-label={grpLabel}>
       {/* Desktop: pill buttons */}
-      {MODELS.map(({ key, label, year, desc }) => (
+      {models.map(({ key, label, year, desc }) => (
         <button
           key={key}
           className={`pt-model-btn${current === key ? " active" : ""}`}
@@ -548,9 +627,9 @@ function ModelSwitch({ current, onChange }: { current: AtomModel; onChange: (m: 
         className="pt-model-select"
         value={current}
         onChange={e => onChange(e.target.value as AtomModel)}
-        aria-label="Seleziona modello atomico"
+        aria-label={grpLabel}
       >
-        {MODELS.map(({ key, label, year }) => (
+        {models.map(({ key, label, year }) => (
           <option key={key} value={key}>{label} — {year}</option>
         ))}
       </select>
@@ -558,18 +637,21 @@ function ModelSwitch({ current, onChange }: { current: AtomModel; onChange: (m: 
   );
 }
 
-function ModelDesc({ model }: { model: AtomModel }) {
-  const m = MODELS.find(x => x.key === model);
+function ModelDesc({ model, locale }: { model: AtomModel; locale: Locale }) {
+  const m = getModels(locale).find(x => x.key === model);
   if (!m) return null;
   return <p className="pt-model-desc">{m.desc}</p>;
 }
 
 // ─── Speed slider ─────────────────────────────────────────────────────────────
 
-function SpeedSlider({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+function SpeedSlider({ value, onChange, locale }: { value: number; onChange: (v: number) => void; locale: Locale }) {
+  const t = LAB_UI_TRANSLATIONS[locale];
+  const titleText = locale === "en" ? "Electron animation speed" : "Velocità di animazione degli elettroni";
+  const ariaText = locale === "en" ? "Animation speed" : "Velocità animazione";
   return (
-    <label className="pt-speed-slider" title="Velocità di animazione degli elettroni">
-      <span className="pt-speed-slider__lbl">vel</span>
+    <label className="pt-speed-slider" title={titleText}>
+      <span className="pt-speed-slider__lbl">{t.speedLabel}</span>
       <input
         type="range"
         min={0.1}
@@ -578,7 +660,7 @@ function SpeedSlider({ value, onChange }: { value: number; onChange: (v: number)
         value={value}
         onChange={e => onChange(parseFloat(e.target.value))}
         className="pt-speed-slider__input"
-        aria-label="Velocità animazione"
+        aria-label={ariaText}
       />
       <span className="pt-speed-slider__val">{value.toFixed(1)}×</span>
     </label>
@@ -587,23 +669,28 @@ function SpeedSlider({ value, onChange }: { value: number; onChange: (v: number)
 
 // ─── Scale toggle ─────────────────────────────────────────────────────────────
 
-function ScaleToggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
+function ScaleToggle({ on, onToggle, locale }: { on: boolean; onToggle: () => void; locale: Locale }) {
+  const t = LAB_UI_TRANSLATIONS[locale];
+  const titleText = locale === "en" ? "Display real distances between nucleus and electrons" : "Visualizza le distanze reali tra nucleo ed elettroni";
   return (
     <button
       className={`pt-scale-toggle${on ? " active" : ""}`}
       onClick={onToggle}
       aria-pressed={on}
-      title="Visualizza le distanze reali tra nucleo ed elettroni"
+      title={titleText}
     >
       <span className="pt-scale-toggle__sw" />
-      <span>scala reale</span>
+      <span>{t.scaleReal}</span>
     </button>
   );
 }
 
 // ─── Main view ────────────────────────────────────────────────────────────────
 
-export function PeriodicTableView() {
+export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
+  const searchParams = useSearchParams();
+  const t = LAB_UI_TRANSLATIONS[locale];
+
   const [selected,        setSelected]        = useState<Element | null>(ELEMENTS[0] ?? null);
   const [view,            setView]            = useState<"table" | "atom">("table");
   const [model,           setModel]           = useState<AtomModel>("bohr");
@@ -616,34 +703,82 @@ export function PeriodicTableView() {
   const [starsIntensity,  setStarsIntensity]  = useState(1);
   const [lightBgKey,      setLightBgKey]      = useState<LightBgKey>("sky");
 
+  const [showHeader,      setShowHeader]      = useState(true);
+  const lastScrollTop                         = useRef(0);
+  const scrollRef                             = useRef<HTMLDivElement>(null);
+
   const lightBgColor = LIGHT_BACKGROUNDS.find(b => b.key === lightBgKey)?.color ?? "#e8ecf5";
 
   const propRange = useMemo<[number, number] | null>(() => {
-    if (thematicProp === "none" || thematicProp === "state" || thematicProp === "block") return null;
-    const def = THEMATIC_PROPERTIES.find(p => p.key === thematicProp);
-    const values = Object.values(EXTENDED)
-      .map(e => e[thematicProp as keyof ElementExtended])
-      .filter((v): v is number => typeof v === "number" && v > 0)
-      .map(v => def?.logScale ? Math.log10(v) : v);
-    if (values.length === 0) return null;
-    return [Math.min(...values), Math.max(...values)];
+    return getThematicPropertiesRangeMap(thematicProp);
   }, [thematicProp]);
 
   const searchMatchCount = useMemo(() =>
-    ELEMENTS.filter(el => matchesSearch(el, searchQuery)).length,
-  [searchQuery]);
+    ELEMENTS.filter(el => matchesSearch(el, searchQuery, locale)).length,
+  [searchQuery, locale]);
 
   const handleSelect = useCallback((el: Element) => {
-    setSelected(el); setView("atom");
+    setSelected(el);
+    setView("atom");
+    setShowHeader(true); // reset header visibility when opening an atom
   }, []);
 
-  const handleBack = useCallback(() => { setView("table"); setSearchQuery(""); }, []);
+  const handleBack = useCallback(() => {
+    setView("table");
+    setSearchQuery("");
+    setShowHeader(true); // reset header visibility
+  }, []);
 
+  // Keyboard handler (Escape key)
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape" && view === "atom") handleBack(); };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [view, handleBack]);
+
+  // Deep-linking z query parameter parsing
+  useEffect(() => {
+    const zParam = searchParams.get("z");
+    if (zParam) {
+      const zNum = parseInt(zParam, 10);
+      const match = ELEMENTS.find(el => el.z === zNum);
+      if (match) {
+        setSelected(match);
+        setView("atom");
+      }
+    }
+  }, [searchParams]);
+
+  // Scroll hiding sticky header logic
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const currentScroll = el.scrollTop;
+
+    // Scroll threshold of 10px to prevent jitter
+    if (Math.abs(currentScroll - lastScrollTop.current) > 10) {
+      if (currentScroll > lastScrollTop.current && currentScroll > 50) {
+        setShowHeader(false); // scrolling down
+      } else {
+        setShowHeader(true); // scrolling up
+      }
+    }
+    lastScrollTop.current = currentScroll;
+  }, []);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || view !== "table") return;
+    el.addEventListener("scroll", handleScroll, { passive: true });
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, [view, handleScroll]);
+
+  // Reset header if switching views
+  useEffect(() => {
+    setShowHeader(true);
+  }, [view]);
+
+  const selectedName = selected ? (locale === "en" ? (ELEMENT_NAMES_EN[selected.z] || selected.name) : selected.name) : "";
 
   return (
     <div
@@ -651,30 +786,30 @@ export function PeriodicTableView() {
       style={lightMode ? { "--pt-light-bg": lightBgColor } as React.CSSProperties : undefined}
     >
       {/* ── Header ── */}
-      <header className="pt-header">
+      <header className={`pt-header${showHeader ? "" : " pt-header--hidden"}`}>
         <div className="pt-header__left">
           {view === "atom" && (
-            <button className="pt-back" onClick={handleBack} aria-label="Torna alla tavola">
-              ← tavola
+            <button className="pt-back" onClick={handleBack} aria-label={t.backToTable}>
+              {t.backToTable}
             </button>
           )}
           <div>
-            <h1 className="pt-title">Tavola Periodica <em>interattiva</em></h1>
+            <h1 className="pt-title">{t.title} <em>{t.titleEm}</em></h1>
             <p className="pt-subtitle">
               {view === "atom" && selected
-                ? `${selected.name} · ${selected.sym} · Z=${selected.z}`
-                : "118 elementi · clicca per esplorare"}
+                ? t.subtitleAtom(selectedName, selected.sym, selected.z)
+                : t.subtitleTable}
             </p>
           </div>
         </div>
         <div className="pt-header__right">
           {view === "atom" && (
             <>
-              <ModelSwitch current={model} onChange={setModel} />
-              <ScaleToggle on={realScale} onToggle={() => setRealScale(v => !v)} />
-              <SpeedSlider value={speedMultiplier} onChange={setSpeedMultiplier} />
-              <StarsToggle value={starsIntensity} onChange={setStarsIntensity} />
-              {lightMode && <LightBgSelector value={lightBgKey} onChange={setLightBgKey} />}
+              <ModelSwitch current={model} onChange={setModel} locale={locale} />
+              <ScaleToggle on={realScale} onToggle={() => setRealScale(v => !v)} locale={locale} />
+              <SpeedSlider value={speedMultiplier} onChange={setSpeedMultiplier} locale={locale} />
+              <StarsToggle value={starsIntensity} onChange={setStarsIntensity} locale={locale} />
+              {lightMode && <LightBgSelector value={lightBgKey} onChange={setLightBgKey} locale={locale} />}
             </>
           )}
           {view === "table" && (
@@ -683,9 +818,10 @@ export function PeriodicTableView() {
                 value={searchQuery}
                 onChange={setSearchQuery}
                 matchCount={searchMatchCount}
+                locale={locale}
                 onEnter={() => {
                   if (searchMatchCount === 1) {
-                    const match = ELEMENTS.find(el => matchesSearch(el, searchQuery));
+                    const match = ELEMENTS.find(el => matchesSearch(el, searchQuery, locale));
                     if (match) { setSelected(match); setView("atom"); setSearchQuery(""); }
                   }
                 }}
@@ -694,20 +830,44 @@ export function PeriodicTableView() {
                 className={`pt-toggle-legend${showLegend ? " active" : ""}`}
                 onClick={() => setShowLegend(v => !v)}
               >
-                {showLegend ? "nascondi legenda" : "legenda"}
+                {showLegend ? t.hideLegend : t.showLegend}
               </button>
-              <a href="/lab/tavola-periodica/about" className="pt-about-link">about</a>
-              <DonateButton />
+              <Link href={locale === "en" ? "/en/lab/tavola-periodica/about" : "/lab/tavola-periodica/about"} className="pt-about-link">
+                {t.aboutLink}
+              </Link>
+              <DonateButton locale={locale} />
             </>
           )}
+
+          {/* Symmetrical Language Toggle */}
+          <div className="pt-lang-switch" role="group" aria-label={locale === "en" ? "Language" : "Lingua"}>
+            <Link
+              href={locale === "it" ? "#" : `/lab/tavola-periodica${selected ? `?z=${selected.z}` : ""}`}
+              className={`pt-lang-btn${locale === "it" ? " active" : ""}`}
+              onClick={(e) => { if (locale === "it") e.preventDefault(); }}
+              aria-label="Italiano"
+            >
+              IT
+            </Link>
+            <span className="pt-lang-sep" aria-hidden="true">/</span>
+            <Link
+              href={locale === "en" ? "#" : `/en/lab/tavola-periodica${selected ? `?z=${selected.z}` : ""}`}
+              className={`pt-lang-btn${locale === "en" ? " active" : ""}`}
+              onClick={(e) => { if (locale === "en") e.preventDefault(); }}
+              aria-label="English"
+            >
+              EN
+            </Link>
+          </div>
+
           {/* theme toggle — always visible */}
           <button
             className={`pt-theme-toggle${lightMode ? " active" : ""}`}
             onClick={() => setLightMode(v => !v)}
             aria-pressed={lightMode}
-            title={lightMode ? "Passa al tema scuro" : "Passa al tema chiaro"}
+            title={lightMode ? t.themeToggleTitleLight : t.themeToggleTitleDark}
           >
-            {lightMode ? "◑ scuro" : "◑ chiaro"}
+            {lightMode ? t.themeDark : t.themeLight}
           </button>
         </div>
       </header>
@@ -726,33 +886,34 @@ export function PeriodicTableView() {
               lightBg={lightBgColor}
               className="pt-canvas"
             />
-            <ModelDesc model={model} />
+            <ModelDesc model={model} locale={locale} />
           </div>
-          <InfoPanel el={selected} />
+          <InfoPanel el={selected} locale={locale} />
         </div>
       )}
 
       {/* ── Table view ── */}
       {view === "table" && (
         <div className="pt-table-view">
-          {showLegend && thematicProp === "none" && <Legend />}
-          <ThematicSelector current={thematicProp} onChange={setThematicProp} />
-          <ThematicLegend prop={thematicProp} range={propRange} />
-          <div className="pt-scroll">
+          {showLegend && thematicProp === "none" && <Legend locale={locale} />}
+          <ThematicSelector current={thematicProp} onChange={setThematicProp} locale={locale} />
+          <ThematicLegend prop={thematicProp} range={propRange} locale={locale} />
+          <div className="pt-scroll" ref={scrollRef}>
             <PeriodicGrid
               selected={selected}
               onSelect={handleSelect}
               thematicProp={thematicProp}
               propRange={propRange}
               searchQuery={searchQuery}
+              locale={locale}
             />
           </div>
           {selected && (
             <div className="pt-footer-hint">
               <strong style={{ color: CATEGORY_COLOR[selected.category] }}>
-                {selected.name}
+                {selectedName}
               </strong>{" "}({selected.sym}) — Z={selected.z} —{" "}
-              <span style={{ opacity: 0.5 }}>clicca per aprire l&apos;atomo</span>
+              <span style={{ opacity: 0.5 }}>{t.footerHint}</span>
             </div>
           )}
         </div>

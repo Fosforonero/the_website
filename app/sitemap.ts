@@ -8,7 +8,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
   // Static pages: home + blog index + legal pages + instagram, per locale
-  const staticPaths = ["/", "/blog", "/privacy", "/cookies", "/instagram"];
+  const staticPaths = [
+    "/",
+    "/blog",
+    "/privacy",
+    "/cookies",
+    "/instagram",
+    "/lab/tavola-periodica",
+    "/lab/tavola-periodica/about",
+  ];
   const staticEntries: MetadataRoute.Sitemap = staticPaths.map((p) => ({
     url: `${site.url}${getLocalePath(defaultLocale, p)}`,
     lastModified: now,
