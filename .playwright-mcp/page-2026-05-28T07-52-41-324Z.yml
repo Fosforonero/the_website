@@ -1,0 +1,86 @@
+- generic [active] [ref=e1]:
+  - link "Vai al contenuto" [ref=e2] [cursor=pointer]:
+    - /url: "#main"
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - button "Torna alla tavola" [ref=e546] [cursor=pointer]: ← tavola
+        - generic [ref=e6]:
+          - heading "Tavola Periodica interattiva" [level=1] [ref=e7]:
+            - text: Tavola Periodica
+            - emphasis [ref=e8]: interattiva
+          - paragraph [ref=e9]: Fluoro · F · Z=9
+      - generic [ref=e10]:
+        - group "Seleziona modello atomico" [ref=e547]:
+          - button "Thomson1904" [ref=e548] [cursor=pointer]
+          - button "Rutherford1911" [ref=e549] [cursor=pointer]
+          - button "Bohr1913" [pressed] [ref=e550] [cursor=pointer]
+          - button "Sommerfeld1916" [ref=e551] [cursor=pointer]
+          - button "Quantistico1926" [ref=e552] [cursor=pointer]
+        - button "scala reale" [ref=e553] [cursor=pointer]:
+          - generic [ref=e555]: scala reale
+        - generic "Velocità di animazione degli elettroni" [ref=e556] [cursor=pointer]:
+          - generic [ref=e557]: vel
+          - slider "Velocità animazione" [ref=e558]: "1"
+          - generic [ref=e559]: 1.0×
+        - button "◑ chiaro" [ref=e12] [cursor=pointer]
+    - generic [ref=e560]:
+      - generic [ref=e561]:
+        - paragraph: Orbite circolari quantizzate a livelli energetici discreti — spiega le righe spettrali dell'idrogeno
+      - complementary "Dettagli Fluoro" [ref=e565]:
+        - generic [ref=e566]:
+          - generic [ref=e567]:
+            - generic [ref=e568]: Z = 9
+            - button "Condividi Fluoro" [ref=e569] [cursor=pointer]: ↗
+          - generic [ref=e570]:
+            - heading "Fluoro" [level=2] [ref=e571]
+            - generic [ref=e572]: F
+          - generic "Configurazione elettronica" [ref=e573]: "[He] 2s² 2p⁵"
+        - generic [ref=e574]:
+          - paragraph [ref=e575]: Elemento con la più alta elettronegatività (3,98) e il legame C–F più forte tra gli elementi (544 kJ/mol). Il fluoruro i…
+          - button "di più" [ref=e576] [cursor=pointer]
+        - generic [ref=e577]:
+          - generic [ref=e578]:
+            - term [ref=e579]: Massa atomica
+            - definition [ref=e580]: 18.998 u
+          - generic [ref=e581]:
+            - term [ref=e582]: Isotopo stabile
+            - definition [ref=e583]:
+              - superscript [ref=e584]: "19"
+              - text: F
+          - generic [ref=e585]:
+            - term [ref=e586]: Configurazione shell
+            - definition [ref=e587]: 2 · 7 e⁻
+          - generic [ref=e588]:
+            - term [ref=e589]: Blocco / Stato
+            - definition [ref=e590]:
+              - generic [ref=e591]: p
+              - text: · gas
+          - generic [ref=e592]:
+            - term [ref=e593]: Elettronegatività
+            - definition [ref=e594]: 3.98 Pauling
+          - generic [ref=e595]:
+            - term [ref=e596]: Raggio atomico
+            - definition [ref=e597]: 147 pm
+          - generic [ref=e598]:
+            - term [ref=e599]: Ionizzazione I
+            - definition [ref=e600]: 1681.0 kJ/mol
+          - generic [ref=e601]:
+            - term [ref=e602]: Densità
+            - definition [ref=e603]: 1.696 g/cm³
+          - generic [ref=e604]:
+            - term [ref=e605]: Fusione / Ebollizione
+            - definition [ref=e606]: 54 K / 85 K
+          - generic [ref=e607]:
+            - term [ref=e608]: Scoperto da
+            - definition [ref=e609]: Henri Moissan, 1886
+          - generic [ref=e610]:
+            - term [ref=e611]: Categoria
+            - definition [ref=e612]: Alogeni
+          - generic [ref=e613]:
+            - term [ref=e614]: Periodo / Gruppo
+            - definition [ref=e615]: 2 / 17
+        - paragraph [ref=e616]: trascina · scroll · Esc per tornare
+  - button "Open Next.js Dev Tools" [ref=e537] [cursor=pointer]:
+    - img [ref=e538]
+  - alert [ref=e541]

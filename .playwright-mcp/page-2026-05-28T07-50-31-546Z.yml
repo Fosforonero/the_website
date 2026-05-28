@@ -1,0 +1,418 @@
+- generic [active] [ref=e1]:
+  - link "Vai al contenuto" [ref=e2] [cursor=pointer]:
+    - /url: "#main"
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e6]:
+        - heading "Tavola Periodica interattiva" [level=1] [ref=e7]:
+          - text: Tavola Periodica
+          - emphasis [ref=e8]: interattiva
+        - paragraph [ref=e9]: 118 elementi · clicca per esplorare
+      - generic [ref=e10]:
+        - button "legenda" [ref=e610] [cursor=pointer]
+        - button "◑ chiaro" [ref=e12] [cursor=pointer]
+    - generic [ref=e611]:
+      - group "Proprietà tematica" [ref=e612]:
+        - text: vista
+        - button "Categoria" [pressed] [ref=e613]
+        - button "Elettronegatività" [ref=e614]
+        - button "Raggio atomico" [ref=e615]
+        - button "Ionizzazione I" [ref=e616]
+        - button "Densità" [ref=e617]
+        - button "Punto di fusione" [ref=e618]
+        - button "Stato fisico" [ref=e619]
+        - button "Blocco elettronico" [ref=e620]
+      - grid "Tavola periodica degli elementi" [ref=e622]:
+        - generic [ref=e623]: "1"
+        - generic [ref=e624]: "2"
+        - generic [ref=e625]: "3"
+        - generic [ref=e626]: "4"
+        - generic [ref=e627]: "5"
+        - generic [ref=e628]: "6"
+        - generic [ref=e629]: "7"
+        - generic [ref=e630]: "8"
+        - generic [ref=e631]: "9"
+        - generic [ref=e632]: "10"
+        - generic [ref=e633]: "11"
+        - generic [ref=e634]: "12"
+        - generic [ref=e635]: "13"
+        - generic [ref=e636]: "14"
+        - generic [ref=e637]: "15"
+        - generic [ref=e638]: "16"
+        - generic [ref=e639]: "17"
+        - generic [ref=e640]: "18"
+        - generic [ref=e641]: "1"
+        - generic [ref=e642]: "2"
+        - generic [ref=e643]: "3"
+        - generic [ref=e644]: "4"
+        - generic [ref=e645]: "5"
+        - generic [ref=e646]:
+          - text: "6"
+          - superscript: "*"
+        - generic [ref=e647]:
+          - text: "7"
+          - superscript: "*"
+        - button "Idrogeno, numero atomico 1" [ref=e649] [cursor=pointer]:
+          - generic [ref=e650]: "1"
+          - generic [ref=e651]: H
+        - button "Elio, numero atomico 2" [ref=e653] [cursor=pointer]:
+          - generic [ref=e654]: "2"
+          - generic [ref=e655]: He
+        - button "Litio, numero atomico 3" [ref=e657] [cursor=pointer]:
+          - generic [ref=e658]: "3"
+          - generic [ref=e659]: Li
+        - button "Berillio, numero atomico 4" [ref=e661] [cursor=pointer]:
+          - generic [ref=e662]: "4"
+          - generic [ref=e663]: Be
+        - button "Boro, numero atomico 5" [ref=e665] [cursor=pointer]:
+          - generic [ref=e666]: "5"
+          - generic [ref=e667]: B
+        - button "Carbonio, numero atomico 6" [ref=e669] [cursor=pointer]:
+          - generic [ref=e670]: "6"
+          - generic [ref=e671]: C
+        - button "Azoto, numero atomico 7" [ref=e673] [cursor=pointer]:
+          - generic [ref=e674]: "7"
+          - generic [ref=e675]: "N"
+        - button "Ossigeno, numero atomico 8" [ref=e677] [cursor=pointer]:
+          - generic [ref=e678]: "8"
+          - generic [ref=e679]: O
+        - button "Fluoro, numero atomico 9" [ref=e681] [cursor=pointer]:
+          - generic [ref=e682]: "9"
+          - generic [ref=e683]: F
+        - button "Neon, numero atomico 10" [ref=e685] [cursor=pointer]:
+          - generic [ref=e686]: "10"
+          - generic [ref=e687]: Ne
+        - button "Sodio, numero atomico 11" [ref=e689] [cursor=pointer]:
+          - generic [ref=e690]: "11"
+          - generic [ref=e691]: Na
+        - button "Magnesio, numero atomico 12" [ref=e693] [cursor=pointer]:
+          - generic [ref=e694]: "12"
+          - generic [ref=e695]: Mg
+        - button "Alluminio, numero atomico 13" [ref=e697] [cursor=pointer]:
+          - generic [ref=e698]: "13"
+          - generic [ref=e699]: Al
+        - button "Silicio, numero atomico 14" [ref=e701] [cursor=pointer]:
+          - generic [ref=e702]: "14"
+          - generic [ref=e703]: Si
+        - button "Fosforo, numero atomico 15" [ref=e705] [cursor=pointer]:
+          - generic [ref=e706]: "15"
+          - generic [ref=e707]: P
+        - button "Zolfo, numero atomico 16" [ref=e709] [cursor=pointer]:
+          - generic [ref=e710]: "16"
+          - generic [ref=e711]: S
+        - button "Cloro, numero atomico 17" [ref=e713] [cursor=pointer]:
+          - generic [ref=e714]: "17"
+          - generic [ref=e715]: Cl
+        - button "Argon, numero atomico 18" [ref=e717] [cursor=pointer]:
+          - generic [ref=e718]: "18"
+          - generic [ref=e719]: Ar
+        - button "Potassio, numero atomico 19" [ref=e721] [cursor=pointer]:
+          - generic [ref=e722]: "19"
+          - generic [ref=e723]: K
+        - button "Calcio, numero atomico 20" [ref=e725] [cursor=pointer]:
+          - generic [ref=e726]: "20"
+          - generic [ref=e727]: Ca
+        - button "Scandio, numero atomico 21" [ref=e729] [cursor=pointer]:
+          - generic [ref=e730]: "21"
+          - generic [ref=e731]: Sc
+        - button "Titanio, numero atomico 22" [ref=e733] [cursor=pointer]:
+          - generic [ref=e734]: "22"
+          - generic [ref=e735]: Ti
+        - button "Vanadio, numero atomico 23" [ref=e737] [cursor=pointer]:
+          - generic [ref=e738]: "23"
+          - generic [ref=e739]: V
+        - button "Cromo, numero atomico 24" [ref=e741] [cursor=pointer]:
+          - generic [ref=e742]: "24"
+          - generic [ref=e743]: Cr
+        - button "Manganese, numero atomico 25" [ref=e745] [cursor=pointer]:
+          - generic [ref=e746]: "25"
+          - generic [ref=e747]: Mn
+        - button "Ferro, numero atomico 26" [ref=e749] [cursor=pointer]:
+          - generic [ref=e750]: "26"
+          - generic [ref=e751]: Fe
+        - button "Cobalto, numero atomico 27" [ref=e753] [cursor=pointer]:
+          - generic [ref=e754]: "27"
+          - generic [ref=e755]: Co
+        - button "Nichel, numero atomico 28" [ref=e757] [cursor=pointer]:
+          - generic [ref=e758]: "28"
+          - generic [ref=e759]: Ni
+        - button "Rame, numero atomico 29" [ref=e761] [cursor=pointer]:
+          - generic [ref=e762]: "29"
+          - generic [ref=e763]: Cu
+        - button "Zinco, numero atomico 30" [ref=e765] [cursor=pointer]:
+          - generic [ref=e766]: "30"
+          - generic [ref=e767]: Zn
+        - button "Gallio, numero atomico 31" [ref=e769] [cursor=pointer]:
+          - generic [ref=e770]: "31"
+          - generic [ref=e771]: Ga
+        - button "Germanio, numero atomico 32" [ref=e773] [cursor=pointer]:
+          - generic [ref=e774]: "32"
+          - generic [ref=e775]: Ge
+        - button "Arsenico, numero atomico 33" [ref=e777] [cursor=pointer]:
+          - generic [ref=e778]: "33"
+          - generic [ref=e779]: As
+        - button "Selenio, numero atomico 34" [ref=e781] [cursor=pointer]:
+          - generic [ref=e782]: "34"
+          - generic [ref=e783]: Se
+        - button "Bromo, numero atomico 35" [ref=e785] [cursor=pointer]:
+          - generic [ref=e786]: "35"
+          - generic [ref=e787]: Br
+        - button "Kripton, numero atomico 36" [ref=e789] [cursor=pointer]:
+          - generic [ref=e790]: "36"
+          - generic [ref=e791]: Kr
+        - button "Rubidio, numero atomico 37" [ref=e793] [cursor=pointer]:
+          - generic [ref=e794]: "37"
+          - generic [ref=e795]: Rb
+        - button "Stronzio, numero atomico 38" [ref=e797] [cursor=pointer]:
+          - generic [ref=e798]: "38"
+          - generic [ref=e799]: Sr
+        - button "Ittrio, numero atomico 39" [ref=e801] [cursor=pointer]:
+          - generic [ref=e802]: "39"
+          - generic [ref=e803]: "Y"
+        - button "Zirconio, numero atomico 40" [ref=e805] [cursor=pointer]:
+          - generic [ref=e806]: "40"
+          - generic [ref=e807]: Zr
+        - button "Niobio, numero atomico 41" [ref=e809] [cursor=pointer]:
+          - generic [ref=e810]: "41"
+          - generic [ref=e811]: Nb
+        - button "Molibdeno, numero atomico 42" [pressed] [ref=e813] [cursor=pointer]:
+          - generic [ref=e814]: "42"
+          - generic [ref=e815]: Mo
+        - button "Tecnezio, numero atomico 43" [ref=e817] [cursor=pointer]:
+          - generic [ref=e818]: "43"
+          - generic [ref=e819]: Tc
+        - button "Rutenio, numero atomico 44" [ref=e821] [cursor=pointer]:
+          - generic [ref=e822]: "44"
+          - generic [ref=e823]: Ru
+        - button "Rodio, numero atomico 45" [ref=e825] [cursor=pointer]:
+          - generic [ref=e826]: "45"
+          - generic [ref=e827]: Rh
+        - button "Palladio, numero atomico 46" [ref=e829] [cursor=pointer]:
+          - generic [ref=e830]: "46"
+          - generic [ref=e831]: Pd
+        - button "Argento, numero atomico 47" [ref=e833] [cursor=pointer]:
+          - generic [ref=e834]: "47"
+          - generic [ref=e835]: Ag
+        - button "Cadmio, numero atomico 48" [ref=e837] [cursor=pointer]:
+          - generic [ref=e838]: "48"
+          - generic [ref=e839]: Cd
+        - button "Indio, numero atomico 49" [ref=e841] [cursor=pointer]:
+          - generic [ref=e842]: "49"
+          - generic [ref=e843]: In
+        - button "Stagno, numero atomico 50" [ref=e845] [cursor=pointer]:
+          - generic [ref=e846]: "50"
+          - generic [ref=e847]: Sn
+        - button "Antimonio, numero atomico 51" [ref=e849] [cursor=pointer]:
+          - generic [ref=e850]: "51"
+          - generic [ref=e851]: Sb
+        - button "Tellurio, numero atomico 52" [ref=e853] [cursor=pointer]:
+          - generic [ref=e854]: "52"
+          - generic [ref=e855]: Te
+        - button "Iodio, numero atomico 53" [ref=e857] [cursor=pointer]:
+          - generic [ref=e858]: "53"
+          - generic [ref=e859]: I
+        - button "Xenon, numero atomico 54" [ref=e861] [cursor=pointer]:
+          - generic [ref=e862]: "54"
+          - generic [ref=e863]: Xe
+        - button "Cesio, numero atomico 55" [ref=e865] [cursor=pointer]:
+          - generic [ref=e866]: "55"
+          - generic [ref=e867]: Cs
+        - button "Bario, numero atomico 56" [ref=e869] [cursor=pointer]:
+          - generic [ref=e870]: "56"
+          - generic [ref=e871]: Ba
+        - button "Lantanio, numero atomico 57" [ref=e873] [cursor=pointer]:
+          - generic [ref=e874]: "57"
+          - generic [ref=e875]: La
+        - button "Cerio, numero atomico 58" [ref=e877] [cursor=pointer]:
+          - generic [ref=e878]: "58"
+          - generic [ref=e879]: Ce
+        - button "Praseodimio, numero atomico 59" [ref=e881] [cursor=pointer]:
+          - generic [ref=e882]: "59"
+          - generic [ref=e883]: Pr
+        - button "Neodimio, numero atomico 60" [ref=e885] [cursor=pointer]:
+          - generic [ref=e886]: "60"
+          - generic [ref=e887]: Nd
+        - button "Prometio, numero atomico 61" [ref=e889] [cursor=pointer]:
+          - generic [ref=e890]: "61"
+          - generic [ref=e891]: Pm
+        - button "Samario, numero atomico 62" [ref=e893] [cursor=pointer]:
+          - generic [ref=e894]: "62"
+          - generic [ref=e895]: Sm
+        - button "Europio, numero atomico 63" [ref=e897] [cursor=pointer]:
+          - generic [ref=e898]: "63"
+          - generic [ref=e899]: Eu
+        - button "Gadolinio, numero atomico 64" [ref=e901] [cursor=pointer]:
+          - generic [ref=e902]: "64"
+          - generic [ref=e903]: Gd
+        - button "Terbio, numero atomico 65" [ref=e905] [cursor=pointer]:
+          - generic [ref=e906]: "65"
+          - generic [ref=e907]: Tb
+        - button "Disprosio, numero atomico 66" [ref=e909] [cursor=pointer]:
+          - generic [ref=e910]: "66"
+          - generic [ref=e911]: Dy
+        - button "Olmio, numero atomico 67" [ref=e913] [cursor=pointer]:
+          - generic [ref=e914]: "67"
+          - generic [ref=e915]: Ho
+        - button "Erbio, numero atomico 68" [ref=e917] [cursor=pointer]:
+          - generic [ref=e918]: "68"
+          - generic [ref=e919]: Er
+        - button "Tulio, numero atomico 69" [ref=e921] [cursor=pointer]:
+          - generic [ref=e922]: "69"
+          - generic [ref=e923]: Tm
+        - button "Itterbio, numero atomico 70" [ref=e925] [cursor=pointer]:
+          - generic [ref=e926]: "70"
+          - generic [ref=e927]: Yb
+        - button "Lutezio, numero atomico 71" [ref=e929] [cursor=pointer]:
+          - generic [ref=e930]: "71"
+          - generic [ref=e931]: Lu
+        - button "Afnio, numero atomico 72" [ref=e933] [cursor=pointer]:
+          - generic [ref=e934]: "72"
+          - generic [ref=e935]: Hf
+        - button "Tantalio, numero atomico 73" [ref=e937] [cursor=pointer]:
+          - generic [ref=e938]: "73"
+          - generic [ref=e939]: Ta
+        - button "Tungsteno, numero atomico 74" [ref=e941] [cursor=pointer]:
+          - generic [ref=e942]: "74"
+          - generic [ref=e943]: W
+        - button "Renio, numero atomico 75" [ref=e945] [cursor=pointer]:
+          - generic [ref=e946]: "75"
+          - generic [ref=e947]: Re
+        - button "Osmio, numero atomico 76" [ref=e949] [cursor=pointer]:
+          - generic [ref=e950]: "76"
+          - generic [ref=e951]: Os
+        - button "Iridio, numero atomico 77" [ref=e953] [cursor=pointer]:
+          - generic [ref=e954]: "77"
+          - generic [ref=e955]: Ir
+        - button "Platino, numero atomico 78" [ref=e957] [cursor=pointer]:
+          - generic [ref=e958]: "78"
+          - generic [ref=e959]: Pt
+        - button "Oro, numero atomico 79" [ref=e961] [cursor=pointer]:
+          - generic [ref=e962]: "79"
+          - generic [ref=e963]: Au
+        - button "Mercurio, numero atomico 80" [ref=e965] [cursor=pointer]:
+          - generic [ref=e966]: "80"
+          - generic [ref=e967]: Hg
+        - button "Tallio, numero atomico 81" [ref=e969] [cursor=pointer]:
+          - generic [ref=e970]: "81"
+          - generic [ref=e971]: Tl
+        - button "Piombo, numero atomico 82" [ref=e973] [cursor=pointer]:
+          - generic [ref=e974]: "82"
+          - generic [ref=e975]: Pb
+        - button "Bismuto, numero atomico 83" [ref=e977] [cursor=pointer]:
+          - generic [ref=e978]: "83"
+          - generic [ref=e979]: Bi
+        - button "Polonio, numero atomico 84" [ref=e981] [cursor=pointer]:
+          - generic [ref=e982]: "84"
+          - generic [ref=e983]: Po
+        - button "Astato, numero atomico 85" [ref=e985] [cursor=pointer]:
+          - generic [ref=e986]: "85"
+          - generic [ref=e987]: At
+        - button "Radon, numero atomico 86" [ref=e989] [cursor=pointer]:
+          - generic [ref=e990]: "86"
+          - generic [ref=e991]: Rn
+        - button "Francio, numero atomico 87" [ref=e993] [cursor=pointer]:
+          - generic [ref=e994]: "87"
+          - generic [ref=e995]: Fr
+        - button "Radio, numero atomico 88" [ref=e997] [cursor=pointer]:
+          - generic [ref=e998]: "88"
+          - generic [ref=e999]: Ra
+        - button "Attinio, numero atomico 89" [ref=e1001] [cursor=pointer]:
+          - generic [ref=e1002]: "89"
+          - generic [ref=e1003]: Ac
+        - button "Torio, numero atomico 90" [ref=e1005] [cursor=pointer]:
+          - generic [ref=e1006]: "90"
+          - generic [ref=e1007]: Th
+        - button "Protoattinio, numero atomico 91" [ref=e1009] [cursor=pointer]:
+          - generic [ref=e1010]: "91"
+          - generic [ref=e1011]: Pa
+        - button "Uranio, numero atomico 92" [ref=e1013] [cursor=pointer]:
+          - generic [ref=e1014]: "92"
+          - generic [ref=e1015]: U
+        - button "Nettunio, numero atomico 93" [ref=e1017] [cursor=pointer]:
+          - generic [ref=e1018]: "93"
+          - generic [ref=e1019]: Np
+        - button "Plutonio, numero atomico 94" [ref=e1021] [cursor=pointer]:
+          - generic [ref=e1022]: "94"
+          - generic [ref=e1023]: Pu
+        - button "Americio, numero atomico 95" [ref=e1025] [cursor=pointer]:
+          - generic [ref=e1026]: "95"
+          - generic [ref=e1027]: Am
+        - button "Curio, numero atomico 96" [ref=e1029] [cursor=pointer]:
+          - generic [ref=e1030]: "96"
+          - generic [ref=e1031]: Cm
+        - button "Berkelio, numero atomico 97" [ref=e1033] [cursor=pointer]:
+          - generic [ref=e1034]: "97"
+          - generic [ref=e1035]: Bk
+        - button "Californio, numero atomico 98" [ref=e1037] [cursor=pointer]:
+          - generic [ref=e1038]: "98"
+          - generic [ref=e1039]: Cf
+        - button "Einsteinio, numero atomico 99" [ref=e1041] [cursor=pointer]:
+          - generic [ref=e1042]: "99"
+          - generic [ref=e1043]: Es
+        - button "Fermio, numero atomico 100" [ref=e1045] [cursor=pointer]:
+          - generic [ref=e1046]: "100"
+          - generic [ref=e1047]: Fm
+        - button "Mendelevio, numero atomico 101" [ref=e1049] [cursor=pointer]:
+          - generic [ref=e1050]: "101"
+          - generic [ref=e1051]: Md
+        - button "Nobelio, numero atomico 102" [ref=e1053] [cursor=pointer]:
+          - generic [ref=e1054]: "102"
+          - generic [ref=e1055]: "No"
+        - button "Laurenzio, numero atomico 103" [ref=e1057] [cursor=pointer]:
+          - generic [ref=e1058]: "103"
+          - generic [ref=e1059]: Lr
+        - button "Rutherfordio, numero atomico 104" [ref=e1061] [cursor=pointer]:
+          - generic [ref=e1062]: "104"
+          - generic [ref=e1063]: Rf
+        - button "Dubnio, numero atomico 105" [ref=e1065] [cursor=pointer]:
+          - generic [ref=e1066]: "105"
+          - generic [ref=e1067]: Db
+        - button "Seaborgio, numero atomico 106" [ref=e1069] [cursor=pointer]:
+          - generic [ref=e1070]: "106"
+          - generic [ref=e1071]: Sg
+        - button "Bohrio, numero atomico 107" [ref=e1073] [cursor=pointer]:
+          - generic [ref=e1074]: "107"
+          - generic [ref=e1075]: Bh
+        - button "Hassio, numero atomico 108" [ref=e1077] [cursor=pointer]:
+          - generic [ref=e1078]: "108"
+          - generic [ref=e1079]: Hs
+        - button "Meitnerio, numero atomico 109" [ref=e1081] [cursor=pointer]:
+          - generic [ref=e1082]: "109"
+          - generic [ref=e1083]: Mt
+        - button "Darmstadtio, numero atomico 110" [ref=e1085] [cursor=pointer]:
+          - generic [ref=e1086]: "110"
+          - generic [ref=e1087]: Ds
+        - button "Roentgenio, numero atomico 111" [ref=e1089] [cursor=pointer]:
+          - generic [ref=e1090]: "111"
+          - generic [ref=e1091]: Rg
+        - button "Copernicio, numero atomico 112" [ref=e1093] [cursor=pointer]:
+          - generic [ref=e1094]: "112"
+          - generic [ref=e1095]: Cn
+        - button "Nihonio, numero atomico 113" [ref=e1097] [cursor=pointer]:
+          - generic [ref=e1098]: "113"
+          - generic [ref=e1099]: Nh
+        - button "Flerovio, numero atomico 114" [ref=e1101] [cursor=pointer]:
+          - generic [ref=e1102]: "114"
+          - generic [ref=e1103]: Fl
+        - button "Moscovio, numero atomico 115" [ref=e1105] [cursor=pointer]:
+          - generic [ref=e1106]: "115"
+          - generic [ref=e1107]: Mc
+        - button "Livermorio, numero atomico 116" [ref=e1109] [cursor=pointer]:
+          - generic [ref=e1110]: "116"
+          - generic [ref=e1111]: Lv
+        - button "Tennesso, numero atomico 117" [ref=e1113] [cursor=pointer]:
+          - generic [ref=e1114]: "117"
+          - generic [ref=e1115]: Ts
+        - button "Oganesson, numero atomico 118" [ref=e1117] [cursor=pointer]:
+          - generic [ref=e1118]: "118"
+          - generic [ref=e1119]: Og
+        - generic [ref=e1121]: "*57–71"
+        - generic [ref=e1123]: "**89–103"
+        - generic [ref=e1125]: "*"
+        - generic [ref=e1126]: "**"
+      - generic [ref=e1127]:
+        - strong [ref=e1128]: Molibdeno
+        - text: (Mo) — Z=42 — clicca per aprire l'atomo
+  - button "Open Next.js Dev Tools" [ref=e536] [cursor=pointer]:
+    - img [ref=e537]
+  - alert [ref=e609]

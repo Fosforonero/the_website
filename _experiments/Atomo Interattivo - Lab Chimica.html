@@ -1,0 +1,967 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Modello atomico — interattivo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #FBFBFA;
+    --ink: #19191A;
+    --dim: #9a9a96;
+    --hair: #d8d8d3;
+    --font: 'Geist', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --mono: 'Geist Mono', ui-monospace, monospace;
+    --serif: 'Instrument Serif', 'Times New Roman', serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    height: 100%;
+    overflow: hidden;
+  }
+  body {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    height: 100vh;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 22px 32px;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  header .brand { min-width: 0; flex-shrink: 1; }
+  header .brand h1 {
+    font-family: var(--serif);
+    font-size: 24px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+    margin-bottom: 6px;
+    white-space: nowrap;
+  }
+  header .brand h1 em { font-style: italic; color: var(--dim); }
+  header .brand p {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--dim);
+    letter-spacing: 0.06em;
+  }
+
+  .header-tools {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  /* segmented model switch */
+  .seg {
+    display: inline-flex;
+    border: 1px solid var(--hair);
+    border-radius: 999px;
+    padding: 3px;
+    background: rgba(251,251,250,0.85);
+  }
+  .seg button {
+    appearance: none;
+    background: transparent;
+    border: none;
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    padding: 6px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s;
+  }
+  .seg button:hover { background: rgba(25,25,26,0.05); }
+  .seg button.active { background: var(--ink); color: var(--bg); }
+
+  /* toggle switch (real scale) */
+  .toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px 5px 14px;
+    border: 1px solid var(--hair);
+    border-radius: 999px;
+    background: rgba(251,251,250,0.85);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    user-select: none;
+  }
+  .toggle .sw {
+    position: relative;
+    width: 26px; height: 14px;
+    border-radius: 999px;
+    background: var(--hair);
+    transition: background 0.2s;
+  }
+  .toggle .sw::after {
+    content: '';
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: white;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    transition: transform 0.2s;
+  }
+  .toggle.on .sw { background: var(--ink); }
+  .toggle.on .sw::after { transform: translateX(12px); }
+
+  .hint {
+    position: absolute;
+    bottom: 14px; left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--dim);
+    letter-spacing: 0.08em;
+    pointer-events: none;
+    opacity: 0.7;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .toolbar button {
+    appearance: none;
+    background: transparent;
+    border: 1px solid var(--hair);
+    color: var(--ink);
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-family: var(--mono);
+    font-size: 11px;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: border-color 0.15s;
+  }
+  .toolbar button:hover { border-color: var(--ink); }
+
+  .stage {
+    position: relative;
+    overflow: hidden;
+  }
+  #c { width: 100%; height: 100%; display: block; }
+
+  .ui {
+    padding: 14px 32px 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    font-family: var(--mono);
+    color: var(--ink);
+  }
+
+  .status {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .status .iso { font-size: 18px; font-weight: 500; letter-spacing: -0.01em; }
+  .status .elname { font-family: var(--serif); font-style: italic; font-size: 16px; color: var(--dim); }
+  .status .sep { color: var(--hair); }
+  .status .conf { color: var(--dim); }
+  .status .stab.ok  { color: #2E7D4F; }
+  .status .stab.ion { color: #8C6E1F; }
+  .status .stab.rad { color: #B8463A; }
+  .status .stab { transition: color 0.4s; }
+
+  .controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .ctrl {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px 6px 12px;
+    border: 1px solid var(--hair);
+    border-radius: 999px;
+    background: rgba(251,251,250,0.85);
+  }
+  .ctrl .cdot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+  .ctrl .clbl { font-size: 10px; letter-spacing: 0.04em; }
+  .ctrl button {
+    appearance: none;
+    background: transparent;
+    border: none;
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 15px;
+    width: 22px; height: 22px;
+    cursor: pointer;
+    padding: 0;
+    border-radius: 50%;
+    line-height: 1;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .ctrl button:hover { background: rgba(25,25,26,0.06); }
+  .ctrl button:active { background: rgba(25,25,26,0.14); transform: scale(0.92); }
+  .ctrl button:disabled { color: var(--hair); cursor: not-allowed; background: transparent; }
+  .ctrl .cnum {
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+    font-size: 13px;
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .presets {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    color: var(--dim);
+    letter-spacing: 0.06em;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .presets .lbl { margin-right: 6px; text-transform: uppercase; }
+  .presets button {
+    appearance: none;
+    background: transparent;
+    border: none;
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .presets button:hover { background: rgba(25,25,26,0.06); }
+  .presets button.active { background: var(--ink); color: var(--bg); }
+
+  @media (max-width: 640px) {
+    header { padding: 16px 20px; }
+    header .brand h1 { font-size: 20px; white-space: normal; }
+    .ui { padding: 12px 16px 20px; gap: 12px; }
+    .controls { gap: 6px; }
+    .ctrl { padding: 5px 6px 5px 10px; gap: 6px; }
+    .hint { font-size: 9px; white-space: normal; text-align: center; padding: 0 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1>Modello atomico <em>interattivo</em></h1>
+    <p>Rutherford · Bohr · Schrödinger</p>
+  </div>
+  <div class="header-tools">
+    <div class="seg" id="mode-seg">
+      <button data-mode="rutherford">Rutherford</button>
+      <button data-mode="bohr" class="active">Bohr</button>
+      <button data-mode="schrodinger">Schrödinger</button>
+    </div>
+    <button class="toggle" id="scale-toggle" aria-pressed="false">
+      <span class="sw"></span>
+      <span>scala reale</span>
+    </button>
+    <div class="toolbar"><button id="reset">↺ reset</button></div>
+  </div>
+</header>
+
+<div class="stage">
+  <canvas id="c"></canvas>
+  <div class="hint">trascina per ruotare · rotella per zoom</div>
+</div>
+
+<div class="ui">
+  <div class="status">
+    <span class="iso" id="isotope">¹H</span>
+    <span class="elname" id="elname">Idrogeno</span>
+    <span class="sep">·</span>
+    <span class="conf" id="conf-val">1 e⁻</span>
+    <span class="sep">·</span>
+    <span class="stab ok" id="stab">stabile</span>
+  </div>
+  <div class="controls">
+    <div class="ctrl">
+      <span class="cdot" style="background:#E54A3F"></span>
+      <span class="clbl">p⁺</span>
+      <button data-act="dec-p" aria-label="rimuovi protone">−</button>
+      <span class="cnum" id="num-p">1</span>
+      <button data-act="inc-p" aria-label="aggiungi protone">+</button>
+    </div>
+    <div class="ctrl">
+      <span class="cdot" style="background:#F2C744"></span>
+      <span class="clbl">n</span>
+      <button data-act="dec-n" aria-label="rimuovi neutrone">−</button>
+      <span class="cnum" id="num-n">0</span>
+      <button data-act="inc-n" aria-label="aggiungi neutrone">+</button>
+    </div>
+    <div class="ctrl">
+      <span class="cdot" style="background:#4585E0"></span>
+      <span class="clbl">e⁻</span>
+      <button data-act="dec-e" aria-label="rimuovi elettrone">−</button>
+      <span class="cnum" id="num-e">1</span>
+      <button data-act="inc-e" aria-label="aggiungi elettrone">+</button>
+    </div>
+  </div>
+  <div class="presets" id="presets">
+    <span class="lbl">preset</span>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+} }
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const INK = 0x19191A;
+
+const C_PROTON   = 0xE54A3F;
+const C_NEUTRON  = 0xF2C744;
+const C_ELECTRON = 0x4585E0;
+
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setClearColor(0x000000, 0);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(28, 1, 0.1, 200);
+camera.position.set(0, 0, 11);
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0xe0ddd5, 0.85));
+const keyLight = new THREE.DirectionalLight(0xffffff, 0.55);
+keyLight.position.set(3, 4, 5);
+scene.add(keyLight);
+
+// ── OrbitControls: drag rotate, wheel zoom ───────────────────────
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.enablePan = false;
+controls.minDistance = 2.5;
+controls.maxDistance = 20;
+controls.rotateSpeed = 0.7;
+controls.zoomSpeed = 0.7;
+
+// ── element data ─────────────────────────────────────────────────
+const ELEMENTS = [null,
+  { sym:'H',  name:'Idrogeno',  stableN:[0,1] },
+  { sym:'He', name:'Elio',      stableN:[1,2] },
+  { sym:'Li', name:'Litio',     stableN:[3,4] },
+  { sym:'Be', name:'Berillio',  stableN:[5] },
+  { sym:'B',  name:'Boro',      stableN:[5,6] },
+  { sym:'C',  name:'Carbonio',  stableN:[6,7] },
+  { sym:'N',  name:'Azoto',     stableN:[7,8] },
+  { sym:'O',  name:'Ossigeno',  stableN:[8,9,10] },
+  { sym:'F',  name:'Fluoro',    stableN:[10] },
+  { sym:'Ne', name:'Neon',      stableN:[10,11,12] },
+  { sym:'Na', name:'Sodio',     stableN:[12] },
+  { sym:'Mg', name:'Magnesio',  stableN:[12,13,14] },
+  { sym:'Al', name:'Alluminio', stableN:[14] },
+  { sym:'Si', name:'Silicio',   stableN:[14,15,16] },
+  { sym:'P',  name:'Fosforo',   stableN:[16] },
+  { sym:'S',  name:'Zolfo',     stableN:[16,17,18,20] },
+  { sym:'Cl', name:'Cloro',     stableN:[18,20] },
+  { sym:'Ar', name:'Argon',     stableN:[18,20,22] },
+  { sym:'K',  name:'Potassio',  stableN:[20,21,22] },
+  { sym:'Ca', name:'Calcio',    stableN:[20,22,23,24,26] },
+];
+
+const SHELL_CAPS   = [2, 8, 8, 18];
+const SHELL_BASE_R = [0.85, 1.45, 2.05, 2.65];
+const SHELL_TILTS  = [
+  [Math.PI/2 + 0.12, 0,           0],
+  [Math.PI/3,        Math.PI/4,   0],
+  [Math.PI/6,       -Math.PI/4,   Math.PI/3],
+  [Math.PI/2.4,      Math.PI/2.8, -Math.PI/6],
+];
+const SHELL_SPEEDS = [0.95, 0.55, 0.35, 0.25];
+
+const SUP = ['⁰','¹','²','³','⁴','⁵','⁶','⁷','⁸','⁹'];
+const toSup = n => String(n).split('').map(d => SUP[+d] || d).join('');
+
+// ── scale presets (schematic vs real) ────────────────────────────
+const SCALES = {
+  normal: { nucleon: 1.0,  electron: 1.0,  radiusMul: 1.0, camMax: 20 },
+  real:   { nucleon: 0.22, electron: 0.30, radiusMul: 3.0, camMax: 60 },
+};
+
+const INITIAL = { p:1, n:0, e:1, mode:'bohr', realScale:false };
+const state = { ...INITIAL };
+
+function S() { return SCALES[state.realScale ? 'real' : 'normal']; }
+function shellR(i) { return SHELL_BASE_R[i] * S().radiusMul; }
+
+const PRESETS = [
+  { z:1,  n:0,  label:'H'  }, { z:2,  n:2,  label:'He' },
+  { z:6,  n:6,  label:'C'  }, { z:7,  n:7,  label:'N'  },
+  { z:8,  n:8,  label:'O'  }, { z:10, n:10, label:'Ne' },
+  { z:11, n:12, label:'Na' }, { z:15, n:16, label:'P'  },
+  { z:17, n:18, label:'Cl' }, { z:20, n:20, label:'Ca' },
+];
+
+// ── shared geometry/materials ────────────────────────────────────
+const atom = new THREE.Group();
+scene.add(atom);
+
+const eGeo = new THREE.SphereGeometry(0.10, 22, 14);
+const eMat = new THREE.MeshLambertMaterial({ color: C_ELECTRON });
+const nGeo = new THREE.SphereGeometry(0.125, 20, 12);
+const protonMat  = new THREE.MeshLambertMaterial({ color: C_PROTON });
+const neutronMat = new THREE.MeshLambertMaterial({ color: C_NEUTRON });
+
+// ═════════ BOHR REPRESENTATION ═════════════════════════════════════
+const shellGroups = [];
+for (let i = 0; i < 4; i++) {
+  const g = new THREE.Group();
+  g.rotation.set(SHELL_TILTS[i][0], SHELL_TILTS[i][1], SHELL_TILTS[i][2]);
+  g.userData.ringMesh = null;
+  g.visible = false;
+  atom.add(g);
+  shellGroups.push(g);
+}
+function buildRingFor(i) {
+  const old = shellGroups[i].userData.ringMesh;
+  if (old) {
+    shellGroups[i].remove(old);
+    old.geometry.dispose();
+  }
+  const r = shellR(i);
+  const pts = [];
+  for (let k = 0; k <= 144; k++) {
+    const a = (k/144) * Math.PI * 2;
+    pts.push(new THREE.Vector3(Math.cos(a)*r, Math.sin(a)*r, 0));
+  }
+  const line = new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints(pts),
+    new THREE.LineBasicMaterial({ color: INK, transparent:true, opacity:0.30 })
+  );
+  line.userData.isRing = true;
+  shellGroups[i].add(line);
+  shellGroups[i].userData.ringMesh = line;
+}
+for (let i = 0; i < 4; i++) buildRingFor(i);
+
+const electronsByShell = [[], [], [], []];
+const shellPhases = [0, 0, 0, 0];
+
+function spawnBohrElectron(instant) {
+  const s = S();
+  for (let i = 0; i < 4; i++) {
+    if (electronsByShell[i].length < SHELL_CAPS[i]) {
+      const m = new THREE.Mesh(eGeo, eMat);
+      m.scale.setScalar(instant ? s.electron : 0.001);
+      m.userData.scaleTarget = s.electron;
+      shellGroups[i].add(m);
+      electronsByShell[i].push(m);
+      return;
+    }
+  }
+}
+function despawnBohrElectron() {
+  for (let i = 3; i >= 0; i--) {
+    if (electronsByShell[i].length > 0) {
+      const m = electronsByShell[i].pop();
+      m.userData.scaleTarget = 0;
+      m.userData.markRemove = true;
+      return;
+    }
+  }
+}
+
+// ═════════ RUTHERFORD REPRESENTATION ═══════════════════════════════
+const rutherfordGroup = new THREE.Group();
+rutherfordGroup.visible = false;
+atom.add(rutherfordGroup);
+const rutherfordElectrons = []; // {mesh, params, pathLine}
+
+function randomRuthOrbit() {
+  const r = 0.95 + Math.random() * 1.6;
+  const normal = new THREE.Vector3(
+    Math.random()*2-1, Math.random()*2-1, Math.random()*2-1
+  ).normalize();
+  let u = new THREE.Vector3(1, 0, 0);
+  if (Math.abs(normal.x) > 0.92) u.set(0, 1, 0);
+  u.sub(normal.clone().multiplyScalar(u.dot(normal))).normalize();
+  const v = new THREE.Vector3().crossVectors(normal, u).normalize();
+  return {
+    r, u, v,
+    phase: Math.random() * Math.PI * 2,
+    speed: (0.50 + Math.random() * 0.45) / Math.sqrt(r),
+  };
+}
+function buildRuthPath(params) {
+  const pts = [];
+  const segs = 96;
+  const R = params.r * S().radiusMul;
+  for (let k = 0; k <= segs; k++) {
+    const a = (k/segs) * Math.PI * 2;
+    pts.push(new THREE.Vector3()
+      .copy(params.u).multiplyScalar(Math.cos(a) * R)
+      .addScaledVector(params.v, Math.sin(a) * R));
+  }
+  return new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints(pts),
+    new THREE.LineBasicMaterial({ color: INK, transparent:true, opacity:0.10 })
+  );
+}
+function spawnRuthElectron(instant) {
+  const s = S();
+  const m = new THREE.Mesh(eGeo, eMat);
+  m.scale.setScalar(instant ? s.electron : 0.001);
+  m.userData.scaleTarget = s.electron;
+  const params = randomRuthOrbit();
+  const pathLine = buildRuthPath(params);
+  rutherfordGroup.add(pathLine);
+  rutherfordGroup.add(m);
+  rutherfordElectrons.push({ mesh: m, params, pathLine });
+}
+function despawnRuthElectron() {
+  if (!rutherfordElectrons.length) return;
+  const re = rutherfordElectrons.pop();
+  re.mesh.userData.scaleTarget = 0;
+  re.mesh.userData.markRemove = true;
+  re.pathLine.userData.fading = true;
+}
+function rebuildRuthPaths() {
+  for (const re of rutherfordElectrons) {
+    rutherfordGroup.remove(re.pathLine);
+    re.pathLine.geometry.dispose();
+    re.pathLine.material.dispose();
+    const p = buildRuthPath(re.params);
+    rutherfordGroup.add(p);
+    re.pathLine = p;
+  }
+}
+
+// ═════════ SCHRÖDINGER REPRESENTATION ══════════════════════════════
+const schrGroup = new THREE.Group();
+schrGroup.visible = false;
+atom.add(schrGroup);
+let schrCloud = null;
+
+function gauss() {
+  const u1 = Math.max(Math.random(), 1e-6), u2 = Math.random();
+  return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+}
+function rebuildSchrCloud() {
+  if (schrCloud) {
+    schrGroup.remove(schrCloud);
+    schrCloud.geometry.dispose();
+    schrCloud.material.dispose();
+    schrCloud = null;
+  }
+  if (state.e === 0) return;
+
+  // Aufbau distribution
+  const fills = [];
+  let rem = state.e;
+  for (let i = 0; i < 4 && rem > 0; i++) {
+    const k = Math.min(SHELL_CAPS[i], rem);
+    fills.push(k); rem -= k;
+  }
+
+  const POINTS_PER_E = 220;
+  const positions = [];
+
+  fills.forEach((count, shellIdx) => {
+    const r0 = shellR(shellIdx);
+    const sigma = (0.30 + shellIdx * 0.06) * S().radiusMul;
+    const total = count * POINTS_PER_E;
+    const sCount = Math.min(count, 2);
+    const sFrac = sCount / count;
+    const sPts = Math.round(total * sFrac);
+    const pPts = total - sPts;
+
+    // s-orbital (spherical) sampling
+    let placed = 0, safety = 0;
+    while (placed < sPts && safety++ < sPts * 6) {
+      const r = r0 + gauss() * sigma;
+      if (r < 0.15) continue;
+      const u = Math.random()*2-1, phi = Math.random()*Math.PI*2;
+      const sinT = Math.sqrt(1 - u*u);
+      positions.push(r*sinT*Math.cos(phi), r*sinT*Math.sin(phi), r*u);
+      placed++;
+    }
+    // p-orbital (dumbbell) sampling, 3 axes
+    if (pPts > 0) {
+      const perAxis = Math.ceil(pPts / 3);
+      for (let axis = 0; axis < 3; axis++) {
+        let pAdded = 0, ps = 0;
+        while (pAdded < perAxis && ps++ < perAxis * 12) {
+          const u = Math.random()*2-1, phi = Math.random()*Math.PI*2;
+          const sinT = Math.sqrt(1 - u*u);
+          const d = [sinT*Math.cos(phi), sinT*Math.sin(phi), u];
+          const w = d[axis] * d[axis];
+          if (Math.random() > w) continue;
+          const r = r0 + gauss() * sigma * 0.85;
+          if (r < 0.15) continue;
+          positions.push(r*d[0], r*d[1], r*d[2]);
+          pAdded++;
+        }
+      }
+    }
+  });
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  schrCloud = new THREE.Points(geo, new THREE.PointsMaterial({
+    color: C_ELECTRON,
+    size: 0.045,
+    transparent: true,
+    opacity: 0.50,
+    sizeAttenuation: true,
+    depthWrite: false,
+  }));
+  schrGroup.add(schrCloud);
+}
+
+// ═════════ NUCLEUS ═════════════════════════════════════════════════
+const nucleus = new THREE.Group();
+atom.add(nucleus);
+const nucleons = [];
+
+function nucleusRadius() {
+  // R ∝ A^(1/3) per Fermi's empirical law
+  const A = Math.max(state.p + state.n, 1);
+  return (0.28 + Math.pow(A, 1/3) * 0.062);
+}
+function packPosition() {
+  const r = nucleusRadius();
+  const minSep = 0.22;
+  let pos = new THREE.Vector3();
+  for (let attempt = 0; attempt < 80; attempt++) {
+    let v;
+    do {
+      v = new THREE.Vector3(Math.random()*2-1, Math.random()*2-1, Math.random()*2-1);
+    } while (v.lengthSq() > 1);
+    pos = v.multiplyScalar(r);
+    let ok = true;
+    for (const np of nucleons) {
+      if (np.mesh.position.distanceTo(pos) < minSep) { ok = false; break; }
+    }
+    if (ok) return pos;
+  }
+  return pos;
+}
+function spawnNucleon(type, instant) {
+  const s = S();
+  const m = new THREE.Mesh(nGeo, type === 'p' ? protonMat : neutronMat);
+  m.position.copy(packPosition());
+  m.scale.setScalar(instant ? s.nucleon : 0.001);
+  m.userData.scaleTarget = s.nucleon;
+  nucleus.add(m);
+  nucleons.push({ mesh: m, type });
+}
+function despawnNucleon(type) {
+  for (let i = nucleons.length - 1; i >= 0; i--) {
+    if (nucleons[i].type === type) {
+      const n = nucleons[i];
+      n.mesh.userData.scaleTarget = 0;
+      n.mesh.userData.markRemove = true;
+      nucleons.splice(i, 1);
+      return;
+    }
+  }
+}
+function shuffleNucleonTypes() {
+  if (nucleons.length < 2) return;
+  const types = nucleons.map(n => n.type);
+  for (let i = types.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [types[i], types[j]] = [types[j], types[i]];
+  }
+  for (let i = 0; i < nucleons.length; i++) {
+    if (nucleons[i].type !== types[i]) {
+      nucleons[i].type = types[i];
+      nucleons[i].mesh.material = types[i]==='p' ? protonMat : neutronMat;
+    }
+  }
+}
+
+// ═════════ UNIFIED ELECTRON ADD/REMOVE ═════════════════════════════
+function addElectron(instant) {
+  spawnBohrElectron(instant);
+  spawnRuthElectron(instant);
+  rebuildSchrCloud();
+}
+function removeElectron() {
+  despawnBohrElectron();
+  despawnRuthElectron();
+  rebuildSchrCloud();
+}
+
+// ═════════ MODE & SCALE APPLY ══════════════════════════════════════
+function applyMode() {
+  const m = state.mode;
+  for (let i = 0; i < 4; i++) {
+    shellGroups[i].visible = (m === 'bohr') && electronsByShell[i].length > 0;
+  }
+  rutherfordGroup.visible = (m === 'rutherford');
+  schrGroup.visible = (m === 'schrodinger');
+}
+function applyScale() {
+  const s = S();
+  for (let i = 0; i < 4; i++) buildRingFor(i);
+  for (let i = 0; i < 4; i++)
+    for (const m of electronsByShell[i])
+      if (!m.userData.markRemove) m.userData.scaleTarget = s.electron;
+  rebuildRuthPaths();
+  for (const re of rutherfordElectrons)
+    if (!re.mesh.userData.markRemove) re.mesh.userData.scaleTarget = s.electron;
+  for (const node of nucleons)
+    if (!node.mesh.userData.markRemove) node.mesh.userData.scaleTarget = s.nucleon;
+  rebuildSchrCloud();
+  controls.maxDistance = s.camMax;
+}
+
+// ═════════ INITIAL ATOM (¹H) ═══════════════════════════════════════
+for (let i = 0; i < state.p; i++) spawnNucleon('p', true);
+for (let i = 0; i < state.n; i++) spawnNucleon('n', true);
+shuffleNucleonTypes();
+for (let i = 0; i < state.e; i++) addElectron(true);
+applyMode();
+
+// ═════════ UI WIRING ═══════════════════════════════════════════════
+const ui = {
+  p:       document.getElementById('num-p'),
+  n:       document.getElementById('num-n'),
+  e:       document.getElementById('num-e'),
+  isotope: document.getElementById('isotope'),
+  elname:  document.getElementById('elname'),
+  conf:    document.getElementById('conf-val'),
+  stab:    document.getElementById('stab'),
+};
+const buttons = {};
+document.querySelectorAll('[data-act]').forEach(b => { buttons[b.dataset.act] = b; });
+
+function updateUI() {
+  ui.p.textContent = state.p;
+  ui.n.textContent = state.n;
+  ui.e.textContent = state.e;
+  const A = state.p + state.n;
+  const q = state.p - state.e;
+  const el = ELEMENTS[state.p] || null;
+  if (el) {
+    let chargeStr = '';
+    if (q !== 0) {
+      const abs = Math.abs(q);
+      const sign = q > 0 ? '⁺' : '⁻';
+      chargeStr = (abs === 1 ? '' : toSup(abs)) + sign;
+    }
+    ui.isotope.textContent = toSup(A) + el.sym + chargeStr;
+    ui.elname.textContent = el.name;
+  } else {
+    ui.isotope.textContent = '—';
+    ui.elname.textContent = 'fuori scala';
+  }
+  const fills = [];
+  let rem = state.e;
+  for (let i = 0; i < 4 && rem > 0; i++) {
+    const k = Math.min(SHELL_CAPS[i], rem);
+    fills.push(k); rem -= k;
+  }
+  ui.conf.textContent = (fills.length ? fills.join('·') : '0') + ' e⁻';
+
+  let kind = 'rad', label = 'radioattivo';
+  if (q !== 0)                                  { kind='ion'; label = q > 0 ? 'catione' : 'anione'; }
+  else if (el && el.stableN.includes(state.n))  { kind='ok';  label='stabile'; }
+  else if (!el)                                 { kind='rad'; label='fuori scala'; }
+  ui.stab.textContent = label;
+  ui.stab.className = 'stab ' + kind;
+
+  buttons['dec-p'].disabled = state.p <= 1;
+  buttons['inc-p'].disabled = state.p >= 20;
+  buttons['dec-n'].disabled = state.n <= 0;
+  buttons['inc-n'].disabled = state.n >= 30;
+  buttons['dec-e'].disabled = state.e <= 0;
+  buttons['inc-e'].disabled = state.e >= 30;
+
+  document.querySelectorAll('.presets button').forEach(b => {
+    const z = +b.dataset.z, n = +b.dataset.n;
+    b.classList.toggle('active', z === state.p && n === state.n && state.e === state.p);
+  });
+}
+
+Object.entries(buttons).forEach(([act, btn]) => {
+  btn.addEventListener('click', () => {
+    if      (act === 'inc-p' && state.p < 20) { state.p++; spawnNucleon('p'); shuffleNucleonTypes(); }
+    else if (act === 'dec-p' && state.p > 1)  { state.p--; despawnNucleon('p'); }
+    else if (act === 'inc-n' && state.n < 30) { state.n++; spawnNucleon('n'); shuffleNucleonTypes(); }
+    else if (act === 'dec-n' && state.n > 0)  { state.n--; despawnNucleon('n'); }
+    else if (act === 'inc-e' && state.e < 30) { state.e++; addElectron(); }
+    else if (act === 'dec-e' && state.e > 0)  { state.e--; removeElectron(); }
+    else return;
+    applyMode();
+    updateUI();
+  });
+});
+
+const presetsContainer = document.getElementById('presets');
+PRESETS.forEach(p => {
+  const b = document.createElement('button');
+  b.textContent = p.label;
+  b.dataset.z = p.z; b.dataset.n = p.n;
+  b.addEventListener('click', () => jumpTo(p.z, p.n, p.z));
+  presetsContainer.appendChild(b);
+});
+
+function jumpTo(targetP, targetN, targetE) {
+  while (state.p < targetP) { state.p++; spawnNucleon('p'); }
+  while (state.p > targetP) { state.p--; despawnNucleon('p'); }
+  while (state.n < targetN) { state.n++; spawnNucleon('n'); }
+  while (state.n > targetN) { state.n--; despawnNucleon('n'); }
+  while (state.e < targetE) { state.e++; addElectron(); }
+  while (state.e > targetE) { state.e--; removeElectron(); }
+  shuffleNucleonTypes();
+  applyMode();
+  updateUI();
+}
+
+document.getElementById('reset').addEventListener('click', () => {
+  jumpTo(INITIAL.p, INITIAL.n, INITIAL.e);
+});
+
+// mode segmented
+document.querySelectorAll('#mode-seg button').forEach(b => {
+  b.addEventListener('click', () => {
+    state.mode = b.dataset.mode;
+    document.querySelectorAll('#mode-seg button').forEach(x => {
+      x.classList.toggle('active', x === b);
+    });
+    applyMode();
+  });
+});
+
+// real-scale toggle
+const scaleBtn = document.getElementById('scale-toggle');
+scaleBtn.addEventListener('click', () => {
+  state.realScale = !state.realScale;
+  scaleBtn.classList.toggle('on', state.realScale);
+  scaleBtn.setAttribute('aria-pressed', String(state.realScale));
+  applyScale();
+});
+
+updateUI();
+
+// ═════════ RESIZE ══════════════════════════════════════════════════
+function resize() {
+  const rect = canvas.getBoundingClientRect();
+  renderer.setSize(rect.width, rect.height, false);
+  camera.aspect = rect.width / Math.max(rect.height, 1);
+  camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize);
+requestAnimationFrame(resize);
+
+// ═════════ RENDER LOOP ═════════════════════════════════════════════
+const clock = new THREE.Clock();
+let lastT = 0;
+function tick() {
+  const t = clock.getElapsedTime();
+  const dt = Math.min(t - lastT, 0.05);
+  lastT = t;
+
+  controls.update();
+
+  if (state.mode === 'bohr') {
+    for (let i = 0; i < 4; i++) {
+      if (REDUCED) shellPhases[i] = 0;
+      else shellPhases[i] += dt * SHELL_SPEEDS[i];
+      const arr = electronsByShell[i];
+      const r = shellR(i);
+      for (let k = 0; k < arr.length; k++) {
+        const a = shellPhases[i] + (k / arr.length) * Math.PI * 2;
+        arr[k].position.set(Math.cos(a)*r, Math.sin(a)*r, 0);
+      }
+    }
+  } else if (state.mode === 'rutherford') {
+    for (const re of rutherfordElectrons) {
+      const { r, u, v, phase, speed } = re.params;
+      const a = phase + (REDUCED ? 0 : t * speed);
+      const R = r * S().radiusMul;
+      re.mesh.position.copy(u).multiplyScalar(Math.cos(a)*R)
+        .addScaledVector(v, Math.sin(a)*R);
+    }
+  } else if (state.mode === 'schrodinger' && schrCloud && !REDUCED) {
+    schrGroup.rotation.y += dt * 0.05;
+    schrCloud.material.size = 0.045 + Math.sin(t * 0.7) * 0.005;
+  }
+
+  // scale lerps for spawn/despawn
+  const LERP = 0.16;
+  function animateScale(obj) {
+    const target = obj.userData.scaleTarget ?? 1;
+    const next = obj.scale.x + (target - obj.scale.x) * LERP;
+    obj.scale.setScalar(next);
+    if (obj.userData.markRemove && next < 0.02) obj.parent.remove(obj);
+  }
+
+  // nucleus
+  for (let i = nucleus.children.length - 1; i >= 0; i--) animateScale(nucleus.children[i]);
+
+  // bohr electrons (rings excluded)
+  for (let i = 0; i < 4; i++) {
+    const g = shellGroups[i];
+    for (let j = g.children.length - 1; j >= 0; j--) {
+      const c = g.children[j];
+      if (c === g.userData.ringMesh) continue;
+      animateScale(c);
+    }
+  }
+
+  // rutherford: meshes scale-lerp, paths fade
+  for (let i = rutherfordGroup.children.length - 1; i >= 0; i--) {
+    const c = rutherfordGroup.children[i];
+    if (c.userData.scaleTarget != null) animateScale(c);
+    else if (c.userData.fading) {
+      c.material.opacity *= 0.85;
+      if (c.material.opacity < 0.005) {
+        rutherfordGroup.remove(c);
+        c.geometry.dispose();
+        c.material.dispose();
+      }
+    }
+  }
+
+  renderer.render(scene, camera);
+  requestAnimationFrame(tick);
+}
+tick();
+
+</script>
+
+</body>
+</html>
