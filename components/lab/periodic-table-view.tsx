@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo, useRef } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef, type Dispatch, type SetStateAction } from "react";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -824,6 +824,28 @@ function ScaleToggle({ on, onToggle, locale }: { on: boolean; onToggle: () => vo
   );
 }
 
+// ─── Persisted state hook (localStorage) ─────────────────────────────────────
+
+function usePersistedState<T>(key: string, initial: T): [T, Dispatch<SetStateAction<T>>] {
+  const [value, setValue] = useState<T>(initial);
+  const hydratedRef = useRef(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw !== null) setValue(JSON.parse(raw) as T);
+    } catch { /* ignore parse / quota errors */ }
+    hydratedRef.current = true;
+  }, [key]);
+
+  useEffect(() => {
+    if (!hydratedRef.current) return;
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* ignore quota */ }
+  }, [key, value]);
+
+  return [value, setValue];
+}
+
 // ─── Main view ────────────────────────────────────────────────────────────────
 
 export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
@@ -832,19 +854,19 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
 
   const [selected,        setSelected]        = useState<Element | null>(ELEMENTS[0] ?? null);
   const [view,            setView]            = useState<"table" | "atom">("table");
-  const [model,           setModel]           = useState<AtomModel>("bohr");
-  const [realScale,       setRealScale]       = useState(false);
-  const [speedMultiplier, setSpeedMultiplier] = useState(1.0);
-  const [lightMode,       setLightMode]       = useState(false);
-  const [thematicProp,    setThematicProp]    = useState<ThematicProperty>("none");
+  const [model,           setModel]           = usePersistedState<AtomModel>("pt:model", "bohr");
+  const [realScale,       setRealScale]       = usePersistedState<boolean>("pt:realScale", false);
+  const [speedMultiplier, setSpeedMultiplier] = usePersistedState<number>("pt:speedMultiplier", 1.0);
+  const [lightMode,       setLightMode]       = usePersistedState<boolean>("pt:lightMode", false);
+  const [thematicProp,    setThematicProp]    = usePersistedState<ThematicProperty>("pt:thematicProp", "none");
   const [showLegend,      setShowLegend]      = useState(false);
   const [searchQuery,     setSearchQuery]     = useState("");
-  const [starsIntensity,  setStarsIntensity]  = useState(1);
-  const [lightBgKey,      setLightBgKey]      = useState<LightBgKey>("sky");
-  const [vdwStyle,        setVdwStyle]        = useState<VdWStyle>("off");
-  const [negativeMode,    setNegativeMode]    = useState(false);
+  const [starsIntensity,  setStarsIntensity]  = usePersistedState<number>("pt:starsIntensity", 1);
+  const [lightBgKey,      setLightBgKey]      = usePersistedState<LightBgKey>("pt:lightBgKey", "sky");
+  const [vdwStyle,        setVdwStyle]        = usePersistedState<VdWStyle>("pt:vdwStyle", "off");
+  const [negativeMode,    setNegativeMode]    = usePersistedState<boolean>("pt:negativeMode", false);
   const [gridZoom,        setGridZoom]        = useState(1);
-  const [showSpin,        setShowSpin]        = useState(false);
+  const [showSpin,        setShowSpin]        = usePersistedState<boolean>("pt:showSpin", false);
 
   const [showHeader,      setShowHeader]      = useState(true);
   const lastScrollTop                         = useRef(0);
@@ -898,21 +920,25 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
     }
   }, [searchParams]);
 
-  // Scroll hiding sticky header logic
+  // Scroll hiding sticky header logic — rAF-throttled to avoid jitter
+  const scrollTickRef = useRef(false);
   const handleScroll = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const currentScroll = el.scrollTop;
-
-    // Scroll threshold of 10px to prevent jitter
-    if (Math.abs(currentScroll - lastScrollTop.current) > 10) {
-      if (currentScroll > lastScrollTop.current && currentScroll > 50) {
-        setShowHeader(false); // scrolling down
-      } else {
-        setShowHeader(true); // scrolling up
+    if (scrollTickRef.current) return;
+    scrollTickRef.current = true;
+    requestAnimationFrame(() => {
+      scrollTickRef.current = false;
+      const el = scrollRef.current;
+      if (!el) return;
+      const currentScroll = el.scrollTop;
+      if (Math.abs(currentScroll - lastScrollTop.current) > 16) {
+        if (currentScroll > lastScrollTop.current && currentScroll > 80) {
+          setShowHeader(false);
+        } else {
+          setShowHeader(true);
+        }
+        lastScrollTop.current = currentScroll;
       }
-    }
-    lastScrollTop.current = currentScroll;
+    });
   }, []);
 
   useEffect(() => {

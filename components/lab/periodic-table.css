@@ -26,12 +26,21 @@
   background: rgba(12, 12, 24, 0.94);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), margin-top 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  max-height: 200px;
+  overflow: hidden;
+  transition: max-height 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.18s ease,
+              padding 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: max-height;
   z-index: 10;
 }
 .pt-header--hidden {
-  transform: translateY(-100%);
-  margin-top: -72px; /* Collapses header space in the flex parent */
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  opacity: 0;
+  pointer-events: none;
+  border-bottom-color: transparent;
 }
 .pt-header__left  { display: flex; align-items: center; gap: 12px; }
 .pt-header__right { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
@@ -364,6 +373,21 @@
   gap: 2px;
   min-width: 580px; /* prevent extreme compression */
   align-self: flex-start;
+}
+
+/* Desktop / laptop: fit verticale — vincola la larghezza in base
+   all'altezza disponibile, le celle quadrate (aspect-ratio:1) si adattano.
+   Rapporto 18 colonne / 9 righe quadrate (7 periodi + 2 f-block) = 2. */
+@media (min-width: 1024px) {
+  .pt-root { --pt-chrome: 180px; }
+  .pt-grid {
+    max-width: calc((100dvh - var(--pt-chrome)) * 2);
+    margin-inline: auto;
+    align-self: center;
+  }
+}
+@media (min-width: 1440px) {
+  .pt-root { --pt-chrome: 190px; }
 }
 
 /* ── Group labels ── */
