@@ -18,6 +18,8 @@ const C_PROTON   = new THREE.Color(0xff5a4e);
 const C_NEUTRON  = new THREE.Color(0xf5c842);
 const C_ELECTRON = new THREE.Color(0x60a5fa);
 const C_ELECTRON_LIGHT = new THREE.Color(0x1d4ed8);
+const C_SPIN_UP   = new THREE.Color(0xf97316); // ↑ orange
+const C_SPIN_DOWN = new THREE.Color(0xa78bfa); // ↓ violet
 
 const SHELL_BASE_R: number[] = [1.2, 2.1, 3.0, 3.9, 4.8, 5.7, 6.6];
 const SHELL_SPEEDS: number[] = [1.0, 0.60, 0.38, 0.25, 0.18, 0.13, 0.10];
@@ -37,8 +39,9 @@ const SCALE_NORMAL = { radiusMul: 1.0, nucleonScale: 1.0, electronScale: 1.0 };
 const SCALE_REAL   = { radiusMul: 3.6, nucleonScale: 0.25, electronScale: 0.35 };
 
 // Shared geometry (never disposed — app lifetime)
-const nucleonGeo  = new THREE.SphereGeometry(0.17, 16, 10);
-const electronGeo = new THREE.SphereGeometry(0.09, 12, 8);
+const nucleonGeo   = new THREE.SphereGeometry(0.17, 16, 10);
+const electronGeo  = new THREE.SphereGeometry(0.09, 12, 8);
+const spinArrowGeo = new THREE.ConeGeometry(0.045, 0.13, 6);
 
 // ─── Math helpers ─────────────────────────────────────────────────────────────
 
@@ -309,13 +312,16 @@ function RutherfordAtom({ el, radiusMul, reduced, speedMul, lightMode }: {
 
 // ─── Bohr (1913) — circular quantized orbits ─────────────────────────────────
 
-function BohrOrbit({ shellIdx, count, radiusMul, eMul, reduced, speedMul, lightMode }: {
+function BohrOrbit({ shellIdx, count, radiusMul, eMul, reduced, speedMul, lightMode, showSpin }: {
   shellIdx: number; count: number; radiusMul: number; eMul: number;
-  reduced: boolean; speedMul: number; lightMode: boolean;
+  reduced: boolean; speedMul: number; lightMode: boolean; showSpin: boolean;
 }) {
   const groupRef  = useRef<THREE.Group>(null!);
   const phaseRef  = useRef(0);
   const speedRef  = useRef(0);
+  const showSpinRef = useRef(showSpin);
+  showSpinRef.current = showSpin;
+
   const r         = (SHELL_BASE_R[shellIdx] ?? SHELL_BASE_R.at(-1)!) * radiusMul;
   const tilt      = SHELL_TILTS[shellIdx] ?? SHELL_TILTS.at(-1)!;
   const baseSpeed = SHELL_SPEEDS[shellIdx] ?? 0.09;
@@ -325,6 +331,7 @@ function BohrOrbit({ shellIdx, count, radiusMul, eMul, reduced, speedMul, lightM
     ring: THREE.Line;
     electrons: THREE.Mesh[]; trails: THREE.Line[];
     trailPosArr: Float32Array[]; histories: THREE.Vector3[][];
+    spinArrows: THREE.Mesh[];
   } | null>(null);
 
   useEffect(() => {
@@ -347,6 +354,7 @@ function BohrOrbit({ shellIdx, count, radiusMul, eMul, reduced, speedMul, lightM
     const trails:    THREE.Line[]    = [];
     const trailPosArr: Float32Array[] = [];
     const histories: THREE.Vector3[][] = [];
+    const spinArrows: THREE.Mesh[]    = [];
 
     for (let k = 0; k < count; k++) {
       const arr = new Float32Array(TRAIL_LEN * 3);
@@ -362,14 +370,33 @@ function BohrOrbit({ shellIdx, count, radiusMul, eMul, reduced, speedMul, lightM
       }));
       m.scale.setScalar(eMul);
       g.add(m); electrons.push(m);
+
+      // Spin arrow: cone pointing ±Z (perpendicular to orbit plane)
+      // Even index = spin ↑ (+Z), odd = spin ↓ (-Z)  — simplified Pauli model
+      const isUp = k % 2 === 0;
+      const arrow = new THREE.Mesh(
+        spinArrowGeo,
+        new THREE.MeshStandardMaterial({
+          color: isUp ? C_SPIN_UP : C_SPIN_DOWN,
+          emissive: isUp ? C_SPIN_UP : C_SPIN_DOWN,
+          emissiveIntensity: lightMode ? 0.5 : 1.4,
+          roughness: 0.2,
+        }),
+      );
+      // ConeGeometry points along +Y by default; rotate to ±Z
+      arrow.rotation.x = isUp ? -Math.PI / 2 : Math.PI / 2;
+      arrow.scale.setScalar(eMul * 1.1);
+      arrow.visible = false;
+      g.add(arrow); spinArrows.push(arrow);
     }
-    objectsRef.current = { ring, electrons, trails, trailPosArr, histories };
+    objectsRef.current = { ring, electrons, trails, trailPosArr, histories, spinArrows };
 
     return () => {
       g.clear();
       ring.geometry.dispose(); (ring.material as THREE.Material).dispose();
       trails.forEach(l => { l.geometry.dispose(); (l.material as THREE.Material).dispose(); });
       electrons.forEach(m => (m.material as THREE.Material).dispose());
+      spinArrows.forEach(a => (a.material as THREE.Material).dispose());
       objectsRef.current = null;
     };
   }, [count, r, eMul, lightMode]);
@@ -377,11 +404,12 @@ function BohrOrbit({ shellIdx, count, radiusMul, eMul, reduced, speedMul, lightM
   useFrame((state, dt) => {
     if (!objectsRef.current) return;
     if (!reduced) phaseRef.current += dt * speedRef.current;
-    const { ring, electrons, trails, trailPosArr, histories } = objectsRef.current;
+    const { ring, electrons, trails, trailPosArr, histories, spinArrows } = objectsRef.current;
     // breathing
     (ring.material as THREE.LineBasicMaterial).opacity =
       (lightMode ? 0.07 : 0.05) + 0.03 * Math.sin(state.clock.elapsedTime * 0.8 + shellIdx);
 
+    const doSpin = showSpinRef.current;
     for (let k = 0; k < count; k++) {
       const a = phaseRef.current + (k / count) * Math.PI * 2;
       const x = Math.cos(a) * r, y = Math.sin(a) * r;
@@ -394,22 +422,32 @@ function BohrOrbit({ shellIdx, count, radiusMul, eMul, reduced, speedMul, lightM
         arr[t * 3] = p.x; arr[t * 3 + 1] = p.y; arr[t * 3 + 2] = p.z;
       }
       (trails[k]!.geometry.attributes.position as THREE.BufferAttribute).needsUpdate = true;
+
+      // Position spin arrow above/below electron in local Z
+      const arrow = spinArrows[k];
+      if (arrow) {
+        arrow.visible = doSpin;
+        if (doSpin) {
+          const zOff = k % 2 === 0 ? 0.22 : -0.22;
+          arrow.position.set(x, y, zOff);
+        }
+      }
     }
   });
 
   return <group ref={groupRef} rotation={tilt} />;
 }
 
-function BohrAtom({ el, radiusMul, eMul, reduced, speedMul, lightMode }: {
+function BohrAtom({ el, radiusMul, eMul, reduced, speedMul, lightMode, showSpin }: {
   el: Element; radiusMul: number; eMul: number;
-  reduced: boolean; speedMul: number; lightMode: boolean;
+  reduced: boolean; speedMul: number; lightMode: boolean; showSpin: boolean;
 }) {
   const fills = useMemo(() => computeShellFills(el.z), [el.z]);
   return (
     <>
       {fills.map((c, i) => (
         <BohrOrbit key={i} shellIdx={i} count={c} radiusMul={radiusMul} eMul={eMul}
-          reduced={reduced} speedMul={speedMul} lightMode={lightMode} />
+          reduced={reduced} speedMul={speedMul} lightMode={lightMode} showSpin={showSpin} />
       ))}
     </>
   );
@@ -737,6 +775,7 @@ export type AtomSceneProps = {
   lightBg?: string;
   starsIntensity?: number;
   vdwStyle?: VdWStyle;
+  showBohrSpin?: boolean;
   className?: string;
 };
 
@@ -744,7 +783,7 @@ export function AtomScene({
   element, model = "bohr", realScale = false,
   speedMultiplier = 1, lightMode = false,
   lightBg = "#e8ecf5", starsIntensity = 1,
-  vdwStyle = "off", className,
+  vdwStyle = "off", showBohrSpin = false, className,
 }: AtomSceneProps) {
   const reduced =
     typeof window !== "undefined"
@@ -796,7 +835,7 @@ export function AtomScene({
       )}
       {model === "bohr" && (
         <BohrAtom el={element} radiusMul={sc.radiusMul} eMul={sc.electronScale}
-          reduced={reduced} speedMul={speedMultiplier} lightMode={lightMode} />
+          reduced={reduced} speedMul={speedMultiplier} lightMode={lightMode} showSpin={showBohrSpin} />
       )}
       {model === "sommerfeld" && (
         <SommerfeldAtom el={element} radiusMul={sc.radiusMul} reduced={reduced}

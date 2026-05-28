@@ -247,8 +247,8 @@ function ElementCell({ el, selected, onSelect, thematicColor, thematicProp, nega
   const name = locale === "en" ? (ELEMENT_NAMES_EN[el.z] || el.name) : el.name;
   const labelText = locale === "en" ? `${name}, atomic number ${el.z}` : `${name}, numero atomico ${el.z}`;
   const isThematic = thematicColor !== undefined;
-  // Default thematic = filled bg; NEG = text-only (no fill)
-  const isFilled = isThematic && !negativeMode;
+  // Fill applies to both category and thematic mode; NEG removes fill
+  const isFilled = !negativeMode;
   const cellVal = thematicProp && thematicProp !== "none" ? getCellDisplayText(el, thematicProp) : null;
   return (
     <button
@@ -556,19 +556,15 @@ function ThematicSelector({
           {label}
         </button>
       ))}
-      {current !== "none" && (
-        <>
-          <span className="pt-thematic-sep" aria-hidden="true" />
-          <button
-            className={`pt-thematic-neg${negativeMode ? " active" : ""}`}
-            onClick={onToggleNeg}
-            title={negTitle}
-            aria-pressed={negativeMode}
-          >
-            NEG
-          </button>
-        </>
-      )}
+      <span className="pt-thematic-sep" aria-hidden="true" />
+      <button
+        className={`pt-thematic-neg${negativeMode ? " active" : ""}`}
+        onClick={onToggleNeg}
+        title={negTitle}
+        aria-pressed={negativeMode}
+      >
+        NEG
+      </button>
     </div>
   );
 }
@@ -848,6 +844,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
   const [vdwStyle,        setVdwStyle]        = useState<VdWStyle>("off");
   const [negativeMode,    setNegativeMode]    = useState(false);
   const [gridZoom,        setGridZoom]        = useState(1);
+  const [showBohrSpin,    setShowBohrSpin]    = useState(false);
 
   const [showHeader,      setShowHeader]      = useState(true);
   const lastScrollTop                         = useRef(0);
@@ -865,10 +862,15 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
   [searchQuery, locale]);
 
   const handleSelect = useCallback((el: Element) => {
-    setSelected(el);
-    setView("atom");
-    setShowHeader(true); // reset header visibility when opening an atom
-  }, []);
+    if (selected?.z === el.z && view === "table") {
+      // Second click on already-selected element → go to atom
+      setView("atom");
+    } else {
+      // First click → select and highlight
+      setSelected(el);
+    }
+    setShowHeader(true);
+  }, [selected, view]);
 
   const handleBack = useCallback(() => {
     setView("table");
@@ -990,6 +992,16 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
               <SpeedSlider value={speedMultiplier} onChange={setSpeedMultiplier} locale={locale} />
               <StarsToggle value={starsIntensity} onChange={setStarsIntensity} locale={locale} />
               <VdWToggle style={vdwStyle} onCycle={() => setVdwStyle(s => VDW_CYCLE[s])} locale={locale} />
+              {model === "bohr" && (
+                <button
+                  className={`pt-spin-toggle${showBohrSpin ? " active" : ""}`}
+                  onClick={() => setShowBohrSpin(v => !v)}
+                  aria-pressed={showBohrSpin}
+                  title={locale === "en" ? "Show electron spins (↑↓ Pauli)" : "Mostra spin elettronici (↑↓ Pauli)"}
+                >
+                  ↑↓
+                </button>
+              )}
               {lightMode && <LightBgSelector value={lightBgKey} onChange={setLightBgKey} locale={locale} />}
             </>
           )}
@@ -1066,6 +1078,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
               starsIntensity={starsIntensity}
               lightBg={lightBgColor}
               vdwStyle={vdwStyle}
+              showBohrSpin={showBohrSpin}
               className="pt-canvas"
             />
             <ModelDesc model={model} locale={locale} />
@@ -1085,7 +1098,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
           {showLegend && thematicProp === "none" && <Legend locale={locale} />}
           <ThematicSelector
             current={thematicProp}
-            onChange={(p) => { setThematicProp(p); if (p === "none") setNegativeMode(false); }}
+            onChange={(p) => { setThematicProp(p); }}
             locale={locale}
             negativeMode={negativeMode}
             onToggleNeg={() => setNegativeMode(v => !v)}
@@ -1113,7 +1126,9 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                 <> — <span className="pt-footer-hint__val">{getThematicValueText(selected, thematicProp, locale)}</span></>
               )}
               {" — "}
-              <span style={{ opacity: 0.5 }}>{t.footerHint}</span>
+              <span style={{ opacity: 0.5 }}>
+                {locale === "en" ? "click again to view atom →" : "clicca di nuovo per l'atomo →"}
+              </span>
             </div>
           )}
           <p className="pt-table-scroll-hint" aria-hidden="true">

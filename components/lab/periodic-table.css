@@ -426,14 +426,17 @@
 .pt-cell:hover::before { opacity: 0.13; }
 .pt-cell:hover {
   border-color: var(--cat-color, rgba(255,255,255,0.28));
-  transform: scale(1.12); z-index: 2;
+  transform: scale(1.8); z-index: 10;
 }
 .pt-cell--active {
   border-color: var(--cat-color, #60a5fa) !important;
   background: rgba(255,255,255,0.07);
-  box-shadow: 0 0 7px var(--cat-color, #60a5fa);
+  box-shadow: 0 0 10px var(--cat-color, #60a5fa);
+  transform: scale(1.15); z-index: 3;
 }
-.pt-cell--active::before { opacity: 0.18 !important; }
+.pt-cell--active::before { opacity: 0.20 !important; }
+/* active + filled: keep the vivid fill */
+.pt-cell--filled.pt-cell--active::before { opacity: 0.82 !important; }
 
 /* Filled mode (default thematic): colored background, dark text */
 .pt-cell--filled::before           { opacity: 0.72 !important; }
@@ -458,8 +461,8 @@
   position: relative;
 }
 .pt-cell__name {
-  font-size: clamp(4.5px, 0.44vw, 6px);
-  color: rgba(216,216,232,0.48);
+  font-size: clamp(5px, 0.48vw, 7px);
+  color: rgba(216,216,232,0.55);
   line-height: 1.1;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -468,8 +471,8 @@
   position: relative;
 }
 .pt-cell__mass {
-  font-size: clamp(4px, 0.35vw, 5px);
-  color: rgba(216,216,232,0.28);
+  font-size: clamp(4.5px, 0.38vw, 6px);
+  color: rgba(216,216,232,0.35);
   line-height: 1;
   position: relative;
 }
@@ -1054,6 +1057,31 @@
 .pt-root--light .pt-vdw-toggle.active  { border-color: rgba(58,95,192,0.55); color: #3a5fc0; }
 .pt-root--light .pt-vdw-toggle--wire   { background: rgba(58,95,192,0.07); }
 .pt-root--light .pt-vdw-toggle--glass  { background: rgba(58,95,192,0.14); }
+
+/* ── Spin toggle (Bohr model only) ── */
+.pt-spin-toggle {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.15);
+  color: rgba(216,216,232,0.55);
+  font-family: inherit;
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  padding: 5px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.pt-spin-toggle:hover { border-color: rgba(255,255,255,0.28); color: #eeeef8; }
+.pt-spin-toggle.active {
+  border-color: rgba(249,115,22,0.55);
+  color: #f97316;
+  background: rgba(249,115,22,0.08);
+}
+.pt-root--light .pt-spin-toggle { border-color: rgba(10,10,10,0.18); color: rgba(10,10,10,0.55); }
+.pt-root--light .pt-spin-toggle:hover { border-color: rgba(10,10,10,0.35); color: #0a0a0a; }
+.pt-root--light .pt-spin-toggle.active { border-color: rgba(194,65,12,0.5); color: #c2410c; background: rgba(194,65,12,0.07); }
 
 /* ── Touch: bigger tap targets ── */
 @media (pointer: coarse) {
