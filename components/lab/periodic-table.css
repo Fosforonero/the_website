@@ -943,11 +943,9 @@
   flex-shrink: 0;
 }
 .pt-vdw-toggle:hover { border-color: rgba(255,255,255,0.28); color: #eeeef8; }
-.pt-vdw-toggle.active {
-  border-color: rgba(122,176,255,0.55);
-  color: #7ab0ff;
-  background: rgba(122,176,255,0.08);
-}
+.pt-vdw-toggle.active { border-color: rgba(122,176,255,0.45); color: #7ab0ff; }
+.pt-vdw-toggle--wire  { background: rgba(122,176,255,0.07); }
+.pt-vdw-toggle--glass { background: rgba(122,176,255,0.14); }
 .pt-root--light .pt-vdw-toggle {
   border-color: rgba(10,10,10,0.18);
   color: rgba(10,10,10,0.55);
@@ -956,11 +954,9 @@
   border-color: rgba(10,10,10,0.35);
   color: #0a0a0a;
 }
-.pt-root--light .pt-vdw-toggle.active {
-  border-color: rgba(58,95,192,0.55);
-  color: #3a5fc0;
-  background: rgba(58,95,192,0.08);
-}
+.pt-root--light .pt-vdw-toggle.active  { border-color: rgba(58,95,192,0.55); color: #3a5fc0; }
+.pt-root--light .pt-vdw-toggle--wire   { background: rgba(58,95,192,0.07); }
+.pt-root--light .pt-vdw-toggle--glass  { background: rgba(58,95,192,0.14); }
 
 /* ── Touch: bigger tap targets ── */
 @media (pointer: coarse) {

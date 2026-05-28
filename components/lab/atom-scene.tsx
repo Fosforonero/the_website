@@ -10,6 +10,7 @@ import type { Element } from "@/lib/elements-data";
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export type AtomModel = "thomson" | "rutherford" | "bohr" | "sommerfeld" | "quantum";
+export type VdWStyle  = "off" | "wire" | "glass";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -644,21 +645,40 @@ function QuantumAtom({ el, radiusMul, reduced, lightMode }: {
 
 // ─── Van der Waals radius sphere ─────────────────────────────────────────────
 
-function VanDerWaalsSphere({ element, radiusMul, lightMode }: {
-  element: Element; radiusMul: number; lightMode: boolean;
+function VanDerWaalsSphere({ element, radiusMul, style, lightMode }: {
+  element: Element; radiusMul: number; style: "wire" | "glass"; lightMode: boolean;
 }) {
   const shellCount = useMemo(() => computeShellFills(element.z).length, [element.z]);
   const r = (SHELL_BASE_R[shellCount - 1] ?? SHELL_BASE_R.at(-1)!) * radiusMul * 1.42;
   const col = lightMode ? "#3a5fc0" : "#7ab0ff";
+
+  if (style === "wire") {
+    return (
+      <mesh>
+        <sphereGeometry args={[r, 20, 14]} />
+        <meshBasicMaterial wireframe color={col} transparent opacity={lightMode ? 0.22 : 0.18} />
+      </mesh>
+    );
+  }
+
+  // glass
   return (
     <group>
       <mesh>
-        <sphereGeometry args={[r, 32, 24]} />
-        <meshStandardMaterial color={col} transparent opacity={0.04} depthWrite={false} side={THREE.DoubleSide} />
+        <sphereGeometry args={[r, 64, 48]} />
+        <meshStandardMaterial
+          color={col} transparent opacity={0.10}
+          roughness={0.0} metalness={0.08}
+          depthWrite={false} side={THREE.FrontSide}
+        />
       </mesh>
       <mesh>
-        <sphereGeometry args={[r, 18, 13]} />
-        <meshBasicMaterial wireframe color={col} transparent opacity={lightMode ? 0.20 : 0.17} />
+        <sphereGeometry args={[r * 0.997, 64, 48]} />
+        <meshStandardMaterial
+          color={col} transparent opacity={0.05}
+          roughness={0.0} metalness={0.0}
+          depthWrite={false} side={THREE.BackSide}
+        />
       </mesh>
     </group>
   );
@@ -716,7 +736,7 @@ export type AtomSceneProps = {
   lightMode?: boolean;
   lightBg?: string;
   starsIntensity?: number;
-  showVdWRadius?: boolean;
+  vdwStyle?: VdWStyle;
   className?: string;
 };
 
@@ -724,7 +744,7 @@ export function AtomScene({
   element, model = "bohr", realScale = false,
   speedMultiplier = 1, lightMode = false,
   lightBg = "#e8ecf5", starsIntensity = 1,
-  showVdWRadius = false, className,
+  vdwStyle = "off", className,
 }: AtomSceneProps) {
   const reduced =
     typeof window !== "undefined"
@@ -786,8 +806,8 @@ export function AtomScene({
         <QuantumAtom el={element} radiusMul={sc.radiusMul} reduced={reduced} lightMode={lightMode} />
       )}
 
-      {showVdWRadius && (
-        <VanDerWaalsSphere element={element} radiusMul={sc.radiusMul} lightMode={lightMode} />
+      {vdwStyle !== "off" && (
+        <VanDerWaalsSphere element={element} radiusMul={sc.radiusMul} style={vdwStyle} lightMode={lightMode} />
       )}
 
       <OrbitControls

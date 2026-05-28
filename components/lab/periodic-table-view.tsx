@@ -10,7 +10,7 @@ import {
   type ThematicProperty, type ElementExtended,
   type ElementState, type ElementBlock,
 } from "@/lib/element-extended-data";
-import type { AtomModel } from "./atom-scene";
+import type { AtomModel, VdWStyle } from "./atom-scene";
 import type { Locale } from "@/lib/site";
 import {
   ELEMENT_NAMES_EN, CATEGORY_LABELS_EN, STATE_LABELS, BLOCK_LABELS,
@@ -604,19 +604,24 @@ function StarsToggle({ value, onChange, locale }: { value: number; onChange: (v:
 
 // ─── Van der Waals toggle ─────────────────────────────────────────────────────
 
-function VdWToggle({ on, onToggle, locale }: { on: boolean; onToggle: () => void; locale: Locale }) {
-  const label = on
-    ? (locale === "en" ? "Hide van der Waals radius" : "Nascondi raggio di van der Waals")
-    : (locale === "en" ? "Show van der Waals radius" : "Mostra raggio di van der Waals");
+const VDW_CYCLE: Record<VdWStyle, VdWStyle> = { off: "wire", wire: "glass", glass: "off" };
+const VDW_LABEL: Record<VdWStyle, string> = { off: "vdW", wire: "vdW ◻", glass: "vdW ◉" };
+
+function VdWToggle({ style, onCycle, locale }: { style: VdWStyle; onCycle: () => void; locale: Locale }) {
+  const TITLES: Record<VdWStyle, string> = {
+    off:   locale === "en" ? "Show wireframe radius"   : "Mostra raggio wireframe",
+    wire:  locale === "en" ? "Switch to glass style"   : "Passa a stile vetro",
+    glass: locale === "en" ? "Hide van der Waals radius" : "Nascondi raggio vdW",
+  };
   return (
     <button
-      className={`pt-vdw-toggle${on ? " active" : ""}`}
-      onClick={onToggle}
-      aria-pressed={on}
-      title={label}
-      aria-label={label}
+      className={`pt-vdw-toggle${style !== "off" ? ` active pt-vdw-toggle--${style}` : ""}`}
+      onClick={onCycle}
+      aria-pressed={style !== "off"}
+      title={TITLES[style]}
+      aria-label={TITLES[style]}
     >
-      vdW
+      {VDW_LABEL[style]}
     </button>
   );
 }
@@ -721,7 +726,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
   const [searchQuery,     setSearchQuery]     = useState("");
   const [starsIntensity,  setStarsIntensity]  = useState(1);
   const [lightBgKey,      setLightBgKey]      = useState<LightBgKey>("sky");
-  const [showVdW,         setShowVdW]         = useState(false);
+  const [vdwStyle,        setVdwStyle]        = useState<VdWStyle>("off");
 
   const [showHeader,      setShowHeader]      = useState(true);
   const lastScrollTop                         = useRef(0);
@@ -829,7 +834,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
               <ScaleToggle on={realScale} onToggle={() => setRealScale(v => !v)} locale={locale} />
               <SpeedSlider value={speedMultiplier} onChange={setSpeedMultiplier} locale={locale} />
               <StarsToggle value={starsIntensity} onChange={setStarsIntensity} locale={locale} />
-              <VdWToggle on={showVdW} onToggle={() => setShowVdW(v => !v)} locale={locale} />
+              <VdWToggle style={vdwStyle} onCycle={() => setVdwStyle(s => VDW_CYCLE[s])} locale={locale} />
               {lightMode && <LightBgSelector value={lightBgKey} onChange={setLightBgKey} locale={locale} />}
             </>
           )}
@@ -863,7 +868,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
           {/* Symmetrical Language Toggle */}
           <div className="pt-lang-switch" role="group" aria-label={locale === "en" ? "Language" : "Lingua"}>
             <Link
-              href={locale === "it" ? "#" : `/lab/tavola-periodica${selected ? `?z=${selected.z}` : ""}`}
+              href={locale === "it" ? "#" : `/lab/tavola-periodica${view === "atom" && selected ? `?z=${selected.z}` : ""}`}
               className={`pt-lang-btn${locale === "it" ? " active" : ""}`}
               onClick={(e) => { if (locale === "it") e.preventDefault(); }}
               aria-label="Italiano"
@@ -872,7 +877,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
             </Link>
             <span className="pt-lang-sep" aria-hidden="true">/</span>
             <Link
-              href={locale === "en" ? "#" : `/en/lab/tavola-periodica${selected ? `?z=${selected.z}` : ""}`}
+              href={locale === "en" ? "#" : `/en/lab/tavola-periodica${view === "atom" && selected ? `?z=${selected.z}` : ""}`}
               className={`pt-lang-btn${locale === "en" ? " active" : ""}`}
               onClick={(e) => { if (locale === "en") e.preventDefault(); }}
               aria-label="English"
@@ -905,7 +910,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
               lightMode={lightMode}
               starsIntensity={starsIntensity}
               lightBg={lightBgColor}
-              showVdWRadius={showVdW}
+              vdwStyle={vdwStyle}
               className="pt-canvas"
             />
             <ModelDesc model={model} locale={locale} />
