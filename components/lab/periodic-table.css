@@ -358,12 +358,12 @@
    rows 10–11 = lanthanides / actinides
    ── */
 .pt-grid {
-  flex: 1;
   display: grid;
   grid-template-columns: 22px repeat(18, 1fr);
-  grid-template-rows: 18px repeat(7, 1fr) 6px 1fr 1fr;
+  grid-template-rows: 18px repeat(7, auto) 6px auto auto;
   gap: 2px;
   min-width: 580px; /* prevent extreme compression */
+  align-self: flex-start;
 }
 
 /* ── Group labels ── */
@@ -400,6 +400,7 @@
   min-width: 0;
   min-height: 0;
   display: block;
+  aspect-ratio: 1;
 }
 
 /* ── Cell ── */
@@ -427,6 +428,7 @@
 .pt-cell:hover {
   border-color: var(--cat-color, rgba(255,255,255,0.28));
   transform: scale(1.8); z-index: 10;
+  background: #0e0e1c;
 }
 .pt-cell--active {
   border-color: var(--cat-color, #60a5fa) !important;

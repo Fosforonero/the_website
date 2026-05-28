@@ -844,7 +844,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
   const [vdwStyle,        setVdwStyle]        = useState<VdWStyle>("off");
   const [negativeMode,    setNegativeMode]    = useState(false);
   const [gridZoom,        setGridZoom]        = useState(1);
-  const [showBohrSpin,    setShowBohrSpin]    = useState(false);
+  const [showSpin,        setShowSpin]        = useState(false);
 
   const [showHeader,      setShowHeader]      = useState(true);
   const lastScrollTop                         = useRef(0);
@@ -992,11 +992,11 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
               <SpeedSlider value={speedMultiplier} onChange={setSpeedMultiplier} locale={locale} />
               <StarsToggle value={starsIntensity} onChange={setStarsIntensity} locale={locale} />
               <VdWToggle style={vdwStyle} onCycle={() => setVdwStyle(s => VDW_CYCLE[s])} locale={locale} />
-              {model === "bohr" && (
+              {(model === "bohr" || model === "rutherford" || model === "sommerfeld") && (
                 <button
-                  className={`pt-spin-toggle${showBohrSpin ? " active" : ""}`}
-                  onClick={() => setShowBohrSpin(v => !v)}
-                  aria-pressed={showBohrSpin}
+                  className={`pt-spin-toggle${showSpin ? " active" : ""}`}
+                  onClick={() => setShowSpin(v => !v)}
+                  aria-pressed={showSpin}
                   title={locale === "en" ? "Show electron spins (↑↓ Pauli)" : "Mostra spin elettronici (↑↓ Pauli)"}
                 >
                   ↑↓
@@ -1078,7 +1078,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
               starsIntensity={starsIntensity}
               lightBg={lightBgColor}
               vdwStyle={vdwStyle}
-              showBohrSpin={showBohrSpin}
+              showSpin={showSpin}
               className="pt-canvas"
             />
             <ModelDesc model={model} locale={locale} />

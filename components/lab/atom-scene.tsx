@@ -124,17 +124,6 @@ function Nucleus({ z, n, scaleMul, lightMode = false }: { z: number; n: number; 
           />
         </mesh>
       ))}
-      {total >= 2 && !lightMode && (
-        <mesh>
-          <sphereGeometry args={[r + 0.14, 16, 16]} />
-          <meshStandardMaterial
-            color={C_PROTON} emissive={C_PROTON}
-            emissiveIntensity={0.12 + 0.22 * glowFactor}
-            transparent opacity={0.02 + 0.05 * glowFactor}
-            depthWrite={false}
-          />
-        </mesh>
-      )}
     </group>
   );
 }
@@ -246,13 +235,15 @@ function randomRuthOrbit(baseR: number): RuthOrbit {
   return { r, u, v, phase: Math.random() * Math.PI * 2, speed: (0.4 + Math.random() * 0.5) / Math.sqrt(r) };
 }
 
-function RutherfordAtom({ el, radiusMul, reduced, speedMul, lightMode }: {
-  el: Element; radiusMul: number; reduced: boolean; speedMul: number; lightMode: boolean;
+function RutherfordAtom({ el, radiusMul, reduced, speedMul, lightMode, showSpin }: {
+  el: Element; radiusMul: number; reduced: boolean; speedMul: number; lightMode: boolean; showSpin: boolean;
 }) {
   const groupRef = useRef<THREE.Group>(null!);
   const tRef = useRef(0);
   const speedMulRef = useRef(speedMul);
   speedMulRef.current = speedMul;
+  const showSpinRef = useRef(showSpin);
+  showSpinRef.current = showSpin;
   const baseR = 1.6 * radiusMul;
 
   const orbits = useMemo<RuthOrbit[]>(
@@ -261,7 +252,9 @@ function RutherfordAtom({ el, radiusMul, reduced, speedMul, lightMode }: {
     [el.z, baseR],
   );
 
-  const objectsRef = useRef<{ electrons: THREE.Mesh[] } | null>(null);
+  const objectsRef = useRef<{
+    electrons: THREE.Mesh[]; spinArrows: THREE.Mesh[]; orbitNormals: THREE.Vector3[];
+  } | null>(null);
 
   useEffect(() => {
     const g = groupRef.current;
@@ -270,7 +263,10 @@ function RutherfordAtom({ el, radiusMul, reduced, speedMul, lightMode }: {
     const ringOpacity = lightMode ? 0.07 : 0.05;
 
     const electrons: THREE.Mesh[] = [];
-    for (const orbit of orbits) {
+    const spinArrows: THREE.Mesh[] = [];
+    const orbitNormals: THREE.Vector3[] = [];
+    for (let i = 0; i < orbits.length; i++) {
+      const orbit = orbits[i]!;
       const pts: THREE.Vector3[] = [];
       for (let k = 0; k <= 96; k++) {
         const a = (k / 96) * Math.PI * 2;
@@ -286,11 +282,26 @@ function RutherfordAtom({ el, radiusMul, reduced, speedMul, lightMode }: {
         color: eColor, emissive: eColor, emissiveIntensity: lightMode ? 0.8 : 2.2, roughness: 0.1,
       }));
       g.add(m); electrons.push(m);
+
+      const n = new THREE.Vector3().crossVectors(orbit.u, orbit.v).normalize();
+      orbitNormals.push(n);
+      const isUp = i % 2 === 0;
+      const dir = isUp ? n.clone() : n.clone().negate();
+      const arrow = new THREE.Mesh(spinArrowGeo, new THREE.MeshStandardMaterial({
+        color: isUp ? C_SPIN_UP : C_SPIN_DOWN,
+        emissive: isUp ? C_SPIN_UP : C_SPIN_DOWN,
+        emissiveIntensity: lightMode ? 0.5 : 1.4,
+        roughness: 0.2,
+      }));
+      arrow.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+      arrow.visible = false;
+      g.add(arrow); spinArrows.push(arrow);
     }
-    objectsRef.current = { electrons };
+    objectsRef.current = { electrons, spinArrows, orbitNormals };
     return () => {
       g.clear();
       electrons.forEach(m => (m.material as THREE.Material).dispose());
+      spinArrows.forEach(a => (a.material as THREE.Material).dispose());
       objectsRef.current = null;
     };
   }, [el.z, baseR, lightMode, orbits]);
@@ -299,11 +310,26 @@ function RutherfordAtom({ el, radiusMul, reduced, speedMul, lightMode }: {
     if (!objectsRef.current) return;
     if (!reduced) tRef.current += dt * speedMulRef.current;
     const t = tRef.current;
-    objectsRef.current.electrons.forEach((m, i) => {
+    const { electrons, spinArrows, orbitNormals } = objectsRef.current;
+    const doSpin = showSpinRef.current;
+    electrons.forEach((m, i) => {
       const o = orbits[i]!;
       const a = o.phase + t * o.speed;
       m.position.copy(o.u).multiplyScalar(Math.cos(a) * o.r)
         .addScaledVector(o.v, Math.sin(a) * o.r);
+      const arrow = spinArrows[i];
+      if (arrow) {
+        arrow.visible = doSpin;
+        if (doSpin) {
+          const n = orbitNormals[i]!;
+          const sign = i % 2 === 0 ? 1 : -1;
+          arrow.position.set(
+            m.position.x + n.x * 0.22 * sign,
+            m.position.y + n.y * 0.22 * sign,
+            m.position.z + n.z * 0.22 * sign,
+          );
+        }
+      }
     });
   });
 
@@ -489,12 +515,14 @@ function buildSommerfeldConfig(shellFills: number[], radiusMul: number): SubOrbi
   return result;
 }
 
-function SommerfeldAtom({ el, radiusMul, reduced, speedMul, lightMode }: {
-  el: Element; radiusMul: number; reduced: boolean; speedMul: number; lightMode: boolean;
+function SommerfeldAtom({ el, radiusMul, reduced, speedMul, lightMode, showSpin }: {
+  el: Element; radiusMul: number; reduced: boolean; speedMul: number; lightMode: boolean; showSpin: boolean;
 }) {
   const groupRef    = useRef<THREE.Group>(null!);
   const speedMulRef = useRef(speedMul);
   speedMulRef.current = speedMul;
+  const showSpinRef = useRef(showSpin);
+  showSpinRef.current = showSpin;
 
   const shellFills = useMemo(() => computeShellFills(el.z), [el.z]);
   const config     = useMemo(() => buildSommerfeldConfig(shellFills, radiusMul), [shellFills, radiusMul]);
@@ -508,6 +536,7 @@ function SommerfeldAtom({ el, radiusMul, reduced, speedMul, lightMode }: {
   const objectsRef = useRef<{
     orbitGroups: THREE.Group[];
     electronArrays: THREE.Mesh[][];
+    spinArrowArrays: THREE.Mesh[][];
   } | null>(null);
 
   useEffect(() => {
@@ -516,8 +545,10 @@ function SommerfeldAtom({ el, radiusMul, reduced, speedMul, lightMode }: {
     const ringCol = lightMode ? "#19191a" : "#ffffff";
     const ringOp  = lightMode ? 0.09 : 0.06;
 
-    const orbitGroups:  THREE.Group[]   = [];
-    const electronArrays: THREE.Mesh[][] = [];
+    const orbitGroups:    THREE.Group[]   = [];
+    const electronArrays: THREE.Mesh[][]  = [];
+    const spinArrowArrays: THREE.Mesh[][] = [];
+    let globalEIdx = 0;
 
     for (const orbit of config) {
       const og = new THREE.Group();
@@ -540,18 +571,32 @@ function SommerfeldAtom({ el, radiusMul, reduced, speedMul, lightMode }: {
         new THREE.LineBasicMaterial({ color: ringCol, transparent: true, opacity: ringOp }),
       ));
 
-      const electrons: THREE.Mesh[] = [];
+      const electrons: THREE.Mesh[]  = [];
+      const spinArrows: THREE.Mesh[] = [];
       for (let i = 0; i < orbit.electronCount; i++) {
         const m = new THREE.Mesh(electronGeo, new THREE.MeshStandardMaterial({
           color: eColor, emissive: eColor,
           emissiveIntensity: lightMode ? 0.8 : 2.2, roughness: 0.1,
         }));
         og.add(m); electrons.push(m);
+
+        const isUp = (globalEIdx + i) % 2 === 0;
+        const arrow = new THREE.Mesh(spinArrowGeo, new THREE.MeshStandardMaterial({
+          color: isUp ? C_SPIN_UP : C_SPIN_DOWN,
+          emissive: isUp ? C_SPIN_UP : C_SPIN_DOWN,
+          emissiveIntensity: lightMode ? 0.5 : 1.4,
+          roughness: 0.2,
+        }));
+        arrow.rotation.x = isUp ? -Math.PI / 2 : Math.PI / 2;
+        arrow.visible = false;
+        og.add(arrow); spinArrows.push(arrow);
       }
+      globalEIdx += orbit.electronCount;
       orbitGroups.push(og);
       electronArrays.push(electrons);
+      spinArrowArrays.push(spinArrows);
     }
-    objectsRef.current = { orbitGroups, electronArrays };
+    objectsRef.current = { orbitGroups, electronArrays, spinArrowArrays };
 
     return () => {
       g.clear();
@@ -571,27 +616,33 @@ function SommerfeldAtom({ el, radiusMul, reduced, speedMul, lightMode }: {
   useFrame((_, dt) => {
     if (!objectsRef.current) return;
     const mul = speedMulRef.current;
-    const { electronArrays } = objectsRef.current;
+    const { electronArrays, spinArrowArrays } = objectsRef.current;
     const phases = phasesRef.current;
+    const doSpin = showSpinRef.current;
 
     let eIdx = 0;
     config.forEach((orbit, oi) => {
-      const electrons = electronArrays[oi]!;
+      const electrons  = electronArrays[oi]!;
+      const spinArrows = spinArrowArrays[oi]!;
       if (!reduced) {
         for (let i = 0; i < orbit.electronCount; i++) {
           phases[eIdx + i] = ((phases[eIdx + i] ?? 0) + dt * orbit.speed * mul) % (Math.PI * 2);
         }
       }
       for (let i = 0; i < orbit.electronCount; i++) {
-        // Space electrons evenly in mean-anomaly space
         const M = ((phases[eIdx + i] ?? 0) + (i / orbit.electronCount) * Math.PI * 2) % (Math.PI * 2);
         const E = solveKepler(M, orbit.ecc);
-        // Nucleus at right focus: translate ellipse so right focus is at origin
-        electrons[i]?.position.set(
-          orbit.a * Math.cos(E) - orbit.a * orbit.ecc,
-          orbit.b * Math.sin(E),
-          0,
-        );
+        const ex = orbit.a * Math.cos(E) - orbit.a * orbit.ecc;
+        const ey = orbit.b * Math.sin(E);
+        electrons[i]?.position.set(ex, ey, 0);
+        const arrow = spinArrows[i];
+        if (arrow) {
+          arrow.visible = doSpin;
+          if (doSpin) {
+            const isUp = (eIdx + i) % 2 === 0;
+            arrow.position.set(ex, ey, isUp ? 0.22 : -0.22);
+          }
+        }
       }
       eIdx += orbit.electronCount;
     });
@@ -775,7 +826,7 @@ export type AtomSceneProps = {
   lightBg?: string;
   starsIntensity?: number;
   vdwStyle?: VdWStyle;
-  showBohrSpin?: boolean;
+  showSpin?: boolean;
   className?: string;
 };
 
@@ -783,7 +834,7 @@ export function AtomScene({
   element, model = "bohr", realScale = false,
   speedMultiplier = 1, lightMode = false,
   lightBg = "#e8ecf5", starsIntensity = 1,
-  vdwStyle = "off", showBohrSpin = false, className,
+  vdwStyle = "off", showSpin = false, className,
 }: AtomSceneProps) {
   const reduced =
     typeof window !== "undefined"
@@ -831,15 +882,15 @@ export function AtomScene({
       )}
       {model === "rutherford" && (
         <RutherfordAtom el={element} radiusMul={sc.radiusMul} reduced={reduced}
-          speedMul={speedMultiplier} lightMode={lightMode} />
+          speedMul={speedMultiplier} lightMode={lightMode} showSpin={showSpin} />
       )}
       {model === "bohr" && (
         <BohrAtom el={element} radiusMul={sc.radiusMul} eMul={sc.electronScale}
-          reduced={reduced} speedMul={speedMultiplier} lightMode={lightMode} showSpin={showBohrSpin} />
+          reduced={reduced} speedMul={speedMultiplier} lightMode={lightMode} showSpin={showSpin} />
       )}
       {model === "sommerfeld" && (
         <SommerfeldAtom el={element} radiusMul={sc.radiusMul} reduced={reduced}
-          speedMul={speedMultiplier} lightMode={lightMode} />
+          speedMul={speedMultiplier} lightMode={lightMode} showSpin={showSpin} />
       )}
       {model === "quantum" && (
         <QuantumAtom el={element} radiusMul={sc.radiusMul} reduced={reduced} lightMode={lightMode} />
