@@ -4,7 +4,7 @@ export const site = {
   name: "Fosforonero",
   domain: "fosforonero.com",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://fosforonero.com",
-  email: "matteo@fosforonero.com",
+  email: "hello@fosforonero.com",
   // Author / Person — keep this in sync with JSON-LD
   author: {
     name: "Matteo Pizzi",

@@ -916,6 +916,9 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
               <span style={{ opacity: 0.5 }}>{t.footerHint}</span>
             </div>
           )}
+          <p className="pt-table-scroll-hint" aria-hidden="true">
+            ← {locale === "en" ? "scroll to see all 118 elements" : "scorri per tutti i 118 elementi"} →
+          </p>
         </div>
       )}
     </div>

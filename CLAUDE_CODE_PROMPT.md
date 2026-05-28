@@ -150,3 +150,37 @@ E poi:
 2. Cerca su `lib/i18n.ts` se la stringa è già localizzata
 3. Cerca su `lib/projects.ts` se è un dato del progetto
 4. Chiedi a Matteo prima di inventare nuova copy o nuovi claim
+
+---
+
+## Roadmap attiva (aggiornata 2026-05-28)
+
+### SiteBrain AI (`/sitebrain`) — ⛔ NON pubblicato in homepage
+
+Status: `"WIP"` in `lib/projects.ts` — rimosso dalla homepage perché la versione mobile è da rivedere completamente.
+**Da fare prima di rimettere LIVE:**
+- Responsive completo del pricing (annuale/lifetime, selezione USD/EUR)
+- FAQ accordion mobile-friendly
+- Checkout flow su mobile (form pagamento)
+- Hero section su mobile
+- Test su 375px / 390px iPhone
+
+### Tavola Periodica Interattiva (`/lab/tavola-periodica`) — ✅ LIVE
+
+Feature roadmap (Powers of Ten — zoom da macroscala ad atomi):
+
+**In roadmap (da implementare):**
+- [ ] **Spin elettronico**: visualizzare ↑↓ nel modello Bohr per ogni orbitale (principio di esclusione di Pauli — max 2 e⁻ con spin opposti)
+- [ ] **Raggio atomico**: sfera semi-trasparente nella vista atomo che mostra il raggio di van der Waals
+- [ ] **Modello isotopi**: selezione dell'isotopo con visualizzazione del numero di neutroni (differenza tra isotopi = solo neutroni)
+- [ ] **Vista materiale (Level 0)**: cubo metallico rotante con colore reale dell'elemento; liquido WebGL per Hg/Br; gas/nuvola particelle; slider temperatura con cambio di stato (usa dati Tm/Tb già presenti in `element-extended-data.ts`)
+- [ ] **Struttura cristallina**: FCC, BCC, HCP, cubico a facce — visualizzazione 3D per elementi solidi
+- [ ] **Legami chimici**: visualizzazione legame covalente/ionico/metallico tra due elementi (nuova view dedicata)
+- [ ] **Vista nucleo (Level 1)**: protoni e neutroni come sfere 3D in scala reale
+- [ ] **Orbitali reali (Level 2)**: forme s/p/d/f dall'equazione di Schrödinger
+- [ ] **Quark (Level 3)**: quark up/down + gluoni dentro un protone
+- [ ] **Particelle standard (Level 4)**: bosoni, campo di Higgs, modello standard
+
+**Email contatto:**
+- Cambiata da `matteo@fosforonero.com` → `hello@fosforonero.com` in `lib/site.ts`
+- Da configurare su Resend: aggiungere `hello@fosforonero.com` come sender nel dashboard Resend, verificare il dominio se non già fatto

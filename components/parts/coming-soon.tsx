@@ -149,7 +149,7 @@ export function ComingSoon({ locale }: Props) {
           <span style={{ color: "var(--color-accent)", fontSize: 20, fontWeight: 600 }}>↗</span>
         </a>
 
-        {/* Live projects (FitMesh, SplitVote) — phosphor-tinted pills */}
+        {/* Live projects */}
         {liveProjects.length > 0 ? (
           <div
             style={{
@@ -175,43 +175,53 @@ export function ComingSoon({ locale }: Props) {
               {liveProjects.map((p) => {
                 const isExternal = p.url.startsWith("http");
                 return (
-                <a
-                  key={p.id}
-                  href={p.url}
-                  target={isExternal ? "_blank" : undefined}
-                  rel={isExternal ? "noopener noreferrer" : undefined}
-                  className="fn-link-underline"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 8,
-                    padding: "10px 16px",
-                    border: "1.5px solid var(--color-ink)",
-                    borderRadius: 999,
-                    background: "var(--color-card)",
-                    textDecoration: "none",
-                    fontFamily: "var(--font-sans)",
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: "var(--color-ink)",
-                    letterSpacing: "-0.005em",
-                    boxShadow: "0 1px 2px rgba(10,10,10,0.04)",
-                  }}
-                >
-                  <span
-                    aria-hidden
+                  <a
+                    key={p.id}
+                    href={p.url}
+                    target={isExternal ? "_blank" : undefined}
+                    rel={isExternal ? "noopener noreferrer" : undefined}
+                    className="fn-link-underline"
                     style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: "50%",
-                      background: p.brand,
-                      flex: "0 0 8px",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: "10px 16px",
+                      border: "1.5px solid var(--color-ink)",
+                      borderRadius: 999,
+                      background: "var(--color-card)",
+                      textDecoration: "none",
+                      fontFamily: "var(--font-sans)",
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: "var(--color-ink)",
+                      letterSpacing: "-0.005em",
+                      boxShadow: "0 1px 2px rgba(10,10,10,0.04)",
                     }}
-                  />
-                  {p.name}
-                  <span style={{ color: "var(--color-accent)" }}>{isExternal ? "↗" : "→"}</span>
-                </a>
-                );})}
+                  >
+                    <span
+                      aria-hidden
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: "50%",
+                        background: p.brand,
+                        flex: "0 0 8px",
+                      }}
+                    />
+                    {p.name}
+                    <span
+                      style={{
+                        color: "var(--color-accent)",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        lineHeight: 1,
+                      }}
+                    >
+                      {isExternal ? "↗" : "→"}
+                    </span>
+                  </a>
+                );
+              })}
             </div>
           </div>
         ) : null}
@@ -270,8 +280,7 @@ export function ComingSoon({ locale }: Props) {
           </div>
         </div>
 
-        {/* Identity page link — discoverable even from the Coming Soon, since
-            it's the only fully built-out page that explains the brand. */}
+        {/* Identity page link */}
         <div style={{ marginTop: "clamp(28px, 4vw, 40px)" }}>
           <Link
             href={locale === "it" ? "/identita" : "/en/identity"}
@@ -293,8 +302,7 @@ export function ComingSoon({ locale }: Props) {
 
       </main>
 
-      {/* Micro legal footer — required by GDPR while GA + cookie banner are
-          active. Plain mono row, no copyright, no nav. */}
+      {/* Micro legal footer */}
       <div
         style={{
           padding: "clamp(20px, 4vw, 32px) clamp(20px, 5vw, 64px)",
