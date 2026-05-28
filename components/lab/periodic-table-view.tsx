@@ -208,31 +208,68 @@ function matchesSearch(el: Element, q: string, locale: Locale): boolean {
   );
 }
 
+// ─── Compact value for in-cell display ───────────────────────────────────────
+
+function getCellDisplayText(el: Element, prop: ThematicProperty): string {
+  if (prop === "none") return "";
+  const ext = EXTENDED[el.z];
+  if (!ext) return "—";
+  if (prop === "state") {
+    const m: Record<string, string> = { solid: "S", liquid: "L", gas: "G", synthetic: "⊕" };
+    return m[ext.state] ?? "";
+  }
+  if (prop === "block") return ext.block;
+  const raw = ext[prop as keyof ElementExtended] as number | null;
+  if (raw === null) return "—";
+  switch (prop) {
+    case "electronegativity": return raw.toFixed(2);
+    case "atomicRadius":      return raw.toFixed(0);
+    case "ionizationEnergy":  return raw.toFixed(0);
+    case "density":           return raw < 1 ? raw.toFixed(3) : raw.toFixed(1);
+    case "meltingPoint":      return raw.toFixed(0);
+    case "boilingPoint":      return raw.toFixed(0);
+    case "electronAffinity":  return raw.toFixed(1);
+    case "crustAbundance":    return raw >= 1000 ? `${(raw / 1000).toFixed(1)}k` : raw.toFixed(1);
+    default:                  return raw.toFixed(1);
+  }
+}
+
 // ─── Element cell ─────────────────────────────────────────────────────────────
 
 type CellProps = {
   el: Element; selected: boolean; onSelect: (el: Element) => void;
-  thematicColor?: string; thematicValue?: string; negativeMode?: boolean;
+  thematicColor?: string; thematicProp?: ThematicProperty; negativeMode?: boolean;
   dimmed?: boolean; locale: Locale;
 };
 
-function ElementCell({ el, selected, onSelect, thematicColor, thematicValue, negativeMode, dimmed, locale }: CellProps) {
+function ElementCell({ el, selected, onSelect, thematicColor, thematicProp, negativeMode, dimmed, locale }: CellProps) {
   const color = thematicColor ?? CATEGORY_COLOR[el.category];
   const name = locale === "en" ? (ELEMENT_NAMES_EN[el.z] || el.name) : el.name;
   const labelText = locale === "en" ? `${name}, atomic number ${el.z}` : `${name}, numero atomico ${el.z}`;
-  const isNeg = negativeMode && thematicColor !== undefined;
+  const isThematic = thematicColor !== undefined;
+  // Default thematic = filled bg; NEG = text-only (no fill)
+  const isFilled = isThematic && !negativeMode;
+  const cellVal = thematicProp && thematicProp !== "none" ? getCellDisplayText(el, thematicProp) : null;
   return (
     <button
-      className={`pt-cell${selected ? " pt-cell--active" : ""}${dimmed ? " pt-cell--dim" : ""}${isNeg ? " pt-cell--neg" : ""}`}
+      className={`pt-cell${selected ? " pt-cell--active" : ""}${dimmed ? " pt-cell--dim" : ""}${isFilled ? " pt-cell--filled" : ""}`}
       style={{ "--cat-color": color } as React.CSSProperties}
       onClick={() => onSelect(el)}
       title={`${name} — Z=${el.z}`}
       aria-label={labelText}
       aria-pressed={selected}
-      data-val={thematicValue || undefined}
     >
       <span className="pt-cell__z" aria-hidden="true">{el.z}</span>
       <span className="pt-cell__sym">{el.sym}</span>
+      {!isThematic && (
+        <>
+          <span className="pt-cell__name" aria-hidden="true">{name}</span>
+          <span className="pt-cell__mass" aria-hidden="true">{el.mass}</span>
+        </>
+      )}
+      {isThematic && cellVal && (
+        <span className="pt-cell__val" aria-hidden="true">{cellVal}</span>
+      )}
     </button>
   );
 }
@@ -284,9 +321,7 @@ function PeriodicGrid({
               thematicColor={thematicProp !== "none"
                 ? getThematicColor(el, thematicProp, propRange)
                 : undefined}
-              thematicValue={thematicProp !== "none"
-                ? getThematicValueText(el, thematicProp, locale)
-                : undefined}
+              thematicProp={thematicProp}
               negativeMode={negativeMode}
               dimmed={hasSearch && !matchesSearch(el, searchQuery, locale)}
             />
@@ -506,7 +541,7 @@ function ThematicSelector({
   const t = LAB_UI_TRANSLATIONS[locale];
   const props = getThematicProperties(locale);
   const grpLabel = locale === "en" ? "Thematic view property" : "Proprietà tematica";
-  const negTitle = locale === "en" ? "Invert: fill cells with color" : "Inverti: colora il quadratino";
+  const negTitle = locale === "en" ? "Text only: show color in symbol" : "Solo testo: colore nel simbolo";
   return (
     <div className="pt-thematic-selector" role="group" aria-label={grpLabel}>
       <span className="pt-thematic-selector__lbl">{t.viewLabel}</span>
@@ -812,10 +847,12 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
   const [lightBgKey,      setLightBgKey]      = useState<LightBgKey>("sky");
   const [vdwStyle,        setVdwStyle]        = useState<VdWStyle>("off");
   const [negativeMode,    setNegativeMode]    = useState(false);
+  const [gridZoom,        setGridZoom]        = useState(1);
 
   const [showHeader,      setShowHeader]      = useState(true);
   const lastScrollTop                         = useRef(0);
   const scrollRef                             = useRef<HTMLDivElement>(null);
+  const pinchRef                              = useRef<{ dist: number } | null>(null);
 
   const lightBgColor = LIGHT_BACKGROUNDS.find(b => b.key === lightBgKey)?.color ?? "#e8ecf5";
 
@@ -882,6 +919,39 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
     el.addEventListener("scroll", handleScroll, { passive: true });
     return () => el.removeEventListener("scroll", handleScroll);
   }, [view, handleScroll]);
+
+  // Pinch-to-zoom on the grid scroll container
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || view !== "table") return;
+    const onStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        const t0 = e.touches[0]!;
+        const t1 = e.touches[1]!;
+        pinchRef.current = { dist: Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY) };
+      }
+    };
+    const onMove = (e: TouchEvent) => {
+      if (e.touches.length === 2 && pinchRef.current) {
+        e.preventDefault();
+        const t0 = e.touches[0]!;
+        const t1 = e.touches[1]!;
+        const dist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
+        const ratio = dist / pinchRef.current.dist;
+        setGridZoom(z => Math.max(0.5, Math.min(3, z * ratio)));
+        pinchRef.current.dist = dist;
+      }
+    };
+    const onEnd = () => { pinchRef.current = null; };
+    el.addEventListener("touchstart", onStart, { passive: true });
+    el.addEventListener("touchmove",  onMove,  { passive: false });
+    el.addEventListener("touchend",   onEnd,   { passive: true });
+    return () => {
+      el.removeEventListener("touchstart", onStart);
+      el.removeEventListener("touchmove",  onMove);
+      el.removeEventListener("touchend",   onEnd);
+    };
+  }, [view]);
 
   // Reset header if switching views
   useEffect(() => {
@@ -1022,15 +1092,17 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
           />
           <ThematicLegend prop={thematicProp} range={propRange} locale={locale} />
           <div className="pt-scroll" ref={scrollRef}>
-            <PeriodicGrid
-              selected={selected}
-              onSelect={handleSelect}
-              thematicProp={thematicProp}
-              propRange={propRange}
-              searchQuery={searchQuery}
-              locale={locale}
-              negativeMode={negativeMode}
-            />
+            <div style={gridZoom !== 1 ? { zoom: gridZoom } as React.CSSProperties : undefined}>
+              <PeriodicGrid
+                selected={selected}
+                onSelect={handleSelect}
+                thematicProp={thematicProp}
+                propRange={propRange}
+                searchQuery={searchQuery}
+                locale={locale}
+                negativeMode={negativeMode}
+              />
+            </div>
           </div>
           {selected && (
             <div className="pt-footer-hint">
