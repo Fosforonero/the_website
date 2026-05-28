@@ -3,60 +3,95 @@
 import { useState } from "react";
 
 export interface SiteBrainPrices {
-  pro: { annual: { usd: string; eur: string }; lifetime: { usd: string; eur: string } };
+  pro:    { annual: { usd: string; eur: string }; lifetime: { usd: string; eur: string } };
   studio: { annual: { usd: string; eur: string }; lifetime: { usd: string; eur: string } };
   agency: { annual: { usd: string; eur: string }; lifetime: { usd: string; eur: string } };
 }
 
-type Billing = "annual" | "lifetime";
+type Billing  = "annual" | "lifetime";
 type Currency = "usd" | "eur";
 type PaidTier = "pro" | "studio" | "agency";
 
-const DISPLAY: Record<Billing, Record<Currency, Record<PaidTier, string>>> = {
-  annual:   { usd: { pro: "$79",  studio: "$299", agency: "$499" }, eur: { pro: "€79",  studio: "€299", agency: "€499" } },
-  lifetime: { usd: { pro: "$199", studio: "$699", agency: "$999" }, eur: { pro: "€199", studio: "€699", agency: "€999" } },
+const DISPLAY: Record<Billing, Record<Currency, Record<PaidTier, { num: string; sym: string }>>> = {
+  annual:   {
+    usd: { pro: { num: "79",  sym: "$" }, studio: { num: "299", sym: "$" }, agency: { num: "499", sym: "$" } },
+    eur: { pro: { num: "79",  sym: "€" }, studio: { num: "299", sym: "€" }, agency: { num: "499", sym: "€" } },
+  },
+  lifetime: {
+    usd: { pro: { num: "199", sym: "$" }, studio: { num: "699", sym: "$" }, agency: { num: "999", sym: "$" } },
+    eur: { pro: { num: "199", sym: "€" }, studio: { num: "699", sym: "€" }, agency: { num: "999", sym: "€" } },
+  },
+};
+
+const SAVINGS: Record<Currency, Record<PaidTier, string>> = {
+  usd: { pro: "vs 2yr: salvi $158", studio: "vs 2yr: salvi $598", agency: "vs 2yr: salvi $998" },
+  eur: { pro: "vs 2yr: salvi €158", studio: "vs 2yr: salvi €598", agency: "vs 2yr: salvi €998" },
 };
 
 const TIERS = [
   {
-    key:          "free" as const,
-    name:         "Free",
-    tagline:      "Per siti personali e test.",
-    features:     ["RAG keyword search", "OpenAI · Anthropic · OpenRouter", "Handoff lead (3/giorno)", "Quick questions configurabili", "Temi colore base"],
-    highlight:    false,
-    paid:         false,
+    key:         "free" as const,
+    name:        "Free",
+    tagline:     "Per siti personali e test.",
+    features:    [
+      "RAG keyword search",
+      "OpenAI · Anthropic · OpenRouter",
+      "3 handoff lead / giorno",
+      "Quick questions configurabili",
+      "Temi colore base",
+    ],
+    highlighted: false,
+    paid:        false,
   },
   {
-    key:          "pro" as const,
-    name:         "Pro",
-    tagline:      "Per siti professionali.",
-    features:     ["RAG semantico + embeddings", "Upload documenti (PDF, DOCX, TXT, MD)", "Handoff lead illimitati + contesto chat", "Statistiche avanzate", "WooCommerce integrato"],
-    highlight:    true,
-    paid:         true,
+    key:         "pro" as const,
+    name:        "Pro",
+    tagline:     "Per siti professionali che vogliono il massimo.",
+    features:    [
+      "RAG semantico + embeddings",
+      "Upload documenti (PDF, DOCX, TXT)",
+      "Handoff lead illimitati + contesto",
+      "Statistiche avanzate",
+      "WooCommerce integrato",
+    ],
+    highlighted: true,
+    paid:        true,
   },
   {
-    key:          "studio" as const,
-    name:         "Studio",
-    tagline:      "Per agenzie e siti multipli.",
-    features:     ["Tutto di Pro", "Fino a 5 installazioni", "API access", "Audit log completo", "GDPR avanzato"],
-    highlight:    false,
-    paid:         true,
+    key:         "studio" as const,
+    name:        "Studio",
+    tagline:     "Per agenzie e siti multipli.",
+    features:    [
+      "Tutto di Pro",
+      "Fino a 5 installazioni",
+      "API access",
+      "Audit log completo",
+      "GDPR avanzato",
+    ],
+    highlighted: false,
+    paid:        true,
   },
   {
-    key:          "agency" as const,
-    name:         "Agency",
-    tagline:      "Installazioni illimitate.",
-    features:     ["Tutto di Studio", "Installazioni illimitate", "White-label widget", "Priorità supporto", "Accesso funzionalità beta"],
-    highlight:    false,
-    paid:         true,
+    key:         "agency" as const,
+    name:        "Agency",
+    tagline:     "Scala illimitata, zero compromessi.",
+    features:    [
+      "Tutto di Studio",
+      "Installazioni illimitate",
+      "White-label widget",
+      "Priorità supporto",
+      "Accesso funzionalità beta",
+    ],
+    highlighted: false,
+    paid:        true,
   },
 ] as const;
 
 async function redirectToCheckout(priceId: string): Promise<void> {
-  const res = await fetch("/api/sitebrain/stripe/checkout", {
-    method: "POST",
+  const res  = await fetch("/api/sitebrain/stripe/checkout", {
+    method:  "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ priceId }),
+    body:    JSON.stringify({ priceId }),
   });
   const data = (await res.json()) as { url?: string };
   if (data.url) {
@@ -66,50 +101,78 @@ async function redirectToCheckout(priceId: string): Promise<void> {
   }
 }
 
-const toggle: React.CSSProperties = {
-  display: "flex",
-  background: "var(--color-surface)",
-  borderRadius: 8,
-  padding: 3,
-  border: "1px solid var(--color-rule)",
-};
-
-function ToggleBtn({
-  active,
-  onClick,
-  children,
+// Sliding pill toggle — works on dark backgrounds
+function SlidingToggle<T extends string>({
+  value,
+  options,
+  onChange,
   mono,
 }: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-  mono?: boolean;
+  value:   T;
+  options: { value: T; label: string }[];
+  onChange: (v: T) => void;
+  mono?:   boolean;
 }) {
+  const isFirst = value === options[0]?.value;
   return (
-    <button
-      onClick={onClick}
+    <div
       style={{
-        padding: "7px 16px",
-        borderRadius: 6,
-        border: "none",
-        cursor: "pointer",
-        fontFamily: mono ? "var(--font-mono)" : "var(--font-sans)",
-        fontSize: mono ? 12 : 13,
-        fontWeight: 600,
-        background: active ? "var(--color-ink)" : "transparent",
-        color: active ? "#fff" : "var(--color-dim)",
-        transition: "all 0.15s",
+        position:   "relative",
+        display:    "grid",
+        gridTemplateColumns: `repeat(${options.length}, 1fr)`,
+        background: "rgba(255,255,255,0.07)",
+        borderRadius: 100,
+        border:     "1px solid rgba(255,255,255,0.12)",
       }}
     >
-      {children}
-    </button>
+      {/* sliding pill */}
+      <div
+        style={{
+          position:   "absolute",
+          top:        3,
+          bottom:     3,
+          left:       isFirst ? 3 : "50%",
+          right:      isFirst ? "50%" : 3,
+          background: "#fff",
+          borderRadius: 100,
+          transition: "left 0.22s cubic-bezier(0.4,0,0.2,1), right 0.22s cubic-bezier(0.4,0,0.2,1)",
+          pointerEvents: "none",
+        }}
+      />
+      {options.map((opt) => (
+        <button
+          key={opt.value}
+          onClick={() => onChange(opt.value)}
+          style={{
+            position:   "relative",
+            zIndex:     1,
+            padding:    "9px 22px",
+            border:     "none",
+            background: "transparent",
+            borderRadius: 100,
+            cursor:     "pointer",
+            fontFamily: mono ? "var(--font-mono)" : "var(--font-sans)",
+            fontSize:   mono ? 12 : 13,
+            fontWeight: 600,
+            color:      value === opt.value ? "#0A0A0A" : "rgba(255,255,255,0.45)",
+            transition: "color 0.22s",
+            letterSpacing: mono ? "0.05em" : "-0.01em",
+            whiteSpace: "nowrap",
+            textAlign:  "center",
+          }}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
   );
 }
 
 export function SiteBrainPricing({ prices }: { prices: SiteBrainPrices }) {
-  const [billing, setBilling] = useState<Billing>("annual");
+  const [billing,  setBilling]  = useState<Billing>("annual");
   const [currency, setCurrency] = useState<Currency>("usd");
-  const [loading, setLoading] = useState<PaidTier | null>(null);
+  const [loading,  setLoading]  = useState<PaidTier | null>(null);
+  const [hovered,  setHovered]  = useState<string | null>(null);
 
   const handleBuy = async (tier: PaidTier) => {
     const priceId = prices[tier][billing][currency];
@@ -123,149 +186,258 @@ export function SiteBrainPricing({ prices }: { prices: SiteBrainPrices }) {
 
   return (
     <div>
-      {/* ── Toggles ──────────────────────────────────────────────────────────── */}
+      {/* ── Toggles ──────────────────────────────────────────────────── */}
       <div
         style={{
-          display: "flex",
-          gap: 10,
-          marginBottom: "clamp(28px, 4vw, 48px)",
-          flexWrap: "wrap",
-          alignItems: "center",
+          display:     "flex",
+          gap:         12,
+          marginBottom: "clamp(36px,5vw,60px)",
+          flexWrap:    "wrap",
+          alignItems:  "center",
         }}
       >
-        <div style={toggle}>
-          <ToggleBtn active={billing === "annual"}   onClick={() => setBilling("annual")}>Annuale</ToggleBtn>
-          <ToggleBtn active={billing === "lifetime"} onClick={() => setBilling("lifetime")}>Lifetime</ToggleBtn>
-        </div>
-
-        <div style={toggle}>
-          <ToggleBtn mono active={currency === "usd"} onClick={() => setCurrency("usd")}>$ USD</ToggleBtn>
-          <ToggleBtn mono active={currency === "eur"} onClick={() => setCurrency("eur")}>€ EUR</ToggleBtn>
-        </div>
-
+        <SlidingToggle
+          value={billing}
+          onChange={setBilling}
+          options={[
+            { value: "annual",   label: "Annuale" },
+            { value: "lifetime", label: "Lifetime ⚡" },
+          ]}
+        />
+        <SlidingToggle
+          value={currency}
+          onChange={setCurrency}
+          mono
+          options={[
+            { value: "usd", label: "$ USD" },
+            { value: "eur", label: "€ EUR" },
+          ]}
+        />
         {billing === "lifetime" && (
           <span
             style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: 10,
-              color: "#00A341",
-              letterSpacing: "0.1em",
+              fontFamily:    "var(--font-mono)",
+              fontSize:      10,
+              color:         "#00A341",
+              letterSpacing: "0.12em",
               textTransform: "uppercase",
+              background:    "rgba(0,163,65,0.12)",
+              padding:       "5px 12px",
+              borderRadius:  100,
+              border:        "1px solid rgba(0,163,65,0.3)",
             }}
           >
-            Pagamento unico · nessun rinnovo
+            ✓ Pagamento unico · nessun rinnovo
           </span>
         )}
       </div>
 
-      {/* ── Cards ────────────────────────────────────────────────────────────── */}
+      {/* ── Cards ────────────────────────────────────────────────────── */}
       <div
         style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
-          gap: 14,
-          alignItems: "stretch",
+          display:               "grid",
+          gridTemplateColumns:   "repeat(4, minmax(0, 1fr))",
+          gap:                   16,
+          alignItems:            "start",
+          paddingTop:            20,
         }}
       >
         {TIERS.map((tier) => {
-          const priceDisplay =
-            tier.paid
-              ? DISPLAY[billing][currency][tier.key as PaidTier]
-              : "Gratis";
-          const period =
-            tier.paid
-              ? billing === "annual" ? "/anno" : "una tantum"
-              : "GPL";
-          const isLoading = tier.paid && loading === tier.key;
+          const hl       = tier.highlighted;
+          const isHov    = hovered === tier.key;
+          const isLoad   = tier.paid && loading === tier.key;
+          const priceNum = tier.paid ? DISPLAY[billing][currency][tier.key as PaidTier].num : null;
+          const priceSym = tier.paid ? DISPLAY[billing][currency][tier.key as PaidTier].sym : null;
+          const period   = tier.paid
+            ? billing === "annual" ? "/anno" : "una tantum"
+            : "GPL · gratis";
 
           return (
             <div
               key={tier.key}
+              onMouseEnter={() => setHovered(tier.key)}
+              onMouseLeave={() => setHovered(null)}
               style={{
-                background:   tier.highlight ? "var(--color-ink)" : "var(--color-card)",
-                border:       tier.highlight ? "none" : "1px solid var(--color-rule)",
-                borderLeft:   `4px solid ${tier.highlight ? "#00A341" : "var(--color-rule)"}`,
-                borderRadius: 14,
-                padding:      "clamp(22px, 3vw, 32px)",
+                background:   hl ? "#00A341" : "rgba(255,255,255,0.04)",
+                border:       hl ? "none"    : "1px solid rgba(255,255,255,0.10)",
+                borderRadius: 20,
+                padding:      "clamp(24px,3vw,36px)",
                 display:      "flex",
                 flexDirection:"column",
-                height:       "100%",
-                boxSizing:    "border-box",
+                position:     "relative",
+                transition:   "transform 0.25s, box-shadow 0.25s",
+                transform:    isHov && !hl ? "translateY(-4px)" : "none",
+                boxShadow:    hl
+                  ? "0 20px 60px rgba(0,163,65,0.30)"
+                  : isHov
+                  ? "0 12px 36px rgba(0,0,0,0.5)"
+                  : "none",
               }}
             >
+              {/* Popular badge */}
+              {hl && (
+                <div
+                  style={{
+                    position:      "absolute",
+                    top:           -14,
+                    left:          "50%",
+                    transform:     "translateX(-50%)",
+                    background:    "#fff",
+                    color:         "#00A341",
+                    fontFamily:    "var(--font-mono)",
+                    fontSize:      10,
+                    fontWeight:    700,
+                    letterSpacing: "0.14em",
+                    textTransform: "uppercase",
+                    padding:       "5px 16px",
+                    borderRadius:  100,
+                    whiteSpace:    "nowrap",
+                  }}
+                >
+                  ★ Più popolare
+                </div>
+              )}
+
+              {/* Tier name */}
               <span
                 style={{
                   fontFamily:    "var(--font-mono)",
                   fontSize:      10,
-                  letterSpacing: "0.18em",
-                  color:         tier.highlight ? "rgba(255,255,255,0.45)" : "var(--color-dim)",
+                  letterSpacing: "0.22em",
                   textTransform: "uppercase",
+                  color:         hl ? "rgba(255,255,255,0.65)" : "rgba(255,255,255,0.35)",
                 }}
               >
                 {tier.name}
               </span>
 
+              {/* Price */}
               <div
                 style={{
                   display:     "flex",
-                  alignItems:  "baseline",
-                  gap:         4,
-                  marginTop:   10,
-                  marginBottom: 6,
+                  alignItems:  "flex-start",
+                  gap:         2,
+                  marginTop:   16,
+                  marginBottom: 2,
                 }}
               >
-                <span
-                  style={{
-                    fontFamily:    "var(--font-sans)",
-                    fontSize:      "clamp(30px, 4vw, 42px)",
-                    fontWeight:    700,
-                    color:         tier.highlight ? "#fff" : "var(--color-ink)",
-                    letterSpacing: "-0.03em",
-                    lineHeight:    1,
-                  }}
-                >
-                  {priceDisplay}
-                </span>
+                {priceNum ? (
+                  <>
+                    <span
+                      style={{
+                        fontFamily: "var(--font-sans)",
+                        fontSize:   18,
+                        fontWeight: 500,
+                        color:      hl ? "rgba(255,255,255,0.65)" : "rgba(255,255,255,0.45)",
+                        marginTop:  10,
+                        lineHeight: 1,
+                      }}
+                    >
+                      {priceSym}
+                    </span>
+                    <span
+                      style={{
+                        fontFamily:    "var(--font-sans)",
+                        fontSize:      "clamp(52px,6.5vw,72px)",
+                        fontWeight:    700,
+                        color:         "#fff",
+                        lineHeight:    1,
+                        letterSpacing: "-0.045em",
+                      }}
+                    >
+                      {priceNum}
+                    </span>
+                  </>
+                ) : (
+                  <span
+                    style={{
+                      fontFamily:    "var(--font-sans)",
+                      fontSize:      "clamp(44px,5.5vw,60px)",
+                      fontWeight:    700,
+                      color:         "#fff",
+                      lineHeight:    1,
+                      letterSpacing: "-0.045em",
+                    }}
+                  >
+                    Free
+                  </span>
+                )}
+              </div>
+
+              <span
+                style={{
+                  fontFamily:    "var(--font-mono)",
+                  fontSize:      11,
+                  color:         hl ? "rgba(255,255,255,0.55)" : "rgba(255,255,255,0.30)",
+                  letterSpacing: "0.06em",
+                  marginBottom:  billing === "lifetime" && tier.paid ? 2 : 8,
+                }}
+              >
+                {period}
+              </span>
+
+              {/* Lifetime savings */}
+              {tier.paid && billing === "lifetime" && (
                 <span
                   style={{
                     fontFamily:    "var(--font-mono)",
-                    fontSize:      11,
-                    color:         tier.highlight ? "rgba(255,255,255,0.45)" : "var(--color-dim)",
-                    letterSpacing: "0.06em",
+                    fontSize:      9,
+                    color:         hl ? "rgba(255,255,255,0.75)" : "#00A341",
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
+                    marginBottom:  8,
                   }}
                 >
-                  {period}
+                  {SAVINGS[currency][tier.key as PaidTier]}
                 </span>
-              </div>
+              )}
 
               <p
                 style={{
                   fontFamily: "var(--font-sans)",
-                  fontSize:   12.5,
-                  color:      tier.highlight ? "rgba(255,255,255,0.52)" : "var(--color-dim)",
+                  fontSize:   13,
+                  color:      hl ? "rgba(255,255,255,0.60)" : "rgba(255,255,255,0.30)",
+                  lineHeight: 1.55,
                   margin:     "0 0 20px",
-                  lineHeight: 1.45,
                 }}
               >
                 {tier.tagline}
               </p>
 
-              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 24px", flex: 1 }}>
+              {/* Features */}
+              <ul
+                style={{
+                  listStyle:  "none",
+                  padding:    0,
+                  margin:     "0 0 24px",
+                  flex:       1,
+                  borderTop:  `1px solid ${hl ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.07)"}`,
+                }}
+              >
                 {tier.features.map((feat) => (
                   <li
                     key={feat}
                     style={{
                       fontFamily:   "var(--font-sans)",
                       fontSize:     13,
-                      color:        tier.highlight ? "rgba(255,255,255,0.80)" : "var(--color-ink-2)",
-                      padding:      "7px 0",
-                      borderBottom: `1px solid ${tier.highlight ? "rgba(255,255,255,0.07)" : "var(--color-rule)"}`,
+                      color:        hl ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.50)",
+                      padding:      "10px 0",
+                      borderBottom: `1px solid ${hl ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.05)"}`,
                       display:      "flex",
                       alignItems:   "flex-start",
-                      gap:          9,
+                      gap:          10,
+                      lineHeight:   1.4,
                     }}
                   >
-                    <span style={{ color: "#00A341", flexShrink: 0, fontSize: 10, marginTop: 2, fontWeight: 700 }}>
+                    <span
+                      style={{
+                        color:      hl ? "#fff" : "#00A341",
+                        flexShrink: 0,
+                        fontSize:   11,
+                        fontWeight: 700,
+                        marginTop:  1,
+                      }}
+                    >
                       ✓
                     </span>
                     {feat}
@@ -273,44 +445,47 @@ export function SiteBrainPricing({ prices }: { prices: SiteBrainPrices }) {
                 ))}
               </ul>
 
+              {/* CTA */}
               {tier.paid ? (
                 <button
                   onClick={() => handleBuy(tier.key as PaidTier)}
                   disabled={!!loading}
                   style={{
-                    display:    "block",
-                    width:      "100%",
-                    textAlign:  "center",
-                    padding:    "11px 18px",
-                    background: tier.highlight ? "#00A341" : "var(--color-surface)",
-                    color:      tier.highlight ? "#fff" : "var(--color-ink)",
-                    border:     tier.highlight ? "none" : "1px solid var(--color-rule)",
-                    borderRadius: 8,
-                    fontFamily: "var(--font-sans)",
-                    fontSize:   14,
-                    fontWeight: 600,
-                    cursor:     loading ? "wait" : "pointer",
-                    opacity:    isLoading ? 0.6 : 1,
-                    transition: "opacity 0.15s",
+                    display:      "block",
+                    width:        "100%",
+                    textAlign:    "center",
+                    padding:      "13px 18px",
+                    background:   hl ? "#fff" : "rgba(255,255,255,0.10)",
+                    color:        hl ? "#00A341" : "#fff",
+                    border:       hl ? "none" : "1px solid rgba(255,255,255,0.15)",
+                    borderRadius: 12,
+                    fontFamily:   "var(--font-sans)",
+                    fontSize:     14,
+                    fontWeight:   700,
+                    cursor:       loading ? "wait" : "pointer",
+                    opacity:      isLoad ? 0.6 : 1,
+                    letterSpacing:"-0.01em",
+                    transition:   "opacity 0.15s",
                   }}
                 >
-                  {isLoading ? "Apertura checkout…" : `Acquista ${tier.name}`}
+                  {isLoad ? "Apertura checkout…" : `Acquista ${tier.name}`}
                 </button>
               ) : (
                 <a
                   href="https://wordpress.org/plugins/sitebrain-ai/"
                   style={{
-                    display:      "block",
-                    textAlign:    "center",
-                    padding:      "11px 18px",
-                    background:   "var(--color-surface)",
-                    color:        "var(--color-ink)",
-                    border:       "1px solid var(--color-rule)",
-                    borderRadius: 8,
-                    fontFamily:   "var(--font-sans)",
-                    fontSize:     14,
-                    fontWeight:   600,
-                    textDecoration: "none",
+                    display:       "block",
+                    textAlign:     "center",
+                    padding:       "13px 18px",
+                    background:    "rgba(255,255,255,0.08)",
+                    color:         "#fff",
+                    border:        "1px solid rgba(255,255,255,0.13)",
+                    borderRadius:  12,
+                    fontFamily:    "var(--font-sans)",
+                    fontSize:      14,
+                    fontWeight:    700,
+                    textDecoration:"none",
+                    letterSpacing: "-0.01em",
                   }}
                 >
                   Download gratuito
@@ -320,6 +495,20 @@ export function SiteBrainPricing({ prices }: { prices: SiteBrainPrices }) {
           );
         })}
       </div>
+
+      {/* Footer note */}
+      <p
+        style={{
+          fontFamily:    "var(--font-mono)",
+          fontSize:      10,
+          color:         "rgba(255,255,255,0.22)",
+          textAlign:     "center",
+          marginTop:     28,
+          letterSpacing: "0.06em",
+        }}
+      >
+        Pagamento sicuro via Stripe · IVA inclusa per utenti EU · Lifetime: accesso permanente senza rinnovi
+      </p>
     </div>
   );
 }

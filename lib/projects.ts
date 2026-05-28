@@ -69,25 +69,46 @@ export const projects: Project[] = [
     },
   },
   {
-    id: "chatbot-ai",
-    // Naming derived from chatbot-integration.php "Plugin Name: Integrazione
-    // Chatbot AI" — keep in sync with the marketplace listing when published.
-    name: "Integrazione Chatbot AI",
-    handle: "chatbot-ai · in beta",
-    status: "BETA",
+    id: "tavola-periodica",
+    name: "Tavola Periodica",
+    url: "/lab/tavola-periodica",
+    handle: "lab · chimica",
+    status: "LIVE",
     year: 2026,
-    stack: ["PHP", "WordPress", "JavaScript", "Elementor"],
-    brand: "#06b6d4",
+    stack: ["Three.js", "WebGL", "React", "Next.js"],
+    brand: "#60a5fa",
     copy: {
       it: {
-        tagline: "Chatbot AI drop-in per WordPress, anche come widget Elementor.",
+        tagline: "Tutti i 118 elementi con atomo 3D in WebGL.",
         description:
-          "Plugin WordPress che aggiunge un chatbot flottante e una search-bar conversazionale a qualsiasi tema. Due modalità: auto-render nel footer oppure shortcode [chatbot_ui] integrabile in Elementor. Placeholder typewriter, notifiche proattive, azioni rapide configurabili. In attesa di rilascio sul marketplace WordPress.",
+          "Tavola periodica interattiva con visualizzazione tridimensionale dell'atomo per ogni elemento. Elettroni animati con trail luminosi, bloom post-processing e modelli Bohr/Schrödinger. Costruita con React Three Fiber direttamente nel browser.",
       },
       en: {
-        tagline: "Drop-in AI chatbot for WordPress, with an Elementor shortcode.",
+        tagline: "All 118 elements with a 3D WebGL atom viewer.",
         description:
-          "WordPress plugin that adds a floating chatbot and a conversational search bar to any theme. Two modes: auto-render in the footer or [chatbot_ui] shortcode for Elementor. Typewriter placeholders, proactive notifications, configurable quick actions. Pending release on the WordPress marketplace.",
+          "Interactive periodic table with a real-time 3D atom for every element. Animated electrons with glow trails, bloom post-processing, and Bohr/Schrödinger models. Built with React Three Fiber in the browser.",
+      },
+    },
+  },
+  {
+    id: "sitebrain",
+    name: "SiteBrain AI",
+    url: "/sitebrain",
+    handle: "sitebrain.ai",
+    status: "WIP",
+    year: 2026,
+    stack: ["PHP", "WordPress", "OpenAI", "Anthropic", "OpenRouter", "GPLv2+"],
+    brand: "#f59e0b",
+    copy: {
+      it: {
+        tagline: "Chatbot RAG self-hosted per WordPress, zero lock-in.",
+        description:
+          "Plugin WordPress con RAG engine self-hosted: indicizza pagine e post, risponde ai visitatori usando i tuoi contenuti effettivi con OpenAI, Anthropic o OpenRouter. Privacy-first, GDPR-ready, handoff lead integrato. Licenza base gratuita, licenze premium disponibili.",
+      },
+      en: {
+        tagline: "Self-hosted RAG chatbot for WordPress, zero lock-in.",
+        description:
+          "WordPress plugin with a self-hosted RAG engine: indexes your pages and posts, answers visitors using your actual content via OpenAI, Anthropic, or OpenRouter. Privacy-first, GDPR-ready, built-in lead handoff. Free base license, premium licenses available.",
       },
     },
   },

@@ -172,12 +172,14 @@ export function ComingSoon({ locale }: Props) {
               {t.comingSoon.projectsLabel}
             </div>
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
-              {liveProjects.map((p) => (
+              {liveProjects.map((p) => {
+                const isExternal = p.url.startsWith("http");
+                return (
                 <a
                   key={p.id}
                   href={p.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  target={isExternal ? "_blank" : undefined}
+                  rel={isExternal ? "noopener noreferrer" : undefined}
                   className="fn-link-underline"
                   style={{
                     display: "inline-flex",
@@ -207,9 +209,9 @@ export function ComingSoon({ locale }: Props) {
                     }}
                   />
                   {p.name}
-                  <span style={{ color: "var(--color-accent)" }}>↗</span>
+                  {isExternal && <span style={{ color: "var(--color-accent)" }}>↗</span>}
                 </a>
-              ))}
+                );})}
             </div>
           </div>
         ) : null}
