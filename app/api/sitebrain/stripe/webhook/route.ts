@@ -29,7 +29,7 @@ import {
   type LicenseTier,
 } from "@/lib/sitebrain-license";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_dummy");
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 const PRICE_TO_TIER: Record<string, LicenseTier> = {

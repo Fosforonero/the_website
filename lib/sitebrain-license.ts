@@ -23,8 +23,8 @@ import { createClient } from "@supabase/supabase-js";
 import { randomBytes } from "crypto";
 
 const supabase = createClient(
-  process.env.SB_SUPABASE_URL!,
-  process.env.SB_SUPABASE_SERVICE_ROLE_KEY!,
+  process.env.SB_SUPABASE_URL || "https://dummy-supabase-url.supabase.co",
+  process.env.SB_SUPABASE_SERVICE_ROLE_KEY || "dummy-key",
 );
 
 const TABLE = "sitebrain_licenses";

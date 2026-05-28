@@ -22,7 +22,7 @@ type Props = {
 export function Reveal({
   children,
   delay = 0,
-  as: As = "div",
+  as = "div",
   className = "",
   style,
   threshold = 0.15,
@@ -50,13 +50,15 @@ export function Reveal({
     return () => ob.disconnect();
   }, [threshold]);
 
+  const Component = as as any;
+
   return (
-    <As
-      ref={ref as never}
+    <Component
+      ref={ref}
       className={`fn-reveal ${inView ? "is-in" : ""} ${className}`.trim()}
       style={{ transitionDelay: `${delay}ms`, ...style }}
     >
       {children}
-    </As>
+    </Component>
   );
 }
