@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useMemo, useEffect } from "react";
+import { useRef, useMemo, useEffect, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Stars } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
@@ -711,6 +711,8 @@ function sampleAngular(l: number): [number, number, number] {
 
   if (l === 2) {
     // Mix of d_z², d_xy, d_xz distributions → cloverleaf + two-lobe shapes
+    // MAX_D = 0.4167 (reached at θ=π/2, φ=π/4 where dz2=0.25, dxy=1, dxz=0)
+    const MAX_D = 0.4167;
     for (let i = 0; i < 80; i++) {
       const ph = rph(); const co = rco(); const si = Math.sqrt(1 - co * co);
       const co2 = co * co; const si2 = si * si;
@@ -718,20 +720,21 @@ function sampleAngular(l: number): [number, number, number] {
       const dxy  = si2 * si2 * Math.sin(2 * ph) * Math.sin(2 * ph);
       const dxz  = si2 * co2 * 3;
       const prob = (dz2 + dxy + dxz) / 3;
-      if (Math.random() < prob * 2.8) return [si * Math.cos(ph), si * Math.sin(ph), co];
+      if (Math.random() < prob / MAX_D) return [si * Math.cos(ph), si * Math.sin(ph), co];
     }
     const ph = rph(); const co = rco(); const si = Math.sqrt(1 - co * co);
     return [si * Math.cos(ph), si * Math.sin(ph), co];
   }
 
   // f: multi-lobe — mix of f_z³ and f_{xyz} type distributions
+  // MAX_F = 4/9 ≈ 0.4444 (reached at poles θ=0,π where fz3=4/9, fxyz=0)
+  const MAX_F = 4 / 9;
   for (let i = 0; i < 100; i++) {
     const ph = rph(); const co = rco(); const si = Math.sqrt(1 - co * co);
     const co2 = co * co; const si2 = si * si;
     const fz3  = co2 * (5 * co2 - 3) * co2 * (5 * co2 - 3) / 9;
     const fxyz = si2 * co2 * Math.abs(Math.sin(3 * ph));
-    const prob = (fz3 + fxyz) * 5;
-    if (Math.random() < prob) return [si * Math.cos(ph), si * Math.sin(ph), co];
+    if (Math.random() < (fz3 + fxyz) / MAX_F) return [si * Math.cos(ph), si * Math.sin(ph), co];
   }
   const ph = rph(); const co = rco(); const si = Math.sqrt(1 - co * co);
   return [si * Math.cos(ph), si * Math.sin(ph), co];
@@ -739,75 +742,112 @@ function sampleAngular(l: number): [number, number, number] {
 
 // ─── Quantum / Schrödinger (1926) — probability cloud ────────────────────────
 
+function buildSubshells(z: number): Array<{ n: number; l: number; e: number }> {
+  const configStr = EXTENDED[z]?.config ?? "";
+  let subs = parseSubshells(configStr);
+  if (subs.length === 0) {
+    const fills = computeShellFills(z);
+    fills.forEach((count, si) => {
+      const n = si + 1;
+      subs.push({ n, l: 0, e: Math.min(count, 2) });
+      if (count > 2) subs.push({ n, l: 1, e: Math.min(count - 2, 6) });
+      if (count > 8) subs.push({ n, l: 2, e: count - 8 });
+    });
+  }
+  return subs;
+}
+
+function buildPointCloud(
+  subshells: Array<{ n: number; l: number; e: number }>,
+  radiusMul: number,
+  lightMode: boolean,
+): THREE.Points {
+  const POINTS_PER_E = 400;
+  const positions: number[] = [];
+  const colorArr:  number[] = [];
+
+  for (const { n, l, e } of subshells) {
+    const si   = Math.min(n - 1, SHELL_BASE_R.length - 1);
+    const r0   = (SHELL_BASE_R[si] ?? 1.2) * radiusMul;
+    const sigma = (0.22 + si * 0.045) * radiusMul;
+    const total = e * POINTS_PER_E;
+    const col   = getLColor(l, lightMode);
+    let placed = 0, safety = 0;
+    while (placed < total && safety++ < total * 10) {
+      const r = r0 + gaussRandom() * sigma;
+      if (r < 0.08) continue;
+      const [dx, dy, dz] = sampleAngular(l);
+      positions.push(r * dx, r * dy, r * dz);
+      colorArr.push(col.r, col.g, col.b);
+      placed++;
+    }
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  geo.setAttribute("color",    new THREE.Float32BufferAttribute(colorArr,  3));
+  return new THREE.Points(geo, new THREE.PointsMaterial({
+    vertexColors: true,
+    size: lightMode ? 0.062 : 0.072,
+    transparent: true,
+    opacity: lightMode ? 0.80 : 0.74,
+    sizeAttenuation: true,
+    depthWrite: false,
+    blending: lightMode ? THREE.NormalBlending : THREE.AdditiveBlending,
+  }));
+}
+
+function disposeCloud(cloud: THREE.Points) {
+  cloud.geometry.dispose();
+  (cloud.material as THREE.Material).dispose();
+}
+
 function QuantumAtom({ el, radiusMul, reduced, lightMode }: {
   el: Element; radiusMul: number; reduced: boolean; lightMode: boolean;
 }) {
-  const groupRef = useRef<THREE.Group>(null!);
-  const cloudRef = useRef<THREE.Points | null>(null);
+  const groupRef  = useRef<THREE.Group>(null!);
+  const cloudRef  = useRef<THREE.Points | null>(null);
+  const [revealed, setRevealed] = useState(0);
 
+  const subshells = useMemo(() => buildSubshells(el.z), [el.z]);
+
+  // Progressive reveal: reset and start timer on element change
+  useEffect(() => {
+    setRevealed(0);
+    if (subshells.length === 0) return;
+    let count = 0;
+    const id = setInterval(() => {
+      count++;
+      setRevealed(count);
+      if (count >= subshells.length) clearInterval(id);
+    }, 380);
+    return () => clearInterval(id);
+  }, [el.z, subshells.length]);
+
+  // Rebuild point cloud whenever revealed count, scale, or theme changes
   useEffect(() => {
     const g = groupRef.current;
-    if (cloudRef.current) { g.remove(cloudRef.current); cloudRef.current = null; }
-    if (el.z === 0) return;
+    const old = cloudRef.current;
 
-    // Parse actual electron configuration into subshells
-    const configStr = EXTENDED[el.z]?.config ?? "";
-    let subshells = parseSubshells(configStr);
-
-    // Fallback: derive approximate subshells from shell fills
-    if (subshells.length === 0) {
-      const fills = computeShellFills(el.z);
-      fills.forEach((count, si) => {
-        const n = si + 1;
-        subshells.push({ n, l: 0, e: Math.min(count, 2) });
-        if (count > 2) subshells.push({ n, l: 1, e: Math.min(count - 2, 6) });
-        if (count > 8) subshells.push({ n, l: 2, e: count - 8 });
-      });
+    if (el.z === 0 || revealed === 0) {
+      if (old) { g.remove(old); disposeCloud(old); cloudRef.current = null; }
+      return;
     }
 
-    const POINTS_PER_E = 300;
-    const positions: number[] = [];
-    const colorArr:  number[] = [];
-
-    for (const { n, l, e } of subshells) {
-      const si = Math.min(n - 1, SHELL_BASE_R.length - 1);
-      const r0    = (SHELL_BASE_R[si] ?? 1.2) * radiusMul;
-      const sigma = (0.22 + si * 0.045) * radiusMul;
-      const total = e * POINTS_PER_E;
-      const col   = getLColor(l, lightMode);
-
-      let placed = 0, safety = 0;
-      while (placed < total && safety++ < total * 10) {
-        const r = r0 + gaussRandom() * sigma;
-        if (r < 0.08) continue;
-        const [dx, dy, dz] = sampleAngular(l);
-        positions.push(r * dx, r * dy, r * dz);
-        colorArr.push(col.r, col.g, col.b);
-        placed++;
-      }
-    }
-
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-    geo.setAttribute("color",    new THREE.Float32BufferAttribute(colorArr,  3));
-    const cloud = new THREE.Points(geo, new THREE.PointsMaterial({
-      vertexColors: true,
-      size: lightMode ? 0.070 : 0.082,
-      transparent: true,
-      opacity: lightMode ? 0.80 : 0.74,
-      sizeAttenuation: true,
-      depthWrite: false,
-      blending: lightMode ? THREE.NormalBlending : THREE.AdditiveBlending,
-    }));
+    const cloud = buildPointCloud(subshells.slice(0, revealed), radiusMul, lightMode);
+    // Add new before removing old → no visual flash
     g.add(cloud);
+    if (old) { g.remove(old); disposeCloud(old); }
     cloudRef.current = cloud;
 
     return () => {
-      g.remove(cloud); geo.dispose();
-      (cloud.material as THREE.Material).dispose();
-      cloudRef.current = null;
+      if (cloudRef.current === cloud) {
+        g.remove(cloud); disposeCloud(cloud); cloudRef.current = null;
+      } else {
+        disposeCloud(cloud);
+      }
     };
-  }, [el.z, radiusMul, lightMode]);
+  }, [el.z, radiusMul, lightMode, revealed, subshells]);
 
   useFrame((_, dt) => {
     if (!reduced && groupRef.current) groupRef.current.rotation.y += dt * 0.05;

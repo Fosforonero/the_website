@@ -87,7 +87,8 @@ function LatticeContent({
   const groupRef = useRef<THREE.Group>(null!);
 
   const { atoms, bonds, atomGeo, atomMat, bondMat } = useMemo(() => {
-    const repeat = structure === "diamond" ? 2 : structure === "hcp" ? 3 : 3;
+    // diamond/hcp kept smaller due to complex basis; sc/bcc/fcc extended for infinite-crystal effect
+    const repeat = structure === "diamond" ? 2 : structure === "hcp" ? 3 : 5;
     const { atoms, bonds } = buildLattice(structure, repeat);
     const col = new THREE.Color(color);
     const atomR = structure === "diamond" ? 0.28 : 0.30;
@@ -193,6 +194,9 @@ export function CrystalViewScene({
     >
       {!lightMode && <color attach="background" args={["#060610"]} />}
       {lightMode && <color attach="background" args={[lightBg as `#${string}`]} />}
+      {/* Exponential fog blends outer lattice atoms into background → infinite crystal illusion */}
+      {!lightMode && <fogExp2 attach="fog" args={["#060610", 0.065]} />}
+      {lightMode  && <fogExp2 attach="fog" args={[lightBg as `#${string}`, 0.055]} />}
 
       {lightMode ? (
         <>

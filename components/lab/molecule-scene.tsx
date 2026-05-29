@@ -237,18 +237,17 @@ function BondElectrons({
 // ─── Atom sphere ──────────────────────────────────────────────────────────────
 
 function AtomSphere({
-  elem, x, y, pz, lightMode, showLabel,
+  elem, x, y, pz, lightMode, showLabel, meshRef,
 }: {
   elem: number; x: number; y: number; pz: number; lightMode: boolean; showLabel: boolean;
+  meshRef?: (m: THREE.Mesh | null) => void;
 }) {
-  const col   = new THREE.Color(getAtomColor(elem));
-  const r     = getAtomRadius(elem);
-  const sym   = EXTENDED[elem]?.config ? String.fromCharCode(64 + elem) : `Z${elem}`;
-  // Get actual symbol
+  const col    = new THREE.Color(getAtomColor(elem));
+  const r      = getAtomRadius(elem);
   const symbol = getSymbol(elem);
 
   return (
-    <mesh position={[x, y, pz]}>
+    <mesh ref={meshRef} position={[x, y, pz]}>
       <sphereGeometry args={[r, 22, 16]} />
       <meshStandardMaterial
         color={col}
@@ -288,13 +287,46 @@ function getSymbol(z: number): string {
   return syms[z] ?? `Z${z}`;
 }
 
+// ─── Vibration parameters per atom (computed once per molecule) ──────────────
+
+interface VibParam { freq: number; ampX: number; ampY: number; ampZ: number; phX: number; phY: number; phZ: number; }
+
+function makeVibParams(n: number): VibParam[] {
+  return Array.from({ length: n }, (_, i) => ({
+    freq: 1.2 + (i % 3) * 0.4,
+    ampX: 0.025 + (i % 2) * 0.01,
+    ampY: 0.020 + (i % 3) * 0.008,
+    ampZ: 0.018 + (i % 2) * 0.012,
+    phX: (i * 1.7) % (Math.PI * 2),
+    phY: (i * 2.3) % (Math.PI * 2),
+    phZ: (i * 3.1) % (Math.PI * 2),
+  }));
+}
+
 // ─── Scene content ────────────────────────────────────────────────────────────
 
 function MolContent({ molecule, lightMode }: { molecule: Molecule; lightMode: boolean }) {
   const groupRef = useRef<THREE.Group>(null!);
+  const atomMeshRefs = useRef<(THREE.Mesh | null)[]>([]);
+  const t = useRef(0);
+
+  const vibParams = useMemo(() => makeVibParams(molecule.atoms.length), [molecule.atoms.length]);
 
   useFrame((_, dt) => {
-    if (groupRef.current) groupRef.current.rotation.y += dt * 0.12;
+    if (!groupRef.current) return;
+    groupRef.current.rotation.y += dt * 0.12;
+    t.current += dt;
+    // Apply spring-like vibration to each atom mesh
+    molecule.atoms.forEach((a, i) => {
+      const mesh = atomMeshRefs.current[i];
+      const vp = vibParams[i];
+      if (!mesh || !vp) return;
+      mesh.position.set(
+        a.x  + vp.ampX * Math.sin(vp.freq * t.current + vp.phX),
+        a.y  + vp.ampY * Math.sin(vp.freq * 1.3 * t.current + vp.phY),
+        a.pz + vp.ampZ * Math.sin(vp.freq * 0.7 * t.current + vp.phZ),
+      );
+    });
   });
 
   return (
@@ -318,13 +350,14 @@ function MolContent({ molecule, lightMode }: { molecule: Molecule; lightMode: bo
           </group>
         );
       })}
-      {/* Atoms */}
+      {/* Atoms with vibrating mesh refs */}
       {molecule.atoms.map((a, i) => (
         <AtomSphere
           key={i}
           elem={a.elem} x={a.x} y={a.y} pz={a.pz}
           lightMode={lightMode}
           showLabel={molecule.atoms.length <= 12}
+          meshRef={(m) => { atomMeshRefs.current[i] = m; }}
         />
       ))}
     </group>

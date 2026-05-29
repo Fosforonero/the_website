@@ -11,6 +11,8 @@ import {
   type ElementState, type ElementBlock, type Isotope,
 } from "@/lib/element-extended-data";
 import { MOLECULES_BY_Z, type Molecule } from "@/lib/molecules-data";
+import { fetchMoleculeFromPubChem } from "@/lib/molecules-pubchem";
+import { ElementStoryMode } from "./element-story-mode";
 import type { AtomModel, VdWStyle } from "./atom-scene";
 import type { Locale } from "@/lib/site";
 import {
@@ -372,7 +374,7 @@ function fmt(val: number | null, decimals = 2, suffix = ""): string {
   return `${val.toFixed(decimals)}${suffix ? " " + suffix : ""}`;
 }
 
-function InfoPanel({ el, locale, tempUnit, lightMode, onDragStart, onCrystalClick, onMoleculeClick }: { el: Element; locale: Locale; tempUnit: "K" | "C" | "F"; lightMode?: boolean; onDragStart?: (e: React.MouseEvent | React.TouchEvent) => void; onCrystalClick?: () => void; onMoleculeClick?: (idx: number) => void }) {
+function InfoPanel({ el, locale, tempUnit, lightMode, onDragStart, onCrystalClick, onMoleculeClick, onStoryClick }: { el: Element; locale: Locale; tempUnit: "K" | "C" | "F"; lightMode?: boolean; onDragStart?: (e: React.MouseEvent | React.TouchEvent) => void; onCrystalClick?: () => void; onMoleculeClick?: (idx: number) => void; onStoryClick?: () => void }) {
   const t = LAB_UI_TRANSLATIONS[locale];
   const [descExpanded, setDescExpanded] = useState(false);
   const color = CATEGORY_COLOR[el.category];
@@ -582,6 +584,15 @@ function InfoPanel({ el, locale, tempUnit, lightMode, onDragStart, onCrystalClic
         <div><dt>{t.infoPeriodGroup}</dt><dd>{el.period} / {el.group}</dd></div>
       </dl>
       <div className="pt-info__footer">
+        {onStoryClick && (
+          <button
+            className="pt-info__story-btn"
+            onClick={onStoryClick}
+            title={locale === "en" ? "Element story" : "Storia dell'elemento"}
+          >
+            {locale === "en" ? "✦ story" : "✦ storia"}
+          </button>
+        )}
         <p className="pt-info__hint">{t.infoHint}</p>
         <a
           href="https://ko-fi.com/fosforonero"
@@ -976,6 +987,10 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
   const [crystalView,     setCrystalView]     = useState<boolean>(false);
   const [moleculeView,    setMoleculeView]    = useState<boolean>(false);
   const [activeMolIdx,    setActiveMolIdx]    = useState<number>(0);
+  const [molSearchQuery,  setMolSearchQuery]  = useState("");
+  const [molSearchResult, setMolSearchResult] = useState<Molecule | null>(null);
+  const [molSearchBusy,   setMolSearchBusy]   = useState(false);
+  const [storyMode,       setStoryMode]       = useState(false);
 
   const [panelWidth,      setPanelWidth]      = usePersistedState<number>("pt:panelWidth", 264);
   const panelWidthRef                         = useRef(panelWidth);
@@ -1033,6 +1048,16 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
     setShowHeader(true);
     setCrystalView(false);
     setMoleculeView(false);
+    setMolSearchResult(null);
+    setMolSearchQuery("");
+  }, []);
+
+  const handleMolSearch = useCallback(async (q: string) => {
+    if (!q.trim()) return;
+    setMolSearchBusy(true);
+    const result = await fetchMoleculeFromPubChem(q);
+    setMolSearchResult(result);
+    setMolSearchBusy(false);
   }, []);
 
   // Keyboard handler (Escape key)
@@ -1257,23 +1282,35 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
         <div className="pt-atom-view" style={{ '--pt-info-width': `${panelWidth}px` } as React.CSSProperties}>
           <div className="pt-canvas-wrap">
             {moleculeView && (() => {
-              const mols = MOLECULES_BY_Z[selected.z];
-              const mol  = mols?.[activeMolIdx];
-              return mol ? (
+              const mols      = MOLECULES_BY_Z[selected.z];
+              const predefined = mols?.[activeMolIdx];
+              const mol        = molSearchResult ?? predefined;
+              return (
                 <>
-                  <MoleculeScene
-                    molecule={mol}
-                    lightMode={lightMode}
-                    lightBg={lightBgColor}
-                    className="pt-canvas"
-                  />
-                  <div className="pt-mol-overlay">
-                    <span className="pt-mol-formula">{mol.formula}</span>
-                    <span className="pt-mol-name">
-                      {locale === "en" ? mol.nameEN : mol.nameIT}
-                    </span>
-                  </div>
-                  {mols && mols.length > 1 && (
+                  {mol && (
+                    <>
+                      <MoleculeScene
+                        molecule={mol}
+                        lightMode={lightMode}
+                        lightBg={lightBgColor}
+                        className="pt-canvas"
+                      />
+                      <div className="pt-mol-overlay">
+                        <span className="pt-mol-formula">{mol.formula}</span>
+                        <span className="pt-mol-name">
+                          {locale === "en" ? mol.nameEN : mol.nameIT}
+                        </span>
+                        {molSearchResult && (
+                          <button
+                            className="pt-mol-clear-search"
+                            onClick={() => { setMolSearchResult(null); setMolSearchQuery(""); }}
+                            title={locale === "en" ? "Back to element molecules" : "Torna alle molecole dell'elemento"}
+                          >✕</button>
+                        )}
+                      </div>
+                    </>
+                  )}
+                  {!molSearchResult && mols && mols.length > 1 && (
                     <div className="pt-mol-tabs">
                       {mols.map((m, i) => (
                         <button
@@ -1286,8 +1323,33 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                       ))}
                     </div>
                   )}
+                  {/* PubChem molecule search */}
+                  <div className="pt-mol-search">
+                    <input
+                      className="pt-mol-search-input"
+                      type="search"
+                      value={molSearchQuery}
+                      onChange={e => setMolSearchQuery(e.target.value)}
+                      onKeyDown={e => { if (e.key === "Enter") void handleMolSearch(molSearchQuery); }}
+                      placeholder={locale === "en" ? "Search PubChem…" : "Cerca su PubChem…"}
+                      aria-label={locale === "en" ? "Search molecule on PubChem" : "Cerca molecola su PubChem"}
+                    />
+                    <button
+                      className="pt-mol-search-btn"
+                      onClick={() => void handleMolSearch(molSearchQuery)}
+                      disabled={molSearchBusy}
+                      aria-label={locale === "en" ? "Search" : "Cerca"}
+                    >
+                      {molSearchBusy ? "…" : "↵"}
+                    </button>
+                  </div>
+                  {molSearchResult === null && !molSearchBusy && molSearchQuery.trim() && (
+                    <p className="pt-mol-no-result">
+                      {locale === "en" ? "Not found on PubChem" : "Non trovato su PubChem"}
+                    </p>
+                  )}
                 </>
-              ) : null;
+              );
             })()}
             {crystalView && !moleculeView && EXTENDED[selected.z]?.crystalStructure ? (
               <CrystalViewScene
@@ -1339,7 +1401,15 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
             onDragStart={handlePanelDragStart}
             onCrystalClick={() => { setCrystalView(true); setNucleusView(false); setMoleculeView(false); }}
             onMoleculeClick={(i) => { setMoleculeView(true); setActiveMolIdx(i); setCrystalView(false); setNucleusView(false); }}
+            onStoryClick={() => setStoryMode(true)}
           />
+          {storyMode && (
+            <ElementStoryMode
+              z={selected.z}
+              locale={locale}
+              onClose={() => setStoryMode(false)}
+            />
+          )}
         </div>
       )}
 
