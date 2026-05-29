@@ -428,150 +428,175 @@ function InfoPanel({ el, locale, tempUnit, lightMode, onDragStart, onCrystalClic
         </div>
       )}
 
-      {/* Properties */}
+      {/* Properties — 4 semantic groups */}
       <dl className="pt-info__dl">
-        <div><dt>{t.infoAtomicMass}</dt><dd>{el.mass} u</dd></div>
-        <div>
-          <dt>{t.infoStableIsotope}</dt>
-          <dd><sup>{A}</sup>{el.sym}</dd>
-        </div>
-        {ext && ext.isotopes.length > 0 && (
-          <div className="pt-info__iso-row">
-            <dt>{t.infoNaturalIsotopes}</dt>
-            <dd className="pt-info__isotopes">
-              {ext.isotopes.map((iso: Isotope) => (
-                <span key={iso.massNumber} className="pt-info__iso-badge">
-                  <sup>{iso.massNumber}</sup>{el.sym}
-                  {iso.abundance !== null && (
-                    <span className="pt-info__iso-pct">
-                      {iso.abundance < 0.1
-                        ? iso.abundance.toFixed(3)
-                        : iso.abundance < 1
-                          ? iso.abundance.toFixed(2)
-                          : iso.abundance.toFixed(1)}%
-                    </span>
-                  )}
-                  {iso.name && <span className="pt-info__iso-name">{iso.name}</span>}
-                </span>
-              ))}
-            </dd>
-          </div>
-        )}
-        <div>
-          <dt>{t.infoShellConfig}</dt>
-          <dd className="pt-info__shells">{el.shells.join(" · ")} e⁻</dd>
-        </div>
-        {ext && <>
+
+        {/* ── Identità ── */}
+        <div className="pt-info__group">
+          <p className="pt-info__group-label">{t.infoGroupIdentity}</p>
+          <div><dt>{t.infoAtomicMass}</dt><dd>{el.mass} u</dd></div>
           <div>
-            <dt>{t.infoBlockState}</dt>
-            <dd>
-              <span className="pt-info__block-badge" data-block={ext.block}>{BLOCK_LABELS[locale][ext.block]}</span>
-              {" · "}
-              <span style={{ color: STATE_COLOR[ext.state] }}>{STATE_LABELS[locale][ext.state]}</span>
-            </dd>
+            <dt>{t.infoStableIsotope}</dt>
+            <dd><sup>{A}</sup>{el.sym}</dd>
           </div>
-          <div>
-            <dt>{t.infoElectronegativity}</dt>
-            <dd>{fmt(ext.electronegativity, 2, "Pauling")}</dd>
-          </div>
-          <div>
-            <dt>{t.infoAtomicRadius}</dt>
-            <dd>{fmt(ext.atomicRadius, 0, "pm")}</dd>
-          </div>
-          {ext.covalentRadius !== null && (
-            <div>
-              <dt>{t.infoCovalentRadius}</dt>
-              <dd>{fmt(ext.covalentRadius, 0, "pm")}</dd>
-            </div>
-          )}
-          <div>
-            <dt>{t.infoIonization}</dt>
-            <dd>{fmt(ext.ionizationEnergy, 1, "kJ/mol")}</dd>
-          </div>
-          <div>
-            <dt>{t.infoDensity}</dt>
-            <dd>{fmt(ext.density, 3, "g/cm³")}</dd>
-          </div>
-          <div>
-            <dt>{t.infoMelting}</dt>
-            <dd>{fmtTemp(ext.meltingPoint, tempUnit)}</dd>
-          </div>
-          <div>
-            <dt>{t.infoBoiling}</dt>
-            <dd>{fmtTemp(ext.boilingPoint, tempUnit)}</dd>
-          </div>
-          {ext.oxidationStates.length > 0 && (
-            <div className="pt-info__ox-row">
-              <dt>{t.infoOxidation}</dt>
-              <dd className="pt-info__ox-states">
-                {ext.oxidationStates.map(n => (
-                  <span
-                    key={n}
-                    className={`pt-info__ox-badge${n === ext.commonOxidation ? " pt-info__ox-badge--common" : ""}`}
-                    style={{ "--ox-color": oxColor(n) } as React.CSSProperties}
-                  >
-                    {n > 0 ? `+${n}` : n === 0 ? "0" : String(n)}
+          {ext && ext.isotopes.length > 0 && (
+            <div className="pt-info__iso-row">
+              <dt>{t.infoNaturalIsotopes}</dt>
+              <dd className="pt-info__isotopes">
+                {ext.isotopes.map((iso: Isotope) => (
+                  <span key={iso.massNumber} className="pt-info__iso-badge">
+                    <sup>{iso.massNumber}</sup>{el.sym}
+                    {iso.abundance !== null && (
+                      <span className="pt-info__iso-pct">
+                        {iso.abundance < 0.1
+                          ? iso.abundance.toFixed(3)
+                          : iso.abundance < 1
+                            ? iso.abundance.toFixed(2)
+                            : iso.abundance.toFixed(1)}%
+                      </span>
+                    )}
+                    {iso.name && <span className="pt-info__iso-name">{iso.name}</span>}
                   </span>
                 ))}
               </dd>
             </div>
           )}
-          {ext.crystalStructure && (
-            <div className={ext.crystalStructure !== "other" ? "pt-info__crystal-row" : undefined}>
-              <dt>{t.infoCrystalStructure}</dt>
+          <div>
+            <dt>{t.infoShellConfig}</dt>
+            <dd className="pt-info__shells">{el.shells.join(" · ")} e⁻</dd>
+          </div>
+          {ext && (
+            <div>
+              <dt>{t.infoBlockState}</dt>
               <dd>
-                <span className="pt-info__crystal-label">
-                  {CRYSTAL_LABELS[locale][ext.crystalStructure] ?? ext.crystalStructure}
-                </span>
-                {ext.crystalStructure !== "other" && (
-                  <button
-                    className="pt-crystal-canvas-btn"
-                    onClick={onCrystalClick}
-                    title={t.crystalViewTitle}
-                    aria-label={t.crystalViewTitle}
-                  >
-                    <CrystalScene
-                      structure={ext.crystalStructure}
-                      color={color ?? "#6b7280"}
-                      lightMode={lightMode}
-                    />
-                    <span className="pt-crystal-canvas-hint">
-                      {locale === "en" ? "expand" : "espandi"}
+                <span className="pt-info__block-badge" data-block={ext.block}>{BLOCK_LABELS[locale][ext.block]}</span>
+                {" · "}
+                <span style={{ color: STATE_COLOR[ext.state] }}>{STATE_LABELS[locale][ext.state]}</span>
+              </dd>
+            </div>
+          )}
+          <div>
+            <dt>{t.infoCategory}</dt>
+            <dd style={{ color }}>{getCategoryLabel(el.category, locale)}</dd>
+          </div>
+          <div><dt>{t.infoPeriodGroup}</dt><dd>{el.period} / {el.group}</dd></div>
+        </div>
+
+        {/* ── Proprietà periodiche ── */}
+        {ext && (
+          <div className="pt-info__group">
+            <p className="pt-info__group-label">{t.infoGroupPeriodic}</p>
+            <div>
+              <dt>{t.infoElectronegativity}</dt>
+              <dd>{fmt(ext.electronegativity, 2, "Pauling")}</dd>
+            </div>
+            <div>
+              <dt>{t.infoAtomicRadius}</dt>
+              <dd>{fmt(ext.atomicRadius, 0, "pm")}</dd>
+            </div>
+            {ext.covalentRadius !== null && (
+              <div>
+                <dt>{t.infoCovalentRadius}</dt>
+                <dd>{fmt(ext.covalentRadius, 0, "pm")}</dd>
+              </div>
+            )}
+            <div>
+              <dt>{t.infoIonization}</dt>
+              <dd>{fmt(ext.ionizationEnergy, 1, "kJ/mol")}</dd>
+            </div>
+            <div>
+              <dt>{t.infoDensity}</dt>
+              <dd>{fmt(ext.density, 3, "g/cm³")}</dd>
+            </div>
+            {ext.oxidationStates.length > 0 && (
+              <div className="pt-info__ox-row">
+                <dt>{t.infoOxidation}</dt>
+                <dd className="pt-info__ox-states">
+                  {ext.oxidationStates.map(n => (
+                    <span
+                      key={n}
+                      className={`pt-info__ox-badge${n === ext.commonOxidation ? " pt-info__ox-badge--common" : ""}`}
+                      style={{ "--ox-color": oxColor(n) } as React.CSSProperties}
+                    >
+                      {n > 0 ? `+${n}` : n === 0 ? "0" : String(n)}
                     </span>
-                  </button>
-                )}
-              </dd>
+                  ))}
+                </dd>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Struttura ── */}
+        {ext && (
+          <div className="pt-info__group">
+            <p className="pt-info__group-label">{t.infoGroupStructure}</p>
+            <div>
+              <dt>{t.infoMelting}</dt>
+              <dd>{fmtTemp(ext.meltingPoint, tempUnit)}</dd>
             </div>
-          )}
-          {MOLECULES_BY_Z[el.z] && (
-            <div className="pt-info__mol-row">
-              <dt>{t.moleculeViewBtn}</dt>
-              <dd className="pt-info__mol-list">
-                {(MOLECULES_BY_Z[el.z] ?? []).map((mol: Molecule, i: number) => (
-                  <button
-                    key={i}
-                    className="pt-info__mol-badge"
-                    onClick={() => onMoleculeClick?.(i)}
-                    title={locale === "en" ? mol.nameEN : mol.nameIT}
-                  >
-                    {mol.formula}
-                  </button>
-                ))}
-              </dd>
+            <div>
+              <dt>{t.infoBoiling}</dt>
+              <dd>{fmtTemp(ext.boilingPoint, tempUnit)}</dd>
             </div>
-          )}
-          {ext.discoverer && (
+            {ext.crystalStructure && (
+              <div className={ext.crystalStructure !== "other" ? "pt-info__crystal-row" : undefined}>
+                <dt>{t.infoCrystalStructure}</dt>
+                <dd>
+                  <span className="pt-info__crystal-label">
+                    {CRYSTAL_LABELS[locale][ext.crystalStructure] ?? ext.crystalStructure}
+                  </span>
+                  {ext.crystalStructure !== "other" && (
+                    <button
+                      className="pt-crystal-canvas-btn"
+                      onClick={onCrystalClick}
+                      title={t.crystalViewTitle}
+                      aria-label={t.crystalViewTitle}
+                    >
+                      <CrystalScene
+                        structure={ext.crystalStructure}
+                        color={color ?? "#6b7280"}
+                        lightMode={lightMode}
+                      />
+                      <span className="pt-crystal-canvas-hint">
+                        {locale === "en" ? "expand" : "espandi"}
+                      </span>
+                    </button>
+                  )}
+                </dd>
+              </div>
+            )}
+            {MOLECULES_BY_Z[el.z] && (
+              <div className="pt-info__mol-row">
+                <dt>{t.moleculeViewBtn}</dt>
+                <dd className="pt-info__mol-list">
+                  {(MOLECULES_BY_Z[el.z] ?? []).map((mol: Molecule, i: number) => (
+                    <button
+                      key={i}
+                      className="pt-info__mol-badge"
+                      onClick={() => onMoleculeClick?.(i)}
+                      title={locale === "en" ? mol.nameEN : mol.nameIT}
+                    >
+                      {mol.formula}
+                    </button>
+                  ))}
+                </dd>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Scoperta ── */}
+        {ext?.discoverer && (
+          <div className="pt-info__group">
+            <p className="pt-info__group-label">{t.infoGroupHistory}</p>
             <div>
               <dt>{t.infoDiscoveredBy}</dt>
               <dd>{ext.discoverer}{ext.discoveryYear ? `, ${ext.discoveryYear}` : ""}</dd>
             </div>
-          )}
-        </>}
-        <div>
-          <dt>{t.infoCategory}</dt>
-          <dd style={{ color }}>{getCategoryLabel(el.category, locale)}</dd>
-        </div>
-        <div><dt>{t.infoPeriodGroup}</dt><dd>{el.period} / {el.group}</dd></div>
+          </div>
+        )}
+
       </dl>
       <div className="pt-info__footer">
         {onStoryClick && (
@@ -658,6 +683,28 @@ function ThematicSelector({
 
 // ─── Thematic heat-map legend bar ─────────────────────────────────────────────
 
+// Trend annotations for properties with well-established periodic trends.
+// Source: IUPAC recommendations. Only monotonic/near-monotonic trends are listed.
+// density, electronAffinity, crustAbundance are excluded (irregular patterns).
+const THEMATIC_TREND: Partial<Record<ThematicProperty, { it: string; en: string }>> = {
+  electronegativity: {
+    it: "↑ lungo il periodo · ↓ lungo il gruppo",
+    en: "↑ across period · ↓ down group",
+  },
+  atomicRadius: {
+    it: "↓ lungo il periodo · ↑ lungo il gruppo",
+    en: "↓ across period · ↑ down group",
+  },
+  covalentRadius: {
+    it: "↓ lungo il periodo · ↑ lungo il gruppo",
+    en: "↓ across period · ↑ down group",
+  },
+  ionizationEnergy: {
+    it: "↑ lungo il periodo · ↓ lungo il gruppo",
+    en: "↑ across period · ↓ down group",
+  },
+};
+
 function ThematicLegend({
   prop, range, locale,
 }: {
@@ -697,6 +744,7 @@ function ThematicLegend({
   const fmtVal = (v: number) => def.logScale
     ? (Math.pow(10, v) >= 1000 ? `${(Math.pow(10, v) / 1000).toFixed(0)}k` : Math.pow(10, v).toFixed(2))
     : v.toFixed(1);
+  const trend = THEMATIC_TREND[prop];
   return (
     <div className="pt-thematic-legend pt-thematic-legend--gradient">
       <span className="pt-thematic-legend__min">{fmtVal(range[0])} {def.unit}</span>
@@ -706,6 +754,11 @@ function ThematicLegend({
         aria-label={`${locale === "en" ? "Scale" : "Scala"} ${def.label}: da ${fmtVal(range[0])} a ${fmtVal(range[1])} ${def.unit}`}
       />
       <span className="pt-thematic-legend__max">{fmtVal(range[1])} {def.unit}</span>
+      {trend && (
+        <span className="pt-thematic-legend__trend" aria-label={trend[locale]}>
+          {trend[locale]}
+        </span>
+      )}
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 Documento di riferimento per decisioni di prodotto, design e architettura della Tavola Periodica Interattiva (`/lab/tavola-periodica`).
 
-**Aggiornato:** 2026-05-29  
+**Aggiornato:** 2026-05-29 (audit post-sprint 82e7962)  
 **Separato da:** `docs/solar-system/` — non usare questo doc per decisioni del simulatore solare e viceversa.
 
 ---
@@ -95,37 +95,64 @@ Dati da PubChem via API pubblica + fallback su dataset locale `lib/molecules-dat
 
 ---
 
+## Copertura dati (audit 2026-05-29)
+
+| Campo | Copertura | Gap documentato |
+|---|---|---|
+| OX (stati ossidazione) | 118/118 | — |
+| ISO (isotopi naturali) | 84/118 | Tc(43), Pm(61) senza isotopi stabili; Po–Ac (84–89) solo tracce radioattive; Z≥93 sintetici — tutti corretti |
+| COV (raggio covalente) | 96/118 | Z=97–118 (Bk–Og): nessun dato affidabile in Alvarez 2008 — gap documentato e scientifico |
+| CRYSTAL (struttura) | 88/118 | Gas, liquidi, sintetici: null appropriato |
+| EN (elettronegatività) | 97/118 | Gas nobili (Z=2,10,18,36,86): EN Pauling non definita; Z=103–118 sintetici |
+| atomicRadius (vdW) | 103/118 | Z=104–118: nessun raggio VdW misurato sperimentalmente |
+| IE (ionizzazione I) | 104/118 | Z=105–118: nessuna misura sperimentale disponibile |
+| EA (affinità e⁻) | 90/118 | Z=90–118: dati non disponibili o non affidabili per attinidi pesanti e transattinidi |
+| density | 96/118 | Gas, sintetici: null appropriato |
+
+**Regola dato mancante:** se un valore non è disponibile da fonte primaria verificata, resta `null` e viene mostrato come "—" nel pannello (mai omesso silenziosamente, mai inventato).
+
 ## Limiti attuali (da risolvere, non da ignorare)
 
 | Limite | Impatto | Tier roadmap |
 |---|---|---|
-| Nessuno stato di ossidazione | Dato chiave per studenti | Tier 1 |
-| Tm/Tb solo in Kelvin | Usabilità studenti italiani | Tier 1 |
-| Nessun isotopo naturale | Dato mancante in nucleo view | Tier 2 |
-| Raggio covalente assente | Rilevante per legami | Tier 2 |
-| Molecole: solo ball-and-stick | Space-filling manca | Tier 4 (questo sprint) |
-| Cristalli: unit cell non evidenziata | Leggibilità reticolo | Tier 5 (questo sprint) |
+| InfoPanel: lista piatta di 16 righe senza gerarchia | Leggibilità, percezione di strumento preciso | P1 |
+| Trend heatmap non annotati (il "perché" della variazione) | Valore educativo | P1 |
+| Story Mode: 11/118 elementi | Engagement narrativo | P2 |
+| Molecole predefinite: ~19 Z con dati locali | Copertura vista molecolare | P2 |
+| Molecole: solo ball-and-stick (space-filling assente) | Visualizzazione | P3 |
+| Legami chimici tra due elementi (Bonding Lab) | Feature educativa avanzata | P3 |
 
 ---
 
 ## Roadmap feature (ordine priorità)
 
-### Tier 1 — Educativo, alta priorità
-- [ ] Stati di ossidazione — badge colorati nel panel (es. Fe: +2 +3)
-- [ ] Temperature in °C — accanto ai Kelvin
-- [ ] Spin elettronico nel modello Bohr — ↑↓ per ogni elettrone
-- [ ] Isotopi comuni — 2-3 isotopi naturali più abbondanti
+### Completato (non riaprire)
+- [x] Stati di ossidazione — badge colorati, OX 118/118
+- [x] Temperature °C/°F — toggle ciclico K→°C→°F
+- [x] Spin elettronico ↑↓ — toggle su Bohr/Rutherford/Sommerfeld
+- [x] Isotopi naturali — ISO 84/118, gaps documentati
+- [x] Vista nucleo Level 1 — overlay protoni/neutroni
+- [x] Raggio covalente — COV 96/118, gap Z=97–118 documentato (Alvarez 2008)
+- [x] Struttura cristallina 3D — CRYSTAL 88/118, unit cell wireframe (sprint 82e7962)
+- [x] Canvas 3D sempre dark — rimosso lightBg selector/vignette (sprint 82e7962)
 
-### Tier 2 — Visualizzazione, media priorità
-- [ ] Vista nucleo Level 1 — zoom protoni/neutroni in scala reale
-- [ ] Raggio covalente — diverso da VdW, rilevante per legami
-- [ ] Struttura cristallina — FCC/BCC/HCP/diamante in 3D mini
+### P1 — Leggibilità e valore educativo
+- [ ] Raggruppamento InfoPanel in 4 sezioni semantiche (Identità / Proprietà periodiche / Struttura / Storia)
+- [ ] Fallback "—" per proprietà core null (no riga sparita per gas nobili e sintetici)
+- [ ] Annotazione trend sulle heatmap EN/raggio vdW/covalente/IE (il "perché" del trend)
 
-### Tier 3 — Avanzato / Powers of Ten
-- [ ] Vista materiale Level 0 — cubo metallico + slider temperatura → cambio stato
-- [ ] Orbitali reali Level 2 — forme s/p/d/f da Schrödinger
-- [ ] Legami chimici — seleziona due elementi → legame covalente/ionico/metallico
-- [ ] Vista nucleo avanzata Level 1b — quark up/down, gluoni
+### P2 — Copertura contenuto
+- [ ] Story Mode: espandere da 11 a ~30 elementi chiave
+- [ ] Molecole predefinite: espandere da ~19 a ~40 Z con dati locali verificati
+
+### P3 — Feature avanzate
+- [ ] Legami chimici (Bonding Lab) — selezione due elementi → tipo legame da ΔEN
+- [ ] Molecole space-filling — vista alternativa a ball-and-stick
+- [ ] Vista materiale Level 0 — cubo + slider temperatura → cambio stato
+
+### Escluso (non implementare senza decisione esplicita)
+- Vista nucleo avanzata Level 1b (quark/gluoni) — impatto didattico marginale per il target liceo/triennio
+- Vista materiale / Powers of Ten avanzata — scope troppo ampio rispetto al valore
 
 ---
 
