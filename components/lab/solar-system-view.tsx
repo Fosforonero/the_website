@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { SOLAR_BODIES, SOLAR_SOURCES } from "@/lib/solar-system/bodies";
 import { SOLAR_ASSETS } from "@/lib/solar-system/assets";
@@ -64,8 +64,8 @@ function formatMass(massKg: number): string {
 // Helper: format date value for <input type="date">
 // ---------------------------------------------------------------------------
 
-function toDateInputValue(d: Date): string {
-  return d.toISOString().slice(0, 10);
+function toDateInputValue(epochMs: number): string {
+  return new Date(epochMs).toISOString().slice(0, 10);
 }
 
 // ---------------------------------------------------------------------------
@@ -77,7 +77,7 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
 
   // ── State ────────────────────────────────────────────────────────────────
   const [selectedBodyId, setSelectedBodyId] = useState("earth");
-  const [epoch, setEpoch] = useState(() => new Date());
+  const [epoch, setEpoch] = useState(() => Date.now());
   const [playing, setPlaying] = useState(false);
   const [speedMultiplier, setSpeedMultiplier] = useState<number>(365);
   const [distanceMode, setDistanceMode] = useState<ScaleDistanceMode>("compressed");
@@ -90,7 +90,7 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
   useEffect(() => {
     if (!playing) return;
     const id = setInterval(() => {
-      setEpoch((prev) => new Date(prev.getTime() + speedMultiplier * 100));
+      setEpoch((prev) => prev + speedMultiplier * 100);
     }, 100);
     return () => clearInterval(id);
   }, [playing, speedMultiplier]);
@@ -111,12 +111,15 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
     bodies: SOLAR_BODIES.filter((b) => b.category === cat),
   })).filter((g) => g.bodies.length > 0);
 
+  // ── Memoised Date object for SolarSystemScene ─────────────────────────────
+  const epochDate = useMemo(() => new Date(epoch), [epoch]);
+
   // ── Date input handler ────────────────────────────────────────────────────
   function handleDateChange(e: React.ChangeEvent<HTMLInputElement>) {
     const v = e.target.value;
     if (!v) return;
-    const d = new Date(v);
-    if (!isNaN(d.getTime())) setEpoch(d);
+    const ms = new Date(v).getTime();
+    if (!isNaN(ms)) setEpoch(ms);
   }
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -130,7 +133,7 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
         {/* Now button */}
         <button
           className="solar-control"
-          onClick={() => setEpoch(new Date())}
+          onClick={() => setEpoch(Date.now())}
           title={t.nowBtn}
         >
           {t.nowBtn}
@@ -240,7 +243,7 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
       {/* ── Canvas ───────────────────────────────────────────────────────── */}
       <div className="solar-canvas-wrap">
         <SolarSystemScene
-          epoch={epoch}
+          epoch={epochDate}
           selectedBodyId={selectedBodyId}
           distanceMode={distanceMode}
           radiusMode={radiusMode}
@@ -317,7 +320,7 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
         <div className="solar-inspector__row">
           <span className="solar-inspector__label">{t.epoch}</span>
           <span className="solar-inspector__value">
-            {epoch.toISOString().slice(0, 10)}
+            {new Date(epoch).toISOString().slice(0, 10)}
           </span>
         </div>
 
