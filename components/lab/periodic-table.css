@@ -221,6 +221,24 @@
 .pt-toggle-legend:hover,
 .pt-toggle-legend.active { border-color: rgba(255,255,255,0.3); color: #eeeef8; }
 
+/* ── Temperature unit toggle ── */
+.pt-temp-toggle {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  color: rgba(216, 216, 232, 0.65);
+  font-family: inherit;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  padding: 5px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  min-width: 36px;
+  text-align: center;
+  white-space: nowrap;
+}
+.pt-temp-toggle:hover { border-color: rgba(255,255,255,0.3); color: #eeeef8; }
+
 /* ── Atom view ── */
 .pt-atom-view {
   flex: 1;
@@ -242,6 +260,15 @@
   height: 100%; color: rgba(216,216,232,0.22); font-size: 10px; letter-spacing: 0.1em;
 }
 
+/* ── Canvas depth vignette (light mode) ── */
+.pt-canvas-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 28%, rgba(0, 0, 0, 0.30) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
 /* ── Model description overlay ── */
 .pt-model-desc {
   position: absolute;
@@ -255,6 +282,7 @@
   white-space: nowrap;
   text-transform: uppercase;
   margin: 0;
+  z-index: 2;
 }
 @media (max-width: 680px) { .pt-model-desc { display: none; } }
 
@@ -670,6 +698,8 @@
 .pt-root--light .pt-toggle-legend { border-color: rgba(10,10,10,0.20); color: rgba(10,10,10,0.65); }
 .pt-root--light .pt-toggle-legend:hover,
 .pt-root--light .pt-toggle-legend.active { border-color: rgba(10,10,10,0.45); color: #0a0a0a; }
+.pt-root--light .pt-temp-toggle { border-color: rgba(10,10,10,0.20); color: rgba(10,10,10,0.65); }
+.pt-root--light .pt-temp-toggle:hover { border-color: rgba(10,10,10,0.45); color: #0a0a0a; }
 .pt-root--light .pt-theme-toggle { border-color: rgba(10,10,10,0.22); color: rgba(10,10,10,0.65); }
 /* table cells in light mode */
 .pt-root--light .pt-cell { background: rgba(10,10,10,0.04); border-color: rgba(10,10,10,0.14); }

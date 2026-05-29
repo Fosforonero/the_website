@@ -83,11 +83,11 @@ const getThematicProperties = (locale: Locale): ThematicPropertyDefinition[] => 
 
 // ─── Temperature / oxidation helpers ─────────────────────────────────────────
 
-function fmtTemp(k: number | null): string {
+function fmtTemp(k: number | null, unit: "K" | "C" | "F" = "K"): string {
   if (k === null) return "—";
-  const c = k - 273.15;
-  const f = c * 9 / 5 + 32;
-  return `${k.toFixed(0)} K · ${c.toFixed(0)} °C · ${f.toFixed(0)} °F`;
+  if (unit === "C") return `${(k - 273.15).toFixed(0)} °C`;
+  if (unit === "F") return `${((k - 273.15) * 9 / 5 + 32).toFixed(0)} °F`;
+  return `${k.toFixed(0)} K`;
 }
 
 function oxColor(n: number): string {
@@ -360,7 +360,7 @@ function fmt(val: number | null, decimals = 2, suffix = ""): string {
   return `${val.toFixed(decimals)}${suffix ? " " + suffix : ""}`;
 }
 
-function InfoPanel({ el, locale, onDragStart }: { el: Element; locale: Locale; onDragStart?: (e: React.MouseEvent | React.TouchEvent) => void }) {
+function InfoPanel({ el, locale, tempUnit, onDragStart }: { el: Element; locale: Locale; tempUnit: "K" | "C" | "F"; onDragStart?: (e: React.MouseEvent | React.TouchEvent) => void }) {
   const t = LAB_UI_TRANSLATIONS[locale];
   const [descExpanded, setDescExpanded] = useState(false);
   const color = CATEGORY_COLOR[el.category];
@@ -490,11 +490,11 @@ function InfoPanel({ el, locale, onDragStart }: { el: Element; locale: Locale; o
           </div>
           <div>
             <dt>{t.infoMelting}</dt>
-            <dd>{fmtTemp(ext.meltingPoint)}</dd>
+            <dd>{fmtTemp(ext.meltingPoint, tempUnit)}</dd>
           </div>
           <div>
             <dt>{t.infoBoiling}</dt>
-            <dd>{fmtTemp(ext.boilingPoint)}</dd>
+            <dd>{fmtTemp(ext.boilingPoint, tempUnit)}</dd>
           </div>
           {ext.oxidationStates.length > 0 && (
             <div className="pt-info__ox-row">
@@ -747,6 +747,25 @@ function StarsToggle({ value, onChange, locale }: { value: number; onChange: (v:
   );
 }
 
+// ─── Temperature unit toggle ──────────────────────────────────────────────────
+
+const TEMP_CYCLE: Record<"K" | "C" | "F", "K" | "C" | "F"> = { K: "C", C: "F", F: "K" };
+const TEMP_DISPLAY: Record<"K" | "C" | "F", string> = { K: "K", C: "°C", F: "°F" };
+
+function TempToggle({ value, onChange, locale }: { value: "K" | "C" | "F"; onChange: (v: "K" | "C" | "F") => void; locale: Locale }) {
+  const title = locale === "en" ? "Temperature unit (K / °C / °F)" : "Unità di temperatura (K / °C / °F)";
+  return (
+    <button
+      className="pt-temp-toggle"
+      onClick={() => onChange(TEMP_CYCLE[value])}
+      title={title}
+      aria-label={title}
+    >
+      {TEMP_DISPLAY[value]}
+    </button>
+  );
+}
+
 // ─── Van der Waals toggle ─────────────────────────────────────────────────────
 
 const VDW_CYCLE: Record<VdWStyle, VdWStyle> = { off: "wire", wire: "glass", glass: "off" };
@@ -889,7 +908,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
   const [speedMultiplier, setSpeedMultiplier] = usePersistedState<number>("pt:speedMultiplier", 1.0);
   const [lightMode,       setLightMode]       = usePersistedState<boolean>("pt:lightMode", false);
   const [thematicProp,    setThematicProp]    = usePersistedState<ThematicProperty>("pt:thematicProp", "none");
-  const [showLegend,      setShowLegend]      = useState(false);
+  const [tempUnit,        setTempUnit]        = usePersistedState<"K" | "C" | "F">("pt:tempUnit", "K");
   const [searchQuery,     setSearchQuery]     = useState("");
   const [starsIntensity,  setStarsIntensity]  = usePersistedState<number>("pt:starsIntensity", 1);
   const [lightBgKey,      setLightBgKey]      = usePersistedState<LightBgKey>("pt:lightBgKey", "sky");
@@ -1082,6 +1101,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                   ↑↓
                 </button>
               )}
+              <TempToggle value={tempUnit} onChange={setTempUnit} locale={locale} />
               {lightMode && <LightBgSelector value={lightBgKey} onChange={setLightBgKey} locale={locale} />}
             </>
           )}
@@ -1099,12 +1119,6 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                   }
                 }}
               />
-              <button
-                className={`pt-toggle-legend${showLegend ? " active" : ""}`}
-                onClick={() => setShowLegend(v => !v)}
-              >
-                {showLegend ? t.hideLegend : t.showLegend}
-              </button>
               <Link href={locale === "en" ? "/en/lab/tavola-periodica/about" : "/lab/tavola-periodica/about"} className="pt-about-link">
                 {t.aboutLink}
               </Link>
@@ -1164,9 +1178,10 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
               showSpin={showSpin}
               className="pt-canvas"
             />
+            {lightMode && <div className="pt-canvas-vignette" aria-hidden="true" />}
             <ModelDesc model={model} locale={locale} />
           </div>
-          <InfoPanel el={selected} locale={locale} onDragStart={handlePanelDragStart} />
+          <InfoPanel el={selected} locale={locale} tempUnit={tempUnit} onDragStart={handlePanelDragStart} />
         </div>
       )}
 
@@ -1178,7 +1193,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
             ↻ {locale === "en" ? "Rotate for best experience" : "Ruota il dispositivo"}
           </div>
 
-          {showLegend && thematicProp === "none" && <Legend locale={locale} />}
+          {thematicProp === "none" && <Legend locale={locale} />}
           <ThematicSelector
             current={thematicProp}
             onChange={(p) => { setThematicProp(p); }}
