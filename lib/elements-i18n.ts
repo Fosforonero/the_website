@@ -52,6 +52,25 @@ export const BLOCK_LABELS: Record<"it" | "en", Record<ElementBlock, string>> = {
   en: { s: "s-block", p: "p-block", d: "d-block", f: "f-block" },
 };
 
+export const CRYSTAL_LABELS: Record<"it" | "en", Record<string, string>> = {
+  it: {
+    fcc:     "Cubica a facce centrate (FCC)",
+    bcc:     "Cubica a corpo centrato (BCC)",
+    hcp:     "Esagonale compatta (HCP)",
+    diamond: "Cubica diamante",
+    sc:      "Cubica semplice",
+    other:   "Altra struttura",
+  },
+  en: {
+    fcc:     "Face-centered cubic (FCC)",
+    bcc:     "Body-centered cubic (BCC)",
+    hcp:     "Hexagonal close-packed (HCP)",
+    diamond: "Diamond cubic",
+    sc:      "Simple cubic",
+    other:   "Other structure",
+  },
+};
+
 export const LAB_UI_TRANSLATIONS = {
   it: {
     backToTable: "← tavola",
@@ -94,6 +113,9 @@ export const LAB_UI_TRANSLATIONS = {
     infoDiscoveredBy: "Scoperto da",
     infoCategory: "Categoria",
     infoPeriodGroup: "Periodo / Gruppo",
+    infoCrystalStructure: "Struttura cristallina",
+    nucleusViewBtn: "nucleo",
+    nucleusViewTitle: "Vista nucleo: protoni e neutroni in scala",
     infoHint: "trascina · scroll · Esc per tornare",
     infoSupport: "♥ supporta",
     footerHint: "clicca per aprire l'atomo",
@@ -150,6 +172,9 @@ export const LAB_UI_TRANSLATIONS = {
     infoDiscoveredBy: "Discovered by",
     infoCategory: "Category",
     infoPeriodGroup: "Period / Group",
+    infoCrystalStructure: "Crystal structure",
+    nucleusViewBtn: "nucleus",
+    nucleusViewTitle: "Nucleus view: protons & neutrons to scale",
     infoHint: "drag · scroll · Esc to return",
     infoSupport: "♥ support",
     footerHint: "click to view atom",

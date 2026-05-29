@@ -7,6 +7,9 @@
 
 export type ElementState = "solid" | "liquid" | "gas" | "synthetic";
 export type ElementBlock = "s" | "p" | "d" | "f";
+/** Crystal structure at ambient conditions (25 °C, 1 atm).
+ *  null = gas, liquid, synthetic, or no reliable data. */
+export type CrystalStructure = "fcc" | "bcc" | "hcp" | "diamond" | "sc" | "other" | null;
 
 export interface ElementExtended {
   /** Z — atomic number (key) */
@@ -47,6 +50,8 @@ export interface ElementExtended {
   isotopes: Isotope[];
   /** Single-bond covalent radius (pm); Alvarez 2008 / IUPAC */
   covalentRadius: number | null;
+  /** Dominant crystal structure at ambient conditions; null for gases, liquids, synthetic */
+  crystalStructure: CrystalStructure;
 }
 
 export interface Isotope {
@@ -62,7 +67,7 @@ export interface Isotope {
 // Columns: z, config, block, state, EN, atomR, IE1, density, Tm(K), Tb(K), EA, crust(mg/kg), year, discoverer, description
 // oxidationStates / commonOxidation are merged separately via OX lookup below.
 
-type ElementRaw = Omit<ElementExtended, "oxidationStates" | "commonOxidation" | "isotopes" | "covalentRadius">;
+type ElementRaw = Omit<ElementExtended, "oxidationStates" | "commonOxidation" | "isotopes" | "covalentRadius" | "crystalStructure">;
 const RAW: ElementRaw[] = [
   { z:1,   config:"1s¹",                  block:"s", state:"gas",       electronegativity:2.20, atomicRadius:120, ionizationEnergy:1312.0, density:0.0899, meltingPoint:14.0,   boilingPoint:20.3,    electronAffinity:72.8,  crustAbundance:1400,   discoveryYear:1766, discoverer:"Henry Cavendish",       description:"Elemento più leggero e abbondante dell'universo (≈75% della massa barionica). Alimenta le reazioni di fusione stellare e costituisce la base delle molecole organiche; l'elettrolisi dell'acqua ne è la principale fonte industriale." },
   { z:2,   config:"1s²",                  block:"s", state:"gas",       electronegativity:null, atomicRadius:140, ionizationEnergy:2372.3, density:0.1785, meltingPoint:0.95,   boilingPoint:4.2,     electronAffinity:-48,   crustAbundance:0.008,  discoveryYear:1868, discoverer:"Pierre Janssen / Norman Lockyer", description:"Gas nobile con il secondo punto di ebollizione più basso di qualsiasi sostanza (4,22 K). Prodotto primordiale del Big Bang e dalla fusione dell'idrogeno nelle stelle; usato come refrigerante in superconduttori e acceleratori di particelle." },
@@ -420,6 +425,42 @@ const COV: Record<number, number> = {
   // Bk–Og: no reliable data
 };
 
+// ─── Crystal structure lookup ─────────────────────────────────────────────────
+// Dominant ambient-conditions structure. null = gas, liquid, synthetic, or unknown.
+// Sources: CRC Handbook 103rd ed., WebElements, crystallography.net / ICSD.
+// Note: some elements have multiple polymorphs; listed structure is the α-form at STP.
+const CRYSTAL: Record<number, CrystalStructure> = {
+  // Period 2
+  3:"bcc",  4:"hcp",  5:"other",   6:"diamond",
+  10:"fcc",
+  // Period 3
+  11:"bcc", 12:"hcp", 13:"fcc", 14:"diamond", 15:"other", 16:"other",
+  18:"fcc",
+  // Period 4
+  19:"bcc", 20:"fcc", 21:"hcp", 22:"hcp",  23:"bcc",  24:"bcc",  25:"other",
+  26:"bcc", 27:"hcp", 28:"fcc", 29:"fcc",  30:"hcp",
+  31:"other", 32:"diamond", 33:"other", 34:"other",
+  36:"fcc",
+  // Period 5
+  37:"bcc", 38:"fcc", 39:"hcp", 40:"hcp",  41:"bcc",  42:"bcc",  43:"hcp",
+  44:"hcp", 45:"fcc", 46:"fcc", 47:"fcc",  48:"hcp",
+  49:"other", 50:"other", 51:"other", 52:"other", 53:"other",
+  54:"fcc",
+  // Period 6
+  55:"bcc", 56:"bcc",
+  57:"hcp", 58:"fcc", 59:"hcp", 60:"hcp",  61:"hcp",  62:"other", 63:"bcc",
+  64:"hcp", 65:"hcp", 66:"hcp", 67:"hcp",  68:"hcp",  69:"hcp",  70:"fcc", 71:"hcp",
+  72:"hcp", 73:"bcc", 74:"bcc", 75:"hcp",  76:"hcp",  77:"fcc",  78:"fcc", 79:"fcc",
+  // Hg(80) = liquid at STP → null
+  81:"hcp", 82:"fcc", 83:"other", 84:"sc",
+  // At(85), Rn(86) → null
+  // Period 7
+  87:"bcc", 88:"bcc", 89:"fcc", 90:"fcc",
+  91:"other", 92:"other", 93:"other", 94:"other",
+  95:"hcp",  96:"hcp",  97:"hcp",  98:"hcp",
+  // Z=99–118: synthetic/transient → null
+};
+
 // ─── Map indexed by Z ─────────────────────────────────────────────────────────
 export const EXTENDED: Record<number, ElementExtended> = Object.fromEntries(
   RAW.map(e => {
@@ -428,7 +469,8 @@ export const EXTENDED: Record<number, ElementExtended> = Object.fromEntries(
       massNumber, abundance, ...(name !== undefined ? { name } : {}),
     }));
     const covalentRadius = COV[e.z] ?? null;
-    return [e.z, { ...e, oxidationStates, commonOxidation, isotopes, covalentRadius }];
+    const crystalStructure = CRYSTAL[e.z] ?? null;
+    return [e.z, { ...e, oxidationStates, commonOxidation, isotopes, covalentRadius, crystalStructure }];
   })
 );
 

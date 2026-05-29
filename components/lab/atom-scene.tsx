@@ -805,13 +805,13 @@ function LightModeStars({ intensity }: { intensity: number }) {
 
 // ─── Camera setup ─────────────────────────────────────────────────────────────
 
-function CameraSetup({ shells, realScale }: { shells: number; realScale: boolean }) {
+function CameraSetup({ shells, realScale, nucleusView }: { shells: number; realScale: boolean; nucleusView?: boolean }) {
   const { camera } = useThree();
   useEffect(() => {
-    const dist = realScale ? 12 + shells * 4.5 : 5 + shells * 2.4;
+    const dist = nucleusView ? 3.2 : (realScale ? 12 + shells * 4.5 : 5 + shells * 2.4);
     (camera as THREE.PerspectiveCamera).position.set(0, 0, dist);
     camera.updateProjectionMatrix();
-  }, [camera, shells, realScale]);
+  }, [camera, shells, realScale, nucleusView]);
   return null;
 }
 
@@ -827,6 +827,7 @@ export type AtomSceneProps = {
   starsIntensity?: number;
   vdwStyle?: VdWStyle;
   showSpin?: boolean;
+  nucleusView?: boolean;
   className?: string;
 };
 
@@ -834,7 +835,7 @@ export function AtomScene({
   element, model = "bohr", realScale = false,
   speedMultiplier = 1, lightMode = false,
   lightBg = "#e8ecf5", starsIntensity = 1,
-  vdwStyle = "off", showSpin = false, className,
+  vdwStyle = "off", showSpin = false, nucleusView = false, className,
 }: AtomSceneProps) {
   const reduced =
     typeof window !== "undefined"
@@ -850,7 +851,7 @@ export function AtomScene({
       dpr={[1, 2]}
       camera={{ fov: 38, near: 0.1, far: 600, position: [0, 0, 14] }}
     >
-      <CameraSetup shells={element.shells.length} realScale={realScale} />
+      <CameraSetup shells={element.shells.length} realScale={realScale} nucleusView={nucleusView} />
       {!lightMode && <color attach="background" args={["#060610"]} />}
 
       {lightMode ? (
@@ -877,26 +878,26 @@ export function AtomScene({
 
       <Nucleus z={element.z} n={element.stableN} scaleMul={sc.nucleonScale} lightMode={lightMode} />
 
-      {model === "thomson" && (
+      {!nucleusView && model === "thomson" && (
         <ThomsonAtom el={element} reduced={reduced} lightMode={lightMode} />
       )}
-      {model === "rutherford" && (
+      {!nucleusView && model === "rutherford" && (
         <RutherfordAtom el={element} radiusMul={sc.radiusMul} reduced={reduced}
           speedMul={speedMultiplier} lightMode={lightMode} showSpin={showSpin} />
       )}
-      {model === "bohr" && (
+      {!nucleusView && model === "bohr" && (
         <BohrAtom el={element} radiusMul={sc.radiusMul} eMul={sc.electronScale}
           reduced={reduced} speedMul={speedMultiplier} lightMode={lightMode} showSpin={showSpin} />
       )}
-      {model === "sommerfeld" && (
+      {!nucleusView && model === "sommerfeld" && (
         <SommerfeldAtom el={element} radiusMul={sc.radiusMul} reduced={reduced}
           speedMul={speedMultiplier} lightMode={lightMode} showSpin={showSpin} />
       )}
-      {model === "quantum" && (
+      {!nucleusView && model === "quantum" && (
         <QuantumAtom el={element} radiusMul={sc.radiusMul} reduced={reduced} lightMode={lightMode} />
       )}
 
-      {vdwStyle !== "off" && (
+      {!nucleusView && vdwStyle !== "off" && (
         <VanDerWaalsSphere element={element} radiusMul={sc.radiusMul} style={vdwStyle} lightMode={lightMode} />
       )}
 

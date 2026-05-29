@@ -21,7 +21,7 @@ const MANUAL = {
     h1: "Manuale della Tavola Periodica 3D",
     lead:
       "Guida rapida per usare la tavola periodica interattiva di Fosforonero: ricerca elementi, viste tematiche, modelli atomici 3D, pannello dati e controlli mobile.",
-    updated: "Aggiornato al 28 maggio 2026",
+    updated: "Aggiornato al 29 maggio 2026",
     appLabel: "Apri la tavola",
     aboutLabel: "Leggi fonti e roadmap",
     tocTitle: "Indice",
@@ -72,6 +72,8 @@ const MANUAL = {
           { title: "Stelle", body: "Cambia l'intensità dello sfondo stellare o lo disattiva." },
           { title: "vdW", body: "Mostra o cambia lo stile della sfera del raggio di van der Waals quando disponibile." },
           { title: "↑↓", body: "Mostra lo spin elettronico nei modelli Bohr, Rutherford e Sommerfeld." },
+          { title: "Nucleo", body: "Nasconde gli elettroni e zooma sul nucleo. In alto vengono mostrati il numero di protoni (Z), neutroni (N) e nucleoni (A)." },
+          { title: "K / °C / °F", body: "Cambia l'unità di temperatura del pannello dati. La preferenza viene salvata nel browser." },
         ],
       },
       {
@@ -83,6 +85,7 @@ const MANUAL = {
           { title: "Configurazione shell", body: "Indica quanti elettroni occupano i livelli principali." },
           { title: "Numeri di ossidazione", body: "Mostrano gli stati comuni o teorici dell'elemento nelle reazioni." },
           { title: "Temperature", body: "Fusione ed ebollizione sono leggibili in Kelvin, Celsius o Fahrenheit quando disponibili." },
+          { title: "Struttura cristallina", body: "Per i solidi mostra la struttura reticolare dominante (FCC, BCC, HCP, cubica-diamante, cubica semplice) con un diagramma 3D ruotante dell'unità cristallina." },
           { title: "Descrizione", body: "Il testo introduttivo sintetizza ruolo, uso o comportamento dell'elemento." },
         ],
       },
@@ -122,7 +125,7 @@ const MANUAL = {
     h1: "Interactive 3D Periodic Table Manual",
     lead:
       "A practical guide to Fosforonero's interactive periodic table: element search, thematic views, 3D atomic models, data panel, and mobile controls.",
-    updated: "Updated on May 28, 2026",
+    updated: "Updated on May 29, 2026",
     appLabel: "Open the table",
     aboutLabel: "Read sources and roadmap",
     tocTitle: "Contents",
@@ -173,6 +176,8 @@ const MANUAL = {
           { title: "Stars", body: "Changes starfield intensity or turns it off." },
           { title: "vdW", body: "Shows or changes the van der Waals radius sphere style when available." },
           { title: "↑↓", body: "Shows electron spin in Bohr, Rutherford, and Sommerfeld models." },
+          { title: "Nucleus", body: "Hides electrons and zooms into the nucleus. Proton (Z), neutron (N), and nucleon (A) counts are shown as an overlay." },
+          { title: "K / °C / °F", body: "Cycles the temperature unit used in the data panel. The preference is saved in the browser." },
         ],
       },
       {
@@ -184,6 +189,7 @@ const MANUAL = {
           { title: "Shell configuration", body: "Shows how many electrons occupy the main energy levels." },
           { title: "Oxidation states", body: "Lists common or theoretical oxidation states for reactions." },
           { title: "Temperatures", body: "Melting and boiling points are readable in Kelvin, Celsius, or Fahrenheit when available." },
+          { title: "Crystal structure", body: "For solid elements, shows the dominant lattice (FCC, BCC, HCP, diamond cubic, simple cubic) with a rotating 3D unit cell diagram." },
           { title: "Description", body: "The introductory text summarizes role, use, or behavior of the element." },
         ],
       },

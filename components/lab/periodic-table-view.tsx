@@ -14,8 +14,9 @@ import type { AtomModel, VdWStyle } from "./atom-scene";
 import type { Locale } from "@/lib/site";
 import {
   ELEMENT_NAMES_EN, CATEGORY_LABELS_EN, STATE_LABELS, BLOCK_LABELS,
-  LAB_UI_TRANSLATIONS, ELEMENT_DESCRIPTIONS_EN,
+  LAB_UI_TRANSLATIONS, ELEMENT_DESCRIPTIONS_EN, CRYSTAL_LABELS,
 } from "@/lib/elements-i18n";
+import { CrystalScene } from "./crystal-scene";
 
 export interface ThematicPropertyDefinition {
   key: ThematicProperty;
@@ -360,7 +361,7 @@ function fmt(val: number | null, decimals = 2, suffix = ""): string {
   return `${val.toFixed(decimals)}${suffix ? " " + suffix : ""}`;
 }
 
-function InfoPanel({ el, locale, tempUnit, onDragStart }: { el: Element; locale: Locale; tempUnit: "K" | "C" | "F"; onDragStart?: (e: React.MouseEvent | React.TouchEvent) => void }) {
+function InfoPanel({ el, locale, tempUnit, lightMode, onDragStart }: { el: Element; locale: Locale; tempUnit: "K" | "C" | "F"; lightMode?: boolean; onDragStart?: (e: React.MouseEvent | React.TouchEvent) => void }) {
   const t = LAB_UI_TRANSLATIONS[locale];
   const [descExpanded, setDescExpanded] = useState(false);
   const color = CATEGORY_COLOR[el.category];
@@ -509,6 +510,23 @@ function InfoPanel({ el, locale, tempUnit, onDragStart }: { el: Element; locale:
                     {n > 0 ? `+${n}` : n === 0 ? "0" : String(n)}
                   </span>
                 ))}
+              </dd>
+            </div>
+          )}
+          {ext.crystalStructure && (
+            <div className={ext.crystalStructure !== "other" ? "pt-info__crystal-row" : undefined}>
+              <dt>{t.infoCrystalStructure}</dt>
+              <dd>
+                <span className="pt-info__crystal-label">
+                  {CRYSTAL_LABELS[locale][ext.crystalStructure] ?? ext.crystalStructure}
+                </span>
+                {ext.crystalStructure !== "other" && (
+                  <CrystalScene
+                    structure={ext.crystalStructure}
+                    color={color ?? "#6b7280"}
+                    lightMode={lightMode}
+                  />
+                )}
               </dd>
             </div>
           )}
@@ -916,6 +934,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
   const [negativeMode,    setNegativeMode]    = usePersistedState<boolean>("pt:negativeMode", false);
   const [gridZoom,        setGridZoom]        = useState(1);
   const [showSpin,        setShowSpin]        = usePersistedState<boolean>("pt:showSpin", false);
+  const [nucleusView,     setNucleusView]     = usePersistedState<boolean>("pt:nucleusView", false);
 
   const [panelWidth,      setPanelWidth]      = usePersistedState<number>("pt:panelWidth", 264);
   const panelWidthRef                         = useRef(panelWidth);
@@ -1102,6 +1121,14 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                 </button>
               )}
               <TempToggle value={tempUnit} onChange={setTempUnit} locale={locale} />
+              <button
+                className={`pt-nucleus-view-btn${nucleusView ? " active" : ""}`}
+                onClick={() => setNucleusView(v => !v)}
+                aria-pressed={nucleusView}
+                title={t.nucleusViewTitle}
+              >
+                {t.nucleusViewBtn}
+              </button>
               {lightMode && <LightBgSelector value={lightBgKey} onChange={setLightBgKey} locale={locale} />}
             </>
           )}
@@ -1176,12 +1203,29 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
               lightBg={lightBgColor}
               vdwStyle={vdwStyle}
               showSpin={showSpin}
+              nucleusView={nucleusView}
               className="pt-canvas"
             />
             {lightMode && <div className="pt-canvas-vignette" aria-hidden="true" />}
-            <ModelDesc model={model} locale={locale} />
+            {nucleusView && (
+              <div className="pt-nucleus-overlay" aria-live="polite">
+                <div className="pt-nucleus-stat">
+                  <span className="pt-nucleus-num">{selected.z}</span>
+                  <span className="pt-nucleus-lbl">{locale === "en" ? "protons" : "protoni"}</span>
+                </div>
+                <div className="pt-nucleus-stat">
+                  <span className="pt-nucleus-num">{selected.stableN}</span>
+                  <span className="pt-nucleus-lbl">{locale === "en" ? "neutrons" : "neutroni"}</span>
+                </div>
+                <div className="pt-nucleus-stat">
+                  <span className="pt-nucleus-num">{selected.z + selected.stableN}</span>
+                  <span className="pt-nucleus-lbl">{locale === "en" ? "nucleons" : "nucleoni"}</span>
+                </div>
+              </div>
+            )}
+            {!nucleusView && <ModelDesc model={model} locale={locale} />}
           </div>
-          <InfoPanel el={selected} locale={locale} tempUnit={tempUnit} onDragStart={handlePanelDragStart} />
+          <InfoPanel el={selected} locale={locale} tempUnit={tempUnit} lightMode={lightMode} onDragStart={handlePanelDragStart} />
         </div>
       )}
 
