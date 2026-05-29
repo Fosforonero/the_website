@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useMemo } from "react";
 import * as THREE from "three";
 import { Html } from "@react-three/drei";
 import {
@@ -25,7 +25,8 @@ const FIRMAMENT_R = 900;
 function radecToXyz(raDeg: number, decDeg: number, r: number): THREE.Vector3 {
   const ra = (raDeg * Math.PI) / 180;
   const dec = (decDeg * Math.PI) / 180;
-  const x = r * Math.cos(dec) * Math.cos(ra);
+  // Negate X to fix east-west orientation when viewed from inside the sphere
+  const x = -r * Math.cos(dec) * Math.cos(ra);
   const y = r * Math.sin(dec);
   const z = r * Math.cos(dec) * Math.sin(ra);
   return new THREE.Vector3(x, y, z);
@@ -79,31 +80,6 @@ function magnitudeToSize(mag: number): number {
 
 /** Renders the star field as a Points mesh. */
 function StarField({ stars }: { stars: FirmamentStar[] }) {
-  const [positions, colors, sizes] = useMemo(() => {
-    const pos = new Float32Array(stars.length * 3);
-    const col = new Float32Array(stars.length * 3);
-    const sz = new Float32Array(stars.length);
-
-    stars.forEach((star, i) => {
-      const v = radecToXyz(star.raDeg, star.decDeg, FIRMAMENT_R);
-      pos[i * 3] = v.x;
-      pos[i * 3 + 1] = v.y;
-      pos[i * 3 + 2] = v.z;
-
-      const color =
-        star.colorIndex !== undefined
-          ? bvToColor(star.colorIndex)
-          : new THREE.Color(1, 1, 1);
-      col[i * 3] = color.r;
-      col[i * 3 + 1] = color.g;
-      col[i * 3 + 2] = color.b;
-
-      sz[i] = magnitudeToSize(star.magnitude);
-    });
-
-    return [pos, col, sz] as const;
-  }, [stars]);
-
   // We use a single PointsMaterial — size is the average; per-vertex size
   // requires a custom shader. For MVP we bin stars into 3 size passes.
   const brightStars = useMemo(
@@ -284,10 +260,19 @@ function ConstellationLabels() {
 
 /** Renders deep-sky object markers. */
 function DeepSkyLayer({ labelsVisible }: { labelsVisible: boolean }) {
+  const dsoPositions = useMemo(
+    () =>
+      DEEP_SKY_OBJECTS.map((dso) => ({
+        ...dso,
+        pos: radecToXyz(dso.raDeg, dso.decDeg, FIRMAMENT_R - 2),
+      })),
+    []
+  );
+
   return (
     <>
-      {DEEP_SKY_OBJECTS.map((dso) => {
-        const pos = radecToXyz(dso.raDeg, dso.decDeg, FIRMAMENT_R - 2);
+      {dsoPositions.map((dso) => {
+        const pos = dso.pos;
         return (
           <group key={dso.id} position={[pos.x, pos.y, pos.z]}>
             {/* Small cross marker rendered as two short line segments */}

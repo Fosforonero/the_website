@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo } from "react";
+import { Suspense, useMemo, useEffect } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls, Html } from "@react-three/drei";
 import * as THREE from "three";
@@ -62,8 +62,11 @@ function hexToThreeColor(hex: string): THREE.Color {
 
 function SceneSetup() {
   const { scene } = useThree();
-  // Very subtle fog to give depth
-  scene.fog = new THREE.FogExp2(0x000008, 0.0002);
+  useEffect(() => {
+    // Very subtle fog to give depth
+    scene.fog = new THREE.FogExp2(0x000008, 0.0002);
+    return () => { scene.fog = null; };
+  }, [scene]);
   return null;
 }
 
@@ -80,15 +83,10 @@ function OrbitRing({
 }) {
   const r = scaleDistance(semiMajorAxisKm, distanceMode);
 
-  const geometry = useMemo(() => {
-    // ringGeometry args: [innerRadius, outerRadius, thetaSegments]
-    const inner = r * 0.9985;
-    const outer = r * 1.0015;
-    return new THREE.RingGeometry(inner, outer, ORBIT_RING_SEGMENTS);
-  }, [r]);
-
   return (
-    <mesh geometry={geometry} rotation={[-Math.PI / 2, 0, 0]}>
+    <mesh rotation={[-Math.PI / 2, 0, 0]}>
+      {/* ringGeometry args: [innerRadius, outerRadius, thetaSegments] */}
+      <ringGeometry args={[r * 0.9985, r * 1.0015, ORBIT_RING_SEGMENTS]} />
       <meshBasicMaterial
         color="#1a3050"
         side={THREE.DoubleSide}
