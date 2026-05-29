@@ -68,7 +68,8 @@ const getThematicProperties = (locale: Locale): ThematicPropertyDefinition[] => 
   return [
     { key: "none",              label: locale === "en" ? "Category" : "Categoria",          unit: "",        description: locale === "en" ? "Color by chemical category" : "Colore per categoria chimica" },
     { key: "electronegativity", label: locale === "en" ? "Electronegativity" : "Elettronegatività",  unit: "Pauling", description: locale === "en" ? "Pauling scale (0.79 – 3.98)" : "Scala di Pauling (0,79 – 3,98)" },
-    { key: "atomicRadius",      label: locale === "en" ? "Atomic radius" : "Raggio atomico",     unit: "pm",      description: locale === "en" ? "Van der Waals radius (pm)" : "Raggio di van der Waals (pm)" },
+    { key: "atomicRadius",      label: locale === "en" ? "VdW radius" : "Raggio vdW",            unit: "pm",      description: locale === "en" ? "Van der Waals radius (pm)" : "Raggio di van der Waals (pm)" },
+    { key: "covalentRadius",    label: locale === "en" ? "Covalent radius" : "Raggio covalente", unit: "pm",      description: locale === "en" ? "Single-bond covalent radius (pm)" : "Raggio covalente di legame singolo (pm)" },
     { key: "ionizationEnergy",  label: locale === "en" ? "Ionization I" : "Ionizzazione I",     unit: "kJ/mol",  description: locale === "en" ? "First ionization energy (kJ/mol)" : "Prima energia di ionizzazione (kJ/mol)" },
     { key: "density",           label: locale === "en" ? "Density" : "Densità",            unit: "g/cm³",   description: locale === "en" ? "Density at standard conditions (g/cm³)" : "Densità a condizioni standard (g/cm³)" },
     { key: "meltingPoint",      label: locale === "en" ? "Melting" : "Fusione",            unit: "K",       description: locale === "en" ? "Melting temperature (K)" : "Temperatura di fusione (K)" },
@@ -359,7 +360,7 @@ function fmt(val: number | null, decimals = 2, suffix = ""): string {
   return `${val.toFixed(decimals)}${suffix ? " " + suffix : ""}`;
 }
 
-function InfoPanel({ el, locale }: { el: Element; locale: Locale }) {
+function InfoPanel({ el, locale, onDragStart }: { el: Element; locale: Locale; onDragStart?: (e: React.MouseEvent | React.TouchEvent) => void }) {
   const t = LAB_UI_TRANSLATIONS[locale];
   const [descExpanded, setDescExpanded] = useState(false);
   const color = CATEGORY_COLOR[el.category];
@@ -374,6 +375,7 @@ function InfoPanel({ el, locale }: { el: Element; locale: Locale }) {
 
   return (
     <div className="pt-info" role="complementary" aria-label={descLabel}>
+      <div className="pt-panel-drag" onMouseDown={onDragStart} onTouchStart={onDragStart} aria-hidden="true" />
       {/* Header */}
       <div className="pt-info__header" style={{ borderLeftColor: color }}>
         <div className="pt-info__header-top">
@@ -472,6 +474,12 @@ function InfoPanel({ el, locale }: { el: Element; locale: Locale }) {
             <dt>{t.infoAtomicRadius}</dt>
             <dd>{fmt(ext.atomicRadius, 0, "pm")}</dd>
           </div>
+          {ext.covalentRadius !== null && (
+            <div>
+              <dt>{t.infoCovalentRadius}</dt>
+              <dd>{fmt(ext.covalentRadius, 0, "pm")}</dd>
+            </div>
+          )}
           <div>
             <dt>{t.infoIonization}</dt>
             <dd>{fmt(ext.ionizationEnergy, 1, "kJ/mol")}</dd>
@@ -890,6 +898,10 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
   const [gridZoom,        setGridZoom]        = useState(1);
   const [showSpin,        setShowSpin]        = usePersistedState<boolean>("pt:showSpin", false);
 
+  const [panelWidth,      setPanelWidth]      = usePersistedState<number>("pt:panelWidth", 264);
+  const panelWidthRef                         = useRef(panelWidth);
+  panelWidthRef.current                       = panelWidth;
+
   const [showHeader,      setShowHeader]      = useState(true);
   const lastScrollTop                         = useRef(0);
   const scrollRef                             = useRef<HTMLDivElement>(null);
@@ -900,6 +912,26 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
   const propRange = useMemo<[number, number] | null>(() => {
     return getThematicPropertiesRangeMap(thematicProp);
   }, [thematicProp]);
+
+  const handlePanelDragStart = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    const startX = 'touches' in e ? e.touches[0]?.clientX ?? 0 : (e as React.MouseEvent).clientX;
+    const startW = panelWidthRef.current;
+    function onMove(ev: MouseEvent | TouchEvent) {
+      const x = 'touches' in ev ? (ev as TouchEvent).touches[0]?.clientX ?? 0 : (ev as MouseEvent).clientX;
+      setPanelWidth(Math.min(520, Math.max(200, startW + (startX - x))));
+    }
+    function onEnd() {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onEnd);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onEnd);
+    }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onEnd);
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('touchend', onEnd);
+  }, [setPanelWidth]);
 
   const searchMatchCount = useMemo(() =>
     ELEMENTS.filter(el => matchesSearch(el, searchQuery, locale)).length,
@@ -1118,7 +1150,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
 
       {/* ── Atom view ── */}
       {view === "atom" && selected && (
-        <div className="pt-atom-view">
+        <div className="pt-atom-view" style={{ '--pt-info-width': `${panelWidth}px` } as React.CSSProperties}>
           <div className="pt-canvas-wrap">
             <AtomScene
               element={selected}
@@ -1134,7 +1166,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
             />
             <ModelDesc model={model} locale={locale} />
           </div>
-          <InfoPanel el={selected} locale={locale} />
+          <InfoPanel el={selected} locale={locale} onDragStart={handlePanelDragStart} />
         </div>
       )}
 

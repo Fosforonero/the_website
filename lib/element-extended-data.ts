@@ -45,6 +45,8 @@ export interface ElementExtended {
   commonOxidation: number | null;
   /** 2–3 most abundant natural isotopes; empty for purely synthetic elements */
   isotopes: Isotope[];
+  /** Single-bond covalent radius (pm); Alvarez 2008 / IUPAC */
+  covalentRadius: number | null;
 }
 
 export interface Isotope {
@@ -60,7 +62,7 @@ export interface Isotope {
 // Columns: z, config, block, state, EN, atomR, IE1, density, Tm(K), Tb(K), EA, crust(mg/kg), year, discoverer, description
 // oxidationStates / commonOxidation are merged separately via OX lookup below.
 
-type ElementRaw = Omit<ElementExtended, "oxidationStates" | "commonOxidation" | "isotopes">;
+type ElementRaw = Omit<ElementExtended, "oxidationStates" | "commonOxidation" | "isotopes" | "covalentRadius">;
 const RAW: ElementRaw[] = [
   { z:1,   config:"1s¹",                  block:"s", state:"gas",       electronegativity:2.20, atomicRadius:120, ionizationEnergy:1312.0, density:0.0899, meltingPoint:14.0,   boilingPoint:20.3,    electronAffinity:72.8,  crustAbundance:1400,   discoveryYear:1766, discoverer:"Henry Cavendish",       description:"Elemento più leggero e abbondante dell'universo (≈75% della massa barionica). Alimenta le reazioni di fusione stellare e costituisce la base delle molecole organiche; l'elettrolisi dell'acqua ne è la principale fonte industriale." },
   { z:2,   config:"1s²",                  block:"s", state:"gas",       electronegativity:null, atomicRadius:140, ionizationEnergy:2372.3, density:0.1785, meltingPoint:0.95,   boilingPoint:4.2,     electronAffinity:-48,   crustAbundance:0.008,  discoveryYear:1868, discoverer:"Pierre Janssen / Norman Lockyer", description:"Gas nobile con il secondo punto di ebollizione più basso di qualsiasi sostanza (4,22 K). Prodotto primordiale del Big Bang e dalla fusione dell'idrogeno nelle stelle; usato come refrigerante in superconduttori e acceleratori di particelle." },
@@ -401,6 +403,23 @@ const ISO: Record<number, [number, number | null, string?][]> = {
   // 93–118: synthetic elements
 };
 
+// ─── Covalent radius lookup (pm) — Alvarez 2008 Dalton Trans. ─────────────────
+// Single-bond covalent radii. null for elements with no reliable measurement.
+const COV: Record<number, number> = {
+  1:31,  2:28,  3:128, 4:96,  5:84,  6:77,  7:71,  8:66,  9:57,  10:58,
+  11:166,12:141,13:121,14:111,15:107,16:105,17:102,18:106,
+  19:203,20:176,21:170,22:160,23:153,24:139,25:161,26:152,27:150,28:124,29:132,30:122,
+  31:122,32:122,33:119,34:120,35:120,36:116,
+  37:220,38:195,39:190,40:175,41:164,42:154,43:147,44:146,45:142,46:139,47:145,48:144,
+  49:142,50:139,51:139,52:138,53:139,54:140,
+  55:244,56:215,57:207,58:204,59:203,60:201,61:199,62:198,63:198,64:196,65:194,
+  66:192,67:192,68:189,69:190,70:187,71:187,
+  72:175,73:170,74:162,75:151,76:144,77:141,78:136,79:136,80:132,
+  81:145,82:146,83:148,84:140,85:150,86:150,
+  87:260,88:221,89:215,90:206,91:200,92:196,93:190,94:187,95:180,96:169,
+  // Bk–Og: no reliable data
+};
+
 // ─── Map indexed by Z ─────────────────────────────────────────────────────────
 export const EXTENDED: Record<number, ElementExtended> = Object.fromEntries(
   RAW.map(e => {
@@ -408,7 +427,8 @@ export const EXTENDED: Record<number, ElementExtended> = Object.fromEntries(
     const isotopes: Isotope[] = (ISO[e.z] ?? []).map(([massNumber, abundance, name]) => ({
       massNumber, abundance, ...(name !== undefined ? { name } : {}),
     }));
-    return [e.z, { ...e, oxidationStates, commonOxidation, isotopes }];
+    const covalentRadius = COV[e.z] ?? null;
+    return [e.z, { ...e, oxidationStates, commonOxidation, isotopes, covalentRadius }];
   })
 );
 
@@ -417,6 +437,7 @@ export const EXTENDED: Record<number, ElementExtended> = Object.fromEntries(
 export type ThematicProperty =
   | "electronegativity"
   | "atomicRadius"
+  | "covalentRadius"
   | "ionizationEnergy"
   | "density"
   | "meltingPoint"
