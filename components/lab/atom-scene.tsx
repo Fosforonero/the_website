@@ -515,9 +515,11 @@ function buildSommerfeldConfig(shellFills: number[], radiusMul: number): SubOrbi
       const isLast = k === numSubOrbits;
       const electrons = isLast ? remaining : Math.ceil(remaining / (numSubOrbits - k + 1));
       if (electrons <= 0) continue;
-      const a = (SHELL_BASE_R[shellIdx] ?? SHELL_BASE_R.at(-1)!) * radiusMul;
+      const shellR = (SHELL_BASE_R[shellIdx] ?? SHELL_BASE_R.at(-1)!) * radiusMul;
       const kOverN = k / n;
       const ecc = Math.sqrt(Math.max(0, 1 - kOverN * kOverN));
+      // Scale a so the apoapsis (= a*(1+ecc)) equals shellR — orbit never exits the shell boundary
+      const a = shellR / (1 + ecc);
       const baseTilt = SHELL_TILTS[shellIdx] ?? SHELL_TILTS.at(-1)!;
       result.push({
         shellIdx, k, a, b: a * kOverN, ecc,
