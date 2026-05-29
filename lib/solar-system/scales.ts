@@ -64,7 +64,9 @@ export function scaleDistance(km: number, mode: ScaleDistanceMode): number {
 export function scaleRadius(km: number, mode: ScaleRadiusMode): number {
   switch (mode) {
     case "visible":
-      return Math.max(0.02, km / 100_000);
+      // Cap the Sun to avoid it swallowing Mercury's orbit; preserve
+      // a noticeable size difference between gas giants and rocky bodies.
+      return Math.min(0.15, Math.max(0.02, km / 2_000_000));
 
     case "relative":
       return (km / SUN_RADIUS_KM) * 0.5;

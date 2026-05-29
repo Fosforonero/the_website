@@ -7,7 +7,7 @@ import * as THREE from "three";
 import { FirmamentLayer } from "./firmament-layer";
 import { SOLAR_BODIES } from "@/lib/solar-system/bodies";
 import { getBodyStatesForDate } from "@/lib/solar-system/ephemeris";
-import { scaleDistance, scaleRadius } from "@/lib/solar-system/scales";
+import { scaleDistance, scaleRadius, AU_KM } from "@/lib/solar-system/scales";
 import type {
   ScaleDistanceMode,
   ScaleRadiusMode,
@@ -43,6 +43,27 @@ const SELECTED_SCALE = 1.4;
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/**
+ * Scale a heliocentric position vector (km) to render units.
+ *
+ * Non-linear modes (real-log, inner-system) must be applied to the vector
+ * magnitude — not component-by-component — to preserve direction.
+ */
+function scalePositionVector(
+  posKm: [number, number, number],
+  mode: ScaleDistanceMode
+): [number, number, number] {
+  const [px, py, pz] = posKm;
+  if (mode === "compressed") {
+    const f = 1 / AU_KM;
+    return [px * f, py * f, pz * f];
+  }
+  const magKm = Math.sqrt(px * px + py * py + pz * pz);
+  if (magKm < 1) return [0, 0, 0];
+  const f = scaleDistance(magKm, mode) / magKm;
+  return [px * f, py * f, pz * f];
+}
 
 /**
  * Convert a CSS hex color string ("#rrggbb") to a THREE.Color.
@@ -121,10 +142,7 @@ function BodyMesh({
   labelsVisible,
   onSelect,
 }: BodyMeshProps) {
-  const [px, py, pz] = state.positionKm;
-  const scaledX = scaleDistance(px, distanceMode);
-  const scaledY = scaleDistance(py, distanceMode);
-  const scaledZ = scaleDistance(pz, distanceMode);
+  const [scaledX, scaledY, scaledZ] = scalePositionVector(state.positionKm, distanceMode);
 
   const r = scaleRadius(body.radiusKm, radiusMode);
   const displayR = isSelected ? r * SELECTED_SCALE : r;
@@ -226,7 +244,7 @@ function InnerScene({
       <SceneSetup />
 
       {/* Lighting */}
-      <ambientLight intensity={0.06} color="#102030" />
+      <ambientLight intensity={0.18} color="#0a1520" />
       <pointLight
         position={[0, 0, 0]}
         intensity={4}
@@ -308,7 +326,7 @@ export default function SolarSystemScene(props: SolarSystemSceneProps) {
   return (
     <Suspense fallback={<SceneLoading />}>
       <Canvas
-        camera={{ position: [0, 10, 30], fov: 60, near: 0.01, far: 5000 }}
+        camera={{ position: [0, 5, 10], fov: 60, near: 0.01, far: 2000 }}
         style={{ background: "#000008" }}
         gl={{ antialias: true, alpha: false }}
       >
