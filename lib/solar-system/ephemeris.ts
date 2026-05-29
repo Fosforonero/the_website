@@ -35,8 +35,10 @@ function solveKepler(M: number, e: number): number {
   const Mn = ((M % twoPi) + twoPi) % twoPi;
 
   let E = Mn; // initial guess
-  for (let i = 0; i < 3; i++) {
-    E = E - (E - e * Math.sin(E) - Mn) / (1 - e * Math.cos(E));
+  for (let i = 0; i < 10; i++) {
+    const dE = (E - e * Math.sin(E) - Mn) / (1 - e * Math.cos(E));
+    E -= dE;
+    if (Math.abs(dE) < 1e-10) break;
   }
   return E;
 }
@@ -115,8 +117,8 @@ export function getBodyStatesForDate(date: Date): BodyState[] {
       body.eccentricity !== undefined &&
       body.inclinationDeg !== undefined
     ) {
-      const M =
-        (2 * Math.PI * (daysSinceJ2000 / body.orbitalPeriodDays)) % (2 * Math.PI);
+      const twoPi = 2 * Math.PI;
+      const M = ((2 * Math.PI * (daysSinceJ2000 / body.orbitalPeriodDays)) % twoPi + twoPi) % twoPi;
       pos = keplerToXyz(
         body.semiMajorAxisKm,
         body.eccentricity,
@@ -146,8 +148,8 @@ export function getBodyStatesForDate(date: Date): BodyState[] {
       body.eccentricity !== undefined &&
       body.inclinationDeg !== undefined
     ) {
-      const M =
-        (2 * Math.PI * (daysSinceJ2000 / body.orbitalPeriodDays)) % (2 * Math.PI);
+      const twoPi = 2 * Math.PI;
+      const M = ((2 * Math.PI * (daysSinceJ2000 / body.orbitalPeriodDays)) % twoPi + twoPi) % twoPi;
       localPos = keplerToXyz(
         body.semiMajorAxisKm,
         body.eccentricity,

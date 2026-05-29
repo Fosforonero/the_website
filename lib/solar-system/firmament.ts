@@ -119,29 +119,18 @@ export const CONSTELLATION_LINES: ConstellationLine[] = [
 
   // ── Leo ────────────────────────────────────────────────────────────────────
   { constellationId: "leo", fromStarId: "regulus",   toStarId: "denebola",  sourceIds: ["stellariumSkyCultures"] },
-  { constellationId: "leo", fromStarId: "regulus",   toStarId: "aldebaran", sourceIds: ["stellariumSkyCultures"] }, // via sickle — approximate
-  { constellationId: "leo", fromStarId: "denebola",  toStarId: "zosma",     sourceIds: ["stellariumSkyCultures"] }, // zosma not in list — omit
-  // Use actual Leo sickle stars we have:
-  { constellationId: "leo", fromStarId: "regulus",   toStarId: "pollux",    sourceIds: ["stellariumSkyCultures"] },
 
   // ── Scorpius ───────────────────────────────────────────────────────────────
   { constellationId: "scorpius", fromStarId: "antares", toStarId: "shaula",  sourceIds: ["stellariumSkyCultures"] },
   { constellationId: "scorpius", fromStarId: "shaula",  toStarId: "sargas",  sourceIds: ["stellariumSkyCultures"] },
   { constellationId: "scorpius", fromStarId: "antares", toStarId: "sargas",  sourceIds: ["stellariumSkyCultures"] },
 
-  // ── Taurus ─────────────────────────────────────────────────────────────────
-  { constellationId: "taurus", fromStarId: "aldebaran", toStarId: "rigel",    sourceIds: ["stellariumSkyCultures"] },
-  { constellationId: "taurus", fromStarId: "aldebaran", toStarId: "mintaka",  sourceIds: ["stellariumSkyCultures"] },
-
   // ── Cygnus (Northern Cross) ────────────────────────────────────────────────
   { constellationId: "cygnus", fromStarId: "deneb",     toStarId: "sadr",         sourceIds: ["stellariumSkyCultures"] },
-  { constellationId: "cygnus", fromStarId: "sadr",      toStarId: "altair",       sourceIds: ["stellariumSkyCultures"] },
   { constellationId: "cygnus", fromStarId: "sadr",      toStarId: "gienah-cyg",   sourceIds: ["stellariumSkyCultures"] },
-  { constellationId: "cygnus", fromStarId: "sadr",      toStarId: "vega",         sourceIds: ["stellariumSkyCultures"] },
 
   // ── Aquila ─────────────────────────────────────────────────────────────────
-  { constellationId: "aquila", fromStarId: "altair",  toStarId: "deneb",    sourceIds: ["stellariumSkyCultures"] },
-  { constellationId: "aquila", fromStarId: "altair",  toStarId: "vega",     sourceIds: ["stellariumSkyCultures"] },
+  // (only altair is catalogued; no valid within-constellation lines available)
 ];
 
 // ---------------------------------------------------------------------------
