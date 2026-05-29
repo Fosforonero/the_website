@@ -98,6 +98,7 @@ export function blogPostingLd(post: BlogPostMeta) {
     dateModified: post.date,
     inLanguage: post.locale,
     url,
+    image: post.image ? `${site.url}${post.image}` : `${site.url}/opengraph-image`,
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
     author: { "@type": "Person", name: site.author.name, url: site.url },
     publisher: {

@@ -11,6 +11,7 @@ export function PeriodicTableAboutView({ locale }: AboutViewProps) {
 
   const PAGE_URL = `${site.url}${locale === "en" ? "/en" : ""}/lab/tavola-periodica/about`;
   const APP_URL  = `${site.url}${locale === "en" ? "/en" : ""}/lab/tavola-periodica`;
+  const MANUAL_URL = locale === "en" ? "/en/lab/tavola-periodica/manual" : "/lab/tavola-periodica/manuale";
 
   const PROJECTS = [
     {
@@ -107,6 +108,12 @@ export function PeriodicTableAboutView({ locale }: AboutViewProps) {
           position: sticky;
           top: 0;
           z-index: 10;
+        }
+        .ab-nav-links {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-wrap: wrap;
         }
         .ab-nav-back {
           font-family: inherit;
@@ -376,9 +383,14 @@ export function PeriodicTableAboutView({ locale }: AboutViewProps) {
       <div className="ab" itemScope itemType="https://schema.org/WebPage">
         {/* Nav */}
         <nav className="ab-nav" aria-label="Navigazione">
-          <Link href={APP_URL} className="ab-nav-back">
-            {t.backLink}
-          </Link>
+          <div className="ab-nav-links">
+            <Link href={APP_URL} className="ab-nav-back">
+              {t.backLink}
+            </Link>
+            <Link href={MANUAL_URL} className="ab-nav-back">
+              {locale === "en" ? "manual" : "manuale"}
+            </Link>
+          </div>
           <Link href={locale === "en" ? "/en" : "/"} className="ab-nav-brand">
             fosforonero.com
           </Link>

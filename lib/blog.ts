@@ -14,6 +14,8 @@ export type BlogPostMeta = {
   excerpt: string;
   date: string; // ISO yyyy-mm-dd
   tag: string;
+  image?: string;
+  imageAlt?: string;
   readingTime: string;
   readingMinutes: number;
   locale: Locale;
@@ -54,6 +56,8 @@ export async function getAllPosts(locale: Locale): Promise<BlogPostMeta[]> {
         excerpt: String(data.excerpt ?? ""),
         date: String(data.date ?? ""),
         tag: String(data.tag ?? ""),
+        image: data.image ? String(data.image) : undefined,
+        imageAlt: data.imageAlt ? String(data.imageAlt) : undefined,
         readingTime: rt.text,
         readingMinutes: Math.max(1, Math.round(rt.minutes)),
         locale,
@@ -79,6 +83,8 @@ export async function getPost(locale: Locale, slug: string): Promise<BlogPost | 
       excerpt: String(data.excerpt ?? ""),
       date: String(data.date ?? ""),
       tag: String(data.tag ?? ""),
+      image: data.image ? String(data.image) : undefined,
+      imageAlt: data.imageAlt ? String(data.imageAlt) : undefined,
       readingTime: rt.text,
       readingMinutes: Math.max(1, Math.round(rt.minutes)),
       locale,

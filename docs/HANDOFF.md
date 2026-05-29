@@ -1,98 +1,112 @@
 # Fosforonero — Handoff
 
 > Documento di passaggio tra sessioni. Aggiornato a fine sessione corrente.
-> **Ultimo aggiornamento: 2026-05-23** (sessione 2, fine giornata)
+> **Ultimo aggiornamento: 2026-05-28 18:00 CEST** (sessione tavola periodica + SEO/GEO + landing preview)
 >
-> 🎯 **Domani: review + go-live.** Si toglie la Coming Soon dalla home e
-> si pubblica la Landing completa. Vedi sezione "Sessione 3 — checklist
-> review + go-live" subito sotto.
+> 🎯 **Domani: review landing preview + decisione go-live.** La home completa
+> è già pronta in `/preview` e `/en/preview`, aggiornata con le ultime info.
+> La home pubblica `/` e `/en` resta in modalità welcome/Coming Soon finché
+> non si fa lo swap esplicito.
 
 ---
 
-## Sessione 2 — cosa è cambiato oggi (23 maggio 2026)
+## Sessione 2026-05-28 — stato finale
 
-### Contenuti
-- **Bio "Chi sono"** estesa con 3° paragrafo che racconta l'origine del nome
-  (fosforo nero — esame chimica all'università). Sia IT che EN.
-- **Articolo blog rinominato + riscritto** da zero:
-  - Vecchio: `splitvote-niente-account` (premessa falsa) — RIMOSSO
-  - Nuovo IT: `/blog/splitvote-account-opzionali` — live, non draft
-  - Nuovo EN: `/en/blog/splitvote-optional-accounts` — live, non draft
+### Tavola periodica — SEO, contenuti e documentazione
+- **Manuale pubblico bilingue aggiunto**:
+  - IT: `/lab/tavola-periodica/manuale`
+  - EN: `/en/lab/tavola-periodica/manual`
+  - Include metadata SEO, canonical, hreflang, OG image, JSON-LD `WebPage`,
+    `HowTo`, `FAQPage`, `BreadcrumbList`.
+- **About tavola periodica rifinito**: metadata accorciati nelle soglie SEO,
+  link al manuale aggiunto nella nav, fonti/roadmap ancora server-rendered.
+- **Pagina principale tavola periodica**: aggiunto JSON-LD `WebApplication`
+  su IT/EN, metadata description accorciate, link `manuale/manual` nel menu.
+- **Sitemap aggiornata** con manuale IT/EN e alternates reciproci.
+- **`/llms.txt` aggiunto** per GEO/AI crawler con home, blog, lab, manuale,
+  about tavola e autore.
 
-### Nuove pagine pubbliche
-- **`/identita` + `/en/identity`** — brand identity page (sostituisce
-  `/lab/p15` rimossa). 6 sezioni: nome, simbolo scomposto con annotazioni
-  chimiche verificate su Wikipedia, variante negativa su sfondo dark,
-  palette, tipografia, riferimento scientifico. Linkata da Nav, ComingSoon
-  e sitemap. Hreflang reciproci IT⇄EN.
-- **`/preview` + `/en/preview`** — Landing completa accessibile durante il
-  periodo Coming Soon (per review interna). Noindex, esclusa da sitemap.
+### Articoli blog in bozza
+- Aggiunte 4 bozze MDX (`draft: true`, visibili in dev/preview, nascoste in
+  produzione):
+  - `content/blog/it/tavola-periodica-interattiva-idea.mdx`
+  - `content/blog/it/tavola-periodica-webgl-sviluppo.mdx`
+  - `content/blog/en/tavola-periodica-interattiva-idea.mdx`
+  - `content/blog/en/tavola-periodica-webgl-sviluppo.mdx`
+- Aggiunti screenshot reali 1200×630 in `public/blog/tavola-periodica/`:
+  - `tavola-periodica-interattiva-3d.png`
+  - `modello-atomo-fosforo-webgl.png`
+- `lib/blog.ts`, blog post metadata e `BlogPosting` JSON-LD supportano ora
+  `image` e `imageAlt` nel frontmatter.
 
-### Loghi P¹⁵ — assegnati
-- **V0 (P15Box)** — primary mark: Nav (32px), Footer (28px), ComingSoon
-  (88px glow), `/identita` annotata (240px), OG image, favicon.
-- **V6 (P15Mono)** — editorial signature: `/identita` hero (180px).
-- **Negative variants**: sezione "Variante negativa" di `/identita` su
-  sfondo `--color-ink`.
+### Landing completa aggiornata
+- La home completa esiste in:
+  - `/preview`
+  - `/en/preview`
+- Aggiornata con ultime info:
+  - metriche: `04` progetti
+  - stack: `Next · AI · 3D`
+  - status: `03 LIVE · LAB · APP · TOOLING`
+  - copy Tavola Periodica aggiornato con manuale, fonti, heatmap,
+    ossidazioni, mobile e modelli atomici.
+  - copy SiteBrain aggiornato come WIP realistico.
+  - sezione blog preview mostra 6 articoli, inclusi i 2 draft della tavola.
+- Controllo visivo fatto su desktop e mobile: layout OK.
 
-### SEO — link improvements
-1. **BreadcrumbList JSON-LD** su 8 deep pages (blog post IT+EN, identita
-   IT+EN, privacy IT+EN, cookies IT+EN). Google mostrerà breadcrumb nella
-   SERP invece dell'URL grezzo.
-2. **PostNav** sotto ogni articolo del blog: prev/next chronological
-   (con `rel="prev"`/`rel="next"`) + fino a 3 articoli correlati
-   (priorità: stesso tag, poi cronologici). Componente
-   `components/parts/post-nav.tsx`. Helper `getAdjacentPosts` e
-   `getRelatedPosts` in `lib/blog.ts`.
-3. **Annotation P¹⁵ corretta**: la 4ª annotazione su `/identita` mostra
-   ora `[Ne] 3s² 3p³` / "Configurazione elettronica" (era `3p³` /
-   "Elettroni di valenza", impreciso — 3p³ sono solo 3 dei 5 elettroni
-   di valenza). Verifica chimica fatta su Wikipedia IT.
+### Claude Code / token hygiene
+- Aggiunto `.claude/settings.json` con deny su `.env`, `.vercel`,
+  `node_modules`, `.next`, `build`, `dist`, `coverage`.
+- Aggiunti slash command:
+  - `.claude/commands/handoff.md`
+  - `.claude/commands/seo-audit.md`
+- Aggiunto hook `scripts/claude/prevent-generated-edits.mjs`.
+- `CLAUDE.md` aggiornato con routine token e regola “fail loud, never fake”.
 
-### Verifica chimica (Wikipedia IT/Fosforo)
-Tutti i dati sul logo + pagina identità sono stati controllati contro
-[https://it.wikipedia.org/wiki/Fosforo](https://it.wikipedia.org/wiki/Fosforo):
-Z=15, P, massa 30.974 u (mostriamo 30.97), `[Ne] 3s² 3p³`, gruppo 15,
-periodo 3, blocco p, stati ox +5/±3/+4, allotropi bianco/rosso/nero/violetto,
-scoperto da Hennig Brand nel 1669, dal greco *phōsphóros* "portatore di
-luce". Tutto corretto sul sito.
+### Verifiche eseguite
+- `pnpm typecheck` ✅
+- `pnpm build` ✅
+- `pnpm seo:audit -- --url=http://localhost:3000` ✅
+  - 0 errori
+  - 2 warning preesistenti su slug SplitVote IT/EN
+- `pnpm lint` ❌ ancora rosso per problemi preesistenti:
+  - `app/sitebrain/success/page.tsx`: apostrofo non escapato
+  - `components/lab/atom-scene.tsx`: `Math.random`/refs durante render
+  - `components/lab/periodic-table-view.tsx`: `setState` sincrono in effect
 
-### Nota tecnica
-- Per le 4 pagine legali il nuovo JSON-LD passa per `next/script` invece
-  del raw inline-HTML pattern (un security hook bloccava nuove istanze
-  del pattern raw). Stesso risultato in HTML, pattern documentato Next.js.
+### Stato git
+- Branch corrente: `init`
+- Molti file modificati/non tracciati non sono ancora committati.
+- Non è stato fatto push.
 
 ---
 
-## Sessione 3 — checklist review + go-live (24 maggio 2026)
+## Domani — checklist consigliata
 
-### Review (insieme, prima di andare live)
-- [ ] Aprire `pnpm dev` e navigare `/preview` (IT) + `/en/preview` (EN) —
-      confermare che la Landing è ok e la nuova bio "Chi sono" suona bene
-- [ ] Aprire `/identita` + `/en/identity` — confermare che le sei sezioni
-      sono ok (in particolare l'annotation `[Ne] 3s² 3p³`)
-- [ ] Aprire un articolo del blog (es. `/blog/stack-2026`) — confermare
-      che il PostNav (prev/next + correlati) funziona e le breadcrumb
-      JSON-LD sono in `<head>`
-- [ ] Lighthouse audit su `/preview` — target ≥ 95 in tutte le categorie
+### 1. Review visuale
+- [ ] Aprire `http://localhost:3000/preview`
+- [ ] Aprire `http://localhost:3000/en/preview`
+- [ ] Controllare progetti, blog, copy Tavola Periodica, SiteBrain e mobile.
+- [ ] Aprire manuale:
+  - `/lab/tavola-periodica/manuale`
+  - `/en/lab/tavola-periodica/manual`
 
-### Go-live (swap Coming Soon → Landing)
-Modifica minima, 2 file:
-1. `app/page.tsx` — sostituire `<ComingSoon locale="it" />` con
-   `<Landing locale="it" posts={posts} />` (import + `await getAllPosts("it")`
-   già pronti commentati nello stesso file)
-2. `app/en/page.tsx` — stessa cosa per EN
-3. Cancellare le route `/preview` e `/en/preview` (non più necessarie)
-4. Rimuovere il link "Scopri l'identità del marchio" dal ComingSoon (o
-   rimuovere ComingSoon completamente se non torna più utile)
+### 2. Decidere pubblicazione
+- Opzione A: **tenere welcome/Coming Soon** su `/` e `/en`, lasciando la
+  landing completa in preview.
+- Opzione B: **swap preview → home**:
+  1. `app/page.tsx`: usare `Landing` + `getAllPosts("it")`
+  2. `app/en/page.tsx`: usare `Landing` + `getAllPosts("en")`
+  3. riattivare `projectsListLd` sulla home
+  4. aggiornare `scripts/seo/audit.ts` aspettandosi `ItemList` su `/` e `/en`
+  5. decidere se rimuovere `/preview` o lasciarlo `noindex`
 
-### Post go-live
-- [ ] Commit + push (branch `responsive`)
-- [ ] **Promote** in Production dalla Vercel UI (il branch responsive non
-      auto-promuove — vedi sezione "Vercel promote workflow" sotto)
-- [ ] Ping IndexNow per i nuovi URL della Landing (avviene auto via GitHub
-      Actions al prossimo cron — o forzabile a mano lanciando il workflow)
-- [ ] Riaggiornare HANDOFF.md con stato finale + step opzionali futuri
+### 3. Prima del deploy
+- [ ] Sistemare o accettare temporaneamente `pnpm lint` rosso.
+- [ ] Decidere se pubblicare i due articoli tavola: togliere `draft: true`
+      solo quando copy e immagini sono approvati.
+- [ ] Commit ordinato su `init`.
+- [ ] Push su GitHub.
+- [ ] Vercel deploy/production check.
 >
 > ✅ **SITO LIVE su https://fosforonero.com** (Coming Soon mode).
 > Tutte le 10 route (`/`, `/en`, `/blog`, `/en/blog`, `/privacy`, `/cookies`,

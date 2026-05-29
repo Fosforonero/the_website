@@ -10,7 +10,7 @@ const PAGE_URL_IT = `${site.url}/lab/tavola-periodica`;
 export const metadata: Metadata = {
   title: "Interactive 3D Periodic Table · Fosforonero Lab",
   description:
-    "Interactive chemical periodic table with 3D WebGL atomic visualizations. Explore 118 elements and 5 historical atomic models from Thomson to Schrödinger. Responsive, free, and serverless.",
+    "Interactive periodic table with 3D WebGL atoms. Explore 118 elements and 5 historical models from Thomson to Schrödinger. Free, responsive, in your browser.",
   alternates: {
     canonical: PAGE_URL,
     languages: {
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     url: PAGE_URL,
     siteName: site.name,
     title: "Interactive 3D Periodic Table · Fosforonero Lab",
-    description: "118 elements with real-time 3D WebGL atomic visualizations. 5 historical models, physical properties heatmaps, responsive. Try it free in the browser.",
+    description: "118 elements with real-time 3D WebGL atoms. 5 historical models, physical property heatmaps, free in the browser.",
     images: [{ url: `${site.url}/opengraph-image`, width: 1200, height: 630, alt: "Interactive Periodic Table — Fosforonero Lab" }],
   },
   twitter: { card: "summary_large_image" },
@@ -33,9 +33,35 @@ export const metadata: Metadata = {
 };
 
 export default function TavolaPeriodicaEn() {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "@id": PAGE_URL,
+    name: "Interactive 3D Periodic Table",
+    alternateName: "Tavola Periodica Interattiva 3D",
+    description: metadata.description,
+    url: PAGE_URL,
+    applicationCategory: "EducationalApplication",
+    operatingSystem: "Web",
+    inLanguage: ["it", "en"],
+    offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
+    author: {
+      "@type": "Person",
+      name: site.author.name,
+      url: site.url,
+    },
+    keywords: "periodic table, 3D atom, WebGL, chemistry, chemical elements, atomic models, Three.js",
+  };
+
   return (
-    <Suspense fallback={<div className="atom-loading">...</div>}>
-      <PeriodicTableView locale="en" />
-    </Suspense>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <Suspense fallback={<div className="atom-loading">...</div>}>
+        <PeriodicTableView locale="en" />
+      </Suspense>
+    </>
   );
 }

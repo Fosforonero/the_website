@@ -46,6 +46,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
+  const manualEntry: MetadataRoute.Sitemap = [
+    {
+      url: `${site.url}/lab/tavola-periodica/manuale`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.7,
+      alternates: {
+        languages: {
+          it: `${site.url}/lab/tavola-periodica/manuale`,
+          en: `${site.url}/en/lab/tavola-periodica/manual`,
+        },
+      },
+    },
+  ];
+
   // Blog posts — separate per locale (slugs may differ across languages)
   const postEntries: MetadataRoute.Sitemap = [];
   for (const locale of locales) {
@@ -60,5 +75,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  return [...staticEntries, ...identityEntry, ...postEntries];
+  return [...staticEntries, ...identityEntry, ...manualEntry, ...postEntries];
 }

@@ -1054,6 +1054,9 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
               <Link href={locale === "en" ? "/en/lab/tavola-periodica/about" : "/lab/tavola-periodica/about"} className="pt-about-link">
                 {t.aboutLink}
               </Link>
+              <Link href={locale === "en" ? "/en/lab/tavola-periodica/manual" : "/lab/tavola-periodica/manuale"} className="pt-about-link">
+                {t.manualLink}
+              </Link>
               <DonateButton locale={locale} />
             </>
           )}

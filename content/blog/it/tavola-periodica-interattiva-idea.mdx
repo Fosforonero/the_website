@@ -1,0 +1,55 @@
+---
+title: "Perché ho costruito una tavola periodica interattiva"
+excerpt: "L'idea dietro la tavola periodica 3D di Fosforonero: chimica, storia dei modelli atomici e visualizzazione WebGL in un laboratorio accessibile dal browser."
+date: "2026-05-28"
+tag: "Lab"
+image: "/blog/tavola-periodica/tavola-periodica-interattiva-3d.png"
+imageAlt: "Tavola periodica interattiva 3D di Fosforonero con 118 elementi e scena atomica WebGL"
+draft: true
+---
+
+La tavola periodica è una delle interfacce scientifiche più riuscite di sempre: in una griglia compatta tiene insieme numero atomico, famiglie chimiche, proprietà ricorrenti e una parte importante della storia della materia.
+
+Il problema è che spesso viene trattata come un poster statico. Funziona bene per consultare un simbolo o una massa atomica, ma racconta poco del passaggio che mi interessava di più: cosa succede quando da una casella si scende di scala, fino all'atomo.
+
+La [Tavola Periodica Interattiva](/lab/tavola-periodica) nasce da lì.
+
+![Tavola periodica interattiva 3D di Fosforonero con griglia degli elementi e scena atomica WebGL](/blog/tavola-periodica/tavola-periodica-interattiva-3d.png "Tavola periodica interattiva 3D nel browser")
+
+## Una tavola che si esplora
+
+L'obiettivo non era rifare Wikipedia in miniatura. Volevo costruire uno strumento più fisico: clicchi un elemento, lo isoli, vedi i suoi dati essenziali e puoi cambiare modello atomico per guardarlo con occhi diversi.
+
+Per questo la pagina non mostra solo i 118 elementi. Accanto alla griglia c'è una scena 3D in tempo reale con cinque modelli storici:
+
+- Thomson, con l'idea dell'atomo come massa positiva diffusa
+- Rutherford, con nucleo compatto ed elettroni in orbita
+- Bohr, con gusci energetici discreti
+- Sommerfeld, con orbite ellittiche
+- Schrödinger, con una rappresentazione più probabilistica
+
+Non sono modelli equivalenti e non vanno letti come "skin" grafiche dello stesso oggetto. Sono passaggi concettuali. Metterli nello stesso strumento aiuta a vedere quanto la scienza sia anche storia dei modelli: ogni rappresentazione risolve qualcosa e lascia aperto qualcos'altro.
+
+## L'ispirazione: cambiare scala
+
+Nella pagina [about della tavola](/lab/tavola-periodica/about) cito *Powers of Ten* di Charles e Ray Eames. È il riferimento giusto perché il progetto non nasce solo dalla chimica, ma dall'idea di attraversare scale diverse senza perdere orientamento.
+
+Oggi la tavola mostra soprattutto il passaggio elemento-atomo. La direzione è più ampia: materiale macroscopico, struttura cristallina, atomo, nucleo, particelle sub-nucleari. Non come simulazione perfetta, ma come mappa visiva progressiva.
+
+È una forma di divulgazione che mi interessa molto: abbastanza accurata da non diventare decorazione, abbastanza interattiva da invitare a provare.
+
+## Perché farla nel browser
+
+Il browser è il posto naturale per questo tipo di esperimento. Non serve installare nulla, non serve un account, non serve un server che calcoli la scena a ogni richiesta. Tutto gira lato client: dati, interazione, rendering 3D.
+
+Questo ha un limite evidente: devo essere attento al peso della pagina, alle prestazioni mobile e al fallback dei contenuti indicizzabili. Ma ha anche un vantaggio enorme: una persona può aprire un link e iniziare subito a esplorare.
+
+Per un progetto educativo gratuito, l'assenza di attrito è una feature.
+
+## Cosa voglio migliorare
+
+La parte più interessante deve ancora arrivare. La roadmap include isotopi, viste dei materiali, transizioni di stato con slider temperatura, strutture cristalline e uno zoom più profondo nel nucleo.
+
+La domanda che guida tutto è semplice: quanto posso rendere visibile senza trasformare lo strumento in un giocattolo confuso?
+
+La tavola periodica è già una grande astrazione. Il lavoro è rispettarla, e aggiungere movimento solo dove aiuta davvero a capire.

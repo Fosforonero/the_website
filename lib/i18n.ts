@@ -158,13 +158,13 @@ const it: Dict = {
   },
   metrics: {
     projects: "PROGETTI",
-    projectsSub: "attivi",
+    projectsSub: "nel portfolio",
     since: "DAL",
     sinceSub: "sviluppo software",
     base: "BASE",
     baseSub: "Italia",
     stack: "STACK",
-    stackSub: "principali",
+    stackSub: "core + AI",
   },
   about: {
     eyebrow: "§ I — Chi sono",
@@ -188,7 +188,7 @@ const it: Dict = {
   projects: {
     eyebrow: "§ II — Progetti",
     headline: "Progetti.",
-    statusLine: "02 LIVE · 01 IN BETA",
+    statusLine: "LAB · APP · TOOLING",
     openProject: "Apri progetto",
     pendingLabel: "04 · IN ARRIVO",
     pendingText: "Progetto non ancora pubblico",
@@ -317,13 +317,13 @@ const en: Dict = {
   },
   metrics: {
     projects: "PROJECTS",
-    projectsSub: "shipping",
+    projectsSub: "in portfolio",
     since: "SINCE",
     sinceSub: "building software",
     base: "BASED IN",
     baseSub: "Italy",
     stack: "STACK",
-    stackSub: "primary",
+    stackSub: "core + AI",
   },
   about: {
     eyebrow: "§ I — About",
@@ -347,7 +347,7 @@ const en: Dict = {
   projects: {
     eyebrow: "§ II — Projects",
     headline: "Projects.",
-    statusLine: "02 LIVE · 01 IN BETA",
+    statusLine: "LAB · APPS · TOOLING",
     openProject: "Open project",
     pendingLabel: "04 · IN PROGRESS",
     pendingText: "Not public yet",

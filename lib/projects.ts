@@ -79,14 +79,14 @@ export const projects: Project[] = [
     brand: "#60a5fa",
     copy: {
       it: {
-        tagline: "Tutti i 118 elementi con atomo 3D in WebGL.",
+        tagline: "118 elementi, atomi 3D e manuale interattivo.",
         description:
-          "Tavola periodica interattiva con visualizzazione tridimensionale dell'atomo per ogni elemento. Elettroni animati con trail luminosi, bloom post-processing e modelli Bohr/Schrödinger. Costruita con React Three Fiber direttamente nel browser.",
+          "Tavola periodica interattiva con 118 elementi, heatmap fisiche, numeri di ossidazione, isotopo stabile, modalità mobile e modelli atomici Thomson, Rutherford, Bohr, Sommerfeld e quantistico. Include pagina about con fonti scientifiche e manuale d'uso bilingue.",
       },
       en: {
-        tagline: "All 118 elements with a 3D WebGL atom viewer.",
+        tagline: "118 elements, 3D atoms and an interactive manual.",
         description:
-          "Interactive periodic table with a real-time 3D atom for every element. Animated electrons with glow trails, bloom post-processing, and Bohr/Schrödinger models. Built with React Three Fiber in the browser.",
+          "Interactive periodic table with 118 elements, physical-property heatmaps, oxidation states, stable isotope, mobile support, and Thomson, Rutherford, Bohr, Sommerfeld and quantum atomic models. Includes scientific sources and a bilingual user manual.",
       },
     },
   },
@@ -101,14 +101,14 @@ export const projects: Project[] = [
     brand: "#f59e0b",
     copy: {
       it: {
-        tagline: "Chatbot RAG self-hosted per WordPress, zero lock-in.",
+        tagline: "Chatbot RAG self-hosted per WordPress.",
         description:
-          "Plugin WordPress con RAG engine self-hosted: indicizza pagine e post, risponde ai visitatori usando i tuoi contenuti effettivi con OpenAI, Anthropic o OpenRouter. Privacy-first, GDPR-ready, handoff lead integrato. Licenza base gratuita, licenze premium disponibili.",
+          "Plugin WordPress con RAG engine self-hosted: indicizza pagine, post e contenuti del sito, poi risponde ai visitatori con OpenAI, Anthropic o OpenRouter. Privacy-first, GDPR-ready, handoff lead integrato e licenze premium in preparazione.",
       },
       en: {
-        tagline: "Self-hosted RAG chatbot for WordPress, zero lock-in.",
+        tagline: "Self-hosted RAG chatbot for WordPress.",
         description:
-          "WordPress plugin with a self-hosted RAG engine: indexes your pages and posts, answers visitors using your actual content via OpenAI, Anthropic, or OpenRouter. Privacy-first, GDPR-ready, built-in lead handoff. Free base license, premium licenses available.",
+          "WordPress plugin with a self-hosted RAG engine: indexes pages, posts and site content, then answers visitors via OpenAI, Anthropic or OpenRouter. Privacy-first, GDPR-ready, built-in lead handoff and premium licenses in progress.",
       },
     },
   },

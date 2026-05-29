@@ -1,0 +1,65 @@
+---
+title: "Sviluppare una tavola periodica 3D con WebGL"
+excerpt: "Note tecniche sullo sviluppo della tavola periodica interattiva: dati chimici, React Three Fiber, modelli atomici, performance e scelte di interfaccia."
+date: "2026-05-28"
+tag: "Dev"
+image: "/blog/tavola-periodica/modello-atomo-fosforo-webgl.png"
+imageAlt: "Modello atomico 3D del fosforo nella tavola periodica WebGL di Fosforonero"
+draft: true
+---
+
+Costruire una [tavola periodica interattiva](/lab/tavola-periodica) sembra, all'inizio, un problema di dati: 118 elementi, simboli, masse atomiche, configurazioni elettroniche, punti di fusione, punti di ebollizione, densità, elettronegatività.
+
+In pratica è soprattutto un problema di interfaccia.
+
+La sfida non è "avere i dati". La sfida è farli convivere con una scena 3D, senza rendere la pagina lenta, rumorosa o impossibile da usare su uno schermo piccolo.
+
+![Modello atomico 3D del fosforo renderizzato in WebGL nella tavola periodica interattiva](/blog/tavola-periodica/modello-atomo-fosforo-webgl.png "Atomo di fosforo in WebGL nella tavola periodica")
+
+## Separare dati, vista e modello atomico
+
+Ho tenuto i dati degli elementi in file strutturati e tipizzati, poi ho costruito la UI intorno a una forma stabile: ogni elemento ha i campi necessari per la griglia, il pannello informativo e la scena atomica.
+
+Questa separazione è importante perché la tavola ha più modalità di lettura:
+
+- vista standard per nome, simbolo, numero atomico e massa
+- heatmap per proprietà fisiche
+- stati della materia
+- blocchi della tavola periodica
+- modalità negativa per leggibilità e contrasto
+
+Se la forma dati resta prevedibile, aggiungere una proprietà o una vista tematica non costringe a riscrivere i componenti principali.
+
+## Perché React Three Fiber
+
+La scena atomica usa Three.js tramite React Three Fiber. La ragione è pragmatica: volevo restare dentro il modello mentale di React, ma con accesso diretto a mesh, luci, materiali, orbite e animazioni.
+
+Ogni modello atomico ha esigenze diverse. Rutherford e Bohr sono relativamente geometrici. Sommerfeld richiede orbite ellittiche. Il modello quantistico è più vicino a una rappresentazione visuale della probabilità che a un sistema di traiettorie.
+
+React Three Fiber permette di comporre questi modelli come componenti separati, mantenendo condivisi controlli come velocità, scala reale, intensità delle stelle, tema e visualizzazione dello spin elettronico.
+
+## La griglia è più difficile della scena 3D
+
+La parte più sorprendente è stata questa: la scena WebGL è complessa, ma la griglia della tavola è quella che richiede più disciplina.
+
+Una tavola periodica deve restare riconoscibile. Le celle devono essere quadrate, i gruppi devono allinearsi, i testi devono rimanere leggibili, le viste tematiche non devono distruggere la gerarchia visiva.
+
+Su desktop il problema è far stare 18 colonne e 11 righe dentro il viewport senza schiacciare tutto. Su mobile il problema è opposto: consentire zoom, pan e selezione senza rendere il tap ambiguo.
+
+La soluzione attuale combina layout CSS vincolato al viewport, celle con aspect ratio stabile, pinch-to-zoom e un flusso di selezione in due passaggi: prima evidenzi l'elemento, poi apri il dettaglio.
+
+## SEO e contenuto indicizzabile
+
+Una pagina molto interattiva rischia di avere poco contenuto leggibile a prima scansione. Per questo ho separato la pagina principale dalla pagina [about](/lab/tavola-periodica/about): la prima è lo strumento, la seconda racconta tecnologia, fonti dati, ispirazione e roadmap.
+
+La prossima ottimizzazione sensata è aggiungere più testo server-rendered intorno alla pagina principale, senza sporcare l'esperienza. Non serve trasformare il laboratorio in un articolo: serve dare ai motori di ricerca e agli utenti un contesto chiaro prima o dopo l'interazione.
+
+## Cosa resta aperto
+
+Le prossime feature tecniche più interessanti sono tre:
+
+- isotopi comuni, perché collegano massa atomica e nucleo
+- vista materiale, perché riporta gli elementi dal simbolo all'oggetto reale
+- strutture cristalline, perché trasformano la tavola da catalogo di atomi a catalogo di materia
+
+La direzione è questa: non aggiungere effetti, ma aggiungere livelli. Ogni nuovo livello deve spiegare qualcosa che la griglia da sola non può mostrare.

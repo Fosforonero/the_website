@@ -81,6 +81,9 @@ type Props = { locale: Locale; posts: BlogPostMeta[] };
 
 export function Landing({ locale, posts }: Props) {
   const t = getDictionary(locale);
+  const liveCount = projects.filter((p) => p.status === "LIVE").length;
+  const activeCount = projects.length;
+  const metricBase = locale === "en" ? "Rome" : "Roma";
 
   return (
     <div
@@ -240,10 +243,10 @@ export function Landing({ locale, posts }: Props) {
               }}
             >
               {[
-                [t.metrics.projects, "02", t.metrics.projectsSub],
+                [t.metrics.projects, String(activeCount).padStart(2, "0"), t.metrics.projectsSub],
                 [t.metrics.since, "2017", t.metrics.sinceSub],
-                [t.metrics.base, "Roma", t.metrics.baseSub],
-                [t.metrics.stack, "Flutter · TS", t.metrics.stackSub],
+                [t.metrics.base, metricBase, t.metrics.baseSub],
+                [t.metrics.stack, "Next · AI · 3D", t.metrics.stackSub],
               ].map(([k, v, sub]) => (
                 <div key={k}>
                   <div
@@ -439,7 +442,7 @@ export function Landing({ locale, posts }: Props) {
                   lineHeight: 1.8,
                 }}
               >
-                {t.projects.statusLine}
+                {String(liveCount).padStart(2, "0")} LIVE · {t.projects.statusLine}
               </div>
             </div>
           </Reveal>
@@ -518,7 +521,7 @@ export function Landing({ locale, posts }: Props) {
                 </div>
               </Reveal>
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                {posts.slice(0, 4).map((post, i) => (
+                {posts.slice(0, 6).map((post, i) => (
                   <Reveal key={post.slug} delay={i * 80}>
                     <BlogRow post={post} idx={i} readLabel={t.blog.read} />
                   </Reveal>

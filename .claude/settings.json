@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "attribution": {
+    "commit": "Co-Authored-By: Fosforonero <hello@fosforonero.com>",
+    "pr": ""
+  },
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./.vercel/**)",
+      "Read(./node_modules/**)",
+      "Read(./.next/**)",
+      "Read(./out/**)",
+      "Read(./build/**)",
+      "Read(./dist/**)",
+      "Read(./coverage/**)",
+      "Read(./docs/seo/last-audit.json)",
+      "Write(./.env)",
+      "Write(./.env.*)",
+      "Write(./.vercel/**)",
+      "Write(./node_modules/**)",
+      "Write(./.next/**)",
+      "Write(./out/**)",
+      "Write(./build/**)",
+      "Write(./dist/**)",
+      "Write(./coverage/**)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/claude/prevent-generated-edits.mjs\""
+          }
+        ]
+      }
+    ]
+  }
+}

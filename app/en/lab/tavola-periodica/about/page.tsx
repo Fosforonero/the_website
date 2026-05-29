@@ -6,9 +6,9 @@ const PAGE_URL = `${site.url}/en/lab/tavola-periodica/about`;
 const PAGE_URL_IT = `${site.url}/lab/tavola-periodica/about`;
 
 export const metadata: Metadata = {
-  title: "Interactive 3D Periodic Table — About · Fosforonero Lab",
+  title: "3D Periodic Table: sources and roadmap",
   description:
-    "Interactive chemical periodic table with 3D WebGL atomic visualizations. 118 elements, 5 historical atomic models (Thomson, Rutherford, Bohr, Sommerfeld, quantum), dark/light mode. Technology, roadmap and scientific sources.",
+    "Technology, scientific sources, and roadmap for the interactive 3D periodic table: 118 elements, historical atomic models, WebGL, dark/light mode.",
   alternates: {
     canonical: PAGE_URL,
     languages: {
@@ -22,8 +22,8 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: PAGE_URL,
     siteName: site.name,
-    title: "Interactive 3D Periodic Table — About · Fosforonero Lab",
-    description: "118 elements with 3D WebGL atomic model. 5 historical models from Thomson to Schrödinger, dark/light mode, responsive. Free, open source, in the browser.",
+    title: "3D Periodic Table: sources and roadmap",
+    description: "Sources, technology, and roadmap for the interactive 3D periodic table: 118 elements, historical atomic models, and WebGL.",
     images: [{ url: `${site.url}/opengraph-image`, width: 1200, height: 630, alt: "Interactive Periodic Table — Fosforonero Lab" }],
   },
   twitter: { card: "summary_large_image" },

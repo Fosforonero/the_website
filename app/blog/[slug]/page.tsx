@@ -46,7 +46,9 @@ export async function generateMetadata({
       publishedTime: post.date,
       authors: [site.author.name],
       tags: [post.tag],
+      images: post.image ? [{ url: post.image, alt: post.imageAlt ?? post.title }] : undefined,
     },
+    twitter: { card: "summary_large_image" },
   };
 }
 

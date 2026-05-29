@@ -1,0 +1,582 @@
+import Link from "next/link";
+import { site, type Locale } from "@/lib/site";
+
+type ManualStep = {
+  title: string;
+  body: string;
+};
+
+type ManualSection = {
+  id: string;
+  title: string;
+  body?: string;
+  items?: ManualStep[];
+};
+
+const MANUAL = {
+  it: {
+    navBack: "← tavola periodica",
+    navAbout: "fonti e roadmap",
+    tag: "FOSFORONERO LAB · MANUALE",
+    h1: "Manuale della Tavola Periodica 3D",
+    lead:
+      "Guida rapida per usare la tavola periodica interattiva di Fosforonero: ricerca elementi, viste tematiche, modelli atomici 3D, pannello dati e controlli mobile.",
+    updated: "Aggiornato al 28 maggio 2026",
+    appLabel: "Apri la tavola",
+    aboutLabel: "Leggi fonti e roadmap",
+    tocTitle: "Indice",
+    faqTitle: "Domande rapide",
+    sections: [
+      {
+        id: "iniziare",
+        title: "1. Iniziare",
+        body:
+          "La schermata iniziale mostra tutti i 118 elementi. Ogni cella contiene numero atomico, simbolo, nome e massa atomica. Clicca una volta per evidenziare un elemento; clicca di nuovo sullo stesso elemento per aprire la vista atomica 3D.",
+        items: [
+          { title: "Ricerca", body: "Usa il campo in alto per cercare per nome, simbolo o numero atomico. Se il risultato è unico, premi Invio per aprirlo." },
+          { title: "Lingua", body: "Il selettore IT / EN cambia lingua mantenendo la stessa sezione della tavola. Se sei su un atomo, conserva anche il numero atomico selezionato." },
+          { title: "Tema", body: "Il pulsante chiaro/scuro cambia contrasto e palette. Le preferenze principali restano salvate nel browser." },
+        ],
+      },
+      {
+        id: "viste",
+        title: "2. Viste della tavola",
+        body:
+          "La riga VISTA cambia il modo in cui le celle vengono colorate. Le viste non modificano i dati: servono a leggere pattern chimici e fisici direttamente sulla griglia.",
+        items: [
+          { title: "Categoria", body: "Evidenzia metalli alcalini, alcalino-terrosi, metalloidi, non metalli, alogeni, gas nobili, lantanidi e attinidi." },
+          { title: "Proprietà fisiche", body: "Elettronegatività, raggio atomico, ionizzazione, densità, fusione, ebollizione, affinità elettronica e abbondanza in crosta diventano heatmap." },
+          { title: "Stato fisico e blocco", body: "Mostrano stato della materia a temperatura ambiente e blocco elettronico s, p, d, f." },
+          { title: "NEG", body: "Attiva la variante negativa della palette. È utile quando vuoi leggere valori e contrasti in modo più netto." },
+        ],
+      },
+      {
+        id: "atomo-3d",
+        title: "3. Vista atomo 3D",
+        body:
+          "La vista atomo apre una scena WebGL interattiva. Puoi ruotare, zoomare e confrontare cinque modelli storici dello stesso elemento.",
+        items: [
+          { title: "Thomson", body: "Rappresenta l'atomo come carica positiva diffusa con elettroni immersi nella massa." },
+          { title: "Rutherford", body: "Mostra nucleo compatto ed elettroni in orbita. È utile per visualizzare la separazione nucleo-elettroni." },
+          { title: "Bohr", body: "Organizza gli elettroni in gusci energetici discreti. È la vista più leggibile per shell e configurazione." },
+          { title: "Sommerfeld", body: "Introduce orbite ellittiche e rende più evidente la storia dei modelli atomici." },
+          { title: "Quantistico", body: "Passa da traiettorie a regioni di probabilità, più vicine all'idea moderna di orbitale." },
+        ],
+      },
+      {
+        id: "controlli",
+        title: "4. Controlli della scena",
+        items: [
+          { title: "Scala reale", body: "Aumenta la distanza relativa tra nucleo ed elettroni. È concettualmente più corretta, ma meno compatta." },
+          { title: "VEL", body: "Regola la velocità dell'animazione degli elettroni." },
+          { title: "Stelle", body: "Cambia l'intensità dello sfondo stellare o lo disattiva." },
+          { title: "vdW", body: "Mostra o cambia lo stile della sfera del raggio di van der Waals quando disponibile." },
+          { title: "↑↓", body: "Mostra lo spin elettronico nei modelli Bohr, Rutherford e Sommerfeld." },
+        ],
+      },
+      {
+        id: "pannello-dati",
+        title: "5. Leggere il pannello dati",
+        body:
+          "Il pannello laterale riassume proprietà chimiche e fisiche. I dati sono pensati come riferimento rapido, non come sostituto di un manuale universitario.",
+        items: [
+          { title: "Configurazione shell", body: "Indica quanti elettroni occupano i livelli principali." },
+          { title: "Numeri di ossidazione", body: "Mostrano gli stati comuni o teorici dell'elemento nelle reazioni." },
+          { title: "Temperature", body: "Fusione ed ebollizione sono leggibili in Kelvin, Celsius o Fahrenheit quando disponibili." },
+          { title: "Descrizione", body: "Il testo introduttivo sintetizza ruolo, uso o comportamento dell'elemento." },
+        ],
+      },
+      {
+        id: "mobile",
+        title: "6. Uso da mobile",
+        body:
+          "Su schermi piccoli la tavola resta esplorabile con scroll e zoom. Per evitare aperture accidentali, la selezione funziona in due passaggi anche su touch.",
+        items: [
+          { title: "Pinch-to-zoom", body: "Allarga la griglia con due dita quando vuoi leggere celle piccole." },
+          { title: "Tap singolo", body: "Evidenzia l'elemento e aggiorna l'indicazione in basso." },
+          { title: "Secondo tap", body: "Apre la vista atomica 3D dell'elemento selezionato." },
+        ],
+      },
+      {
+        id: "limiti",
+        title: "7. Limiti e interpretazione",
+        body:
+          "La tavola usa modelli didattici e visualizzazioni qualitative. Le dimensioni, le orbite e le nubi elettroniche aiutano a capire relazioni e storia dei modelli, ma non sono una simulazione quantistica completa.",
+        items: [
+          { title: "Modelli storici", body: "Thomson, Rutherford, Bohr e Sommerfeld sono inclusi per confronto storico, non perché descrivano tutti l'atomo moderno." },
+          { title: "Dati mancanti", body: "Per alcuni elementi sintetici o instabili alcune proprietà possono essere assenti, stimate o non applicabili." },
+          { title: "Fonti", body: "La pagina about elenca IUPAC, NIST, PubChem e WebElements come riferimenti dati principali." },
+        ],
+      },
+    ] satisfies ManualSection[],
+    faqs: [
+      { title: "La tavola periodica è gratuita?", body: "Sì. È accessibile dal browser senza account, installazione o paywall." },
+      { title: "Posso usarla a scuola?", body: "Sì, come supporto didattico e visuale. Per dati ufficiali o verifiche scientifiche usa sempre anche le fonti citate nella pagina about." },
+      { title: "Perché ci sono modelli atomici superati?", body: "Perché aiutano a capire come è cambiata l'idea di atomo nella storia della scienza." },
+    ],
+  },
+  en: {
+    navBack: "← periodic table",
+    navAbout: "sources and roadmap",
+    tag: "FOSFORONERO LAB · MANUAL",
+    h1: "Interactive 3D Periodic Table Manual",
+    lead:
+      "A practical guide to Fosforonero's interactive periodic table: element search, thematic views, 3D atomic models, data panel, and mobile controls.",
+    updated: "Updated on May 28, 2026",
+    appLabel: "Open the table",
+    aboutLabel: "Read sources and roadmap",
+    tocTitle: "Contents",
+    faqTitle: "Quick questions",
+    sections: [
+      {
+        id: "start",
+        title: "1. Getting started",
+        body:
+          "The initial screen shows all 118 elements. Each cell contains atomic number, symbol, name, and atomic mass. Click once to highlight an element; click the same element again to open its 3D atomic view.",
+        items: [
+          { title: "Search", body: "Use the search field to find an element by name, symbol, or atomic number. If there is only one match, press Enter to open it." },
+          { title: "Language", body: "The IT / EN selector changes language while preserving the current table state. When viewing an atom, it keeps the selected atomic number." },
+          { title: "Theme", body: "The light/dark control changes contrast and palette. Main preferences are stored in the browser." },
+        ],
+      },
+      {
+        id: "views",
+        title: "2. Table views",
+        body:
+          "The VIEW row changes how cells are colored. Views do not change the data: they help reveal chemical and physical patterns directly on the grid.",
+        items: [
+          { title: "Category", body: "Highlights alkali metals, alkaline earths, metalloids, nonmetals, halogens, noble gases, lanthanides, and actinides." },
+          { title: "Physical properties", body: "Electronegativity, atomic radius, ionization, density, melting point, boiling point, electron affinity, and crust abundance become heatmaps." },
+          { title: "State and block", body: "Show state of matter at room temperature and electron block s, p, d, f." },
+          { title: "NEG", body: "Enables the negative palette variant. It is useful when you want stronger contrast for values and categories." },
+        ],
+      },
+      {
+        id: "atom-3d",
+        title: "3. 3D atom view",
+        body:
+          "The atom view opens an interactive WebGL scene. You can rotate, zoom, and compare five historical models of the same element.",
+        items: [
+          { title: "Thomson", body: "Represents the atom as a diffuse positive charge with electrons embedded in it." },
+          { title: "Rutherford", body: "Shows a compact nucleus and orbiting electrons. Useful for seeing the nucleus-electron separation." },
+          { title: "Bohr", body: "Places electrons into discrete energy shells. This is the clearest view for shells and configuration." },
+          { title: "Sommerfeld", body: "Introduces elliptical orbits and makes the historical development of atomic models more visible." },
+          { title: "Quantum", body: "Moves from trajectories to probability regions, closer to the modern idea of orbitals." },
+        ],
+      },
+      {
+        id: "controls",
+        title: "4. Scene controls",
+        items: [
+          { title: "Real scale", body: "Increases the relative distance between nucleus and electrons. It is conceptually closer, but less compact." },
+          { title: "Speed", body: "Controls electron animation speed." },
+          { title: "Stars", body: "Changes starfield intensity or turns it off." },
+          { title: "vdW", body: "Shows or changes the van der Waals radius sphere style when available." },
+          { title: "↑↓", body: "Shows electron spin in Bohr, Rutherford, and Sommerfeld models." },
+        ],
+      },
+      {
+        id: "data-panel",
+        title: "5. Reading the data panel",
+        body:
+          "The side panel summarizes chemical and physical properties. It is designed as a quick reference, not as a replacement for a university handbook.",
+        items: [
+          { title: "Shell configuration", body: "Shows how many electrons occupy the main energy levels." },
+          { title: "Oxidation states", body: "Lists common or theoretical oxidation states for reactions." },
+          { title: "Temperatures", body: "Melting and boiling points are readable in Kelvin, Celsius, or Fahrenheit when available." },
+          { title: "Description", body: "The introductory text summarizes role, use, or behavior of the element." },
+        ],
+      },
+      {
+        id: "mobile",
+        title: "6. Mobile use",
+        body:
+          "On small screens the table remains usable with scrolling and zoom. To avoid accidental openings, touch selection also works in two steps.",
+        items: [
+          { title: "Pinch to zoom", body: "Expand the grid with two fingers when cells are too small to read." },
+          { title: "Single tap", body: "Highlights the element and updates the bottom hint." },
+          { title: "Second tap", body: "Opens the 3D atomic view for the selected element." },
+        ],
+      },
+      {
+        id: "limits",
+        title: "7. Limits and interpretation",
+        body:
+          "The table uses educational models and qualitative visualizations. Sizes, orbits, and electron clouds help explain relationships and the history of models, but they are not a complete quantum simulation.",
+        items: [
+          { title: "Historical models", body: "Thomson, Rutherford, Bohr, and Sommerfeld are included for historical comparison, not because they all describe the modern atom." },
+          { title: "Missing data", body: "For some synthetic or unstable elements, some properties may be absent, estimated, or not applicable." },
+          { title: "Sources", body: "The about page lists IUPAC, NIST, PubChem, and WebElements as the main data references." },
+        ],
+      },
+    ] satisfies ManualSection[],
+    faqs: [
+      { title: "Is the periodic table free?", body: "Yes. It runs in the browser with no account, install, or paywall." },
+      { title: "Can I use it in school?", body: "Yes, as a teaching and visual support. For official data or scientific checks, also use the sources cited on the about page." },
+      { title: "Why are outdated atomic models included?", body: "Because they help explain how the idea of the atom changed through the history of science." },
+    ],
+  },
+} as const;
+
+export function PeriodicTableManualView({ locale }: { locale: Locale }) {
+  const t = MANUAL[locale];
+  const prefix = locale === "en" ? "/en" : "";
+  const appPath = `${prefix}/lab/tavola-periodica`;
+  const aboutPath = `${prefix}/lab/tavola-periodica/about`;
+  const manualPath = locale === "en" ? "/en/lab/tavola-periodica/manual" : "/lab/tavola-periodica/manuale";
+  const pageUrl = `${site.url}${manualPath}`;
+  const appUrl = `${site.url}${appPath}`;
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": pageUrl,
+        name: t.h1,
+        description: t.lead,
+        url: pageUrl,
+        inLanguage: locale === "en" ? "en-US" : "it-IT",
+        isPartOf: { "@type": "WebSite", name: site.name, url: site.url },
+        about: {
+          "@type": "WebApplication",
+          name: locale === "en" ? "Interactive 3D Periodic Table" : "Tavola Periodica Interattiva 3D",
+          url: appUrl,
+          applicationCategory: "EducationalApplication",
+        },
+      },
+      {
+        "@type": "HowTo",
+        name: t.h1,
+        description: t.lead,
+        totalTime: "PT5M",
+        step: t.sections.slice(0, 6).map((section, index) => ({
+          "@type": "HowToStep",
+          position: index + 1,
+          name: section.title,
+          text: [section.body, ...(section.items ?? []).map((item) => `${item.title}: ${item.body}`)]
+            .filter(Boolean)
+            .join(" "),
+          url: `${pageUrl}#${section.id}`,
+        })),
+      },
+      {
+        "@type": "FAQPage",
+        mainEntity: t.faqs.map((faq) => ({
+          "@type": "Question",
+          name: faq.title,
+          acceptedAnswer: { "@type": "Answer", text: faq.body },
+        })),
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: site.url },
+          { "@type": "ListItem", position: 2, name: "Lab", item: `${site.url}/lab` },
+          { "@type": "ListItem", position: 3, name: locale === "en" ? "Periodic Table" : "Tavola Periodica", item: appUrl },
+          { "@type": "ListItem", position: 4, name: locale === "en" ? "Manual" : "Manuale", item: pageUrl },
+        ],
+      },
+    ],
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <style>{`
+        .pm {
+          min-height: 100dvh;
+          background: #0c0c18;
+          color: #c8c8d8;
+          font-family: var(--font-mono, ui-monospace, monospace);
+          padding: 0 0 96px;
+        }
+        .pm-nav {
+          position: sticky;
+          top: 0;
+          z-index: 10;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          padding: 14px 24px;
+          border-bottom: 1px solid rgba(255,255,255,0.07);
+          background: rgba(12,12,24,0.94);
+          backdrop-filter: blur(8px);
+        }
+        .pm-nav-group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .pm-chip {
+          color: rgba(238,238,248,0.72);
+          border: 1px solid rgba(255,255,255,0.16);
+          border-radius: 999px;
+          padding: 6px 13px;
+          text-decoration: none;
+          font-size: 11px;
+        }
+        .pm-chip:hover { color: #eeeef8; border-color: rgba(255,255,255,0.34); }
+        .pm-brand {
+          color: rgba(200,200,216,0.36);
+          text-decoration: none;
+          font-size: 11px;
+          letter-spacing: 0.08em;
+        }
+        .pm-body {
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 56px 24px 0;
+        }
+        .pm-hero {
+          display: grid;
+          grid-template-columns: minmax(0, 1.3fr) minmax(260px, 0.7fr);
+          gap: clamp(28px, 5vw, 64px);
+          align-items: start;
+          margin-bottom: 56px;
+        }
+        .pm-tag {
+          margin: 0 0 14px;
+          font-size: 10px;
+          letter-spacing: 0.14em;
+          color: rgba(200,200,216,0.38);
+        }
+        .pm h1 {
+          margin: 0 0 20px;
+          color: #eeeef8;
+          font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+          font-size: clamp(34px, 6vw, 64px);
+          font-weight: 400;
+          line-height: 0.96;
+          letter-spacing: 0;
+        }
+        .pm-lead {
+          max-width: 660px;
+          margin: 0 0 22px;
+          color: rgba(200,200,216,0.72);
+          font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+          font-size: clamp(17px, 2vw, 22px);
+          line-height: 1.45;
+        }
+        .pm-updated {
+          margin: 0;
+          color: rgba(200,200,216,0.42);
+          font-size: 11px;
+        }
+        .pm-cta { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 26px; }
+        .pm-cta-primary {
+          color: #06110a;
+          background: #34d26f;
+          border: 1px solid #34d26f;
+          border-radius: 999px;
+          padding: 10px 16px;
+          text-decoration: none;
+          font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+          font-size: 14px;
+          font-weight: 600;
+        }
+        .pm-cta-secondary {
+          color: rgba(238,238,248,0.78);
+          border: 1px solid rgba(255,255,255,0.16);
+          border-radius: 999px;
+          padding: 10px 16px;
+          text-decoration: none;
+          font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+          font-size: 14px;
+        }
+        .pm-card {
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 8px;
+          background: rgba(255,255,255,0.025);
+          padding: 22px;
+        }
+        .pm-toc-title {
+          margin: 0 0 14px;
+          color: rgba(200,200,216,0.38);
+          font-size: 10px;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+        }
+        .pm-toc {
+          display: grid;
+          gap: 10px;
+          margin: 0;
+          padding: 0;
+          list-style: none;
+        }
+        .pm-toc a {
+          color: #eeeef8;
+          text-decoration: none;
+          font-size: 13px;
+          line-height: 1.35;
+        }
+        .pm-toc a:hover { color: #34d26f; }
+        .pm-section {
+          display: grid;
+          grid-template-columns: 240px minmax(0, 1fr);
+          gap: clamp(20px, 4vw, 48px);
+          padding: 42px 0;
+          border-top: 1px solid rgba(255,255,255,0.07);
+        }
+        .pm-section h2 {
+          position: sticky;
+          top: 74px;
+          align-self: start;
+          margin: 0;
+          color: #eeeef8;
+          font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+          font-size: 22px;
+          font-weight: 500;
+          line-height: 1.12;
+          letter-spacing: 0;
+        }
+        .pm-section-body > p {
+          margin: 0 0 22px;
+          color: rgba(200,200,216,0.68);
+          font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+          font-size: 16px;
+          line-height: 1.72;
+        }
+        .pm-list {
+          display: grid;
+          gap: 12px;
+          margin: 0;
+          padding: 0;
+          list-style: none;
+        }
+        .pm-list li {
+          display: grid;
+          grid-template-columns: minmax(120px, 190px) minmax(0, 1fr);
+          gap: 18px;
+          padding: 16px 0;
+          border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        .pm-list strong {
+          color: #34d26f;
+          font-weight: 600;
+          font-size: 13px;
+        }
+        .pm-list span {
+          color: rgba(200,200,216,0.62);
+          font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+          font-size: 15px;
+          line-height: 1.58;
+        }
+        .pm-faq {
+          margin-top: 32px;
+          padding-top: 42px;
+          border-top: 1px solid rgba(255,255,255,0.07);
+        }
+        .pm-faq h2 {
+          margin: 0 0 20px;
+          color: #eeeef8;
+          font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+          font-size: 28px;
+          font-weight: 500;
+          letter-spacing: 0;
+        }
+        .pm-faq-grid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 14px;
+        }
+        .pm-faq article {
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 8px;
+          padding: 18px;
+          background: rgba(255,255,255,0.025);
+        }
+        .pm-faq h3 {
+          margin: 0 0 10px;
+          color: #eeeef8;
+          font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+          font-size: 16px;
+          font-weight: 500;
+        }
+        .pm-faq p {
+          margin: 0;
+          color: rgba(200,200,216,0.62);
+          font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+          font-size: 14px;
+          line-height: 1.55;
+        }
+        @media (max-width: 820px) {
+          .pm-body { padding: 40px 18px 0; }
+          .pm-hero,
+          .pm-section,
+          .pm-list li,
+          .pm-faq-grid { grid-template-columns: 1fr; }
+          .pm-section h2 { position: static; }
+          .pm-nav { align-items: flex-start; }
+          .pm-brand { display: none; }
+        }
+      `}</style>
+
+      <div className="pm">
+        <nav className="pm-nav" aria-label={locale === "en" ? "Manual navigation" : "Navigazione manuale"}>
+          <div className="pm-nav-group">
+            <Link href={appPath} className="pm-chip">{t.navBack}</Link>
+            <Link href={aboutPath} className="pm-chip">{t.navAbout}</Link>
+          </div>
+          <Link href={locale === "en" ? "/en" : "/"} className="pm-brand">fosforonero.com</Link>
+        </nav>
+
+        <main className="pm-body">
+          <section className="pm-hero" aria-labelledby="manual-title">
+            <div>
+              <p className="pm-tag">{t.tag}</p>
+              <h1 id="manual-title">{t.h1}</h1>
+              <p className="pm-lead">{t.lead}</p>
+              <p className="pm-updated">{t.updated}</p>
+              <div className="pm-cta">
+                <Link href={appPath} className="pm-cta-primary">{t.appLabel}</Link>
+                <Link href={aboutPath} className="pm-cta-secondary">{t.aboutLabel}</Link>
+              </div>
+            </div>
+            <aside className="pm-card" aria-labelledby="manual-toc">
+              <h2 className="pm-toc-title" id="manual-toc">{t.tocTitle}</h2>
+              <ol className="pm-toc">
+                {t.sections.map((section) => (
+                  <li key={section.id}>
+                    <a href={`#${section.id}`}>{section.title}</a>
+                  </li>
+                ))}
+              </ol>
+            </aside>
+          </section>
+
+          {t.sections.map((section) => (
+            <section className="pm-section" id={section.id} key={section.id} aria-labelledby={`${section.id}-title`}>
+              <h2 id={`${section.id}-title`}>{section.title}</h2>
+              <div className="pm-section-body">
+                {section.body && <p>{section.body}</p>}
+                {section.items && (
+                  <ul className="pm-list">
+                    {section.items.map((item) => (
+                      <li key={item.title}>
+                        <strong>{item.title}</strong>
+                        <span>{item.body}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </section>
+          ))}
+
+          <section className="pm-faq" aria-labelledby="manual-faq">
+            <h2 id="manual-faq">{t.faqTitle}</h2>
+            <div className="pm-faq-grid">
+              {t.faqs.map((faq) => (
+                <article key={faq.title}>
+                  <h3>{faq.title}</h3>
+                  <p>{faq.body}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+        </main>
+      </div>
+    </>
+  );
+}
