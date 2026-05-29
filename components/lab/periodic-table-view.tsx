@@ -8,7 +8,7 @@ import { ELEMENTS, CATEGORY_COLOR, gridPosition, type Element } from "@/lib/elem
 import {
   EXTENDED, STATE_COLOR, BLOCK_COLOR,
   type ThematicProperty, type ElementExtended,
-  type ElementState, type ElementBlock,
+  type ElementState, type ElementBlock, type Isotope,
 } from "@/lib/element-extended-data";
 import type { AtomModel, VdWStyle } from "./atom-scene";
 import type { Locale } from "@/lib/site";
@@ -429,6 +429,28 @@ function InfoPanel({ el, locale }: { el: Element; locale: Locale }) {
           <dt>{t.infoStableIsotope}</dt>
           <dd><sup>{A}</sup>{el.sym}</dd>
         </div>
+        {ext && ext.isotopes.length > 0 && (
+          <div className="pt-info__iso-row">
+            <dt>{t.infoNaturalIsotopes}</dt>
+            <dd className="pt-info__isotopes">
+              {ext.isotopes.map((iso: Isotope) => (
+                <span key={iso.massNumber} className="pt-info__iso-badge">
+                  <sup>{iso.massNumber}</sup>{el.sym}
+                  {iso.abundance !== null && (
+                    <span className="pt-info__iso-pct">
+                      {iso.abundance < 0.1
+                        ? iso.abundance.toFixed(3)
+                        : iso.abundance < 1
+                          ? iso.abundance.toFixed(2)
+                          : iso.abundance.toFixed(1)}%
+                    </span>
+                  )}
+                  {iso.name && <span className="pt-info__iso-name">{iso.name}</span>}
+                </span>
+              ))}
+            </dd>
+          </div>
+        )}
         <div>
           <dt>{t.infoShellConfig}</dt>
           <dd className="pt-info__shells">{el.shells.join(" · ")} e⁻</dd>

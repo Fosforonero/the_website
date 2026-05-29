@@ -320,6 +320,41 @@
   font-weight: 700;
   box-shadow: 0 0 6px color-mix(in srgb, var(--ox-color) 20%, transparent);
 }
+.pt-info__iso-row { display: flex; flex-direction: column; gap: 4px !important; }
+.pt-info__isotopes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 0;
+}
+.pt-info__iso-badge {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  background: color-mix(in srgb, #7dd3fc 12%, transparent);
+  border: 1px solid color-mix(in srgb, #7dd3fc 30%, transparent);
+  color: var(--pt-text-secondary, #94a3b8);
+}
+.pt-info__iso-pct {
+  font-size: 10px;
+  opacity: 0.75;
+  margin-left: 1px;
+}
+.pt-info__iso-name {
+  font-size: 9.5px;
+  opacity: 0.65;
+  font-style: italic;
+  margin-left: 2px;
+}
+.pt-root--light .pt-info__iso-badge {
+  background: color-mix(in srgb, #3b82f6 10%, transparent);
+  border-color: color-mix(in srgb, #3b82f6 25%, transparent);
+  color: #374151;
+}
 .pt-info__footer {
   display: flex;
   align-items: center;

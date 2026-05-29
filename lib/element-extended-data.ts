@@ -43,13 +43,24 @@ export interface ElementExtended {
   oxidationStates: number[];
   /** Most common / textbook oxidation state; null if ambiguous or noble gas */
   commonOxidation: number | null;
+  /** 2–3 most abundant natural isotopes; empty for purely synthetic elements */
+  isotopes: Isotope[];
+}
+
+export interface Isotope {
+  /** Mass number A = Z + N */
+  massNumber: number;
+  /** Natural abundance 0–100 %; null for trace / radioactive-only */
+  abundance: number | null;
+  /** Common Italian name (e.g. "deuterio", "uranio-235") */
+  name?: string;
 }
 
 // ─── Data table ───────────────────────────────────────────────────────────────
 // Columns: z, config, block, state, EN, atomR, IE1, density, Tm(K), Tb(K), EA, crust(mg/kg), year, discoverer, description
 // oxidationStates / commonOxidation are merged separately via OX lookup below.
 
-type ElementRaw = Omit<ElementExtended, "oxidationStates" | "commonOxidation">;
+type ElementRaw = Omit<ElementExtended, "oxidationStates" | "commonOxidation" | "isotopes">;
 const RAW: ElementRaw[] = [
   { z:1,   config:"1s¹",                  block:"s", state:"gas",       electronegativity:2.20, atomicRadius:120, ionizationEnergy:1312.0, density:0.0899, meltingPoint:14.0,   boilingPoint:20.3,    electronAffinity:72.8,  crustAbundance:1400,   discoveryYear:1766, discoverer:"Henry Cavendish",       description:"Elemento più leggero e abbondante dell'universo (≈75% della massa barionica). Alimenta le reazioni di fusione stellare e costituisce la base delle molecole organiche; l'elettrolisi dell'acqua ne è la principale fonte industriale." },
   { z:2,   config:"1s²",                  block:"s", state:"gas",       electronegativity:null, atomicRadius:140, ionizationEnergy:2372.3, density:0.1785, meltingPoint:0.95,   boilingPoint:4.2,     electronAffinity:-48,   crustAbundance:0.008,  discoveryYear:1868, discoverer:"Pierre Janssen / Norman Lockyer", description:"Gas nobile con il secondo punto di ebollizione più basso di qualsiasi sostanza (4,22 K). Prodotto primordiale del Big Bang e dalla fusione dell'idrogeno nelle stelle; usato come refrigerante in superconduttori e acceleratori di particelle." },
@@ -295,11 +306,109 @@ const OX: Record<number, [number[], number | null]> = {
   118: [[0, 2, 4],     null],   // Og (predicted)
 };
 
+// ─── Isotopes lookup: [massNumber, abundance%, name?][] ───────────────────────
+// Sources: IUPAC 2021 atomic weights, NUBASE2020. Abundance in %; null = trace/radioactive.
+// Only natural elements with meaningful natural abundance are listed.
+// Monoisotopic: single entry at 100%. Synthetic (Z 43,61,84-89,93-118): absent (→ []).
+const ISO: Record<number, [number, number | null, string?][]> = {
+  1:  [[1, 99.985, "prozio"], [2, 0.015, "deuterio"], [3, null, "trizio"]],
+  2:  [[4, 99.9998], [3, 0.0002]],
+  3:  [[7, 92.5], [6, 7.5]],
+  4:  [[9, 100]],
+  5:  [[11, 80.1], [10, 19.9]],
+  6:  [[12, 98.93], [13, 1.07], [14, null, "carbonio-14"]],
+  7:  [[14, 99.64], [15, 0.36]],
+  8:  [[16, 99.76], [18, 0.20], [17, 0.04]],
+  9:  [[19, 100]],
+  10: [[20, 90.48], [22, 9.25], [21, 0.27]],
+  11: [[23, 100]],
+  12: [[24, 78.99], [26, 11.01], [25, 10.00]],
+  13: [[27, 100]],
+  14: [[28, 92.23], [29, 4.67], [30, 3.10]],
+  15: [[31, 100]],
+  16: [[32, 94.99], [34, 4.25], [33, 0.75]],
+  17: [[35, 75.77], [37, 24.23]],
+  18: [[40, 99.60], [36, 0.34], [38, 0.06]],
+  19: [[39, 93.26], [41, 6.73], [40, 0.01, "potassio-40"]],
+  20: [[40, 96.94], [44, 2.09], [42, 0.65]],
+  21: [[45, 100]],
+  22: [[48, 73.72], [46, 8.25], [47, 7.44]],
+  23: [[51, 99.75], [50, 0.25]],
+  24: [[52, 83.79], [53, 9.50], [50, 4.35]],
+  25: [[55, 100]],
+  26: [[56, 91.75], [54, 5.85], [57, 2.12]],
+  27: [[59, 100]],
+  28: [[58, 68.08], [60, 26.22], [62, 3.63]],
+  29: [[63, 69.15], [65, 30.85]],
+  30: [[64, 48.60], [66, 27.90], [68, 18.75]],
+  31: [[69, 60.11], [71, 39.89]],
+  32: [[74, 36.73], [72, 27.54], [70, 20.57]],
+  33: [[75, 100]],
+  34: [[80, 49.61], [78, 23.77], [76, 9.37]],
+  35: [[79, 50.69], [81, 49.31]],
+  36: [[84, 56.99], [86, 17.28], [82, 11.58]],
+  37: [[85, 72.17], [87, 27.83]],
+  38: [[88, 82.58], [86, 9.86], [87, 7.00]],
+  39: [[89, 100]],
+  40: [[90, 51.45], [94, 17.38], [92, 17.15]],
+  41: [[93, 100]],
+  42: [[98, 24.39], [96, 16.67], [95, 15.84]],
+  // 43: Tc — no stable natural isotopes
+  44: [[102, 31.55], [104, 18.62], [101, 17.06]],
+  45: [[103, 100]],
+  46: [[106, 27.33], [108, 26.46], [105, 22.33]],
+  47: [[107, 51.84], [109, 48.16]],
+  48: [[114, 28.73], [112, 24.13], [111, 12.80]],
+  49: [[115, 95.71], [113, 4.29]],
+  50: [[120, 32.58], [118, 24.22], [116, 14.54]],
+  51: [[121, 57.21], [123, 42.79]],
+  52: [[130, 34.49], [128, 31.74], [126, 18.84]],
+  53: [[127, 100]],
+  54: [[132, 26.89], [129, 26.44], [131, 21.18]],
+  55: [[133, 100]],
+  56: [[138, 71.70], [137, 11.23], [136, 7.85]],
+  57: [[139, 99.91], [138, 0.09]],
+  58: [[140, 88.45], [142, 11.11], [138, 0.25]],
+  59: [[141, 100]],
+  60: [[142, 27.20], [144, 23.80], [146, 17.19]],
+  // 61: Pm — no stable natural isotopes
+  62: [[152, 26.75], [154, 22.75], [147, 14.99]],
+  63: [[153, 52.19], [151, 47.81]],
+  64: [[158, 24.84], [160, 21.86], [156, 20.47]],
+  65: [[159, 100]],
+  66: [[164, 28.18], [162, 25.48], [163, 24.90]],
+  67: [[165, 100]],
+  68: [[166, 33.61], [168, 26.78], [170, 14.93]],
+  69: [[169, 100]],
+  70: [[174, 31.83], [172, 21.68], [173, 16.10]],
+  71: [[175, 97.40], [176, 2.60]],
+  72: [[180, 35.08], [178, 27.28], [177, 18.60]],
+  73: [[181, 99.99], [180, 0.01]],
+  74: [[184, 30.64], [186, 28.43], [182, 26.50]],
+  75: [[187, 62.60], [185, 37.40]],
+  76: [[192, 40.93], [190, 26.26], [188, 13.24]],
+  77: [[193, 62.70], [191, 37.30]],
+  78: [[195, 33.83], [194, 32.97], [196, 25.24]],
+  79: [[197, 100]],
+  80: [[202, 29.86], [200, 23.10], [198, 10.02]],
+  81: [[205, 70.48], [203, 29.52]],
+  82: [[208, 52.40], [206, 24.10], [207, 22.10]],
+  83: [[209, 100]],
+  // 84–89: Po, At, Rn, Fr, Ra, Ac — trace/radioactive, no significant natural abundance
+  90: [[232, 100]],
+  91: [[231, 100]],
+  92: [[238, 99.27], [235, 0.72, "uranio-235"], [234, 0.005]],
+  // 93–118: synthetic elements
+};
+
 // ─── Map indexed by Z ─────────────────────────────────────────────────────────
 export const EXTENDED: Record<number, ElementExtended> = Object.fromEntries(
   RAW.map(e => {
     const [oxidationStates, commonOxidation] = OX[e.z] ?? [[], null];
-    return [e.z, { ...e, oxidationStates, commonOxidation }];
+    const isotopes: Isotope[] = (ISO[e.z] ?? []).map(([massNumber, abundance, name]) => ({
+      massNumber, abundance, ...(name !== undefined ? { name } : {}),
+    }));
+    return [e.z, { ...e, oxidationStates, commonOxidation, isotopes }];
   })
 );
 
