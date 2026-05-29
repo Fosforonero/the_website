@@ -381,7 +381,7 @@ export function MoleculeScene({
       dpr={[1, 2]}
       camera={{ fov: 40, near: 0.1, far: 200, position: [0, 1, 6] }}
     >
-      {!lightMode && <color attach="background" args={["#060610"]} />}
+      {!lightMode && <color attach="background" args={["#09091e"]} />}
       {lightMode  && <color attach="background" args={[lightBg as `#${string}`]} />}
 
       {lightMode ? (
@@ -392,9 +392,9 @@ export function MoleculeScene({
         </>
       ) : (
         <>
-          <ambientLight intensity={0.35} />
-          <pointLight position={[5, 5, 5]} intensity={1.3} />
-          <pointLight position={[-4, -3, -4]} intensity={0.5} color="#4060ff" />
+          <ambientLight intensity={0.65} />
+          <pointLight position={[5, 5, 5]} intensity={1.9} />
+          <pointLight position={[-4, -3, -4]} intensity={0.6} color="#4060ff" />
         </>
       )}
 

@@ -1374,6 +1374,15 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                 className="pt-canvas"
               />
             ) : null}
+            {(crystalView || moleculeView) && (
+              <button
+                className="pt-view-back-btn"
+                onClick={() => { setCrystalView(false); setMoleculeView(false); setMolSearchResult(null); }}
+                title={locale === "en" ? "Back to atom view" : "Torna alla vista atomo"}
+              >
+                ← {locale === "en" ? "atom" : "atomo"}
+              </button>
+            )}
             {lightMode && <div className="pt-canvas-vignette" aria-hidden="true" />}
             {nucleusView && (
               <div className="pt-nucleus-overlay" aria-live="polite">
@@ -1421,15 +1430,17 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
             ↻ {locale === "en" ? "Rotate for best experience" : "Ruota il dispositivo"}
           </div>
 
-          {thematicProp === "none" && <Legend locale={locale} />}
-          <ThematicSelector
-            current={thematicProp}
-            onChange={(p) => { setThematicProp(p); }}
-            locale={locale}
-            negativeMode={negativeMode}
-            onToggleNeg={() => setNegativeMode(v => !v)}
-          />
-          <ThematicLegend prop={thematicProp} range={propRange} locale={locale} />
+          <div className="pt-toolbar">
+            {thematicProp === "none" && <Legend locale={locale} />}
+            <ThematicSelector
+              current={thematicProp}
+              onChange={(p) => { setThematicProp(p); }}
+              locale={locale}
+              negativeMode={negativeMode}
+              onToggleNeg={() => setNegativeMode(v => !v)}
+            />
+            <ThematicLegend prop={thematicProp} range={propRange} locale={locale} />
+          </div>
           <div className="pt-scroll" ref={scrollRef}>
             <div style={gridZoom !== 1 ? { zoom: gridZoom } as React.CSSProperties : undefined}>
               <PeriodicGrid

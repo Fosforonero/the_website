@@ -709,6 +709,18 @@
   overflow: hidden; min-height: 0;
   animation: pt-view-enter 0.18s ease-out;
 }
+
+/* Controls toolbar (legend + thematic selector) — intentional dark bar */
+.pt-toolbar {
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.020);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.pt-root--light .pt-toolbar {
+  background: rgba(0,0,0,0.03);
+  border-bottom-color: rgba(0,0,0,0.09);
+}
+
 .pt-scroll {
   flex: 1; overflow: auto;
   padding: 10px 14px 4px;
@@ -1930,6 +1942,40 @@
 .pt-info__story-btn:hover {
   background: rgba(167,139,250,0.18);
   border-color: rgba(167,139,250,0.45);
+}
+
+/* ── View back button (crystal / molecule → atom) ── */
+.pt-view-back-btn {
+  position: absolute;
+  top: 12px; left: 12px;
+  background: rgba(12,12,28,0.72);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: rgba(216,216,232,0.78);
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  padding: 5px 13px;
+  border-radius: 999px;
+  cursor: pointer;
+  z-index: 10;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.pt-view-back-btn:hover {
+  background: rgba(12,12,28,0.94);
+  color: #eeeef8;
+  border-color: rgba(255,255,255,0.36);
+}
+.pt-root--light .pt-view-back-btn {
+  background: rgba(255,255,255,0.82);
+  border-color: rgba(0,0,0,0.18);
+  color: rgba(10,10,20,0.75);
+}
+.pt-root--light .pt-view-back-btn:hover {
+  background: rgba(255,255,255,0.97);
+  color: #0a0a14;
 }
 
 /* Light mode overrides for story */

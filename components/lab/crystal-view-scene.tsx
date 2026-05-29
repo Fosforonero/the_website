@@ -96,7 +96,7 @@ function LatticeContent({
     const atomMat = new THREE.MeshStandardMaterial({
       color: col,
       emissive: col,
-      emissiveIntensity: lightMode ? 0.08 : 0.30,
+      emissiveIntensity: lightMode ? 0.08 : 0.50,
       roughness: 0.35,
       metalness: lightMode ? 0.1 : 0.5,
     });
@@ -192,10 +192,10 @@ export function CrystalViewScene({
       dpr={[1, 2]}
       camera={{ fov: 38, near: 0.1, far: 200, position: [7, 5, 9] }}
     >
-      {!lightMode && <color attach="background" args={["#060610"]} />}
+      {!lightMode && <color attach="background" args={["#09091e"]} />}
       {lightMode && <color attach="background" args={[lightBg as `#${string}`]} />}
       {/* Exponential fog blends outer lattice atoms into background → infinite crystal illusion */}
-      {!lightMode && <fogExp2 attach="fog" args={["#060610", 0.065]} />}
+      {!lightMode && <fogExp2 attach="fog" args={["#09091e", 0.042]} />}
       {lightMode  && <fogExp2 attach="fog" args={[lightBg as `#${string}`, 0.055]} />}
 
       {lightMode ? (
@@ -206,9 +206,9 @@ export function CrystalViewScene({
         </>
       ) : (
         <>
-          <ambientLight intensity={0.35} />
-          <pointLight position={[6, 6, 6]} intensity={1.4} />
-          <pointLight position={[-5, -4, -5]} intensity={0.5} color="#4466ff" />
+          <ambientLight intensity={0.65} />
+          <pointLight position={[6, 6, 6]} intensity={1.8} />
+          <pointLight position={[-5, -4, -5]} intensity={0.6} color="#4466ff" />
         </>
       )}
 

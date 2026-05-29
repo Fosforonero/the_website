@@ -685,56 +685,68 @@ function parseSubshells(config: string): Array<{ n: number; l: number; e: number
 }
 
 // Sample a 3D unit direction weighted by the given orbital type's angular distribution
-function sampleAngular(l: number): [number, number, number] {
+// ml = magnetic quantum number index (0..2l): fixes orbital axis per electron
+function sampleAngular(l: number, ml: number): [number, number, number] {
   const rph = (): number => Math.random() * Math.PI * 2;
   const rco = (): number => Math.random() * 2 - 1;
 
   if (l === 0) {
+    // s: uniform sphere
     const ph = rph(); const co = rco(); const si = Math.sqrt(1 - co * co);
     return [si * Math.cos(ph), si * Math.sin(ph), co];
   }
 
   if (l === 1) {
-    // Dumbbell along one of three axes (px / py / pz)
-    const axis = Math.floor(Math.random() * 3);
-    const ax = axis === 0 ? 1 : 0;
-    const ay = axis === 1 ? 1 : 0;
-    const az = axis === 2 ? 1 : 0;
+    // p: dumbbell along fixed axis (ml%3: 0=pz, 1=px, 2=py) — axis FIXED per electron
+    const axis = ml % 3;
     for (let i = 0; i < 60; i++) {
       const ph = rph(); const co = rco(); const si = Math.sqrt(1 - co * co);
       const dx = si * Math.cos(ph), dy = si * Math.sin(ph), dz = co;
-      const dot = dx * ax + dy * ay + dz * az;
+      const dot = axis === 0 ? dz : axis === 1 ? dx : dy;
       if (Math.random() < dot * dot) return [dx, dy, dz];
     }
-    return axis === 0 ? [1, 0, 0] : axis === 1 ? [0, 1, 0] : [0, 0, 1];
+    return axis === 0 ? [0, 0, 1] : axis === 1 ? [1, 0, 0] : [0, 1, 0];
   }
 
   if (l === 2) {
-    // Mix of d_z², d_xy, d_xz distributions → cloverleaf + two-lobe shapes
-    // MAX_D = 0.4167 (reached at θ=π/2, φ=π/4 where dz2=0.25, dxy=1, dxz=0)
-    const MAX_D = 0.4167;
+    // d: 5 distinct orbital shapes selected by ml%5
+    // 0=dz², 1=dxy, 2=dxz, 3=dyz, 4=dx²-y²  (all normalized to max probability = 1)
+    const type = ml % 5;
     for (let i = 0; i < 80; i++) {
       const ph = rph(); const co = rco(); const si = Math.sqrt(1 - co * co);
-      const co2 = co * co; const si2 = si * si;
-      const dz2  = (3 * co2 - 1) * (3 * co2 - 1) / 4;
-      const dxy  = si2 * si2 * Math.sin(2 * ph) * Math.sin(2 * ph);
-      const dxz  = si2 * co2 * 3;
-      const prob = (dz2 + dxy + dxz) / 3;
-      if (Math.random() < prob / MAX_D) return [si * Math.cos(ph), si * Math.sin(ph), co];
+      const dx = si * Math.cos(ph), dy = si * Math.sin(ph), dz = co;
+      let prob: number;
+      if (type === 0) {
+        const v = 3 * dz * dz - 1; prob = v * v / 4;            // dz²: poles+torus
+      } else if (type === 1) {
+        prob = si * si * si * si * Math.sin(2*ph) * Math.sin(2*ph);  // dxy: 4 lobes 45°
+      } else if (type === 2) {
+        prob = dx * dx * dz * dz * 4;                            // dxz: 4 lobes xz-plane
+      } else if (type === 3) {
+        prob = dy * dy * dz * dz * 4;                            // dyz: 4 lobes yz-plane
+      } else {
+        prob = si * si * si * si * Math.cos(2*ph) * Math.cos(2*ph);  // dx²-y²: 4 lobes aligned
+      }
+      if (Math.random() < prob) return [dx, dy, dz];
     }
     const ph = rph(); const co = rco(); const si = Math.sqrt(1 - co * co);
     return [si * Math.cos(ph), si * Math.sin(ph), co];
   }
 
-  // f: multi-lobe — mix of f_z³ and f_{xyz} type distributions
-  // MAX_F = 4/9 ≈ 0.4444 (reached at poles θ=0,π where fz3=4/9, fxyz=0)
-  const MAX_F = 4 / 9;
+  // f: 3 distinct patterns cycling via ml%3
+  const type = ml % 3;
   for (let i = 0; i < 100; i++) {
     const ph = rph(); const co = rco(); const si = Math.sqrt(1 - co * co);
     const co2 = co * co; const si2 = si * si;
-    const fz3  = co2 * (5 * co2 - 3) * co2 * (5 * co2 - 3) / 9;
-    const fxyz = si2 * co2 * Math.abs(Math.sin(3 * ph));
-    if (Math.random() < (fz3 + fxyz) / MAX_F) return [si * Math.cos(ph), si * Math.sin(ph), co];
+    let prob: number; let maxP: number;
+    if (type === 0) {
+      prob = co2 * (5*co2 - 3) * co2 * (5*co2 - 3) / 9; maxP = 4/9;  // fz³: strong poles
+    } else if (type === 1) {
+      prob = si2 * co2 * Math.abs(Math.sin(3*ph)); maxP = 0.25;        // fxyz: 8 lobes
+    } else {
+      prob = si2 * co2 * Math.cos(2*ph) * Math.cos(2*ph); maxP = 0.25; // fz(x²-y²)
+    }
+    if (Math.random() < prob / maxP) return [si * Math.cos(ph), si * Math.sin(ph), co];
   }
   const ph = rph(); const co = rco(); const si = Math.sqrt(1 - co * co);
   return [si * Math.cos(ph), si * Math.sin(ph), co];
@@ -767,19 +779,23 @@ function buildPointCloud(
   const colorArr:  number[] = [];
 
   for (const { n, l, e } of subshells) {
-    const si   = Math.min(n - 1, SHELL_BASE_R.length - 1);
-    const r0   = (SHELL_BASE_R[si] ?? 1.2) * radiusMul;
-    const sigma = (0.22 + si * 0.045) * radiusMul;
-    const total = e * POINTS_PER_E;
+    const si    = Math.min(n - 1, SHELL_BASE_R.length - 1);
+    const r0    = (SHELL_BASE_R[si] ?? 1.2) * radiusMul;
+    const sigma = (0.28 + si * 0.055) * radiusMul;
     const col   = getLColor(l, lightMode);
-    let placed = 0, safety = 0;
-    while (placed < total && safety++ < total * 10) {
-      const r = r0 + gaussRandom() * sigma;
-      if (r < 0.08) continue;
-      const [dx, dy, dz] = sampleAngular(l);
-      positions.push(r * dx, r * dy, r * dz);
-      colorArr.push(col.r, col.g, col.b);
-      placed++;
+    const maxMl = 2 * l + 1;  // s:1, p:3, d:5, f:7
+    // Each electron gets a fixed ml (orbital axis/type) — distinct dumbbells for p, lobes for d/f
+    for (let eidx = 0; eidx < e; eidx++) {
+      const ml = eidx % maxMl;
+      let placed = 0, safety = 0;
+      while (placed < POINTS_PER_E && safety++ < POINTS_PER_E * 12) {
+        const r = r0 + gaussRandom() * sigma;
+        if (r < 0.08) continue;
+        const [dx, dy, dz] = sampleAngular(l, ml);
+        positions.push(r * dx, r * dy, r * dz);
+        colorArr.push(col.r, col.g, col.b);
+        placed++;
+      }
     }
   }
 
