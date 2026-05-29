@@ -200,16 +200,6 @@ function getThematicColor(el: Element, prop: ThematicProperty, range: [number,nu
   return heatmapColor((value - range[0]) / (range[1] - range[0]));
 }
 
-// ─── Light mode background options ───────────────────────────────────────────
-
-const LIGHT_BACKGROUNDS = [
-  { key: "sky",      color: "#e8ecf5", label: { it: "cielo", en: "sky" } },
-  { key: "cream",    color: "#f2ede4", label: { it: "crema", en: "cream" } },
-  { key: "lavender", color: "#edeaf5", label: { it: "lavanda", en: "lavender" } },
-] as const;
-
-type LightBgKey = typeof LIGHT_BACKGROUNDS[number]["key"];
-
 // ─── Search helpers ───────────────────────────────────────────────────────────
 
 function matchesSearch(el: Element, q: string, locale: Locale): boolean {
@@ -775,26 +765,6 @@ function DonateButton({ locale }: { locale: Locale }) {
   );
 }
 
-// ─── Light background selector ───────────────────────────────────────────────
-
-function LightBgSelector({ value, onChange, locale }: { value: LightBgKey; onChange: (k: LightBgKey) => void; locale: Locale }) {
-  const grpLabel = locale === "en" ? "Light theme background" : "Sfondo versione chiara";
-  return (
-    <div className="pt-lightbg-selector" role="group" aria-label={grpLabel}>
-      {LIGHT_BACKGROUNDS.map(({ key, color, label }) => (
-        <button
-          key={key}
-          className={`pt-lightbg-btn${value === key ? " active" : ""}`}
-          style={{ "--swatch": color } as React.CSSProperties}
-          onClick={() => onChange(key)}
-          title={label[locale]}
-          aria-pressed={value === key}
-          aria-label={label[locale]}
-        />
-      ))}
-    </div>
-  );
-}
 
 // ─── Stars intensity toggle ───────────────────────────────────────────────────
 
@@ -978,7 +948,6 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
   const [tempUnit,        setTempUnit]        = usePersistedState<"K" | "C" | "F">("pt:tempUnit", "K");
   const [searchQuery,     setSearchQuery]     = useState("");
   const [starsIntensity,  setStarsIntensity]  = usePersistedState<number>("pt:starsIntensity", 1);
-  const [lightBgKey,      setLightBgKey]      = usePersistedState<LightBgKey>("pt:lightBgKey", "sky");
   const [vdwStyle,        setVdwStyle]        = usePersistedState<VdWStyle>("pt:vdwStyle", "off");
   const [negativeMode,    setNegativeMode]    = usePersistedState<boolean>("pt:negativeMode", false);
   const [gridZoom,        setGridZoom]        = useState(1);
@@ -1000,8 +969,6 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
   const lastScrollTop                         = useRef(0);
   const scrollRef                             = useRef<HTMLDivElement>(null);
   const pinchRef                              = useRef<{ dist: number } | null>(null);
-
-  const lightBgColor = LIGHT_BACKGROUNDS.find(b => b.key === lightBgKey)?.color ?? "#e8ecf5";
 
   const propRange = useMemo<[number, number] | null>(() => {
     return getThematicPropertiesRangeMap(thematicProp);
@@ -1149,10 +1116,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
   const selectedName = selected ? (locale === "en" ? (ELEMENT_NAMES_EN[selected.z] || selected.name) : selected.name) : "";
 
   return (
-    <div
-      className={`pt-root${lightMode ? " pt-root--light" : ""}`}
-      style={lightMode ? { "--pt-light-bg": lightBgColor } as React.CSSProperties : undefined}
-    >
+    <div className={`pt-root${lightMode ? " pt-root--light" : ""}`}>
       {/* ── Header ── */}
       <header className={`pt-header${showHeader ? "" : " pt-header--hidden"}`}>
         <div className="pt-header__left">
@@ -1217,7 +1181,6 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                   {t.moleculeViewBtn}
                 </button>
               )}
-              {lightMode && <LightBgSelector value={lightBgKey} onChange={setLightBgKey} locale={locale} />}
             </>
           )}
           {view === "table" && (
@@ -1291,8 +1254,6 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                     <>
                       <MoleculeScene
                         molecule={mol}
-                        lightMode={lightMode}
-                        lightBg={lightBgColor}
                         className="pt-canvas"
                       />
                       <div className="pt-mol-overlay">
@@ -1355,8 +1316,6 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
               <CrystalViewScene
                 structure={EXTENDED[selected.z]!.crystalStructure}
                 color={CATEGORY_COLOR[selected.category] ?? "#6b7280"}
-                lightMode={lightMode}
-                lightBg={lightBgColor}
                 className="pt-canvas"
               />
             ) : !moleculeView ? (
@@ -1367,7 +1326,6 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                 speedMultiplier={speedMultiplier}
                 lightMode={lightMode}
                 starsIntensity={starsIntensity}
-                lightBg={lightBgColor}
                 vdwStyle={vdwStyle}
                 showSpin={showSpin}
                 nucleusView={nucleusView}
@@ -1383,7 +1341,6 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                 ← {locale === "en" ? "atom" : "atomo"}
               </button>
             )}
-            {lightMode && <div className="pt-canvas-vignette" aria-hidden="true" />}
             {nucleusView && (
               <div className="pt-nucleus-overlay" aria-live="polite">
                 <div className="pt-nucleus-stat">

@@ -79,6 +79,21 @@ function buildLattice(s: VisCrystal, repeat: number): { atoms: AtomPos[]; bonds:
   return { atoms, bonds };
 }
 
+// ─── Unit cell wireframe outline ──────────────────────────────────────────────
+
+function UnitCellBox() {
+  const edgesGeo = useMemo(() => {
+    const box = new THREE.BoxGeometry(CELL, CELL, CELL);
+    return new THREE.EdgesGeometry(box);
+  }, []);
+
+  return (
+    <lineSegments geometry={edgesGeo}>
+      <lineBasicMaterial color="#ffffff" transparent opacity={0.30} />
+    </lineSegments>
+  );
+}
+
 // ─── Scene content ────────────────────────────────────────────────────────────
 
 function LatticeContent({
@@ -86,31 +101,37 @@ function LatticeContent({
 }: { structure: VisCrystal; color: string; lightMode: boolean }) {
   const groupRef = useRef<THREE.Group>(null!);
 
-  const { atoms, bonds, atomGeo, atomMat, bondMat } = useMemo(() => {
+  const { atoms, bonds, atomGeo, atomMat, bondMat, unitCellCenter } = useMemo(() => {
     // diamond/hcp kept smaller due to complex basis; sc/bcc/fcc extended for infinite-crystal effect
     const repeat = structure === "diamond" ? 2 : structure === "hcp" ? 3 : 5;
     const { atoms, bonds } = buildLattice(structure, repeat);
+    const half = (repeat * CELL) / 2;
+    // center unit cell: ix=floor(repeat/2), same for iy,iz
+    const ci = Math.floor(repeat / 2);
+    const cellOrigin = ci * CELL - half + CELL / 2;
+    const unitCellCenter = new THREE.Vector3(cellOrigin, cellOrigin, cellOrigin);
+
     const col = new THREE.Color(color);
     const atomR = structure === "diamond" ? 0.28 : 0.30;
     const atomGeo = new THREE.SphereGeometry(atomR, 20, 14);
     const atomMat = new THREE.MeshStandardMaterial({
       color: col,
       emissive: col,
-      emissiveIntensity: lightMode ? 0.08 : 0.50,
-      roughness: 0.35,
-      metalness: lightMode ? 0.1 : 0.5,
+      emissiveIntensity: lightMode ? 0.10 : 0.65,
+      roughness: 0.28,
+      metalness: lightMode ? 0.1 : 0.55,
     });
     const bondCol = lightMode ? new THREE.Color(0x444455) : new THREE.Color(0x8899cc);
     const bondMat = new THREE.MeshStandardMaterial({
       color: bondCol,
       emissive: bondCol,
-      emissiveIntensity: lightMode ? 0.02 : 0.10,
-      roughness: 0.6,
-      metalness: 0.1,
+      emissiveIntensity: lightMode ? 0.03 : 0.18,
+      roughness: 0.55,
+      metalness: 0.15,
       transparent: true,
-      opacity: lightMode ? 0.45 : 0.55,
+      opacity: lightMode ? 0.50 : 0.65,
     });
-    return { atoms, bonds, atomGeo, atomMat, bondMat };
+    return { atoms, bonds, atomGeo, atomMat, bondMat, unitCellCenter };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [structure, color, lightMode]);
 
@@ -167,6 +188,9 @@ function LatticeContent({
         }}
       />
       {bondMeshes}
+      <group position={unitCellCenter}>
+        <UnitCellBox />
+      </group>
     </group>
   );
 }
@@ -174,12 +198,10 @@ function LatticeContent({
 // ─── Exported component ───────────────────────────────────────────────────────
 
 export function CrystalViewScene({
-  structure, color, lightMode = false, lightBg = "#e8ecf5", className,
+  structure, color, className,
 }: {
   structure: CrystalStructure;
   color: string;
-  lightMode?: boolean;
-  lightBg?: string;
   className?: string;
 }) {
   if (!structure || structure === "other") return null;
@@ -192,27 +214,15 @@ export function CrystalViewScene({
       dpr={[1, 2]}
       camera={{ fov: 38, near: 0.1, far: 200, position: [7, 5, 9] }}
     >
-      {!lightMode && <color attach="background" args={["#09091e"]} />}
-      {lightMode && <color attach="background" args={[lightBg as `#${string}`]} />}
+      <color attach="background" args={["#060610"]} />
       {/* Exponential fog blends outer lattice atoms into background → infinite crystal illusion */}
-      {!lightMode && <fogExp2 attach="fog" args={["#09091e", 0.042]} />}
-      {lightMode  && <fogExp2 attach="fog" args={[lightBg as `#${string}`, 0.055]} />}
+      <fogExp2 attach="fog" args={["#060610", 0.042]} />
 
-      {lightMode ? (
-        <>
-          <ambientLight intensity={2.2} />
-          <directionalLight position={[5, 8, 5]} intensity={0.6} />
-          <pointLight position={[-4, -3, -4]} intensity={0.3} />
-        </>
-      ) : (
-        <>
-          <ambientLight intensity={0.65} />
-          <pointLight position={[6, 6, 6]} intensity={1.8} />
-          <pointLight position={[-5, -4, -5]} intensity={0.6} color="#4466ff" />
-        </>
-      )}
+      <ambientLight intensity={0.65} />
+      <pointLight position={[6, 6, 6]} intensity={1.8} />
+      <pointLight position={[-5, -4, -5]} intensity={0.6} color="#4466ff" />
 
-      <LatticeContent structure={vis} color={color} lightMode={lightMode} />
+      <LatticeContent structure={vis} color={color} lightMode={false} />
 
       <OrbitControls
         enablePan={false}
@@ -224,11 +234,9 @@ export function CrystalViewScene({
         maxDistance={40}
       />
 
-      {!lightMode && (
-        <EffectComposer>
-          <Bloom intensity={1.2} luminanceThreshold={0.15} luminanceSmoothing={0.7} mipmapBlur />
-        </EffectComposer>
-      )}
+      <EffectComposer>
+        <Bloom intensity={1.0} luminanceThreshold={0.15} luminanceSmoothing={0.7} mipmapBlur />
+      </EffectComposer>
     </Canvas>
   );
 }
