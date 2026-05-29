@@ -1,0 +1,428 @@
+/**
+ * Solar System Lab — independent styles.
+ * Visual direction: technical observatory — dark, precise, high-contrast.
+ *
+ * No .pt-* or .atom-* class names are reused here.
+ */
+
+/* ─── Root container ───────────────────────────────────────────────────────── */
+
+.solar-root {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  background: #0a0a0f;
+  overflow: hidden;
+  color: #e0e8f0;
+  font-family: "JetBrains Mono", "Fira Mono", "Courier New", monospace;
+}
+
+/* ─── Canvas wrapper ───────────────────────────────────────────────────────── */
+
+.solar-canvas-wrap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* ─── Toolbar ──────────────────────────────────────────────────────────────── */
+
+.solar-toolbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: rgba(10, 10, 20, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(80, 140, 200, 0.18);
+  min-height: 48px;
+  flex-wrap: wrap;
+}
+
+.solar-toolbar__title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #7ab8d8;
+  white-space: nowrap;
+  margin-right: 8px;
+}
+
+.solar-toolbar__sep {
+  width: 1px;
+  height: 20px;
+  background: rgba(80, 140, 200, 0.25);
+  flex-shrink: 0;
+}
+
+/* ─── Control elements ─────────────────────────────────────────────────────── */
+
+.solar-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(20, 30, 50, 0.7);
+  border: 1px solid rgba(80, 140, 200, 0.28);
+  border-radius: 4px;
+  color: #b8d4e8;
+  font-family: inherit;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.solar-control:hover {
+  border-color: rgba(80, 160, 230, 0.55);
+  background: rgba(30, 50, 80, 0.8);
+  color: #d8eaf8;
+}
+
+.solar-control:focus-visible {
+  outline: 2px solid rgba(80, 160, 230, 0.6);
+  outline-offset: 2px;
+}
+
+.solar-control--active {
+  border-color: rgba(80, 160, 230, 0.7);
+  background: rgba(30, 70, 120, 0.65);
+  color: #dff0ff;
+}
+
+.solar-control select,
+.solar-control input[type="date"] {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  outline: none;
+  cursor: pointer;
+}
+
+select.solar-control {
+  appearance: none;
+  padding-right: 24px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237ab8d8'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+}
+
+/* ─── Inspector panel (right) ──────────────────────────────────────────────── */
+
+.solar-inspector {
+  position: absolute;
+  top: 48px;
+  right: 0;
+  bottom: 0;
+  z-index: 15;
+  width: 280px;
+  background: rgba(8, 10, 20, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-left: 1px solid rgba(80, 140, 200, 0.15);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(80, 140, 200, 0.3) transparent;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.solar-inspector::-webkit-scrollbar {
+  width: 4px;
+}
+.solar-inspector::-webkit-scrollbar-track {
+  background: transparent;
+}
+.solar-inspector::-webkit-scrollbar-thumb {
+  background: rgba(80, 140, 200, 0.3);
+  border-radius: 2px;
+}
+
+.solar-inspector__heading {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #5a8ab0;
+  margin-bottom: 4px;
+}
+
+.solar-inspector__name {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #e8f4ff;
+  line-height: 1.2;
+}
+
+.solar-inspector__badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(40, 80, 130, 0.5);
+  border: 1px solid rgba(80, 140, 200, 0.3);
+  color: #90c0e0;
+}
+
+.solar-inspector__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.7rem;
+  border-bottom: 1px solid rgba(80, 140, 200, 0.08);
+  padding: 5px 0;
+}
+
+.solar-inspector__label {
+  color: #5a8ab0;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.solar-inspector__value {
+  color: #c8dff0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.solar-inspector__divider {
+  height: 1px;
+  background: rgba(80, 140, 200, 0.12);
+  margin: 4px 0;
+}
+
+/* ─── Browser panel (left) ─────────────────────────────────────────────────── */
+
+.solar-browser {
+  position: absolute;
+  top: 48px;
+  left: 0;
+  bottom: 0;
+  z-index: 15;
+  width: 200px;
+  background: rgba(8, 10, 20, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-right: 1px solid rgba(80, 140, 200, 0.15);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(80, 140, 200, 0.3) transparent;
+  padding: 8px 0;
+}
+
+.solar-browser::-webkit-scrollbar {
+  width: 4px;
+}
+.solar-browser::-webkit-scrollbar-track {
+  background: transparent;
+}
+.solar-browser::-webkit-scrollbar-thumb {
+  background: rgba(80, 140, 200, 0.3);
+  border-radius: 2px;
+}
+
+.solar-browser__section {
+  padding: 6px 12px 2px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #3a6080;
+}
+
+.solar-browser__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px 5px 14px;
+  font-size: 0.72rem;
+  color: #90b0c8;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+}
+
+.solar-browser__item:hover {
+  background: rgba(40, 80, 130, 0.35);
+  color: #c8e0f0;
+}
+
+.solar-browser__item--selected {
+  background: rgba(30, 70, 120, 0.55);
+  color: #dff0ff;
+}
+
+.solar-browser__item--moon {
+  padding-left: 26px;
+  font-size: 0.68rem;
+  color: #708898;
+}
+
+.solar-browser__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ─── Ko-fi link ───────────────────────────────────────────────────────────── */
+
+.solar-kofi {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  font-family: inherit;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  color: #f5c842;
+  border: 1px solid rgba(245, 200, 66, 0.3);
+  background: rgba(245, 200, 66, 0.06);
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.solar-kofi:hover {
+  border-color: rgba(245, 200, 66, 0.6);
+  background: rgba(245, 200, 66, 0.12);
+  color: #ffd860;
+}
+
+/* ─── Loading state ────────────────────────────────────────────────────────── */
+
+.solar-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "JetBrains Mono", "Fira Mono", monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  color: rgba(90, 138, 176, 0.55);
+  text-transform: uppercase;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* ─── Firmament label overlays ─────────────────────────────────────────────── */
+
+.solar-firmament-label {
+  font-family: "JetBrains Mono", "Fira Mono", monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(100, 160, 210, 0.65);
+  pointer-events: none;
+  white-space: nowrap;
+  text-shadow: 0 0 4px rgba(0, 20, 40, 0.9);
+  user-select: none;
+}
+
+.solar-deep-sky-label {
+  font-family: "JetBrains Mono", "Fira Mono", monospace;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: rgba(160, 120, 200, 0.6);
+  pointer-events: none;
+  white-space: nowrap;
+  text-shadow: 0 0 4px rgba(0, 0, 30, 0.9);
+  user-select: none;
+}
+
+/* ─── Body label (planet names in scene) ───────────────────────────────────── */
+
+.solar-body-label {
+  font-family: "JetBrains Mono", "Fira Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: rgba(200, 220, 240, 0.85);
+  pointer-events: none;
+  white-space: nowrap;
+  text-shadow: 0 0 5px rgba(0, 0, 20, 0.95);
+  user-select: none;
+}
+
+.solar-body-label--selected {
+  color: rgba(255, 240, 160, 0.95);
+}
+
+/* ─── Responsive — narrow viewports ───────────────────────────────────────── */
+
+@media (max-width: 767px) {
+  /* Browser panel collapses to a bottom sheet trigger */
+  .solar-browser {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 44px;
+    border-right: none;
+    border-top: 1px solid rgba(80, 140, 200, 0.2);
+    overflow: hidden;
+    flex-direction: row;
+    padding: 0;
+    /* Items flow horizontally in compact mode */
+    display: flex;
+  }
+
+  .solar-browser--open {
+    height: 50vh;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  /* Inspector collapses to a bottom sheet */
+  .solar-inspector {
+    top: auto;
+    bottom: 44px; /* above browser bar */
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 0;
+    padding: 0;
+    overflow: hidden;
+    border-left: none;
+    border-top: 1px solid rgba(80, 140, 200, 0.2);
+    transition: height 0.2s ease;
+  }
+
+  .solar-inspector--open {
+    height: 40vh;
+    padding: 14px;
+    overflow-y: auto;
+  }
+
+  .solar-toolbar {
+    padding: 6px 10px;
+    gap: 8px;
+  }
+
+  /* Hide lower-priority toolbar items on small screens */
+  .solar-toolbar__hide-sm {
+    display: none;
+  }
+}
