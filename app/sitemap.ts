@@ -61,6 +61,81 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
+  const solarSystemEntries: MetadataRoute.Sitemap = [
+    {
+      url: `${site.url}/lab/sistema-solare`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+      alternates: {
+        languages: {
+          it: `${site.url}/lab/sistema-solare`,
+          en: `${site.url}/en/lab/solar-system`,
+        },
+      },
+    },
+    {
+      url: `${site.url}/en/lab/solar-system`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+      alternates: {
+        languages: {
+          it: `${site.url}/lab/sistema-solare`,
+          en: `${site.url}/en/lab/solar-system`,
+        },
+      },
+    },
+    {
+      url: `${site.url}/lab/sistema-solare/manuale`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+      alternates: {
+        languages: {
+          it: `${site.url}/lab/sistema-solare/manuale`,
+          en: `${site.url}/en/lab/solar-system/manual`,
+        },
+      },
+    },
+    {
+      url: `${site.url}/en/lab/solar-system/manual`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+      alternates: {
+        languages: {
+          it: `${site.url}/lab/sistema-solare/manuale`,
+          en: `${site.url}/en/lab/solar-system/manual`,
+        },
+      },
+    },
+    {
+      url: `${site.url}/lab/sistema-solare/about`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+      alternates: {
+        languages: {
+          it: `${site.url}/lab/sistema-solare/about`,
+          en: `${site.url}/en/lab/solar-system/about`,
+        },
+      },
+    },
+    {
+      url: `${site.url}/en/lab/solar-system/about`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+      alternates: {
+        languages: {
+          it: `${site.url}/lab/sistema-solare/about`,
+          en: `${site.url}/en/lab/solar-system/about`,
+        },
+      },
+    },
+  ];
+
   // Blog posts — separate per locale (slugs may differ across languages)
   const postEntries: MetadataRoute.Sitemap = [];
   for (const locale of locales) {
@@ -75,5 +150,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  return [...staticEntries, ...identityEntry, ...manualEntry, ...postEntries];
+  return [...staticEntries, ...identityEntry, ...manualEntry, ...solarSystemEntries, ...postEntries];
 }
