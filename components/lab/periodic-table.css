@@ -710,14 +710,12 @@
   animation: pt-view-enter 0.18s ease-out;
 }
 
-/* Controls toolbar (legend + thematic selector) — intentional dark bar */
+/* Controls toolbar (legend + thematic selector) */
 .pt-toolbar {
   flex-shrink: 0;
-  background: rgba(255,255,255,0.020);
   border-bottom: 1px solid rgba(255,255,255,0.07);
 }
 .pt-root--light .pt-toolbar {
-  background: rgba(0,0,0,0.03);
   border-bottom-color: rgba(0,0,0,0.09);
 }
 
