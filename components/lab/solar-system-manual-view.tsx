@@ -822,11 +822,10 @@ export function SolarSystemManualView({ locale }: SolarManualViewProps) {
 
         .sm-manual-kofi-text {
           font-size: 13px;
-          color: #6868888;
+          color: #6868aa;
           margin: 0;
           flex: 1;
           min-width: 200px;
-          color: #6868aa;
         }
 
         .sm-manual-kofi-btn {
