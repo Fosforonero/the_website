@@ -10,6 +10,7 @@ import {
   type ThematicProperty, type ElementExtended,
   type ElementState, type ElementBlock, type Isotope,
 } from "@/lib/element-extended-data";
+import { MOLECULES_BY_Z, type Molecule } from "@/lib/molecules-data";
 import type { AtomModel, VdWStyle } from "./atom-scene";
 import type { Locale } from "@/lib/site";
 import {
@@ -17,6 +18,16 @@ import {
   LAB_UI_TRANSLATIONS, ELEMENT_DESCRIPTIONS_EN, CRYSTAL_LABELS,
 } from "@/lib/elements-i18n";
 import { CrystalScene } from "./crystal-scene";
+
+const CrystalViewScene = dynamic(
+  () => import("./crystal-view-scene").then(m => m.CrystalViewScene),
+  { ssr: false, loading: () => <div className="atom-loading">...</div> }
+);
+
+const MoleculeScene = dynamic(
+  () => import("./molecule-scene").then(m => m.MoleculeScene),
+  { ssr: false, loading: () => <div className="atom-loading">...</div> }
+);
 
 export interface ThematicPropertyDefinition {
   key: ThematicProperty;
@@ -361,7 +372,7 @@ function fmt(val: number | null, decimals = 2, suffix = ""): string {
   return `${val.toFixed(decimals)}${suffix ? " " + suffix : ""}`;
 }
 
-function InfoPanel({ el, locale, tempUnit, lightMode, onDragStart }: { el: Element; locale: Locale; tempUnit: "K" | "C" | "F"; lightMode?: boolean; onDragStart?: (e: React.MouseEvent | React.TouchEvent) => void }) {
+function InfoPanel({ el, locale, tempUnit, lightMode, onDragStart, onCrystalClick, onMoleculeClick }: { el: Element; locale: Locale; tempUnit: "K" | "C" | "F"; lightMode?: boolean; onDragStart?: (e: React.MouseEvent | React.TouchEvent) => void; onCrystalClick?: () => void; onMoleculeClick?: (idx: number) => void }) {
   const t = LAB_UI_TRANSLATIONS[locale];
   const [descExpanded, setDescExpanded] = useState(false);
   const color = CATEGORY_COLOR[el.category];
@@ -521,12 +532,39 @@ function InfoPanel({ el, locale, tempUnit, lightMode, onDragStart }: { el: Eleme
                   {CRYSTAL_LABELS[locale][ext.crystalStructure] ?? ext.crystalStructure}
                 </span>
                 {ext.crystalStructure !== "other" && (
-                  <CrystalScene
-                    structure={ext.crystalStructure}
-                    color={color ?? "#6b7280"}
-                    lightMode={lightMode}
-                  />
+                  <button
+                    className="pt-crystal-canvas-btn"
+                    onClick={onCrystalClick}
+                    title={t.crystalViewTitle}
+                    aria-label={t.crystalViewTitle}
+                  >
+                    <CrystalScene
+                      structure={ext.crystalStructure}
+                      color={color ?? "#6b7280"}
+                      lightMode={lightMode}
+                    />
+                    <span className="pt-crystal-canvas-hint">
+                      {locale === "en" ? "expand" : "espandi"}
+                    </span>
+                  </button>
                 )}
+              </dd>
+            </div>
+          )}
+          {MOLECULES_BY_Z[el.z] && (
+            <div className="pt-info__mol-row">
+              <dt>{t.moleculeViewBtn}</dt>
+              <dd className="pt-info__mol-list">
+                {(MOLECULES_BY_Z[el.z] ?? []).map((mol: Molecule, i: number) => (
+                  <button
+                    key={i}
+                    className="pt-info__mol-badge"
+                    onClick={() => onMoleculeClick?.(i)}
+                    title={locale === "en" ? mol.nameEN : mol.nameIT}
+                  >
+                    {mol.formula}
+                  </button>
+                ))}
               </dd>
             </div>
           )}
@@ -935,6 +973,9 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
   const [gridZoom,        setGridZoom]        = useState(1);
   const [showSpin,        setShowSpin]        = usePersistedState<boolean>("pt:showSpin", false);
   const [nucleusView,     setNucleusView]     = usePersistedState<boolean>("pt:nucleusView", false);
+  const [crystalView,     setCrystalView]     = useState<boolean>(false);
+  const [moleculeView,    setMoleculeView]    = useState<boolean>(false);
+  const [activeMolIdx,    setActiveMolIdx]    = useState<number>(0);
 
   const [panelWidth,      setPanelWidth]      = usePersistedState<number>("pt:panelWidth", 264);
   const panelWidthRef                         = useRef(panelWidth);
@@ -989,7 +1030,9 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
   const handleBack = useCallback(() => {
     setView("table");
     setSearchQuery("");
-    setShowHeader(true); // reset header visibility
+    setShowHeader(true);
+    setCrystalView(false);
+    setMoleculeView(false);
   }, []);
 
   // Keyboard handler (Escape key)
@@ -1123,12 +1166,32 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
               <TempToggle value={tempUnit} onChange={setTempUnit} locale={locale} />
               <button
                 className={`pt-nucleus-view-btn${nucleusView ? " active" : ""}`}
-                onClick={() => setNucleusView(v => !v)}
+                onClick={() => { setNucleusView(v => !v); setCrystalView(false); }}
                 aria-pressed={nucleusView}
                 title={t.nucleusViewTitle}
               >
                 {t.nucleusViewBtn}
               </button>
+              {selected && EXTENDED[selected.z]?.crystalStructure && EXTENDED[selected.z]?.crystalStructure !== "other" && (
+                <button
+                  className={`pt-crystal-view-btn${crystalView ? " active" : ""}`}
+                  onClick={() => { setCrystalView(v => !v); setNucleusView(false); setMoleculeView(false); }}
+                  aria-pressed={crystalView}
+                  title={t.crystalViewTitle}
+                >
+                  {t.crystalViewBtn}
+                </button>
+              )}
+              {selected && MOLECULES_BY_Z[selected.z] && (
+                <button
+                  className={`pt-molecule-view-btn${moleculeView ? " active" : ""}`}
+                  onClick={() => { setMoleculeView(v => !v); setCrystalView(false); setNucleusView(false); setActiveMolIdx(0); }}
+                  aria-pressed={moleculeView}
+                  title={t.moleculeViewTitle}
+                >
+                  {t.moleculeViewBtn}
+                </button>
+              )}
               {lightMode && <LightBgSelector value={lightBgKey} onChange={setLightBgKey} locale={locale} />}
             </>
           )}
@@ -1193,19 +1256,62 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
       {view === "atom" && selected && (
         <div className="pt-atom-view" style={{ '--pt-info-width': `${panelWidth}px` } as React.CSSProperties}>
           <div className="pt-canvas-wrap">
-            <AtomScene
-              element={selected}
-              model={model}
-              realScale={realScale}
-              speedMultiplier={speedMultiplier}
-              lightMode={lightMode}
-              starsIntensity={starsIntensity}
-              lightBg={lightBgColor}
-              vdwStyle={vdwStyle}
-              showSpin={showSpin}
-              nucleusView={nucleusView}
-              className="pt-canvas"
-            />
+            {moleculeView && (() => {
+              const mols = MOLECULES_BY_Z[selected.z];
+              const mol  = mols?.[activeMolIdx];
+              return mol ? (
+                <>
+                  <MoleculeScene
+                    molecule={mol}
+                    lightMode={lightMode}
+                    lightBg={lightBgColor}
+                    className="pt-canvas"
+                  />
+                  <div className="pt-mol-overlay">
+                    <span className="pt-mol-formula">{mol.formula}</span>
+                    <span className="pt-mol-name">
+                      {locale === "en" ? mol.nameEN : mol.nameIT}
+                    </span>
+                  </div>
+                  {mols && mols.length > 1 && (
+                    <div className="pt-mol-tabs">
+                      {mols.map((m, i) => (
+                        <button
+                          key={i}
+                          className={`pt-mol-tab${i === activeMolIdx ? " active" : ""}`}
+                          onClick={() => setActiveMolIdx(i)}
+                        >
+                          {m.formula}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : null;
+            })()}
+            {crystalView && !moleculeView && EXTENDED[selected.z]?.crystalStructure ? (
+              <CrystalViewScene
+                structure={EXTENDED[selected.z]!.crystalStructure}
+                color={CATEGORY_COLOR[selected.category] ?? "#6b7280"}
+                lightMode={lightMode}
+                lightBg={lightBgColor}
+                className="pt-canvas"
+              />
+            ) : !moleculeView ? (
+              <AtomScene
+                element={selected}
+                model={model}
+                realScale={realScale}
+                speedMultiplier={speedMultiplier}
+                lightMode={lightMode}
+                starsIntensity={starsIntensity}
+                lightBg={lightBgColor}
+                vdwStyle={vdwStyle}
+                showSpin={showSpin}
+                nucleusView={nucleusView}
+                className="pt-canvas"
+              />
+            ) : null}
             {lightMode && <div className="pt-canvas-vignette" aria-hidden="true" />}
             {nucleusView && (
               <div className="pt-nucleus-overlay" aria-live="polite">
@@ -1225,7 +1331,15 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
             )}
             {!nucleusView && <ModelDesc model={model} locale={locale} />}
           </div>
-          <InfoPanel el={selected} locale={locale} tempUnit={tempUnit} lightMode={lightMode} onDragStart={handlePanelDragStart} />
+          <InfoPanel
+            el={selected}
+            locale={locale}
+            tempUnit={tempUnit}
+            lightMode={lightMode}
+            onDragStart={handlePanelDragStart}
+            onCrystalClick={() => { setCrystalView(true); setNucleusView(false); setMoleculeView(false); }}
+            onMoleculeClick={(i) => { setMoleculeView(true); setActiveMolIdx(i); setCrystalView(false); setNucleusView(false); }}
+          />
         </div>
       )}
 

@@ -307,6 +307,100 @@
   color: #ff8a82;
 }
 
+/* ── Crystal lattice view toggle button ── */
+.pt-crystal-view-btn {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  color: rgba(216, 216, 232, 0.65);
+  font-family: inherit;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  padding: 5px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+.pt-crystal-view-btn:hover { border-color: rgba(255,255,255,0.30); color: #eeeef8; }
+.pt-crystal-view-btn.active {
+  background: rgba(52, 211, 153, 0.12);
+  border-color: rgba(52, 211, 153, 0.50);
+  color: #6ee7b7;
+}
+
+/* ── Molecule view toggle button ── */
+.pt-molecule-view-btn {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  color: rgba(216, 216, 232, 0.65);
+  font-family: inherit;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  padding: 5px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+.pt-molecule-view-btn:hover { border-color: rgba(255,255,255,0.30); color: #eeeef8; }
+.pt-molecule-view-btn.active {
+  background: rgba(192, 38, 211, 0.12);
+  border-color: rgba(192, 38, 211, 0.50);
+  color: #e879f9;
+}
+
+/* ── Molecule overlay (formula + name over canvas) ── */
+.pt-mol-overlay {
+  position: absolute;
+  top: 14px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  pointer-events: none;
+}
+.pt-mol-formula {
+  font-size: 18px; font-weight: 700; letter-spacing: 0.04em;
+  color: rgba(255,255,255,0.90);
+  text-shadow: 0 1px 6px rgba(0,0,0,0.7);
+}
+.pt-mol-name {
+  font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: rgba(255,255,255,0.55);
+}
+
+/* ── Molecule tab selector (multiple molecules) ── */
+.pt-mol-tabs {
+  position: absolute;
+  bottom: 18px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 6px;
+  pointer-events: auto;
+}
+.pt-mol-tab {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(216,216,232,0.65);
+  font-family: inherit; font-size: 10px;
+  padding: 3px 8px; border-radius: 999px; cursor: pointer;
+  transition: all 0.15s;
+}
+.pt-mol-tab:hover { background: rgba(255,255,255,0.14); color: #eee; }
+.pt-mol-tab.active {
+  background: rgba(192,38,211,0.18);
+  border-color: rgba(192,38,211,0.55);
+  color: #e879f9;
+}
+
+/* ── Molecule badges in info panel ── */
+.pt-info__mol-row { display: flex; flex-direction: column; gap: 6px !important; }
+.pt-info__mol-list { display: flex; flex-wrap: wrap; gap: 5px; }
+.pt-info__mol-badge {
+  background: rgba(168,85,247,0.10);
+  border: 1px solid rgba(168,85,247,0.25);
+  color: #c084fc;
+  font-family: inherit; font-size: 11px; font-weight: 600;
+  padding: 2px 8px; border-radius: 6px; cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+.pt-info__mol-badge:hover { background: rgba(168,85,247,0.22); border-color: rgba(168,85,247,0.50); }
+
 /* ── Nucleus view overlay (Z / N / A labels) ── */
 .pt-nucleus-overlay {
   position: absolute;
@@ -482,6 +576,34 @@
   border: 1px solid rgba(255,255,255,0.06);
   margin-top: 4px;
 }
+
+/* ── Clickable crystal mini-canvas wrapper ── */
+.pt-crystal-canvas-btn {
+  display: block;
+  position: relative;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 4px;
+  transition: outline 0.12s;
+}
+.pt-crystal-canvas-btn:hover .pt-crystal-canvas { border-color: rgba(52,211,153,0.40); }
+.pt-crystal-canvas-btn:focus-visible { outline: 2px solid rgba(52,211,153,0.60); outline-offset: 2px; }
+.pt-crystal-canvas-hint {
+  position: absolute;
+  bottom: 4px; left: 50%; transform: translateX(-50%);
+  font-size: 8px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: rgba(255,255,255,0.55);
+  background: rgba(0,0,0,0.45);
+  padding: 1px 6px; border-radius: 4px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.pt-crystal-canvas-btn:hover .pt-crystal-canvas-hint { opacity: 1; }
 .pt-root--light .pt-crystal-canvas {
   background: rgba(0,0,0,0.03);
   border-color: rgba(0,0,0,0.08);
@@ -784,6 +906,20 @@
 .pt-root--light .pt-nucleus-view-btn { border-color: rgba(10,10,10,0.20); color: rgba(10,10,10,0.65); }
 .pt-root--light .pt-nucleus-view-btn:hover { border-color: rgba(10,10,10,0.45); color: #0a0a0a; }
 .pt-root--light .pt-nucleus-view-btn.active { background: rgba(200,50,40,0.10); border-color: rgba(200,50,40,0.45); color: #b91c1c; }
+.pt-root--light .pt-crystal-view-btn { border-color: rgba(10,10,10,0.20); color: rgba(10,10,10,0.65); }
+.pt-root--light .pt-crystal-view-btn:hover { border-color: rgba(10,10,10,0.45); color: #0a0a0a; }
+.pt-root--light .pt-crystal-view-btn.active { background: rgba(5,150,105,0.10); border-color: rgba(5,150,105,0.45); color: #059669; }
+.pt-root--light .pt-crystal-canvas-hint { color: rgba(0,0,0,0.65); background: rgba(255,255,255,0.72); }
+.pt-root--light .pt-molecule-view-btn { border-color: rgba(10,10,10,0.20); color: rgba(10,10,10,0.65); }
+.pt-root--light .pt-molecule-view-btn:hover { border-color: rgba(10,10,10,0.45); color: #0a0a0a; }
+.pt-root--light .pt-molecule-view-btn.active { background: rgba(192,38,211,0.08); border-color: rgba(192,38,211,0.40); color: #9333ea; }
+.pt-root--light .pt-info__mol-badge { background: rgba(168,85,247,0.10); border-color: rgba(168,85,247,0.30); color: #7c3aed; }
+.pt-root--light .pt-info__mol-badge:hover { background: rgba(168,85,247,0.20); }
+.pt-root--light .pt-mol-formula { color: rgba(10,10,20,0.90); text-shadow: 0 1px 4px rgba(255,255,255,0.6); }
+.pt-root--light .pt-mol-name    { color: rgba(10,10,20,0.55); }
+.pt-root--light .pt-mol-tab { background: rgba(0,0,0,0.06); border-color: rgba(0,0,0,0.14); color: rgba(10,10,20,0.65); }
+.pt-root--light .pt-mol-tab:hover { background: rgba(0,0,0,0.12); color: #0a0a14; }
+.pt-root--light .pt-mol-tab.active { background: rgba(147,51,234,0.10); border-color: rgba(147,51,234,0.40); color: #7c3aed; }
 .pt-root--light .pt-nucleus-num { color: #111111; }
 .pt-root--light .pt-nucleus-lbl { color: rgba(10,10,10,0.50); }
 .pt-root--light .pt-theme-toggle { border-color: rgba(10,10,10,0.22); color: rgba(10,10,10,0.65); }
@@ -829,10 +965,9 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 5px 14px;
+  padding: 5px 14px 7px;
   flex-shrink: 0;
   flex-wrap: wrap;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 .pt-thematic-selector__lbl {
   font-size: 10px;
@@ -997,7 +1132,7 @@
 [data-block="f"] { background: rgba(236,72,153,0.15); color: #f472b6; }
 
 /* ── Light mode — thematic + legend + info extended ── */
-.pt-root--light .pt-thematic-selector { border-bottom-color: rgba(10,10,10,0.10); }
+/* .pt-thematic-selector no longer uses border-bottom — padding used instead */
 .pt-root--light .pt-thematic-selector__lbl { color: rgba(10,10,10,0.60); }
 .pt-root--light .pt-thematic-btn { background: rgba(10,10,10,0.04); border-color: rgba(10,10,10,0.18); color: rgba(10,10,10,0.65); }
 .pt-root--light .pt-thematic-btn:hover { color: #0a0a0a; border-color: rgba(10,10,10,0.40); background: rgba(10,10,10,0.08); }

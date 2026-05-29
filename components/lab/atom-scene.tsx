@@ -6,6 +6,7 @@ import { OrbitControls, Stars } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
 import type { Element } from "@/lib/elements-data";
+import { EXTENDED } from "@/lib/element-extended-data";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -20,6 +21,21 @@ const C_ELECTRON = new THREE.Color(0x60a5fa);
 const C_ELECTRON_LIGHT = new THREE.Color(0x1d4ed8);
 const C_SPIN_UP   = new THREE.Color(0xf97316); // ↑ orange
 const C_SPIN_DOWN = new THREE.Color(0xa78bfa); // ↓ violet
+
+// Orbital type colors: s=amber, p=blue, d=emerald, f=purple
+const L_COLORS_DARK = [
+  new THREE.Color(0xf59e0b), // s
+  new THREE.Color(0x60a5fa), // p
+  new THREE.Color(0x34d399), // d
+  new THREE.Color(0xc084fc), // f
+] as [THREE.Color, THREE.Color, THREE.Color, THREE.Color];
+
+const L_COLORS_LIGHT = [
+  new THREE.Color(0xb45309), // s
+  new THREE.Color(0x1d4ed8), // p
+  new THREE.Color(0x059669), // d
+  new THREE.Color(0x7c3aed), // f
+] as [THREE.Color, THREE.Color, THREE.Color, THREE.Color];
 
 const SHELL_BASE_R: number[] = [1.2, 2.1, 3.0, 3.9, 4.8, 5.7, 6.6];
 const SHELL_SPEEDS: number[] = [1.0, 0.60, 0.38, 0.25, 0.18, 0.13, 0.10];
@@ -651,6 +667,76 @@ function SommerfeldAtom({ el, radiusMul, reduced, speedMul, lightMode, showSpin 
   return <group ref={groupRef} />;
 }
 
+// ─── Quantum orbital helpers ──────────────────────────────────────────────────
+
+function getLColor(l: number, lightMode: boolean): THREE.Color {
+  const idx = Math.min(l, 3) as 0 | 1 | 2 | 3;
+  return (lightMode ? L_COLORS_LIGHT : L_COLORS_DARK)[idx];
+}
+
+function parseSubshells(config: string): Array<{ n: number; l: number; e: number }> {
+  const lMap: Record<string, number> = { s: 0, p: 1, d: 2, f: 3 };
+  const result: Array<{ n: number; l: number; e: number }> = [];
+  for (const m of config.matchAll(/(\d+)([spdf])(\d+)/g)) {
+    const l = lMap[m[2]!];
+    if (l !== undefined) result.push({ n: +m[1]!, l, e: +m[3]! });
+  }
+  return result;
+}
+
+// Sample a 3D unit direction weighted by the given orbital type's angular distribution
+function sampleAngular(l: number): [number, number, number] {
+  const rph = (): number => Math.random() * Math.PI * 2;
+  const rco = (): number => Math.random() * 2 - 1;
+
+  if (l === 0) {
+    const ph = rph(); const co = rco(); const si = Math.sqrt(1 - co * co);
+    return [si * Math.cos(ph), si * Math.sin(ph), co];
+  }
+
+  if (l === 1) {
+    // Dumbbell along one of three axes (px / py / pz)
+    const axis = Math.floor(Math.random() * 3);
+    const ax = axis === 0 ? 1 : 0;
+    const ay = axis === 1 ? 1 : 0;
+    const az = axis === 2 ? 1 : 0;
+    for (let i = 0; i < 60; i++) {
+      const ph = rph(); const co = rco(); const si = Math.sqrt(1 - co * co);
+      const dx = si * Math.cos(ph), dy = si * Math.sin(ph), dz = co;
+      const dot = dx * ax + dy * ay + dz * az;
+      if (Math.random() < dot * dot) return [dx, dy, dz];
+    }
+    return axis === 0 ? [1, 0, 0] : axis === 1 ? [0, 1, 0] : [0, 0, 1];
+  }
+
+  if (l === 2) {
+    // Mix of d_z², d_xy, d_xz distributions → cloverleaf + two-lobe shapes
+    for (let i = 0; i < 80; i++) {
+      const ph = rph(); const co = rco(); const si = Math.sqrt(1 - co * co);
+      const co2 = co * co; const si2 = si * si;
+      const dz2  = (3 * co2 - 1) * (3 * co2 - 1) / 4;
+      const dxy  = si2 * si2 * Math.sin(2 * ph) * Math.sin(2 * ph);
+      const dxz  = si2 * co2 * 3;
+      const prob = (dz2 + dxy + dxz) / 3;
+      if (Math.random() < prob * 2.8) return [si * Math.cos(ph), si * Math.sin(ph), co];
+    }
+    const ph = rph(); const co = rco(); const si = Math.sqrt(1 - co * co);
+    return [si * Math.cos(ph), si * Math.sin(ph), co];
+  }
+
+  // f: multi-lobe — mix of f_z³ and f_{xyz} type distributions
+  for (let i = 0; i < 100; i++) {
+    const ph = rph(); const co = rco(); const si = Math.sqrt(1 - co * co);
+    const co2 = co * co; const si2 = si * si;
+    const fz3  = co2 * (5 * co2 - 3) * co2 * (5 * co2 - 3) / 9;
+    const fxyz = si2 * co2 * Math.abs(Math.sin(3 * ph));
+    const prob = (fz3 + fxyz) * 5;
+    if (Math.random() < prob) return [si * Math.cos(ph), si * Math.sin(ph), co];
+  }
+  const ph = rph(); const co = rco(); const si = Math.sqrt(1 - co * co);
+  return [si * Math.cos(ph), si * Math.sin(ph), co];
+}
+
 // ─── Quantum / Schrödinger (1926) — probability cloud ────────────────────────
 
 function QuantumAtom({ el, radiusMul, reduced, lightMode }: {
@@ -664,53 +750,51 @@ function QuantumAtom({ el, radiusMul, reduced, lightMode }: {
     if (cloudRef.current) { g.remove(cloudRef.current); cloudRef.current = null; }
     if (el.z === 0) return;
 
-    const fills = computeShellFills(el.z);
-    const POINTS_PER_E = 350;
-    const positions: number[] = [];
+    // Parse actual electron configuration into subshells
+    const configStr = EXTENDED[el.z]?.config ?? "";
+    let subshells = parseSubshells(configStr);
 
-    fills.forEach((count, si) => {
-      const r0    = (SHELL_BASE_R[si] ?? SHELL_BASE_R.at(-1)!) * radiusMul;
-      const sigma = (0.28 + si * 0.055) * radiusMul;
-      const total = count * POINTS_PER_E;
-      const sCount = Math.min(count, 2);
-      const sPts   = Math.round(total * sCount / count);
-      const pPts   = total - sPts;
+    // Fallback: derive approximate subshells from shell fills
+    if (subshells.length === 0) {
+      const fills = computeShellFills(el.z);
+      fills.forEach((count, si) => {
+        const n = si + 1;
+        subshells.push({ n, l: 0, e: Math.min(count, 2) });
+        if (count > 2) subshells.push({ n, l: 1, e: Math.min(count - 2, 6) });
+        if (count > 8) subshells.push({ n, l: 2, e: count - 8 });
+      });
+    }
+
+    const POINTS_PER_E = 300;
+    const positions: number[] = [];
+    const colorArr:  number[] = [];
+
+    for (const { n, l, e } of subshells) {
+      const si = Math.min(n - 1, SHELL_BASE_R.length - 1);
+      const r0    = (SHELL_BASE_R[si] ?? 1.2) * radiusMul;
+      const sigma = (0.22 + si * 0.045) * radiusMul;
+      const total = e * POINTS_PER_E;
+      const col   = getLColor(l, lightMode);
 
       let placed = 0, safety = 0;
-      while (placed < sPts && safety++ < sPts * 6) {
+      while (placed < total && safety++ < total * 10) {
         const r = r0 + gaussRandom() * sigma;
-        if (r < 0.12) continue;
-        const u = Math.random() * 2 - 1, phi = Math.random() * Math.PI * 2;
-        const sinT = Math.sqrt(1 - u * u);
-        positions.push(r * sinT * Math.cos(phi), r * sinT * Math.sin(phi), r * u);
+        if (r < 0.08) continue;
+        const [dx, dy, dz] = sampleAngular(l);
+        positions.push(r * dx, r * dy, r * dz);
+        colorArr.push(col.r, col.g, col.b);
         placed++;
       }
-      if (pPts > 0) {
-        const perAxis = Math.ceil(pPts / 3);
-        for (let axis = 0; axis < 3; axis++) {
-          let added = 0, ps = 0;
-          while (added < perAxis && ps++ < perAxis * 12) {
-            const u = Math.random() * 2 - 1, phi = Math.random() * Math.PI * 2;
-            const sinT = Math.sqrt(1 - u * u);
-            const d = [sinT * Math.cos(phi), sinT * Math.sin(phi), u];
-            if (Math.random() > (d[axis]! * d[axis]!)) continue;
-            const r = r0 + gaussRandom() * sigma * 0.85;
-            if (r < 0.12) continue;
-            positions.push(r * d[0]!, r * d[1]!, r * d[2]!);
-            added++;
-          }
-        }
-      }
-    });
+    }
 
-    const eColor = lightMode ? C_ELECTRON_LIGHT : C_ELECTRON;
     const geo = new THREE.BufferGeometry();
     geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geo.setAttribute("color",    new THREE.Float32BufferAttribute(colorArr,  3));
     const cloud = new THREE.Points(geo, new THREE.PointsMaterial({
-      color: eColor,
-      size: lightMode ? 0.072 : 0.085,
+      vertexColors: true,
+      size: lightMode ? 0.070 : 0.082,
       transparent: true,
-      opacity: lightMode ? 0.78 : 0.72,
+      opacity: lightMode ? 0.80 : 0.74,
       sizeAttenuation: true,
       depthWrite: false,
       blending: lightMode ? THREE.NormalBlending : THREE.AdditiveBlending,
