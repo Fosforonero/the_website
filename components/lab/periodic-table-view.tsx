@@ -1142,13 +1142,21 @@ function MolLegend({ molMode, isPubChem, locale }: { molMode: MolViewMode; isPub
   );
 }
 
-function CrystalLegend({ locale }: { locale: Locale }) {
+function CrystalLegend({ structure, locale }: { structure: string | null | undefined; locale: Locale }) {
   const isIT = locale === "it";
+  const isHcp = structure === "hcp";
+  const isCovalent = structure === "diamond";
+  const cellLabel = isHcp
+    ? (isIT ? "prisma esagonale = cella HCP normalizzata" : "hexagonal prism = normalised HCP cell")
+    : (isIT ? "cubo = cella elementare (unit cell)" : "cube = unit cell");
+  const lineLabel = isCovalent
+    ? (isIT ? "linee = legami covalenti (reale)" : "lines = covalent bonds (real)")
+    : (isIT ? "linee = contatti di coordinazione" : "lines = coordination contacts");
   return (
     <div className="pt-context-legend" aria-hidden="true">
-      <span className="pt-context-legend__item"><span className="pt-context-legend__icon">□</span><span>{isIT ? "cubo = cella elementare (unit cell)" : "cube = unit cell"}</span></span>
+      <span className="pt-context-legend__item"><span className="pt-context-legend__icon">{isHcp ? "⬡" : "□"}</span><span>{cellLabel}</span></span>
       <span className="pt-context-legend__item"><span className="pt-context-legend__icon">●</span><span>{isIT ? "sfere = posizioni atomiche nel reticolo" : "spheres = atomic sites in the lattice"}</span></span>
-      <span className="pt-context-legend__item"><span className="pt-context-legend__icon">—</span><span>{isIT ? "linee = coordinazione visuale" : "lines = visual coordination contacts"}</span></span>
+      <span className="pt-context-legend__item"><span className="pt-context-legend__icon">—</span><span>{lineLabel}</span></span>
       <span className="pt-context-legend__item pt-context-legend__item--dim"><span className="pt-context-legend__icon">~</span><span>{isIT ? "scala normalizzata — non in scala reale" : "normalised scale — not to real scale"}</span></span>
     </div>
   );
@@ -1707,7 +1715,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                   color={CATEGORY_COLOR[selected.category] ?? "#6b7280"}
                   className="pt-canvas"
                 />
-                <CrystalLegend locale={locale} />
+                <CrystalLegend structure={EXTENDED[selected.z]?.crystalStructure} locale={locale} />
               </>
             ) : !moleculeView ? (
               <>

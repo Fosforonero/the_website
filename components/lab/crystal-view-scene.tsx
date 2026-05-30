@@ -20,9 +20,10 @@ function getCellBasis(s: VisCrystal): Array<[number, number, number]> {
     [0,0,0],[0.5,0.5,0],[0.5,0,0.5],[0,0.5,0.5],
     [0.25,0.25,0.25],[0.75,0.75,0.25],[0.75,0.25,0.75],[0.25,0.75,0.75],
   ];
-  // hcp: approximate using two hexagonal layers in a pseudo-orthorhombic cell
+  // hcp: pseudo-orthorhombic approximation — 6 atoms in 2 hexagonal layers
+  // h = √(2/3) ≈ 0.816; with nearest-neighbour a = 0.5·CELL → c/a = 2h ≈ 1.633 (ideal HCP)
   if (s === "hcp") {
-    const h = Math.sqrt(2/3); // c/a ≈ 1.633
+    const h = Math.sqrt(2/3); // ≈ 0.816; c/a = 2h ≈ 1.633
     return [
       [0,0,0],[0.5,0,0],[0.25,Math.sqrt(3)/4,0],[0.75,Math.sqrt(3)/4,0],
       [0.25,Math.sqrt(3)/12,h/2],[0.75,Math.sqrt(3)/12,h/2],
@@ -79,7 +80,7 @@ function buildLattice(s: VisCrystal, repeat: number): { atoms: AtomPos[]; bonds:
   return { atoms, bonds };
 }
 
-// ─── Unit cell wireframe outline ──────────────────────────────────────────────
+// ─── Unit cell wireframe outlines ─────────────────────────────────────────────
 
 function UnitCellBox() {
   const edgesGeo = useMemo(() => {
@@ -94,6 +95,35 @@ function UnitCellBox() {
   );
 }
 
+// Hexagonal prism for HCP — a = CELL/2, ideal c/a = √(8/3) ≈ 1.633
+function HexPrismCell() {
+  const edgesGeo = useMemo(() => {
+    const R = CELL * 0.5;
+    const halfH = R * Math.sqrt(8 / 3) / 2; // c/2 ≈ 0.408·CELL
+    const pts: number[] = [];
+    const idx: number[] = [];
+    for (let i = 0; i < 6; i++) {
+      const ang = (i / 6) * Math.PI * 2;
+      pts.push(R * Math.cos(ang), -halfH, R * Math.sin(ang)); // bottom (2i)
+      pts.push(R * Math.cos(ang),  halfH, R * Math.sin(ang)); // top    (2i+1)
+    }
+    for (let i = 0; i < 6; i++) {
+      const bi = i * 2, ti = i * 2 + 1;
+      const nbi = ((i + 1) % 6) * 2, nti = ((i + 1) % 6) * 2 + 1;
+      idx.push(bi, ti, bi, nbi, ti, nti); // vertical + bottom-hex + top-hex edges
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(pts), 3));
+    geo.setIndex(idx);
+    return geo;
+  }, []);
+  return (
+    <lineSegments geometry={edgesGeo}>
+      <lineBasicMaterial color="#ffffff" transparent opacity={0.30} />
+    </lineSegments>
+  );
+}
+
 // ─── Scene content ────────────────────────────────────────────────────────────
 
 function LatticeContent({
@@ -101,7 +131,7 @@ function LatticeContent({
 }: { structure: VisCrystal; color: string; lightMode: boolean }) {
   const groupRef = useRef<THREE.Group>(null!);
 
-  const { atoms, bonds, atomGeo, atomMat, bondMat, unitCellCenter } = useMemo(() => {
+  const { atoms, bonds, atomGeo, atomMat, bondMat, bondRadius, unitCellCenter } = useMemo(() => {
     // diamond/hcp kept smaller due to complex basis; sc/bcc/fcc extended for infinite-crystal effect
     const repeat = structure === "diamond" ? 2 : structure === "hcp" ? 3 : 5;
     const { atoms, bonds } = buildLattice(structure, repeat);
@@ -121,17 +151,22 @@ function LatticeContent({
       roughness: 0.28,
       metalness: lightMode ? 0.1 : 0.55,
     });
-    const bondCol = lightMode ? new THREE.Color(0x444455) : new THREE.Color(0x8899cc);
+    // diamond = real covalent bonds; sc/bcc/fcc/hcp = metallic coordination contacts (thinner, more transparent)
+    const isCovalent = structure === "diamond";
+    const bondRadius = isCovalent ? 0.055 : 0.030;
+    const bondCol = isCovalent
+      ? (lightMode ? new THREE.Color(0x444455) : new THREE.Color(0x8899cc))
+      : (lightMode ? new THREE.Color(0x777788) : new THREE.Color(0x5566aa));
     const bondMat = new THREE.MeshStandardMaterial({
       color: bondCol,
       emissive: bondCol,
-      emissiveIntensity: lightMode ? 0.03 : 0.18,
+      emissiveIntensity: isCovalent ? (lightMode ? 0.03 : 0.18) : 0.04,
       roughness: 0.55,
       metalness: 0.15,
       transparent: true,
-      opacity: lightMode ? 0.50 : 0.65,
+      opacity: isCovalent ? (lightMode ? 0.50 : 0.65) : (lightMode ? 0.28 : 0.30),
     });
-    return { atoms, bonds, atomGeo, atomMat, bondMat, unitCellCenter };
+    return { atoms, bonds, atomGeo, atomMat, bondMat, bondRadius, unitCellCenter };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [structure, color, lightMode]);
 
@@ -156,7 +191,7 @@ function LatticeContent({
       const dx = bx-ax, dy = by-ay, dz = bz-az;
       const len = Math.sqrt(dx*dx+dy*dy+dz*dz);
       const mx = (ax+bx)/2, my = (ay+by)/2, mz = (az+bz)/2;
-      const geo = new THREE.CylinderGeometry(0.055, 0.055, len, 8, 1);
+      const geo = new THREE.CylinderGeometry(bondRadius, bondRadius, len, 8, 1);
       const mesh = new THREE.Mesh(geo, bondMat);
       mesh.position.set(mx, my, mz);
       const axis = new THREE.Vector3(dx/len, dy/len, dz/len);
@@ -164,7 +199,7 @@ function LatticeContent({
       return <primitive key={i} object={mesh} />;
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bonds, bondMat]);
+  }, [bonds, bondMat, bondRadius]);
 
   useFrame((_, dt) => {
     if (groupRef.current) {
@@ -189,7 +224,7 @@ function LatticeContent({
       />
       {bondMeshes}
       <group position={unitCellCenter}>
-        <UnitCellBox />
+        {structure === "hcp" ? <HexPrismCell /> : <UnitCellBox />}
       </group>
     </group>
   );
