@@ -115,6 +115,23 @@
   letter-spacing: 0.02em;
   font-variant-numeric: tabular-nums;
 }
+.pt-model-badge {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 7px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.5;
+  background: rgba(255,255,255,0.07);
+  vertical-align: middle;
+}
+.pt-model-badge[data-model="thomson"],
+.pt-model-badge[data-model="rutherford"],
+.pt-model-badge[data-model="bohr"]       { color: #f59e0b; }
+.pt-model-badge[data-model="sommerfeld"] { color: #60a5fa; }
+.pt-model-badge[data-model="quantum"]    { color: #34d399; }
 /* Mobile native select — hidden on desktop */
 .pt-model-select {
   display: none;
@@ -1015,6 +1032,12 @@
 .pt-root--light .pt-model-btn:hover { color: #0a0a0a; background: rgba(10,10,10,0.08); }
 .pt-root--light .pt-model-btn.active { background: rgba(10,10,10,0.14); color: #0a0a0a; }
 .pt-root--light .pt-model-year { opacity: 0.55; }
+.pt-root--light .pt-model-badge { background: rgba(10,10,10,0.06); }
+.pt-root--light .pt-model-badge[data-model="thomson"],
+.pt-root--light .pt-model-badge[data-model="rutherford"],
+.pt-root--light .pt-model-badge[data-model="bohr"]       { color: #b45309; }
+.pt-root--light .pt-model-badge[data-model="sommerfeld"] { color: #1d4ed8; }
+.pt-root--light .pt-model-badge[data-model="quantum"]    { color: #059669; }
 .pt-root--light .pt-model-select {
   background: rgba(10,10,10,0.05);
   border-color: rgba(10,10,10,0.20);

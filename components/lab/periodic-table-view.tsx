@@ -69,14 +69,22 @@ const getCategoryLabel = (cat: string, locale: Locale): string => {
   return CATEGORY_LABELS_IT[cat] || cat;
 };
 
+const MODEL_BADGES: Record<string, { it: string; en: string }> = {
+  thomson:    { it: "storico",      en: "historical"   },
+  rutherford: { it: "storico",      en: "historical"   },
+  bohr:       { it: "storico",      en: "historical"   },
+  sommerfeld: { it: "semiclassico", en: "semiclassical" },
+  quantum:    { it: "moderno",      en: "modern"       },
+};
+
 const getModels = (locale: Locale) => {
   const t = LAB_UI_TRANSLATIONS[locale];
   return [
-    { key: "thomson",    label: "Thomson",     year: 1904, desc: t.modelDescThomson },
-    { key: "rutherford", label: "Rutherford",  year: 1911, desc: t.modelDescRutherford },
-    { key: "bohr",       label: "Bohr",        year: 1913, desc: t.modelDescBohr },
-    { key: "sommerfeld", label: "Sommerfeld",  year: 1916, desc: t.modelDescSommerfeld },
-    { key: "quantum",    label: locale === "en" ? "Quantum" : "Quantistico", year: 1926, desc: t.modelDescQuantum },
+    { key: "thomson",    label: "Thomson",     year: 1904, badge: MODEL_BADGES.thomson![locale],    desc: t.modelDescThomson },
+    { key: "rutherford", label: "Rutherford",  year: 1911, badge: MODEL_BADGES.rutherford![locale], desc: t.modelDescRutherford },
+    { key: "bohr",       label: "Bohr",        year: 1913, badge: MODEL_BADGES.bohr![locale],       desc: t.modelDescBohr },
+    { key: "sommerfeld", label: "Sommerfeld",  year: 1916, badge: MODEL_BADGES.sommerfeld![locale], desc: t.modelDescSommerfeld },
+    { key: "quantum",    label: locale === "en" ? "Quantum" : "Quantistico", year: 1926, badge: MODEL_BADGES.quantum![locale], desc: t.modelDescQuantum },
   ] as const;
 };
 
@@ -890,7 +898,7 @@ function ModelSwitch({ current, onChange, locale }: { current: AtomModel; onChan
   return (
     <div className="pt-model-switch" role="group" aria-label={grpLabel}>
       {/* Desktop: pill buttons */}
-      {models.map(({ key, label, year, desc }) => (
+      {models.map(({ key, label, year, badge, desc }) => (
         <button
           key={key}
           className={`pt-model-btn${current === key ? " active" : ""}`}
@@ -900,6 +908,7 @@ function ModelSwitch({ current, onChange, locale }: { current: AtomModel; onChan
         >
           {label}
           <span className="pt-model-year">{year}</span>
+          <span className="pt-model-badge" data-model={key}>{badge}</span>
         </button>
       ))}
       {/* Mobile: native select */}

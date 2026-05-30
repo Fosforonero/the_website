@@ -54,8 +54,12 @@ const TRAIL_LEN = 32;
 const SCALE_NORMAL = { radiusMul: 1.0, nucleonScale: 1.0, electronScale: 1.0 };
 const SCALE_REAL   = { radiusMul: 3.6, nucleonScale: 0.25, electronScale: 0.35 };
 
+const NUCLEON_RADIUS       = 0.17;
+const NUCLEON_MIN_SEP      = NUCLEON_RADIUS * 2; // = 0.34 — hard-sphere contact, no visual overlap
+const NUCLEUS_PACK_ATTEMPTS = 120;
+
 // Shared geometry (never disposed — app lifetime)
-const nucleonGeo   = new THREE.SphereGeometry(0.17, 16, 10);
+const nucleonGeo   = new THREE.SphereGeometry(NUCLEON_RADIUS, 16, 10);
 const electronGeo  = new THREE.SphereGeometry(0.09, 12, 8);
 const spinArrowGeo = new THREE.ConeGeometry(0.045, 0.13, 6);
 
@@ -63,6 +67,41 @@ const spinArrowGeo = new THREE.ConeGeometry(0.045, 0.13, 6);
 
 function nucleusRadius(z: number, n: number) {
   return 0.30 + Math.pow(z + n, 1 / 3) * 0.095;
+}
+
+// Exact geometric positions for H/He nuclei (total ≤ 4) — no visual overlap guaranteed
+function deterministicNucleons(total: number, r: number): THREE.Vector3[] {
+  const s = Math.min(r * 0.52, NUCLEON_MIN_SEP * 0.78); // half-separation, fits within nucleus sphere
+  if (total === 1) return [new THREE.Vector3(0, 0, 0)];
+  if (total === 2) return [new THREE.Vector3(-s, 0, 0), new THREE.Vector3(s, 0, 0)];
+  if (total === 3) {
+    const pr = s * 1.15;
+    return Array.from({ length: 3 }, (_, i) => new THREE.Vector3(
+      pr * Math.cos((i / 3) * Math.PI * 2), pr * Math.sin((i / 3) * Math.PI * 2), 0,
+    ));
+  }
+  // total === 4: regular tetrahedron — vertices at (±q,±q,±q) with alternating signs
+  const q = s * 0.9;
+  return [
+    new THREE.Vector3( q,  q,  q), new THREE.Vector3(-q, -q,  q),
+    new THREE.Vector3(-q,  q, -q), new THREE.Vector3( q, -q, -q),
+  ];
+}
+
+// Rejection sampling with a safe fallback (random in sphere, never origin)
+function randomNucleonPos(r: number, minSep: number, existing: THREE.Vector3[], attempts: number): THREE.Vector3 {
+  for (let a = 0; a < attempts; a++) {
+    const v = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1);
+    if (v.lengthSq() > 1) continue;
+    v.multiplyScalar(r);
+    if (existing.every(p => p.distanceTo(v) >= minSep)) return v;
+  }
+  // Fallback: random position inside sphere — overlap accepted, but never the degenerate origin
+  for (let a = 0; a < 40; a++) {
+    const v = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1);
+    if (v.lengthSq() <= 1) return v.multiplyScalar(r);
+  }
+  return new THREE.Vector3((Math.random() - 0.5) * r * 2, (Math.random() - 0.5) * r * 2, 0);
 }
 
 function gaussRandom() {
@@ -104,16 +143,12 @@ function Nucleus({ z, n, scaleMul, lightMode = false }: { z: number; n: number; 
     const isProton: boolean[] = [];
     const protonIdxs = new Set<number>();
     while (protonIdxs.size < z) protonIdxs.add(Math.floor(Math.random() * total));
+    // ≤4 nucleons: exact geometry (H single proton, He tetrahedron) — clean, no visual overlap
+    const geom = total <= 4 ? deterministicNucleons(total, r) : null;
     for (let i = 0; i < total; i++) {
-      let pos = new THREE.Vector3();
-      for (let a = 0; a < 80; a++) {
-        const v = new THREE.Vector3(
-          Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1,
-        );
-        if (v.lengthSq() > 1) continue;
-        v.multiplyScalar(r);
-        if (positions.every(p => p.distanceTo(v) >= 0.21)) { pos = v; break; }
-      }
+      const pos = geom
+        ? (geom[i] ?? new THREE.Vector3())
+        : randomNucleonPos(r, NUCLEON_MIN_SEP, positions, NUCLEUS_PACK_ATTEMPTS);
       positions.push(pos);
       isProton.push(protonIdxs.has(i));
     }
@@ -135,8 +170,8 @@ function Nucleus({ z, n, scaleMul, lightMode = false }: { z: number; n: number; 
           <meshStandardMaterial
             color={isProton[i] ? C_PROTON : C_NEUTRON}
             emissive={isProton[i] ? C_PROTON : C_NEUTRON}
-            emissiveIntensity={0.55}
-            roughness={0.3} metalness={0.15}
+            emissiveIntensity={0.65}
+            roughness={0.25} metalness={0.28}
           />
         </mesh>
       ))}
@@ -501,7 +536,7 @@ function BohrAtom({ el, radiusMul, eMul, reduced, speedMul, lightMode, showSpin 
 // ─── Sommerfeld (1916) — elliptical Keplerian orbits ─────────────────────────
 
 interface SubOrbital {
-  shellIdx: number; k: number; shellEOffset: number;
+  shellIdx: number; k: number; shellEOffset: number; l: number; // l = k-1: s/p/d/f
   a: number; b: number; ecc: number;
   tilt: [number, number, number];
   electronCount: number;
@@ -526,7 +561,7 @@ function buildSommerfeldConfig(shellFills: number[], radiusMul: number): SubOrbi
       const a = shellR / (1 + ecc);
       const baseTilt = SHELL_TILTS[shellIdx] ?? SHELL_TILTS.at(-1)!;
       result.push({
-        shellIdx, k, shellEOffset, a, b: a * kOverN, ecc,
+        shellIdx, k, shellEOffset, l: k - 1, a, b: a * kOverN, ecc,
         tilt: [baseTilt[0] + k * 0.44, baseTilt[1] + k * 0.60, baseTilt[2] + k * 0.35],
         electronCount: electrons,
         speed: SHELL_SPEEDS[shellIdx] ?? 0.1,
@@ -590,9 +625,12 @@ function SommerfeldAtom({ el, radiusMul, reduced, speedMul, lightMode, showSpin 
           0,
         ));
       }
+      // Color ellipse by subshell type (s=amber, p=blue, d=emerald, f=purple) — matches quantum model
+      const lIdx = Math.min(orbit.l, 3) as 0 | 1 | 2 | 3;
+      const ellipseColor = (lightMode ? L_COLORS_LIGHT : L_COLORS_DARK)[lIdx];
       og.add(new THREE.Line(
         new THREE.BufferGeometry().setFromPoints(pts),
-        new THREE.LineBasicMaterial({ color: ringCol, transparent: true, opacity: ringOp }),
+        new THREE.LineBasicMaterial({ color: ellipseColor, transparent: true, opacity: lightMode ? 0.22 : 0.18 }),
       ));
 
       const electrons: THREE.Mesh[]  = [];
