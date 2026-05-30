@@ -7,7 +7,7 @@ import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
 import type { Molecule, BondType } from "@/lib/molecules-data";
 
-export type MolViewMode = "ball-stick" | "space-filling";
+export type MolViewMode = "ball-stick" | "space-filling" | "polarity";
 
 // ─── Atom color palette (CPK-like) ───────────────────────────────────────────
 
@@ -67,6 +67,15 @@ const BOND_COLOR: Record<BondType, string> = {
   ionic:    "#c77fa8",
 };
 
+// ─── Pauling electronegativity (for polarity mode) ───────────────────────────
+
+const ELEM_EN: Record<number, number> = {
+  1: 2.20, 6: 2.55, 7: 3.04, 8: 3.44, 9: 3.98,
+  11: 0.93, 12: 1.31, 13: 1.61, 14: 1.90, 15: 2.19,
+  16: 2.58, 17: 3.16, 19: 0.82, 20: 1.00,
+  26: 1.83, 29: 1.90, 47: 1.93, 79: 2.54, 82: 2.33,
+};
+
 // ─── Element symbol lookup ────────────────────────────────────────────────────
 
 function getSymbol(z: number): string {
@@ -91,11 +100,11 @@ function hashFormula(s: string): number {
 // ─── Bond (proper cylinder orientation) ──────────────────────────────────────
 
 function Bond({
-  ax, ay, az, bx, by, bz, order, type,
+  ax, ay, az, bx, by, bz, order, type, opacity = 0.82,
 }: {
   ax: number; ay: number; az: number;
   bx: number; by: number; bz: number;
-  order: 1 | 2 | 3; type: BondType;
+  order: 1 | 2 | 3; type: BondType; opacity?: number;
 }) {
   const dx = bx-ax, dy = by-ay, dz = bz-az;
   const len = Math.sqrt(dx*dx+dy*dy+dz*dz);
@@ -128,7 +137,7 @@ function Bond({
               roughness={0.40}
               metalness={0.10}
               transparent
-              opacity={0.82}
+              opacity={opacity}
             />
           </mesh>
         );
@@ -202,18 +211,134 @@ function BondElectrons({
   );
 }
 
+// ─── Polarity helpers ─────────────────────────────────────────────────────────
+
+type PolarLabel = "polar" | "apolar" | "apolarSymmetric" | "homopolar";
+
+function computePolarityData(molecule: Molecule): {
+  atomDeltas: number[];
+  dipoleVec: THREE.Vector3;
+  label: PolarLabel;
+} {
+  const n          = molecule.atoms.length;
+  const accumDelta = new Array<number>(n).fill(0);
+  const bondCount  = new Array<number>(n).fill(0);
+  const dipoleVec  = new THREE.Vector3();
+  let hasPolarBonds = false;
+  let allHomopolar  = true;
+
+  for (const b of molecule.bonds) {
+    const atomA = molecule.atoms[b.a]!;
+    const atomB = molecule.atoms[b.b]!;
+    const enA   = ELEM_EN[atomA.elem] ?? 2.0;
+    const enB   = ELEM_EN[atomB.elem] ?? 2.0;
+    const dEN   = enB - enA; // positive → B more EN (δ−), A δ+
+    const frac  = Math.tanh(Math.abs(dEN) / 2.0);
+
+    if (frac > 0.05) hasPolarBonds = true;
+    if (b.type !== "covalent" || frac > 0.05) allHomopolar = false;
+
+    // signed delta: positive = δ−, negative = δ+
+    accumDelta[b.a] = (accumDelta[b.a] ?? 0) - Math.sign(dEN) * frac;
+    accumDelta[b.b] = (accumDelta[b.b] ?? 0) + Math.sign(dEN) * frac;
+    bondCount[b.a]  = (bondCount[b.a]  ?? 0) + 1;
+    bondCount[b.b]  = (bondCount[b.b]  ?? 0) + 1;
+
+    // bond dipole vector points from δ+ toward δ− (chemistry convention)
+    const vec = new THREE.Vector3(
+      atomB.x - atomA.x, atomB.y - atomA.y, atomB.pz - atomA.pz,
+    ).normalize();
+    dipoleVec.addScaledVector(vec, (dEN > 0 ? 1 : -1) * frac * b.order);
+  }
+
+  const atomDeltas = accumDelta.map((d, i) => d / Math.max(bondCount[i] ?? 1, 1));
+  const isPolar    = dipoleVec.length() > 0.15;
+  const label: PolarLabel =
+    allHomopolar    ? "homopolar"
+    : isPolar       ? "polar"
+    : hasPolarBonds ? "apolarSymmetric"
+    :                 "apolar";
+
+  return { atomDeltas, dipoleVec, label };
+}
+
+export function getMolPolarLabel(molecule: Molecule): PolarLabel {
+  return computePolarityData(molecule).label;
+}
+
+function deltaToColor(delta: number): THREE.Color {
+  const base = new THREE.Color("#8899aa");
+  const t = Math.max(-1, Math.min(1, delta));
+  if (t >= 0) return base.clone().lerp(new THREE.Color("#dc2626"), t);  // δ− red
+  return base.clone().lerp(new THREE.Color("#2563eb"), -t);             // δ+ blue
+}
+
+// ─── Dipole arrow (cylinder shaft + cone head) ────────────────────────────────
+
+function DipoleArrow({ dipoleVec }: { dipoleVec: THREE.Vector3 }) {
+  const dir  = dipoleVec.clone().normalize();
+  const len  = Math.min(dipoleVec.length() * 1.4, 2.0);
+  const shL  = len * 0.72;
+  const hdL  = len * 0.28;
+  const col  = "#c77fa8";
+  const quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+  const shPos: [number, number, number] = [dir.x*shL/2, dir.y*shL/2, dir.z*shL/2];
+  const hdPos: [number, number, number] = [dir.x*(shL+hdL/2), dir.y*(shL+hdL/2), dir.z*(shL+hdL/2)];
+  return (
+    <>
+      <mesh position={shPos} quaternion={quat}>
+        <cylinderGeometry args={[0.04, 0.04, shL, 8]} />
+        <meshPhysicalMaterial color={col} emissive={col} emissiveIntensity={0.35}
+          roughness={0.30} metalness={0.10} />
+      </mesh>
+      <mesh position={hdPos} quaternion={quat}>
+        <coneGeometry args={[0.10, hdL, 8]} />
+        <meshPhysicalMaterial color={col} emissive={col} emissiveIntensity={0.35}
+          roughness={0.30} metalness={0.10} />
+      </mesh>
+    </>
+  );
+}
+
+// ─── Lone pair blob ───────────────────────────────────────────────────────────
+
+function LonePair({ x, y, z }: { x: number; y: number; z: number }) {
+  return (
+    <mesh position={[x, y, z]}>
+      <sphereGeometry args={[0.18, 10, 8]} />
+      <meshPhysicalMaterial
+        color="#67e8f9"
+        emissive="#67e8f9"
+        emissiveIntensity={0.45}
+        transparent
+        opacity={0.42}
+        roughness={0.10}
+        metalness={0}
+        depthWrite={false}
+      />
+    </mesh>
+  );
+}
+
 // ─── Atom sphere with SDF label (ball-stick only) ─────────────────────────────
 
 function AtomSphere({
-  elem, x, y, pz, mode, showLabel, meshRef,
+  elem, x, y, pz, mode, showLabel, meshRef, deltaValue,
 }: {
   elem: number; x: number; y: number; pz: number;
   mode: MolViewMode; showLabel: boolean;
   meshRef?: (m: THREE.Mesh | null) => void;
+  deltaValue?: number;
 }) {
-  const col    = new THREE.Color(getAtomColor(elem));
+  const baseCol = new THREE.Color(getAtomColor(elem));
+  const col     = (mode === "polarity" && deltaValue !== undefined)
+    ? deltaToColor(deltaValue) : baseCol;
   const r      = getAtomRadius(elem, mode);
   const symbol = getSymbol(elem);
+
+  const showDeltaLabel  = mode === "polarity" && deltaValue !== undefined && Math.abs(deltaValue) > 0.15;
+  const deltaLabelText  = (deltaValue ?? 0) > 0 ? "δ−" : "δ+";
+  const deltaLabelColor = (deltaValue ?? 0) > 0 ? "#ff6b6b" : "#74c0fc";
 
   return (
     <mesh ref={meshRef} position={[x, y, pz]}>
@@ -238,6 +363,20 @@ function AtomSphere({
             depthOffset={-1}
           >
             {symbol}
+          </Text>
+        </Billboard>
+      )}
+      {showDeltaLabel && (
+        <Billboard>
+          <Text
+            position={[0, r + 0.14, 0]}
+            fontSize={0.10}
+            color={deltaLabelColor}
+            anchorX="center"
+            anchorY="middle"
+            depthOffset={-1}
+          >
+            {deltaLabelText}
           </Text>
         </Billboard>
       )}
@@ -317,14 +456,19 @@ function MolContent({
     [molecule.atoms.length, seed],
   );
 
+  const polarData = useMemo(
+    () => (mode === "polarity" ? computePolarityData(molecule) : null),
+    [molecule, mode],
+  );
+
   const showLabel = mode === "ball-stick" && molecule.atoms.length <= 16;
 
   useFrame((_, dt) => {
     if (!groupRef.current) return;
     groupRef.current.rotation.y += dt * 0.12;
     t.current += dt;
-    // Vibration only in ball-stick mode
-    if (mode === "ball-stick") {
+    // Vibration in ball-stick and polarity modes
+    if (mode === "ball-stick" || mode === "polarity") {
       molecule.atoms.forEach((a, i) => {
         const mesh = atomMeshRefs.current[i];
         const vp   = vibParams[i];
@@ -340,8 +484,8 @@ function MolContent({
 
   return (
     <group ref={groupRef}>
-      {/* Bonds — hidden in space-filling */}
-      {mode === "ball-stick" && molecule.bonds.map((b, i) => {
+      {/* Bonds — hidden in space-filling; dimmed in polarity */}
+      {mode !== "space-filling" && molecule.bonds.map((b, i) => {
         const a     = molecule.atoms[b.a]!;
         const bAtom = molecule.atoms[b.b]!;
         return (
@@ -350,12 +494,15 @@ function MolContent({
               ax={a.x} ay={a.y} az={a.pz}
               bx={bAtom.x} by={bAtom.y} bz={bAtom.pz}
               order={b.order} type={b.type}
+              opacity={mode === "polarity" ? 0.45 : 0.82}
             />
-            <BondElectrons
-              ax={a.x} ay={a.y} az={a.pz}
-              bx={bAtom.x} by={bAtom.y} bz={bAtom.pz}
-              type={b.type}
-            />
+            {mode === "ball-stick" && (
+              <BondElectrons
+                ax={a.x} ay={a.y} az={a.pz}
+                bx={bAtom.x} by={bAtom.y} bz={bAtom.pz}
+                type={b.type}
+              />
+            )}
           </group>
         );
       })}
@@ -367,8 +514,20 @@ function MolContent({
           mode={mode}
           showLabel={showLabel}
           meshRef={(m) => { atomMeshRefs.current[i] = m; }}
+          deltaValue={polarData?.atomDeltas[i]}
         />
       ))}
+      {/* Polarity extras: dipole arrow + lone pairs */}
+      {mode === "polarity" && polarData && (
+        <>
+          {polarData.dipoleVec.length() > 0.15 && (
+            <DipoleArrow dipoleVec={polarData.dipoleVec} />
+          )}
+          {molecule.lonePairs?.map((lp, i) => (
+            <LonePair key={i} x={lp.x} y={lp.y} z={lp.z} />
+          ))}
+        </>
+      )}
     </group>
   );
 }

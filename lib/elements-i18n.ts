@@ -144,7 +144,12 @@ export const LAB_UI_TRANSLATIONS = {
     readLess: "meno",
     molModeBallStick: "ball & stick",
     molModeSpaceFill: "riempimento",
+    molModePolarity: "polarità",
     molModeReset: "↺ camera",
+    molPolar: "molecola polare",
+    molApolar: "molecola apolare",
+    molApolarSymmetric: "legami polari — simmetria annulla",
+    molHomopolar: "legame omopolare",
   },
   en: {
     backToTable: "← table",
@@ -218,7 +223,12 @@ export const LAB_UI_TRANSLATIONS = {
     readLess: "less",
     molModeBallStick: "ball & stick",
     molModeSpaceFill: "space fill",
+    molModePolarity: "polarity",
     molModeReset: "↺ camera",
+    molPolar: "polar molecule",
+    molApolar: "nonpolar molecule",
+    molApolarSymmetric: "polar bonds — symmetry cancels",
+    molHomopolar: "homopolar bond",
   }
 };
 

@@ -25,6 +25,7 @@ export interface Molecule {
   geometry: string;
   descIT: string;
   descEN: string;
+  lonePairs?: { x: number; y: number; z: number }[];
 }
 
 // ─── Molecule definitions ─────────────────────────────────────────────────────
@@ -54,6 +55,10 @@ const H2O: Molecule = {
   bonds: [
     { a:0, b:1, order:1, type:"polar" },
     { a:0, b:2, order:1, type:"polar" },
+  ],
+  lonePairs: [
+    { x: 0, y: 0.67, z:  0.40 },
+    { x: 0, y: 0.67, z: -0.40 },
   ],
 };
 
@@ -101,6 +106,7 @@ const NH3: Molecule = {
     { a:0, b:2, order:1, type:"polar" },
     { a:0, b:3, order:1, type:"polar" },
   ],
+  lonePairs: [{ x: 0, y: 1.05, z: 0 }],
 };
 
 const CH4: Molecule = {

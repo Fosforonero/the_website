@@ -14,6 +14,7 @@ import { MOLECULES_BY_Z, type Molecule } from "@/lib/molecules-data";
 import { fetchMoleculeFromPubChem } from "@/lib/molecules-pubchem";
 import { ElementStoryMode } from "./element-story-mode";
 import type { AtomModel, VdWStyle } from "./atom-scene";
+import { getMolPolarLabel } from "./molecule-scene";
 import type { MolViewMode } from "./molecule-scene";
 import type { Locale } from "@/lib/site";
 import {
@@ -1304,6 +1305,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
               const mols      = MOLECULES_BY_Z[selected.z];
               const predefined = mols?.[activeMolIdx];
               const mol        = molSearchResult ?? predefined;
+              const polarLabel = mol && molMode === "polarity" ? getMolPolarLabel(mol) : null;
               return (
                 <>
                   {mol && (
@@ -1319,6 +1321,14 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                         <span className="pt-mol-name">
                           {locale === "en" ? mol.nameEN : mol.nameIT}
                         </span>
+                        {polarLabel && (
+                          <span className="pt-mol-polar-badge">
+                            {polarLabel === "polar"           ? t.molPolar :
+                             polarLabel === "apolarSymmetric" ? t.molApolarSymmetric :
+                             polarLabel === "homopolar"       ? t.molHomopolar :
+                                                               t.molApolar}
+                          </span>
+                        )}
                         {molSearchResult && (
                           <button
                             className="pt-mol-clear-search"
@@ -1346,6 +1356,15 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                           aria-label={t.molModeSpaceFill}
                         >
                           {t.molModeSpaceFill}
+                        </button>
+                        <button
+                          className={`pt-mol-mode-btn${molMode === "polarity" ? " active" : ""}`}
+                          onClick={() => setMolMode("polarity")}
+                          aria-pressed={molMode === "polarity"}
+                          title={t.molModePolarity}
+                          aria-label={t.molModePolarity}
+                        >
+                          {t.molModePolarity}
                         </button>
                         <button
                           className="pt-mol-reset-btn"
