@@ -13,6 +13,7 @@ export type MolViewMode = "ball-stick" | "space-filling" | "polarity";
 
 const ELEM_COLORS: Record<number, string> = {
   1:  "#d1d5db", // H: light gray
+  5:  "#e8b07a", // B: peach-tan
   6:  "#374151", // C: dark gray
   7:  "#3b82f6", // N: blue
   8:  "#ef4444", // O: red
@@ -37,14 +38,14 @@ const ELEM_COLORS: Record<number, string> = {
 // Ball-stick: ~55% VdW. Space-filling: full VdW (Three.js relative units).
 
 const BALL_STICK_R: Record<number, number> = {
-  1: 0.22, 6: 0.34, 7: 0.30, 8: 0.28, 9: 0.26,
+  1: 0.22, 5: 0.38, 6: 0.34, 7: 0.30, 8: 0.28, 9: 0.26,
   11: 0.48, 12: 0.42, 13: 0.40, 14: 0.38, 15: 0.38,
   16: 0.36, 17: 0.36, 19: 0.52, 20: 0.46, 26: 0.42,
   29: 0.40, 47: 0.44, 79: 0.44, 82: 0.46,
 };
 
 const SPACE_FILL_R: Record<number, number> = {
-  1: 0.48, 6: 0.70, 7: 0.63, 8: 0.62, 9: 0.60,
+  1: 0.48, 5: 0.77, 6: 0.70, 7: 0.63, 8: 0.62, 9: 0.60,
   11: 0.92, 12: 0.70, 13: 0.75, 14: 0.85, 15: 0.73,
   16: 0.73, 17: 0.71, 19: 1.11, 20: 0.94, 26: 0.83,
   29: 0.80, 47: 0.86, 79: 0.87, 82: 0.82,
@@ -70,7 +71,7 @@ const BOND_COLOR: Record<BondType, string> = {
 // ─── Pauling electronegativity (for polarity mode) ───────────────────────────
 
 const ELEM_EN: Record<number, number> = {
-  1: 2.20, 6: 2.55, 7: 3.04, 8: 3.44, 9: 3.98,
+  1: 2.20, 5: 2.04, 6: 2.55, 7: 3.04, 8: 3.44, 9: 3.98,
   11: 0.93, 12: 1.31, 13: 1.61, 14: 1.90, 15: 2.19,
   16: 2.58, 17: 3.16, 19: 0.82, 20: 1.00,
   26: 1.83, 29: 1.90, 47: 1.93, 79: 2.54, 82: 2.33,

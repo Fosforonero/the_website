@@ -517,20 +517,131 @@ const HNO3: Molecule = {
   ],
 };
 
+const HF: Molecule = {
+  formula: "HF", nameIT: "Fluoruro di idrogeno", nameEN: "Hydrogen fluoride",
+  geometry: "linear",
+  descIT: "Legame H–F il più polare tra i diatomici (ΔEN = 1,78). Densità elettronica fortemente spostata verso F. Fondamentale in chimica del fluoro.",
+  descEN: "H–F bond: most polar of all diatomics (ΔEN = 1.78). Electron density strongly shifted toward F. Foundational in fluorine chemistry.",
+  atoms: [
+    { elem:1, x:-0.46, y:0, pz:0 },
+    { elem:9, x: 0.46, y:0, pz:0 },
+  ],
+  bonds: [{ a:0, b:1, order:1, type:"polar" }],
+};
+
+const C2H2: Molecule = {
+  formula: "C₂H₂", nameIT: "Acetilene", nameEN: "Acetylene",
+  geometry: "linear",
+  descIT: "Ibridazione sp: triplo legame C≡C (σ + 2π). Struttura lineare con due legami C–H colineari. Base della chimica degli alchini.",
+  descEN: "sp hybridisation: triple C≡C bond (σ + 2π). Linear structure with two collinear C–H bonds. Basis of alkyne chemistry.",
+  atoms: [
+    { elem:1, x:-1.66, y:0, pz:0 },
+    { elem:6, x:-0.60, y:0, pz:0 },
+    { elem:6, x: 0.60, y:0, pz:0 },
+    { elem:1, x: 1.66, y:0, pz:0 },
+  ],
+  bonds: [
+    { a:0, b:1, order:1, type:"polar"    },
+    { a:1, b:2, order:3, type:"covalent" },
+    { a:2, b:3, order:1, type:"polar"    },
+  ],
+};
+
+const C2H4: Molecule = {
+  formula: "C₂H₄", nameIT: "Etilene", nameEN: "Ethylene",
+  geometry: "trigonal planar",
+  descIT: "Ibridazione sp²: doppio legame C=C con geometria completamente planare. Tutti gli atomi giacciono sullo stesso piano. Monomero chiave per i polimeri (polietilene).",
+  descEN: "sp² hybridisation: C=C double bond with fully planar geometry. All atoms lie in the same plane. Key monomer for polymers (polyethylene).",
+  atoms: [
+    { elem:6, x:-0.67, y: 0,    pz:0 },
+    { elem:6, x: 0.67, y: 0,    pz:0 },
+    { elem:1, x:-1.24, y: 0.92, pz:0 },
+    { elem:1, x:-1.24, y:-0.92, pz:0 },
+    { elem:1, x: 1.24, y: 0.92, pz:0 },
+    { elem:1, x: 1.24, y:-0.92, pz:0 },
+  ],
+  bonds: [
+    { a:0, b:1, order:2, type:"covalent" },
+    { a:0, b:2, order:1, type:"polar"    },
+    { a:0, b:3, order:1, type:"polar"    },
+    { a:1, b:4, order:1, type:"polar"    },
+    { a:1, b:5, order:1, type:"polar"    },
+  ],
+};
+
+const O3: Molecule = {
+  formula: "O₃", nameIT: "Ozono", nameEN: "Ozone",
+  geometry: "bent",
+  descIT: "Geometria angolata (117°). Struttura di risonanza con due forme equivalenti: l'ordine 2+1 qui è una rappresentazione semplificata. La polarità reale (μ = 0,53 D) dipende dalle cariche formali di risonanza, non dall'EN — limite del modello semplificato.",
+  descEN: "Bent geometry (117°). Resonance structure with two equivalent forms: the 2+1 order shown is a simplified representation. Real polarity (μ = 0.53 D) arises from formal charge distribution in resonance, not from EN — limit of the simplified model.",
+  atoms: [
+    { elem:8, x: 0,    y: 0.45, pz:0 },
+    { elem:8, x:-1.09, y:-0.22, pz:0 },
+    { elem:8, x: 1.09, y:-0.22, pz:0 },
+  ],
+  bonds: [
+    { a:0, b:1, order:2, type:"covalent" },
+    { a:0, b:2, order:1, type:"covalent" },
+  ],
+};
+
+const BF3: Molecule = {
+  formula: "BF₃", nameIT: "Trifluoruro di boro", nameEN: "Boron trifluoride",
+  geometry: "trigonal planar",
+  descIT: "Trigonale planare. Tre legami B–F altamente polari (ΔEN = 1,94) ma i dipoli si cancellano per simmetria: molecola apolare. Acido di Lewis con orbitale p vuoto sul boro.",
+  descEN: "Trigonal planar. Three highly polar B–F bonds (ΔEN = 1.94) whose dipoles cancel by symmetry: nonpolar molecule. Lewis acid with empty p orbital on boron.",
+  atoms: [
+    { elem:5, x: 0,      y: 0,     pz:0 },
+    { elem:9, x: 1.307,  y: 0,     pz:0 },
+    { elem:9, x:-0.654,  y: 1.132, pz:0 },
+    { elem:9, x:-0.654,  y:-1.132, pz:0 },
+  ],
+  bonds: [
+    { a:0, b:1, order:1, type:"polar" },
+    { a:0, b:2, order:1, type:"polar" },
+    { a:0, b:3, order:1, type:"polar" },
+  ],
+};
+
+const SF6: Molecule = {
+  formula: "SF₆", nameIT: "Esafluoruro di zolfo", nameEN: "Sulfur hexafluoride",
+  geometry: "octahedral",
+  descIT: "Ottaedro regolare. Sei legami S–F polari (ΔEN = 1,40) simmetricamente disposti: il dipolo molecolare è zero. Gas inerte e ottimo isolante elettrico.",
+  descEN: "Regular octahedron. Six polar S–F bonds (ΔEN = 1.40) symmetrically arranged: zero molecular dipole. Inert gas and excellent electrical insulator.",
+  atoms: [
+    { elem:16, x: 0,     y: 0,     pz: 0     },
+    { elem:9,  x: 1.564, y: 0,     pz: 0     },
+    { elem:9,  x:-1.564, y: 0,     pz: 0     },
+    { elem:9,  x: 0,     y: 1.564, pz: 0     },
+    { elem:9,  x: 0,     y:-1.564, pz: 0     },
+    { elem:9,  x: 0,     y: 0,     pz: 1.564 },
+    { elem:9,  x: 0,     y: 0,     pz:-1.564 },
+  ],
+  bonds: [
+    { a:0, b:1, order:1, type:"polar" },
+    { a:0, b:2, order:1, type:"polar" },
+    { a:0, b:3, order:1, type:"polar" },
+    { a:0, b:4, order:1, type:"polar" },
+    { a:0, b:5, order:1, type:"polar" },
+    { a:0, b:6, order:1, type:"polar" },
+  ],
+};
+
 // ─── Index: element Z → list of molecules ────────────────────────────────────
 
 export const MOLECULES_BY_Z: Record<number, Molecule[]> = {
-  1:  [H2, H2O, HCl],
-  6:  [CH4, CO2, CO, C2H6],
+  1:  [H2, H2O, HCl, HF],
+  5:  [BF3],
+  6:  [CH4, CO2, CO, C2H6, C2H2, C2H4],
   7:  [N2, NH3, HNO3],
-  8:  [O2, H2O, CO2, SO2],
-  9:  [F2, HCl],
+  8:  [O2, H2O, CO2, SO2, O3],
+  9:  [F2, HF, BF3, SF6],
   11: [NaCl, NaOH],
   12: [MgO],
   13: [AlCl3],
   14: [SiO2, CH4],
   15: [H3PO4, NH3],
-  16: [H2S, SO2, H2SO4],
+  16: [H2S, SO2, H2SO4, SF6],
   17: [Cl2, HCl, NaCl],
   19: [KCl],
   20: [CaCO3],
