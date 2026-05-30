@@ -10,8 +10,9 @@ import { EXTENDED } from "@/lib/element-extended-data";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-export type AtomModel = "thomson" | "rutherford" | "bohr" | "sommerfeld" | "quantum";
-export type VdWStyle  = "off" | "wire" | "glass";
+export type AtomModel  = "thomson" | "rutherford" | "bohr" | "sommerfeld" | "quantum";
+export type VdWStyle   = "off" | "wire" | "glass";
+export type OrbitalKey = "1s" | "2s" | "2px" | "2py" | "2pz" | "3dz2" | "3dxy" | "3dx2y2";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -36,6 +37,14 @@ const L_COLORS_LIGHT = [
   new THREE.Color(0x059669), // d
   new THREE.Color(0x7c3aed), // f
 ] as [THREE.Color, THREE.Color, THREE.Color, THREE.Color];
+
+// ─── Orbital Inspector constants ─────────────────────────────────────────────
+const A0_SCENE = 1.1; // Three.js units per Bohr radius (a0 = 1, Z = 1)
+// Phase colors (+/−) — visually distinct from s/p/d/f subshell palette
+const C_PHASE_POS_DARK  = new THREE.Color(0x5eead4); // +phase teal  (dark canvas)
+const C_PHASE_NEG_DARK  = new THREE.Color(0xf472b6); // −phase rose  (dark canvas)
+const C_PHASE_POS_LIGHT = new THREE.Color(0x0d9488); // +phase teal  (light canvas)
+const C_PHASE_NEG_LIGHT = new THREE.Color(0xbe185d); // −phase rose  (light canvas)
 
 const SHELL_BASE_R: number[] = [1.2, 2.1, 3.0, 3.9, 4.8, 5.7, 6.6];
 const SHELL_SPEEDS: number[] = [1.0, 0.60, 0.38, 0.25, 0.18, 0.13, 0.10];
@@ -854,6 +863,106 @@ function shellSpins(shells: readonly number[]): boolean[][] {
   });
 }
 
+// ─── Orbital Inspector: hydrogen-like wave functions ─────────────────────────
+// Geometry is exact for hydrogen (Z=1). For multi-electron atoms the shape
+// is indicative only — see hydrogenoid disclaimer shown in the UI.
+
+// Radial parts R_nl(r), r in Bohr radii. Prefactors omitted (shape-only).
+function R10(r: number): number { return Math.exp(-r); }
+function R20(r: number): number { return (2 - r) * Math.exp(-r / 2); } // radial node at r = 2 a0
+function R21(r: number): number { return r * Math.exp(-r / 2); }
+function R3d(r: number): number { return r * r * Math.exp(-r / 3); }
+
+// Real spherical harmonics on unit direction vector (ux, uy, uz).
+function Y_s(): number { return 1; }
+function Y_pz(uz: number): number { return uz; }
+function Y_px(ux: number): number { return ux; }
+function Y_py(uy: number): number { return uy; }
+function Y_dz2(uz: number): number { return 3 * uz * uz - 1; }
+function Y_dxy(ux: number, uy: number): number { return 2 * ux * uy; }
+function Y_dx2y2(ux: number, uy: number): number { return ux * ux - uy * uy; }
+
+// Signed ψ(x,y,z): positive = phase A (teal), negative = phase B (rose).
+// x, y, z in atomic units (a0 = 1). Switch is exhaustive; missing key → compile error.
+function orbitalPsi(key: OrbitalKey, x: number, y: number, z: number): number {
+  const r = Math.sqrt(x * x + y * y + z * z);
+  if (r < 1e-9) return 0;
+  const ux = x / r, uy = y / r, uz = z / r;
+  switch (key) {
+    case "1s":     return R10(r) * Y_s();
+    case "2s":     return R20(r) * Y_s();
+    case "2pz":    return R21(r) * Y_pz(uz);
+    case "2px":    return R21(r) * Y_px(ux);
+    case "2py":    return R21(r) * Y_py(uy);
+    case "3dz2":   return R3d(r) * Y_dz2(uz);
+    case "3dxy":   return R3d(r) * Y_dxy(ux, uy);
+    case "3dx2y2": return R3d(r) * Y_dx2y2(ux, uy);
+    default: { const _exhaustive: never = key; return _exhaustive; }
+  }
+}
+
+// ─── Orbital Inspector: sampling infrastructure ───────────────────────────────
+
+// Bounding box half-widths (a0) — contain ~99% of density
+const ORBITAL_RMAX: Record<OrbitalKey, number> = {
+  "1s": 6, "2s": 13, "2px": 14, "2py": 14, "2pz": 14,
+  "3dz2": 22, "3dxy": 22, "3dx2y2": 22,
+};
+
+// Fixed seeds per orbital → deterministic clouds across re-renders
+const ORBITAL_SEEDS: Record<OrbitalKey, number> = {
+  "1s": 101, "2s": 202, "2px": 211, "2py": 212, "2pz": 213,
+  "3dz2": 321, "3dxy": 322, "3dx2y2": 323,
+};
+
+export type OrbitalMeta = {
+  label: string;
+  n: number; l: number; ml: string;
+  radialNodes: number; angularNodes: number;
+  family: "s" | "p" | "d";
+};
+
+export const ORBITAL_META: Record<OrbitalKey, OrbitalMeta> = {
+  "1s":     { label: "1s",        n: 1, l: 0, ml: "0",  radialNodes: 0, angularNodes: 0, family: "s" },
+  "2s":     { label: "2s",        n: 2, l: 0, ml: "0",  radialNodes: 1, angularNodes: 0, family: "s" },
+  "2px":    { label: "2px",       n: 2, l: 1, ml: "±1", radialNodes: 0, angularNodes: 1, family: "p" },
+  "2py":    { label: "2py",       n: 2, l: 1, ml: "±1", radialNodes: 0, angularNodes: 1, family: "p" },
+  "2pz":    { label: "2pz",       n: 2, l: 1, ml: "0",  radialNodes: 0, angularNodes: 1, family: "p" },
+  "3dz2":   { label: "3dz²", n: 3, l: 2, ml: "0",  radialNodes: 0, angularNodes: 2, family: "d" },
+  "3dxy":   { label: "3dxy",      n: 3, l: 2, ml: "±2", radialNodes: 0, angularNodes: 2, family: "d" },
+  "3dx2y2": { label: "3dx²−y²", n: 3, l: 2, ml: "±2", radialNodes: 0, angularNodes: 2, family: "d" },
+};
+
+// Mulberry32 deterministic RNG (no Date.now / Math.random dependency)
+function makeRng(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a |= 0; a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// Module-level memoized pMax: run once per orbital key on first use
+const pMaxCache = new Map<OrbitalKey, number>();
+function getPMax(key: OrbitalKey): number {
+  const hit = pMaxCache.get(key);
+  if (hit !== undefined) return hit;
+  const rMax = ORBITAL_RMAX[key] ?? 14;
+  const N = 28, step = (2 * rMax) / N;
+  let m = 0;
+  for (let i = 0; i <= N; i++)
+    for (let j = 0; j <= N; j++)
+      for (let k = 0; k <= N; k++) {
+        const p = orbitalPsi(key, -rMax + i * step, -rMax + j * step, -rMax + k * step);
+        if (p * p > m) m = p * p;
+      }
+  const result = m * 1.15;
+  pMaxCache.set(key, result);
+  return result;
+}
+
 function buildPointCloud(
   subshells: Array<{ n: number; l: number; e: number }>,
   radiusMul: number,
@@ -901,6 +1010,78 @@ function buildPointCloud(
 function disposeCloud(cloud: THREE.Points) {
   cloud.geometry.dispose();
   (cloud.material as THREE.Material).dispose();
+}
+
+// ─── Orbital Inspector: cloud builder ────────────────────────────────────────
+
+function buildOrbitalCloud(key: OrbitalKey, lightMode: boolean): THREE.Points {
+  // Inspector always renders on dark canvas, but keep lightMode param for future use
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
+  const target   = isMobile ? 3500 : 9000;
+  const rng      = makeRng(ORBITAL_SEEDS[key] ?? 101);
+  const rMax     = ORBITAL_RMAX[key] ?? 14;
+  const pMax     = getPMax(key);
+  const cPos     = lightMode ? C_PHASE_POS_LIGHT : C_PHASE_POS_DARK;
+  const cNeg     = lightMode ? C_PHASE_NEG_LIGHT : C_PHASE_NEG_DARK;
+
+  const posArr = new Float32Array(target * 3);
+  const colArr = new Float32Array(target * 3);
+
+  let placed = 0, safety = target * 80;
+  while (placed < target && safety-- > 0) {
+    const x = (rng() * 2 - 1) * rMax;
+    const y = (rng() * 2 - 1) * rMax;
+    const z = (rng() * 2 - 1) * rMax;
+    const w = orbitalPsi(key, x, y, z);
+    if (pMax <= 0 || rng() >= (w * w) / pMax) continue;
+    const i3  = placed * 3;
+    posArr[i3]     = x * A0_SCENE;
+    posArr[i3 + 1] = y * A0_SCENE;
+    posArr[i3 + 2] = z * A0_SCENE;
+    const c = w >= 0 ? cPos : cNeg;
+    colArr[i3] = c.r; colArr[i3 + 1] = c.g; colArr[i3 + 2] = c.b;
+    placed++;
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.Float32BufferAttribute(posArr.subarray(0, placed * 3), 3));
+  geo.setAttribute("color",    new THREE.Float32BufferAttribute(colArr.subarray(0, placed * 3), 3));
+  return new THREE.Points(geo, new THREE.PointsMaterial({
+    vertexColors: true,
+    size: 0.055,
+    transparent: true,
+    opacity: 0.84,
+    sizeAttenuation: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  }));
+}
+
+function OrbitalInspectorAtom({ orbitalKey }: { orbitalKey: OrbitalKey }) {
+  const groupRef = useRef<THREE.Group>(null!);
+  const cloudRef = useRef<THREE.Points | null>(null);
+
+  useEffect(() => {
+    const g   = groupRef.current;
+    const old = cloudRef.current;
+    const cloud = buildOrbitalCloud(orbitalKey, false);
+    g.add(cloud);
+    if (old) { g.remove(old); disposeCloud(old); }
+    cloudRef.current = cloud;
+    return () => {
+      if (cloudRef.current === cloud) {
+        g.remove(cloud); disposeCloud(cloud); cloudRef.current = null;
+      } else {
+        disposeCloud(cloud);
+      }
+    };
+  }, [orbitalKey]);
+
+  useFrame((_, dt) => {
+    if (groupRef.current) groupRef.current.rotation.y += dt * 0.025;
+  });
+
+  return <group ref={groupRef} />;
 }
 
 function QuantumAtom({ el, radiusMul, reduced, lightMode }: {
@@ -1030,13 +1211,22 @@ function LightModeStars({ intensity }: { intensity: number }) {
 
 // ─── Camera setup ─────────────────────────────────────────────────────────────
 
-function CameraSetup({ shells, realScale, nucleusView }: { shells: number; realScale: boolean; nucleusView?: boolean }) {
+function CameraSetup({ shells, realScale, nucleusView, inspectorOrbital }: {
+  shells: number; realScale: boolean; nucleusView?: boolean; inspectorOrbital?: OrbitalKey | null;
+}) {
   const { camera } = useThree();
   useEffect(() => {
-    const dist = nucleusView ? 3.2 : (realScale ? 12 + shells * 4.5 : 5 + shells * 2.4);
+    let dist: number;
+    if (inspectorOrbital) {
+      dist = (ORBITAL_RMAX[inspectorOrbital] ?? 14) * A0_SCENE * 1.35;
+    } else if (nucleusView) {
+      dist = 3.2;
+    } else {
+      dist = realScale ? 12 + shells * 4.5 : 5 + shells * 2.4;
+    }
     (camera as THREE.PerspectiveCamera).position.set(0, 0, dist);
     camera.updateProjectionMatrix();
-  }, [camera, shells, realScale, nucleusView]);
+  }, [camera, shells, realScale, nucleusView, inspectorOrbital]);
   return null;
 }
 
@@ -1053,6 +1243,7 @@ export type AtomSceneProps = {
   vdwStyle?: VdWStyle;
   showSpin?: boolean;
   nucleusView?: boolean;
+  inspectorOrbital?: OrbitalKey | null;
   className?: string;
 };
 
@@ -1060,7 +1251,8 @@ export function AtomScene({
   element, model = "bohr", realScale = false,
   speedMultiplier = 1, lightMode = false,
   lightBg = "#e8ecf5", starsIntensity = 1,
-  vdwStyle = "off", showSpin = false, nucleusView = false, className,
+  vdwStyle = "off", showSpin = false, nucleusView = false,
+  inspectorOrbital = null, className,
 }: AtomSceneProps) {
   const reduced =
     typeof window !== "undefined"
@@ -1068,6 +1260,9 @@ export function AtomScene({
       : false;
 
   const sc = realScale ? SCALE_REAL : SCALE_NORMAL;
+  // Inspector always uses dark canvas for visual quality
+  const isInspector = inspectorOrbital !== null;
+  const effectiveLight = isInspector ? false : lightMode;
 
   return (
     <Canvas
@@ -1076,10 +1271,18 @@ export function AtomScene({
       dpr={[1, 2]}
       camera={{ fov: 38, near: 0.1, far: 600, position: [0, 0, 14] }}
     >
-      <CameraSetup shells={element.shells.length} realScale={realScale} nucleusView={nucleusView} />
-      {!lightMode && <color attach="background" args={["#060610"]} />}
+      <CameraSetup
+        shells={element.shells.length} realScale={realScale}
+        nucleusView={nucleusView} inspectorOrbital={inspectorOrbital}
+      />
+      {!effectiveLight && <color attach="background" args={["#060610"]} />}
 
-      {lightMode ? (
+      {isInspector ? (
+        <>
+          <ambientLight intensity={0.2} />
+          <Stars radius={90} depth={50} count={2200} factor={3} saturation={0.2} fade />
+        </>
+      ) : effectiveLight ? (
         <>
           <ambientLight intensity={2.0} />
           <pointLight position={[5, 5, 5]} intensity={0.6} />
@@ -1101,40 +1304,51 @@ export function AtomScene({
         </>
       )}
 
-      <Nucleus z={element.z} n={element.stableN} scaleMul={sc.nucleonScale} lightMode={lightMode} />
-
-      {!nucleusView && model === "thomson" && (
-        <ThomsonAtom el={element} reduced={reduced} lightMode={lightMode} />
+      {/* Nucleus hidden in inspector — orbital geometry is hydrogen-like, not element-specific */}
+      {!isInspector && (
+        <Nucleus z={element.z} n={element.stableN} scaleMul={sc.nucleonScale} lightMode={effectiveLight} />
       )}
-      {!nucleusView && model === "rutherford" && (
+
+      {isInspector && (
+        <OrbitalInspectorAtom orbitalKey={inspectorOrbital} />
+      )}
+
+      {!isInspector && !nucleusView && model === "thomson" && (
+        <ThomsonAtom el={element} reduced={reduced} lightMode={effectiveLight} />
+      )}
+      {!isInspector && !nucleusView && model === "rutherford" && (
         <RutherfordAtom el={element} radiusMul={sc.radiusMul} reduced={reduced}
-          speedMul={speedMultiplier} lightMode={lightMode} showSpin={showSpin} />
+          speedMul={speedMultiplier} lightMode={effectiveLight} showSpin={showSpin} />
       )}
-      {!nucleusView && model === "bohr" && (
+      {!isInspector && !nucleusView && model === "bohr" && (
         <BohrAtom el={element} radiusMul={sc.radiusMul} eMul={sc.electronScale}
-          reduced={reduced} speedMul={speedMultiplier} lightMode={lightMode} showSpin={showSpin} />
+          reduced={reduced} speedMul={speedMultiplier} lightMode={effectiveLight} showSpin={showSpin} />
       )}
-      {!nucleusView && model === "sommerfeld" && (
+      {!isInspector && !nucleusView && model === "sommerfeld" && (
         <SommerfeldAtom el={element} radiusMul={sc.radiusMul} reduced={reduced}
-          speedMul={speedMultiplier} lightMode={lightMode} showSpin={showSpin} />
+          speedMul={speedMultiplier} lightMode={effectiveLight} showSpin={showSpin} />
       )}
-      {!nucleusView && model === "quantum" && (
-        <QuantumAtom el={element} radiusMul={sc.radiusMul} reduced={reduced} lightMode={lightMode} />
+      {!isInspector && !nucleusView && model === "quantum" && (
+        <QuantumAtom el={element} radiusMul={sc.radiusMul} reduced={reduced} lightMode={effectiveLight} />
       )}
 
-      {!nucleusView && vdwStyle !== "off" && (
-        <VanDerWaalsSphere element={element} radiusMul={sc.radiusMul} style={vdwStyle} lightMode={lightMode} />
+      {!isInspector && !nucleusView && vdwStyle !== "off" && (
+        <VanDerWaalsSphere element={element} radiusMul={sc.radiusMul} style={vdwStyle} lightMode={effectiveLight} />
       )}
 
       <OrbitControls
         enablePan={false} enableDamping dampingFactor={0.07}
         rotateSpeed={0.6} zoomSpeed={0.7}
-        minDistance={2} maxDistance={realScale ? 120 : 50}
+        minDistance={2} maxDistance={isInspector ? 200 : (realScale ? 120 : 50)}
       />
 
-      {!lightMode && (
+      {!effectiveLight && (
         <EffectComposer>
-          <Bloom intensity={1.5} luminanceThreshold={0.12} luminanceSmoothing={0.65} mipmapBlur />
+          <Bloom
+            intensity={isInspector ? 2.2 : 1.5}
+            luminanceThreshold={isInspector ? 0.06 : 0.12}
+            luminanceSmoothing={0.65} mipmapBlur
+          />
         </EffectComposer>
       )}
     </Canvas>
