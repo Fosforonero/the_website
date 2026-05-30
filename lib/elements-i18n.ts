@@ -150,6 +150,14 @@ export const LAB_UI_TRANSLATIONS = {
     molApolar: "molecola apolare",
     molApolarSymmetric: "legami polari — simmetria annulla",
     molHomopolar: "legame omopolare",
+    molLocalMolecules: "Molecole locali",
+    molPubChemSection: "Ricerca PubChem",
+    molPubChemPlaceholder: "Cerca una molecola esterna…",
+    molPubChemDesc: "Usa PubChem, database pubblico NIH/NLM. Fosforonero usa le coordinate PubChem e le renderizza nel proprio viewer 3D.",
+    molPubChemExternalNote: "Dati esterni · geometria non curata manualmente",
+    molPubChemNotFound: "Nessun risultato su PubChem",
+    molPubChemError: "Errore nel recupero da PubChem",
+    molBackToLocal: "Torna alle molecole locali",
   },
   en: {
     backToTable: "← table",
@@ -229,6 +237,14 @@ export const LAB_UI_TRANSLATIONS = {
     molApolar: "nonpolar molecule",
     molApolarSymmetric: "polar bonds — symmetry cancels",
     molHomopolar: "homopolar bond",
+    molLocalMolecules: "Local molecules",
+    molPubChemSection: "PubChem search",
+    molPubChemPlaceholder: "Search an external molecule…",
+    molPubChemDesc: "Uses PubChem, the public NIH/NLM database. Fosforonero uses PubChem coordinates and renders them in its own 3D viewer.",
+    molPubChemExternalNote: "External data · geometry not manually curated",
+    molPubChemNotFound: "No result on PubChem",
+    molPubChemError: "PubChem fetch failed",
+    molBackToLocal: "Back to local molecules",
   }
 };
 

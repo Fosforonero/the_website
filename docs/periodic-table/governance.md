@@ -71,7 +71,20 @@ I sub-orbitali Sommerfeld devono restare **all'interno** del raggio della shell 
 Mostrare solo sistemi reali presenti in `element-extended-data.ts`. Non inventare strutture.
 
 ### Molecole
-Dati da PubChem via API pubblica + fallback su dataset locale `lib/molecules-data.ts`. Non mostrare molecole senza struttura 3D verificata.
+
+Due sorgenti distinte, mai mescolate silenziosamente:
+
+| Tipo | Sorgente | Curata? | Avvertenza in UI |
+|---|---|---|---|
+| Molecole locali | `lib/molecules-data.ts` — dataset curato manualmente | Sì | Nessuna |
+| Ricerca PubChem | API pubblica NIH/NLM — live lookup | No | Badge "PubChem" + nota "dati esterni" |
+
+**Regole:**
+- Le molecole locali sono la sorgente primaria. Vengono mostrate come tab nel Molecule Lab.
+- La ricerca PubChem è una funzione secondaria, visivamente separata e chiaramente etichettata.
+- Il rendering 3D è sempre del viewer Fosforonero — le coordinate vengono da PubChem, la visualizzazione no.
+- Non usare PubChem per sostituire silenziosamente dati locali verificati.
+- Non mostrare molecole senza struttura 3D verificata (conformer con coordinate x/y/z).
 
 ---
 

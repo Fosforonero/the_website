@@ -13,7 +13,8 @@ import {
 import { MOLECULES_BY_Z, type Molecule } from "@/lib/molecules-data";
 import { fetchMoleculeFromPubChem } from "@/lib/molecules-pubchem";
 import { ElementStoryMode } from "./element-story-mode";
-import type { AtomModel, VdWStyle } from "./atom-scene";
+import type { AtomModel, VdWStyle, OrbitalKey } from "./atom-scene";
+import { ORBITAL_META } from "./atom-scene";
 import { getMolPolarLabel } from "./molecule-scene";
 import type { MolViewMode } from "./molecule-scene";
 import type { Locale } from "@/lib/site";
@@ -892,11 +893,13 @@ function VdWToggle({ style, onCycle, locale }: { style: VdWStyle; onCycle: () =>
 
 // ─── Model switch ─────────────────────────────────────────────────────────────
 
-function ModelSwitch({ current, onChange, locale }: { current: AtomModel; onChange: (m: AtomModel) => void; locale: Locale }) {
+function ModelSwitch({ current, onChange, locale, dimmed = false }: {
+  current: AtomModel; onChange: (m: AtomModel) => void; locale: Locale; dimmed?: boolean;
+}) {
   const models = getModels(locale);
   const grpLabel = locale === "en" ? "Select atomic model" : "Seleziona modello atomico";
   return (
-    <div className="pt-model-switch" role="group" aria-label={grpLabel}>
+    <div className={`pt-model-switch${dimmed ? " pt-model-switch--dimmed" : ""}`} role="group" aria-label={grpLabel}>
       {/* Desktop: pill buttons */}
       {models.map(({ key, label, year, badge, desc }) => (
         <button
@@ -922,6 +925,93 @@ function ModelSwitch({ current, onChange, locale }: { current: AtomModel; onChan
           <option key={key} value={key}>{label} — {year}</option>
         ))}
       </select>
+    </div>
+  );
+}
+
+// ─── Orbital Inspector UI ─────────────────────────────────────────────────────
+
+const ORBITAL_GROUPS: Array<{ family: string; keys: OrbitalKey[] }> = [
+  { family: "s", keys: ["1s", "2s"] },
+  { family: "p", keys: ["2px", "2py", "2pz"] },
+  { family: "d", keys: ["3dz2", "3dxy", "3dx2y2"] },
+];
+
+const ORBITAL_DISPLAY: Record<OrbitalKey, string> = {
+  "1s":     "1s",
+  "2s":     "2s",
+  "2px":    "2px",
+  "2py":    "2py",
+  "2pz":    "2pz",
+  "3dz2":   "3dz²",
+  "3dxy":   "3dxy",
+  "3dx2y2": "3dx²−y²",
+};
+
+function OrbitalSelector({ current, onChange }: { current: OrbitalKey; onChange: (k: OrbitalKey) => void }) {
+  return (
+    <div className="pt-orbital-grid" role="group" aria-label="Orbital">
+      {ORBITAL_GROUPS.map(({ family, keys }) => (
+        <div key={family} className={`pt-orbital-row pt-orbital-row--${family}`}>
+          {keys.map(k => (
+            <button
+              key={k}
+              className={`pt-orbital-btn${current === k ? " active" : ""}`}
+              onClick={() => onChange(k)}
+              aria-pressed={current === k}
+            >
+              {ORBITAL_DISPLAY[k]}
+            </button>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function OrbitalInfoPanel({ orbitalKey, locale }: { orbitalKey: OrbitalKey; locale: Locale }) {
+  const meta = ORBITAL_META[orbitalKey];
+  if (!meta) return null;
+  const totalNodes = meta.radialNodes + meta.angularNodes;
+  const isIT = locale === "it";
+
+  const nodeDesc = (() => {
+    const parts: string[] = [];
+    if (meta.radialNodes > 0) parts.push(isIT ? `${meta.radialNodes} radiale` : `${meta.radialNodes} radial`);
+    if (meta.angularNodes > 0) parts.push(isIT ? `${meta.angularNodes} angolare` : `${meta.angularNodes} angular`);
+    if (parts.length === 0) return isIT ? "nessuno" : "none";
+    return parts.join(", ");
+  })();
+
+  return (
+    <div className="pt-orbital-panel" aria-live="polite">
+      <div className="pt-orbital-panel__header">
+        <span className="pt-orbital-panel__name">{ORBITAL_DISPLAY[orbitalKey]}</span>
+        <div className="pt-orbital-phase-legend">
+          <span className="pt-orbital-phase pt-orbital-phase--pos">
+            <span className="pt-orbital-phase__swatch" />
+            +
+          </span>
+          <span className="pt-orbital-phase pt-orbital-phase--neg">
+            <span className="pt-orbital-phase__swatch" />
+            −
+          </span>
+        </div>
+      </div>
+      <dl className="pt-orbital-panel__qn">
+        <div><dt>n</dt><dd>{meta.n}</dd></div>
+        <div><dt>l</dt><dd>{meta.l}</dd></div>
+        <div><dt>m_l</dt><dd>{meta.ml}</dd></div>
+        <div>
+          <dt>{isIT ? "nodi" : "nodes"}</dt>
+          <dd>{totalNodes} ({nodeDesc})</dd>
+        </div>
+      </dl>
+      <p className="pt-orbital-disclaimer">
+        {isIT
+          ? "Orbitali idrogenoidi (Z=1): geometria esatta solo per l'idrogeno; indicativa per atomi multi-elettronici."
+          : "Hydrogen-like orbitals (Z=1): exact geometry only for hydrogen; indicative for multi-electron atoms."}
+      </p>
     </div>
   );
 }
@@ -1017,6 +1107,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
   const [gridZoom,        setGridZoom]        = useState(1);
   const [showSpin,        setShowSpin]        = usePersistedState<boolean>("pt:showSpin", false);
   const [nucleusView,     setNucleusView]     = usePersistedState<boolean>("pt:nucleusView", false);
+  const [inspectorOrbital, setInspectorOrbital] = usePersistedState<OrbitalKey | null>("pt:inspectorOrbital", null);
   const [crystalView,     setCrystalView]     = useState<boolean>(false);
   const [moleculeView,    setMoleculeView]    = useState<boolean>(false);
   const [activeMolIdx,    setActiveMolIdx]    = useState<number>(0);
@@ -1025,6 +1116,8 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
   const [molSearchQuery,  setMolSearchQuery]  = useState("");
   const [molSearchResult, setMolSearchResult] = useState<Molecule | null>(null);
   const [molSearchBusy,   setMolSearchBusy]   = useState(false);
+  const [molSearchError,  setMolSearchError]  = useState<"notfound" | "networkerror" | null>(null);
+  const [molSearchHasSearched, setMolSearchHasSearched] = useState(false);
   const [storyMode,       setStoryMode]       = useState(false);
 
   const [panelWidth,      setPanelWidth]      = usePersistedState<number>("pt:panelWidth", 264);
@@ -1083,13 +1176,25 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
     setMoleculeView(false);
     setMolSearchResult(null);
     setMolSearchQuery("");
+    setMolSearchError(null);
+    setMolSearchHasSearched(false);
   }, []);
 
   const handleMolSearch = useCallback(async (q: string) => {
-    if (!q.trim()) return;
+    const trimmed = q.trim();
+    if (!trimmed) return;
     setMolSearchBusy(true);
-    const result = await fetchMoleculeFromPubChem(q);
-    setMolSearchResult(result);
+    setMolSearchError(null);
+    setMolSearchHasSearched(false);
+    const result = await fetchMoleculeFromPubChem(trimmed);
+    if (result.ok) {
+      setMolSearchResult(result.mol);
+      setMolSearchError(null);
+    } else {
+      setMolSearchResult(null);
+      setMolSearchError(result.reason);
+    }
+    setMolSearchHasSearched(true);
     setMolSearchBusy(false);
   }, []);
 
@@ -1203,7 +1308,20 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
         <div className="pt-header__right">
           {view === "atom" && (
             <>
-              <ModelSwitch current={model} onChange={setModel} locale={locale} />
+              <ModelSwitch
+                current={model}
+                onChange={m => { setModel(m); setInspectorOrbital(null); }}
+                locale={locale}
+                dimmed={inspectorOrbital !== null}
+              />
+              <button
+                className={`pt-orbital-toggle${inspectorOrbital !== null ? " active" : ""}`}
+                onClick={() => setInspectorOrbital(v => v !== null ? null : "2pz")}
+                aria-pressed={inspectorOrbital !== null}
+                title={locale === "en" ? "Orbital Inspector — hydrogen-like orbitals" : "Inspector orbitali — orbitali idrogenoidi"}
+              >
+                {locale === "en" ? "Orbital Inspector" : "Inspector orbitali"}
+              </button>
               <ScaleToggle on={realScale} onToggle={() => setRealScale(v => !v)} locale={locale} />
               <SpeedSlider value={speedMultiplier} onChange={setSpeedMultiplier} locale={locale} />
               <StarsToggle value={starsIntensity} onChange={setStarsIntensity} locale={locale} />
@@ -1339,11 +1457,16 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                           </span>
                         )}
                         {molSearchResult && (
-                          <button
-                            className="pt-mol-clear-search"
-                            onClick={() => { setMolSearchResult(null); setMolSearchQuery(""); }}
-                            title={locale === "en" ? "Back to element molecules" : "Torna alle molecole dell'elemento"}
-                          >✕</button>
+                          <>
+                            <span className="pt-mol-pubchem-badge">PubChem</span>
+                            <span className="pt-mol-external-note">{t.molPubChemExternalNote}</span>
+                            <button
+                              className="pt-mol-clear-search"
+                              onClick={() => { setMolSearchResult(null); setMolSearchQuery(""); setMolSearchError(null); setMolSearchHasSearched(false); }}
+                              title={t.molBackToLocal}
+                              aria-label={t.molBackToLocal}
+                            >✕</button>
+                          </>
                         )}
                       </div>
                       {/* View mode segmented control */}
@@ -1400,30 +1523,38 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                     </div>
                   )}
                   {/* PubChem molecule search */}
-                  <div className="pt-mol-search">
-                    <input
-                      className="pt-mol-search-input"
-                      type="search"
-                      value={molSearchQuery}
-                      onChange={e => setMolSearchQuery(e.target.value)}
-                      onKeyDown={e => { if (e.key === "Enter") void handleMolSearch(molSearchQuery); }}
-                      placeholder={locale === "en" ? "Search PubChem…" : "Cerca su PubChem…"}
-                      aria-label={locale === "en" ? "Search molecule on PubChem" : "Cerca molecola su PubChem"}
-                    />
-                    <button
-                      className="pt-mol-search-btn"
-                      onClick={() => void handleMolSearch(molSearchQuery)}
-                      disabled={molSearchBusy}
-                      aria-label={locale === "en" ? "Search" : "Cerca"}
-                    >
-                      {molSearchBusy ? "…" : "↵"}
-                    </button>
+                  <div className="pt-mol-pubchem-section">
+                    <p className="pt-mol-pubchem-label">{t.molPubChemSection}</p>
+                    <p className="pt-mol-pubchem-desc">{t.molPubChemDesc}</p>
+                    <div className="pt-mol-search">
+                      <input
+                        className="pt-mol-search-input"
+                        type="search"
+                        value={molSearchQuery}
+                        onChange={e => {
+                          setMolSearchQuery(e.target.value);
+                          if (molSearchHasSearched) { setMolSearchHasSearched(false); setMolSearchError(null); }
+                        }}
+                        onKeyDown={e => { if (e.key === "Enter") void handleMolSearch(molSearchQuery); }}
+                        placeholder={t.molPubChemPlaceholder}
+                        aria-label={locale === "en" ? "Search molecule on PubChem" : "Cerca molecola su PubChem"}
+                      />
+                      <button
+                        className="pt-mol-search-btn"
+                        onClick={() => void handleMolSearch(molSearchQuery)}
+                        disabled={molSearchBusy || !molSearchQuery.trim()}
+                        aria-label={locale === "en" ? "Search" : "Cerca"}
+                      >
+                        {molSearchBusy ? "…" : "↵"}
+                      </button>
+                    </div>
+                    {molSearchHasSearched && !molSearchBusy && molSearchError === "notfound" && (
+                      <p className="pt-mol-search-status">{t.molPubChemNotFound}</p>
+                    )}
+                    {molSearchHasSearched && !molSearchBusy && molSearchError === "networkerror" && (
+                      <p className="pt-mol-search-status pt-mol-search-status--error">{t.molPubChemError}</p>
+                    )}
                   </div>
-                  {molSearchResult === null && !molSearchBusy && molSearchQuery.trim() && (
-                    <p className="pt-mol-no-result">
-                      {locale === "en" ? "Not found on PubChem" : "Non trovato su PubChem"}
-                    </p>
-                  )}
                 </>
               );
             })()}
@@ -1434,18 +1565,30 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                 className="pt-canvas"
               />
             ) : !moleculeView ? (
-              <AtomScene
-                element={selected}
-                model={model}
-                realScale={realScale}
-                speedMultiplier={speedMultiplier}
-                lightMode={lightMode}
-                starsIntensity={starsIntensity}
-                vdwStyle={vdwStyle}
-                showSpin={showSpin}
-                nucleusView={nucleusView}
-                className="pt-canvas"
-              />
+              <>
+                <AtomScene
+                  element={selected}
+                  model={model}
+                  realScale={realScale}
+                  speedMultiplier={speedMultiplier}
+                  lightMode={lightMode}
+                  starsIntensity={starsIntensity}
+                  vdwStyle={vdwStyle}
+                  showSpin={showSpin}
+                  nucleusView={nucleusView}
+                  inspectorOrbital={inspectorOrbital}
+                  className="pt-canvas"
+                />
+                {inspectorOrbital !== null && (
+                  <>
+                    <OrbitalSelector
+                      current={inspectorOrbital}
+                      onChange={setInspectorOrbital}
+                    />
+                    <OrbitalInfoPanel orbitalKey={inspectorOrbital} locale={locale} />
+                  </>
+                )}
+              </>
             ) : null}
             {(crystalView || moleculeView) && (
               <button
@@ -1472,7 +1615,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                 </div>
               </div>
             )}
-            {!nucleusView && <ModelDesc model={model} locale={locale} />}
+            {!nucleusView && inspectorOrbital === null && <ModelDesc model={model} locale={locale} />}
           </div>
           <InfoPanel
             el={selected}

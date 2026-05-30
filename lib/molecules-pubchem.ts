@@ -1,8 +1,12 @@
 // PubChem REST API integration — no API key required, CORS-permissive
 // Docs: https://pubchem.ncbi.nlm.nih.gov/docs/pug-rest
-// Usage: fetchMoleculeFromPubChem("caffeine") → Molecule | null
+// Usage: fetchMoleculeFromPubChem("caffeine") → PubChemFetchResult
 
 import type { Molecule, BondType, BondOrder } from "./molecules-data";
+
+export type PubChemFetchResult =
+  | { ok: true;  mol: Molecule }
+  | { ok: false; reason: "notfound" | "networkerror" };
 import { EXTENDED } from "./element-extended-data";
 
 // ─── PubChem JSON schema (partial) ───────────────────────────────────────────
@@ -58,12 +62,13 @@ function buildFormula(elements: number[]): string {
 
 // ─── Main fetcher ─────────────────────────────────────────────────────────────
 
-export async function fetchMoleculeFromPubChem(name: string): Promise<Molecule | null> {
+export async function fetchMoleculeFromPubChem(name: string): Promise<PubChemFetchResult> {
   const encoded = encodeURIComponent(name.trim());
-  if (!encoded) return null;
+  if (!encoded) return { ok: false, reason: "notfound" };
 
   // Try 3D conformer first, fall back to 2D
   let data: PCResponse | null = null;
+  let hadNetworkError = false;
   for (const suffix of ["?record_type=3d", ""]) {
     try {
       const res = await fetch(
@@ -71,9 +76,12 @@ export async function fetchMoleculeFromPubChem(name: string): Promise<Molecule |
         { signal: AbortSignal.timeout(8000) },
       );
       if (res.ok) { data = (await res.json()) as PCResponse; break; }
-    } catch { /* try next */ }
+      if (res.status !== 404) hadNetworkError = true;
+    } catch { hadNetworkError = true; }
   }
-  if (!data?.PC_Compounds?.[0]) return null;
+  if (!data?.PC_Compounds?.[0]) {
+    return { ok: false, reason: hadNetworkError ? "networkerror" : "notfound" };
+  }
 
   const compound = data.PC_Compounds[0]!;
   const elements = compound.atoms.element;
@@ -82,7 +90,7 @@ export async function fetchMoleculeFromPubChem(name: string): Promise<Molecule |
   // Pick coordinate set (prefer 3D, type=2 means 3D in PubChem)
   const coordSet  = compound.coords?.find(c => c.type.includes(2)) ?? compound.coords?.[0];
   const conformer = coordSet?.conformers?.[0];
-  if (!conformer) return null;
+  if (!conformer) return { ok: false, reason: "notfound" };
 
   const xs = conformer.x;
   const ys = conformer.y;
@@ -121,13 +129,16 @@ export async function fetchMoleculeFromPubChem(name: string): Promise<Molecule |
     });
 
   return {
-    formula:  buildFormula(elements),
-    nameIT:   name,
-    nameEN:   name,
-    geometry: "pubchem",
-    atoms,
-    bonds,
-    descIT: "",
-    descEN: "",
+    ok: true,
+    mol: {
+      formula:  buildFormula(elements),
+      nameIT:   name,
+      nameEN:   name,
+      geometry: "pubchem",
+      atoms,
+      bonds,
+      descIT: "",
+      descEN: "",
+    },
   };
 }

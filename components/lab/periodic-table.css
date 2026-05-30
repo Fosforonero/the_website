@@ -413,16 +413,28 @@
 }
 
 /* ── Molecule PubChem search bar ── */
-.pt-mol-search {
+.pt-mol-pubchem-section {
   position: absolute;
-  bottom: 44px; left: 50%; transform: translateX(-50%);
+  bottom: 50px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  z-index: 4;
+}
+.pt-mol-pubchem-label {
+  font-size: 9px; letter-spacing: 0.10em; text-transform: uppercase;
+  color: rgba(216,216,232,0.30); margin: 0; pointer-events: none;
+}
+.pt-mol-pubchem-desc {
+  font-size: 9px; color: rgba(216,216,232,0.22);
+  text-align: center; max-width: 250px; margin: 0; line-height: 1.4;
+  pointer-events: none;
+}
+.pt-mol-search {
   display: flex; align-items: center; gap: 0;
   background: rgba(12,12,24,0.82);
   border: 1px solid rgba(255,255,255,0.14);
   border-radius: 8px;
   backdrop-filter: blur(8px);
   overflow: hidden;
-  z-index: 4;
 }
 .pt-mol-search-input {
   background: none; border: none; outline: none;
@@ -440,11 +452,22 @@
 }
 .pt-mol-search-btn:hover:not(:disabled) { background: rgba(255,255,255,0.12); color: #eee; }
 .pt-mol-search-btn:disabled { opacity: 0.4; cursor: default; }
-.pt-mol-no-result {
-  position: absolute;
-  bottom: 44px; left: 50%; transform: translateX(-50%);
+.pt-mol-no-result { display: none; } /* superseded by .pt-mol-search-status */
+.pt-mol-search-status {
   font-size: 10px; color: rgba(216,216,232,0.40);
-  pointer-events: none; z-index: 4;
+  margin: 0; pointer-events: none; text-align: center;
+}
+.pt-mol-search-status--error { color: rgba(251,146,60,0.65); }
+.pt-mol-pubchem-badge {
+  display: inline-block;
+  font-size: 9px; letter-spacing: 0.07em; text-transform: uppercase;
+  background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.28);
+  color: rgba(52,211,153,0.80);
+  padding: 1px 7px; border-radius: 999px;
+}
+.pt-mol-external-note {
+  font-size: 9px; color: rgba(216,216,232,0.28);
+  pointer-events: none; text-align: center;
 }
 .pt-mol-clear-search {
   background: none; border: none; cursor: pointer;
@@ -454,6 +477,11 @@
 }
 .pt-mol-clear-search:hover { color: #eee; }
 /* Light mode overrides */
+.pt-root--light .pt-mol-pubchem-label { color: rgba(10,10,20,0.30); }
+.pt-root--light .pt-mol-pubchem-desc  { color: rgba(10,10,20,0.22); }
+.pt-root--light .pt-mol-search-status { color: rgba(10,10,20,0.40); }
+.pt-root--light .pt-mol-search-status--error { color: rgba(194,65,12,0.65); }
+.pt-root--light .pt-mol-external-note { color: rgba(10,10,20,0.28); }
 .pt-root--light .pt-mol-search {
   background: rgba(255,255,255,0.88);
   border-color: rgba(0,0,0,0.12);
@@ -2065,5 +2093,177 @@
   .pt-story-card { padding: 24px 18px 18px; border-radius: 16px; }
   .pt-story-title { font-size: 15px; }
   .pt-story-text  { font-size: 12px; }
+}
+
+/* ── Orbital Inspector ────────────────────────────────────────────────────── */
+
+/* Toggle pill in header — sibling to ModelSwitch */
+.pt-orbital-toggle {
+  padding: 4px 11px;
+  border-radius: 20px;
+  border: 1px solid rgba(94,234,212,0.30);
+  background: rgba(94,234,212,0.06);
+  color: rgba(180,240,235,0.70);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.pt-orbital-toggle:hover {
+  background: rgba(94,234,212,0.14);
+  border-color: rgba(94,234,212,0.55);
+  color: #5eead4;
+}
+.pt-orbital-toggle.active {
+  background: rgba(94,234,212,0.18);
+  border-color: #5eead4;
+  color: #5eead4;
+}
+
+/* Dim model selector while inspector is active — stays clickable to exit */
+.pt-model-switch--dimmed {
+  opacity: 0.42;
+}
+
+/* Orbital selector grid — overlaid bottom-left of the 3D canvas */
+.pt-orbital-grid {
+  position: absolute;
+  bottom: 48px;
+  left: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  z-index: 12;
+}
+.pt-orbital-row {
+  display: flex;
+  gap: 5px;
+}
+.pt-orbital-btn {
+  padding: 4px 9px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(6,6,16,0.70);
+  color: rgba(200,210,230,0.65);
+  font-size: 11px;
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(6px);
+  transition: border-color 0.12s, background 0.12s, color 0.12s;
+}
+.pt-orbital-btn:hover {
+  border-color: rgba(94,234,212,0.45);
+  color: #a0f0e8;
+  background: rgba(94,234,212,0.08);
+}
+.pt-orbital-btn.active {
+  border-color: #5eead4;
+  color: #5eead4;
+  background: rgba(94,234,212,0.14);
+}
+/* Family accent on row label */
+.pt-orbital-row--p .pt-orbital-btn.active {
+  border-color: #93c5fd;
+  color: #93c5fd;
+  background: rgba(96,165,250,0.12);
+}
+.pt-orbital-row--d .pt-orbital-btn.active {
+  border-color: #6ee7b7;
+  color: #6ee7b7;
+  background: rgba(52,211,153,0.12);
+}
+
+/* Info panel — overlaid bottom-right of the 3D canvas */
+.pt-orbital-panel {
+  position: absolute;
+  bottom: 48px;
+  right: 14px;
+  width: 210px;
+  background: rgba(6,6,20,0.82);
+  border: 1px solid rgba(94,234,212,0.20);
+  border-radius: 12px;
+  padding: 12px 14px 10px;
+  backdrop-filter: blur(8px);
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pt-orbital-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.pt-orbital-panel__name {
+  font-size: 17px;
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-weight: 600;
+  color: #e2f4f2;
+  letter-spacing: 0.03em;
+}
+.pt-orbital-phase-legend {
+  display: flex;
+  gap: 8px;
+}
+.pt-orbital-phase {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: rgba(200,210,230,0.55);
+}
+.pt-orbital-phase__swatch {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+.pt-orbital-phase--pos .pt-orbital-phase__swatch { background: #5eead4; }
+.pt-orbital-phase--neg .pt-orbital-phase__swatch { background: #f472b6; }
+
+/* Quantum numbers */
+.pt-orbital-panel__qn {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px 10px;
+  margin: 0;
+}
+.pt-orbital-panel__qn div {
+  display: flex;
+  gap: 4px;
+  align-items: baseline;
+}
+.pt-orbital-panel__qn dt {
+  font-size: 10px;
+  color: rgba(180,200,220,0.45);
+  font-family: 'SFMono-Regular', Consolas, monospace;
+}
+.pt-orbital-panel__qn dd {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(200,220,240,0.80);
+  font-family: 'SFMono-Regular', Consolas, monospace;
+}
+
+/* Disclaimer */
+.pt-orbital-disclaimer {
+  font-size: 10px;
+  color: rgba(160,180,200,0.45);
+  line-height: 1.5;
+  margin: 0;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+/* Mobile: stack grid + panel, smaller */
+@media (max-width: 500px) {
+  .pt-orbital-grid { bottom: 36px; left: 8px; }
+  .pt-orbital-btn  { font-size: 10px; padding: 3px 7px; }
+  .pt-orbital-panel { width: 170px; right: 8px; bottom: 36px; padding: 10px 11px 8px; }
+  .pt-orbital-panel__name { font-size: 14px; }
+  .pt-orbital-toggle { font-size: 10px; padding: 3px 8px; }
 }
 
