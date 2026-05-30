@@ -1076,10 +1076,82 @@ function OrbitalInfoPanel({ orbitalKey, locale }: { orbitalKey: OrbitalKey; loca
   );
 }
 
-function ModelDesc({ model, locale }: { model: AtomModel; locale: Locale }) {
-  const m = getModels(locale).find(x => x.key === model);
-  if (!m) return null;
-  return <p className="pt-model-desc">{m.desc}</p>;
+function ModelLegend({ model, showSpin, locale }: { model: AtomModel; showSpin: boolean; locale: Locale }) {
+  const isIT = locale === "it";
+  type Item = { icon: string; it: string; en: string; dim?: boolean };
+  const BASE_ITEMS: Record<AtomModel, Item[]> = {
+    thomson: [
+      { icon: "○", it: "sfera positiva diffusa", en: "diffuse positive sphere" },
+      { icon: "•", it: "elettroni incorporati — plum pudding", en: "embedded electrons — plum pudding" },
+      { icon: "↯", it: "storico (1904) — pre-nucleo", en: "historical (1904) — pre-nucleus", dim: true },
+    ],
+    rutherford: [
+      { icon: "◉", it: "nucleo centrale denso", en: "dense central nucleus" },
+      { icon: "○", it: "orbite classiche casuali", en: "random classical orbits" },
+    ],
+    bohr: [
+      { icon: "○", it: "shell quantizzate per livello", en: "quantized shells by energy level" },
+      { icon: "#", it: "numero di e⁻ per guscio", en: "electron count per shell" },
+    ],
+    sommerfeld: [
+      { icon: "s·p·d·f", it: "colori per sottolivello", en: "colour by subshell" },
+      { icon: "⊃", it: "orbite ellittiche — eccentricità ∝ ℓ", en: "elliptic orbits — eccentricity ∝ ℓ" },
+      { icon: "↯", it: "semiclassico (1916)", en: "semiclassical (1916)", dim: true },
+    ],
+    quantum: [
+      { icon: "s·p·d·f", it: "colori per sottolivello", en: "colour by subshell" },
+      { icon: "∑", it: "nuvola aggregata — tutti i sottolivelli", en: "aggregate cloud — all subshells" },
+      { icon: "→", it: "orbitale singolo → Inspector", en: "single orbital → Inspector", dim: true },
+    ],
+  };
+  const spinSupported = model === "bohr" || model === "rutherford" || model === "sommerfeld";
+  const spinItem: Item = showSpin
+    ? { icon: "↑↓", it: "orientamento spin (Pauli)", en: "spin orientation (Pauli)" }
+    : { icon: "↑↓", it: "spin nascosto — attiva ↑↓", en: "spin hidden — enable ↑↓", dim: true };
+  const items: Item[] = [...(BASE_ITEMS[model] ?? []), ...(spinSupported ? [spinItem] : [])];
+  return (
+    <div className="pt-context-legend" aria-hidden="true">
+      {items.map((item, i) => (
+        <span key={i} className={`pt-context-legend__item${item.dim ? " pt-context-legend__item--dim" : ""}`}>
+          <span className="pt-context-legend__icon">{item.icon}</span>
+          <span>{isIT ? item.it : item.en}</span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function MolLegend({ molMode, isPubChem, locale }: { molMode: MolViewMode; isPubChem: boolean; locale: Locale }) {
+  const isIT = locale === "it";
+  return (
+    <div className="pt-context-legend" aria-hidden="true">
+      {molMode === "ball-stick" && <>
+        <span className="pt-context-legend__item"><span className="pt-context-legend__icon">●</span><span>{isIT ? "sfere = atomi (colori CPK)" : "spheres = atoms (CPK colours)"}</span></span>
+        <span className="pt-context-legend__item"><span className="pt-context-legend__icon">—</span><span>{isIT ? "aste = legami covalenti" : "sticks = covalent bonds"}</span></span>
+      </>}
+      {molMode === "space-filling" && <>
+        <span className="pt-context-legend__item"><span className="pt-context-legend__icon">◉</span><span>{isIT ? "sfere = raggio van der Waals" : "spheres = van der Waals radius"}</span></span>
+        <span className="pt-context-legend__item pt-context-legend__item--dim"><span className="pt-context-legend__icon">∅</span><span>{isIT ? "legami nascosti — riempimento spaziale" : "bonds hidden — space-filling mode"}</span></span>
+      </>}
+      {molMode === "polarity" && <>
+        <span className="pt-context-legend__item"><span className="pt-context-legend__icon">δ</span><span>{isIT ? "colori = densità di carica δ+/δ−" : "colours = charge density δ+/δ−"}</span></span>
+        <span className="pt-context-legend__item"><span className="pt-context-legend__icon">→</span><span>{isIT ? "freccia = vettore dipolo molecolare" : "arrow = molecular dipole vector"}</span></span>
+      </>}
+      {isPubChem && <span className="pt-context-legend__item pt-context-legend__item--dim"><span className="pt-context-legend__icon">⊕</span><span>{isIT ? "dati: PubChem NIH — rendering Fosforonero" : "data: PubChem NIH — rendering by Fosforonero"}</span></span>}
+    </div>
+  );
+}
+
+function CrystalLegend({ locale }: { locale: Locale }) {
+  const isIT = locale === "it";
+  return (
+    <div className="pt-context-legend" aria-hidden="true">
+      <span className="pt-context-legend__item"><span className="pt-context-legend__icon">□</span><span>{isIT ? "cubo = cella elementare (unit cell)" : "cube = unit cell"}</span></span>
+      <span className="pt-context-legend__item"><span className="pt-context-legend__icon">●</span><span>{isIT ? "sfere = posizioni atomiche nel reticolo" : "spheres = atomic sites in the lattice"}</span></span>
+      <span className="pt-context-legend__item"><span className="pt-context-legend__icon">—</span><span>{isIT ? "linee = coordinazione visuale" : "lines = visual coordination contacts"}</span></span>
+      <span className="pt-context-legend__item pt-context-legend__item--dim"><span className="pt-context-legend__icon">~</span><span>{isIT ? "scala normalizzata — non in scala reale" : "normalised scale — not to real scale"}</span></span>
+    </div>
+  );
 }
 
 // ─── Speed slider ─────────────────────────────────────────────────────────────
@@ -1370,13 +1442,22 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
             <>
               <ModelSwitch
                 current={model}
-                onChange={m => { setModel(m); setInspectorOrbital(null); }}
+                onChange={m => { setModel(m); setInspectorOrbital(null); setCrystalView(false); setMoleculeView(false); setNucleusView(false); }}
                 locale={locale}
                 dimmed={inspectorOrbital !== null}
               />
               <button
                 className={`pt-orbital-toggle${inspectorOrbital !== null ? " active" : ""}`}
-                onClick={() => setInspectorOrbital(v => v !== null ? null : "2pz")}
+                onClick={() => {
+                  if (inspectorOrbital !== null) {
+                    setInspectorOrbital(null);
+                  } else {
+                    setInspectorOrbital("2pz");
+                    setCrystalView(false);
+                    setMoleculeView(false);
+                    setNucleusView(false);
+                  }
+                }}
                 aria-pressed={inspectorOrbital !== null}
                 title={locale === "en" ? "Orbital Inspector — hydrogen-like orbitals" : "Inspector orbitali — orbitali idrogenoidi"}
               >
@@ -1399,7 +1480,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
               <TempToggle value={tempUnit} onChange={setTempUnit} locale={locale} />
               <button
                 className={`pt-nucleus-view-btn${nucleusView ? " active" : ""}`}
-                onClick={() => { setNucleusView(v => !v); setCrystalView(false); }}
+                onClick={() => { setNucleusView(v => !v); setCrystalView(false); setMoleculeView(false); setInspectorOrbital(null); }}
                 aria-pressed={nucleusView}
                 title={t.nucleusViewTitle}
               >
@@ -1408,7 +1489,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
               {selected && EXTENDED[selected.z]?.crystalStructure && EXTENDED[selected.z]?.crystalStructure !== "other" && (
                 <button
                   className={`pt-crystal-view-btn${crystalView ? " active" : ""}`}
-                  onClick={() => { setCrystalView(v => !v); setNucleusView(false); setMoleculeView(false); }}
+                  onClick={() => { setCrystalView(v => !v); setNucleusView(false); setMoleculeView(false); setInspectorOrbital(null); }}
                   aria-pressed={crystalView}
                   title={t.crystalViewTitle}
                 >
@@ -1418,7 +1499,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
               {selected && MOLECULES_BY_Z[selected.z] && (
                 <button
                   className={`pt-molecule-view-btn${moleculeView ? " active" : ""}`}
-                  onClick={() => { setMoleculeView(v => !v); setCrystalView(false); setNucleusView(false); setActiveMolIdx(0); }}
+                  onClick={() => { setMoleculeView(v => !v); setCrystalView(false); setNucleusView(false); setInspectorOrbital(null); setActiveMolIdx(0); }}
                   aria-pressed={moleculeView}
                   title={t.moleculeViewTitle}
                 >
@@ -1567,6 +1648,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                           {t.molModeReset}
                         </button>
                       </div>
+                      <MolLegend molMode={molMode} isPubChem={!!molSearchResult} locale={locale} />
                     </>
                   )}
                   {!molSearchResult && mols && mols.length > 1 && (
@@ -1619,11 +1701,14 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
               );
             })()}
             {crystalView && !moleculeView && EXTENDED[selected.z]?.crystalStructure ? (
-              <CrystalViewScene
-                structure={EXTENDED[selected.z]!.crystalStructure}
-                color={CATEGORY_COLOR[selected.category] ?? "#6b7280"}
-                className="pt-canvas"
-              />
+              <>
+                <CrystalViewScene
+                  structure={EXTENDED[selected.z]!.crystalStructure}
+                  color={CATEGORY_COLOR[selected.category] ?? "#6b7280"}
+                  className="pt-canvas"
+                />
+                <CrystalLegend locale={locale} />
+              </>
             ) : !moleculeView ? (
               <>
                 <AtomScene
@@ -1675,7 +1760,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                 </div>
               </div>
             )}
-            {!nucleusView && inspectorOrbital === null && <ModelDesc model={model} locale={locale} />}
+            {!nucleusView && inspectorOrbital === null && <ModelLegend model={model} showSpin={showSpin} locale={locale} />}
           </div>
           <InfoPanel
             el={selected}
@@ -1683,8 +1768,8 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
             tempUnit={tempUnit}
             lightMode={lightMode}
             onDragStart={handlePanelDragStart}
-            onCrystalClick={() => { setCrystalView(true); setNucleusView(false); setMoleculeView(false); }}
-            onMoleculeClick={(i) => { setMoleculeView(true); setActiveMolIdx(i); setCrystalView(false); setNucleusView(false); }}
+            onCrystalClick={() => { setCrystalView(true); setNucleusView(false); setMoleculeView(false); setInspectorOrbital(null); }}
+            onMoleculeClick={(i) => { setMoleculeView(true); setActiveMolIdx(i); setCrystalView(false); setNucleusView(false); setInspectorOrbital(null); }}
             onStoryClick={() => setStoryMode(true)}
           />
           {storyMode && (

@@ -304,6 +304,41 @@
 }
 @media (max-width: 680px) { .pt-model-desc { display: none; } }
 
+/* ── Context legend (atomic model / molecule / crystal) ───────────────────── */
+.pt-context-legend {
+  position: absolute;
+  bottom: 16px; left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  pointer-events: none;
+  z-index: 2;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: calc(100% - 32px);
+}
+.pt-context-legend__item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: rgba(216,216,232,0.52);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.pt-context-legend__item--dim {
+  opacity: 0.52;
+  font-style: italic;
+}
+.pt-context-legend__icon {
+  font-size: 10px;
+  opacity: 0.70;
+  flex-shrink: 0;
+  min-width: 14px;
+  text-align: center;
+}
+@media (max-width: 680px) { .pt-context-legend { display: none; } }
+
 /* ── Nucleus view toggle button ── */
 .pt-nucleus-view-btn {
   background: none;
@@ -1095,6 +1130,9 @@
 .pt-root--light .pt-molecule-view-btn { border-color: rgba(10,10,10,0.20); color: rgba(10,10,10,0.65); }
 .pt-root--light .pt-molecule-view-btn:hover { border-color: rgba(10,10,10,0.45); color: #0a0a0a; }
 .pt-root--light .pt-molecule-view-btn.active { background: rgba(192,38,211,0.08); border-color: rgba(192,38,211,0.40); color: #9333ea; }
+.pt-root--light .pt-orbital-toggle { border-color: rgba(13,148,136,0.35); background: rgba(13,148,136,0.05); color: rgba(0,100,90,0.75); }
+.pt-root--light .pt-orbital-toggle:hover { border-color: rgba(13,148,136,0.60); background: rgba(13,148,136,0.10); color: #0d9488; }
+.pt-root--light .pt-orbital-toggle.active { border-color: #0d9488; background: rgba(13,148,136,0.14); color: #0d9488; }
 .pt-root--light .pt-info__mol-badge { background: rgba(168,85,247,0.10); border-color: rgba(168,85,247,0.30); color: #7c3aed; }
 .pt-root--light .pt-info__mol-badge:hover { background: rgba(168,85,247,0.20); }
 .pt-root--light .pt-mol-formula      { color: rgba(10,10,20,0.90); text-shadow: 0 1px 4px rgba(255,255,255,0.6); }
@@ -1138,6 +1176,7 @@
 }
 .pt-root--light .pt-info__kofi:hover { color: rgba(10,10,10,0.70); border-color: rgba(10,10,10,0.28); }
 .pt-root--light .pt-model-desc { color: rgba(10,10,10,0.65); }
+.pt-root--light .pt-context-legend__item { color: rgba(10,10,20,0.48); }
 /* footer */
 .pt-root--light .pt-footer-hint { color: rgba(10,10,10,0.65); }
 .pt-footer-hint__val { color: #7ab0ff; font-weight: 600; }
