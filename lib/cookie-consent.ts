@@ -45,6 +45,20 @@ export function readConsent(): ConsentChoice | null {
   }
 }
 
+/** Push current analytics consent state to Google Consent Mode v2. */
+export function applyConsentToGoogle(choice: Pick<ConsentChoice, "analytics">): void {
+  if (typeof window === "undefined") return;
+  const w = window as unknown as { gtag?: (...args: unknown[]) => void };
+  if (typeof w.gtag === "function") {
+    w.gtag("consent", "update", {
+      analytics_storage: choice.analytics ? "granted" : "denied",
+      ad_storage: "denied",
+      ad_user_data: "denied",
+      ad_personalization: "denied",
+    });
+  }
+}
+
 export function writeConsent(choice: Omit<ConsentChoice, "necessary" | "version" | "decidedAt">): ConsentChoice {
   const full: ConsentChoice = {
     necessary: true,
@@ -55,16 +69,7 @@ export function writeConsent(choice: Omit<ConsentChoice, "necessary" | "version"
   if (typeof window !== "undefined") {
     window.localStorage.setItem(CONSENT_STORAGE_KEY, JSON.stringify(full));
     window.dispatchEvent(new CustomEvent<ConsentChoice>(CONSENT_EVENT, { detail: full }));
-    // Push to Google Consent Mode v2 if gtag is available.
-    const w = window as unknown as { gtag?: (...args: unknown[]) => void };
-    if (typeof w.gtag === "function") {
-      w.gtag("consent", "update", {
-        analytics_storage: full.analytics ? "granted" : "denied",
-        ad_storage: "denied",
-        ad_user_data: "denied",
-        ad_personalization: "denied",
-      });
-    }
+    applyConsentToGoogle(full);
   }
   return full;
 }

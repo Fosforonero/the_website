@@ -59,6 +59,9 @@ export default function TavolaPeriodica() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <h1 style={{ position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden", clip: "rect(0,0,0,0)", whiteSpace: "nowrap", borderWidth: 0 }}>
+        Tavola Periodica Interattiva 3D
+      </h1>
       <Suspense fallback={<div className="atom-loading">...</div>}>
         <PeriodicTableView locale="it" />
       </Suspense>

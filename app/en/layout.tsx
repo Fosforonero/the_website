@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { site } from "@/lib/site";
+import { LangSync } from "@/components/client/lang-sync";
 
 export const metadata: Metadata = {
   title: { default: `${site.name} — Independent software development`, template: `%s · ${site.name}` },
@@ -26,10 +27,10 @@ export const metadata: Metadata = {
 };
 
 export default function EnLayout({ children }: { children: React.ReactNode }) {
-  // EN-only layout wrapper. The <html lang> attribute is still "it" because
-  // it's set on the root <html>; in production you may want to override it
-  // via a top-of-tree client component or by restructuring to per-locale
-  // route groups. For SEO, the per-page `alternates.languages` metadata is
-  // what matters most for Google.
-  return <>{children}</>;
+  return (
+    <>
+      <LangSync lang="en" />
+      {children}
+    </>
+  );
 }

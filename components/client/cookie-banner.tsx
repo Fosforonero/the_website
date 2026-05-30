@@ -20,6 +20,7 @@ import { usePathname } from "next/navigation";
 import {
   CONSENT_EVENT,
   type ConsentChoice,
+  applyConsentToGoogle,
   openBanner as _openBanner,
   readConsent,
   writeConsent,
@@ -59,8 +60,15 @@ export function CookieBanner() {
     if (typeof window === "undefined") return;
     const prev = readConsent();
     const initTimer = window.setTimeout(() => {
-      if (prev) setAnalytics(prev.analytics);
-      else setOpen(true);
+      if (prev) {
+        setAnalytics(prev.analytics);
+        // Re-send consent to GA on every page load: the beforeInteractive script
+        // always starts with analytics_storage=denied, so without this call the
+        // consent granted on a previous visit would never be restored after reload.
+        applyConsentToGoogle(prev);
+      } else {
+        setOpen(true);
+      }
     }, 0);
 
     const onReopen = () => {

@@ -17,17 +17,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/lab/tavola-periodica",
     "/lab/tavola-periodica/about",
   ];
-  const staticEntries: MetadataRoute.Sitemap = staticPaths.map((p) => ({
-    url: `${site.url}${getLocalePath(defaultLocale, p)}`,
-    lastModified: now,
-    changeFrequency: "monthly" as const,
-    priority: p === "/" ? 1 : 0.7,
-    alternates: {
-      languages: Object.fromEntries(
-        locales.map((l) => [l, `${site.url}${getLocalePath(l, p)}`]),
-      ),
-    },
-  }));
+  // One entry per locale per path so both IT and EN URLs appear explicitly.
+  const staticEntries: MetadataRoute.Sitemap = staticPaths.flatMap((p) =>
+    locales.map((locale) => ({
+      url: `${site.url}${getLocalePath(locale, p)}`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: p === "/" ? 1 : 0.7,
+      alternates: {
+        languages: Object.fromEntries(
+          locales.map((l) => [l, `${site.url}${getLocalePath(l, p)}`]),
+        ),
+      },
+    }))
+  );
 
   // Identity page — slug differs per locale (identita / identity), so it
   // can't use the shared staticPaths loop and is declared explicitly.
