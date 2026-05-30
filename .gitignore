@@ -41,3 +41,10 @@ next-env.d.ts
 
 # SEO audit transient output (baseline.json is committed)
 docs/seo/last-audit.json
+
+# Playwright MCP session logs and page snapshots
+.playwright-mcp/
+
+# Visual audit screenshots (local verification artifacts)
+pt-*.png
+tavola-categoria.png
