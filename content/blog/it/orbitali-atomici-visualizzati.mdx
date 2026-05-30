@@ -1,0 +1,80 @@
+---
+title: "Cosa stai guardando quando guardi un orbitale atomico"
+excerpt: "Un orbitale non è un'orbita. È una distribuzione di probabilità con fase, nodi e forma. Quello che vedi nell'Inspector orbitali della tavola periodica Fosforonero, e perché."
+date: "2026-05-30"
+tag: "Science"
+draft: true
+---
+
+Un orbitale non è un'orbita.
+
+L'errore più comune quando si vede per la prima volta la visualizzazione 3D di un 2p o di un 3d è pensare che l'elettrone *stia* in quel posto, che si muova tra quei lobi, che orbiti come un pianeta intorno al Sole.
+
+Non è così.
+
+## Cos'è un orbitale
+
+Un orbitale è la soluzione dell'equazione di Schrödinger per un elettrone legato a un nucleo. Non descrive *dove è* l'elettrone: descrive *dove potrebbe essere*, con quale probabilità.
+
+Formalmente, un orbitale è una funzione d'onda ψ(r, θ, φ). Il quadrato del suo modulo — |ψ|² — è la densità di probabilità: ti dice la probabilità per unità di volume di trovare l'elettrone in quel punto dello spazio.
+
+Quello che vedi nell'[Inspector orbitali della tavola periodica](/lab/tavola-periodica) è una nuvola di punti campionati con probabilità proporzionale a |ψ|². Più punti in una zona → più probabile trovarci l'elettrone. Meno punti → meno probabile.
+
+## Fase: teal e rosa non indicano carica
+
+Il colore nel visualizzatore non indica carica o densità.
+
+Indica la *fase* della funzione d'onda ψ.
+
+ψ è una funzione che può essere positiva o negativa in parti diverse dello spazio. Nell'orbitale 2pz, il lobo superiore ha ψ > 0 (teal) e il lobo inferiore ha ψ < 0 (rosa). Eppure entrambi i lobi contribuiscono ugualmente alla densità di probabilità, perché |ψ|² è sempre positivo.
+
+La fase diventa rilevante nei legami chimici: due funzioni d'onda si sommano (interferenza costruttiva → legame σ) o si sottraggono (interferenza distruttiva → antilegame σ*). Stessa fase tra due atomi = legame. Fasi opposte = antilegame.
+
+## Nodi: dove l'elettrone non può essere
+
+Un nodo è una superficie dove ψ = 0 — e quindi dove la probabilità di trovare l'elettrone è esattamente zero.
+
+Ci sono due tipi:
+
+- **Nodi radiali**: superfici sferiche. L'orbitale 2s ha un nodo radiale: una sfera concentrica dove ψ cambia segno. Nella visualizzazione appare come un vuoto sferico tra due regioni di densità.
+- **Nodi angolari**: piani o coni. L'orbitale 2pz ha un nodo angolare: il piano xy, dove ψ = 0 e la nuvola di punti è assente.
+
+Regola generale per un orbitale con numero quantico principale n e momento angolare l:
+- nodi radiali = n − l − 1
+- nodi angolari = l
+- nodi totali = n − 1
+
+## Perché s è sferico, p ha due lobi, d è più complesso
+
+La forma dipende dal numero quantico del momento angolare l:
+
+- **l = 0 (s)**: simmetria sferica completa. ψ dipende solo dalla distanza dal nucleo r, non dalla direzione. Il risultato è una sfera.
+- **l = 1 (p)**: due lobi separati da un piano nodale. ψ dipende da cos θ o sin θ. I tre orbitali 2px, 2py, 2pz sono identici ma orientati lungo i tre assi cartesiani.
+- **l = 2 (d)**: strutture più complesse. 3dxy e 3dx²−y² hanno quattro lobi nel piano xy (differiscono solo di 45° di rotazione). 3dz² è il più insolito: due lobi polari e un toro equatoriale, separati da due coni nodali.
+
+Salendo di l, la struttura angolare diventa più ricca: più nodi, più lobi, più direzioni possibili nello spazio.
+
+## Negli atomi pesanti la realtà è più complicata
+
+Gli orbitali mostrati nell'Inspector Fosforonero sono **idrogenoidi** (Z=1): calcolati per un solo elettrone attorno a un protone. Sono soluzioni esatte dell'equazione di Schrödinger per questo caso specifico.
+
+Negli atomi multi-elettronici — cioè tutti gli altri — ogni elettrone sente non solo il nucleo ma anche la repulsione degli altri elettroni. Le soluzioni esatte non esistono in forma chiusa. Si usano metodi approssimati: Hartree-Fock, DFT, post-HF.
+
+Gli orbitali idrogenoidi restano utili perché:
+- danno la struttura qualitativa giusta (lobi, nodi, simmetria sferica per s)
+- spiegano le regole di riempimento (principio di Aufbau, regola di Hund, esclusione di Pauli)
+- sono la base della nomenclatura 1s²2s²2p⁶... usata ovunque
+
+Ma non sono una simulazione esatta degli atomi reali. Sono un modello didattico — preciso nei principi, semplificato nell'applicazione agli elementi pesanti. La tavola lo dichiara esplicitamente nell'Inspector: "idrogenoide (Z=1): esatto per l'idrogeno, indicativo per gli altri."
+
+## Come funziona il visualizzatore
+
+L'Inspector orbitali usa un algoritmo di campionamento per rifiuto (*rejection sampling*). Per ogni punto, si genera una posizione casuale nello spazio, si calcola |ψ(x,y,z)|², e si accetta il punto con probabilità proporzionale a |ψ|² rispetto al massimo noto per quell'orbitale.
+
+Il risultato è una nuvola di ~9000 punti (3500 su mobile) la cui densità rispecchia fedelmente la densità di probabilità quantistica. Il colore di ogni punto dipende dal segno di ψ in quel punto: teal se ψ > 0, rosa se ψ < 0.
+
+Il generatore di numeri casuali è deterministico (algoritmo mulberry32 con seed fisso per orbitale): la nuvola è la stessa ad ogni caricamento, riproducibile e confrontabile tra sessioni.
+
+La nuvola ruota lentamente attorno all'asse y per dare profondità alla struttura tridimensionale. I nodi appaiono come regioni vuote — zone dove nessun punto viene accettato perché la probabilità è zero.
+
+Non è grafica decorativa. È una visualizzazione quantitativa della funzione d'onda dell'idrogeno.

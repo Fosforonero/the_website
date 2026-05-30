@@ -1081,7 +1081,15 @@ function OrbitalInspectorAtom({ orbitalKey }: { orbitalKey: OrbitalKey }) {
     if (groupRef.current) groupRef.current.rotation.y += dt * 0.025;
   });
 
-  return <group ref={groupRef} />;
+  return (
+    <group ref={groupRef}>
+      {/* Discrete nucleus marker — centro di riferimento, non deve coprire il nodo centrale */}
+      <mesh>
+        <sphereGeometry args={[0.13, 8, 6]} />
+        <meshBasicMaterial color="#d0d0e8" transparent opacity={0.50} />
+      </mesh>
+    </group>
+  );
 }
 
 function QuantumAtom({ el, radiusMul, reduced, lightMode }: {

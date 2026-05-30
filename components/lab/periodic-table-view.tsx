@@ -969,9 +969,60 @@ function OrbitalSelector({ current, onChange }: { current: OrbitalKey; onChange:
   );
 }
 
+// ─── Per-orbital copy (shape + description) ───────────────────────────────────
+
+type OrbitalCopy = {
+  shape: { it: string; en: string };
+  desc:  { it: string; en: string };
+};
+
+const ORBITAL_COPY: Record<OrbitalKey, OrbitalCopy> = {
+  "1s": {
+    shape: { it: "sferico",                                  en: "spherical" },
+    desc:  { it: "Densità massima al nucleo, calo esponenziale. Nessun nodo.",
+             en: "Peak density at nucleus, exponential decay. No nodes." },
+  },
+  "2s": {
+    shape: { it: "sferico, un nodo radiale",                 en: "spherical, one radial node" },
+    desc:  { it: "Come 1s ma più esteso. Un guscio sferico a densità zero separa le due regioni di fase.",
+             en: "Like 1s but larger. A spherical zero-density shell separates the two phase regions." },
+  },
+  "2px": {
+    shape: { it: "due lobi lungo x, piano nodale yz",        en: "two lobes along x, nodal plane yz" },
+    desc:  { it: "Identico a 2pz ma orientato sull'asse x. Il piano yz è il nodo angolare.",
+             en: "Identical to 2pz but oriented along x. The yz plane is the angular node." },
+  },
+  "2py": {
+    shape: { it: "due lobi lungo y, piano nodale xz",        en: "two lobes along y, nodal plane xz" },
+    desc:  { it: "Identico a 2pz ma orientato sull'asse y. Il piano xz è il nodo angolare.",
+             en: "Identical to 2pz but oriented along y. The xz plane is the angular node." },
+  },
+  "2pz": {
+    shape: { it: "due lobi lungo z, piano nodale xy",        en: "two lobes along z, nodal plane xy" },
+    desc:  { it: "Due lobi ai poli separati dal piano xy dove ψ = 0. Il colore indica la fase della funzione d'onda, non la carica elettrica.",
+             en: "Two lobes at the poles separated by the xy plane where ψ = 0. Color shows wavefunction phase, not electric charge." },
+  },
+  "3dz2": {
+    shape: { it: "due lobi polari + toro equatoriale",       en: "two polar lobes + equatorial torus" },
+    desc:  { it: "Lobi lungo z e un anello equatoriale, divisi da due coni nodali. La forma più insolita degli orbitali d.",
+             en: "Lobes along z and an equatorial ring, separated by two nodal cones. The most unusual of the d orbital shapes." },
+  },
+  "3dxy": {
+    shape: { it: "quattro lobi nel piano xy, tra gli assi",  en: "four lobes in xy plane, between axes" },
+    desc:  { it: "Quattro lobi a 45° dagli assi nel piano xy, divisi da due piani nodali (xz e yz).",
+             en: "Four lobes at 45° from the axes in the xy plane, separated by two nodal planes (xz and yz)." },
+  },
+  "3dx2y2": {
+    shape: { it: "quattro lobi nel piano xy, sugli assi",    en: "four lobes in xy plane, on the axes" },
+    desc:  { it: "Come 3dxy ma ruotato di 45°: i lobi puntano lungo x e y, divisi da piani nodali tra gli assi.",
+             en: "Like 3dxy but rotated 45°: lobes point along x and y, separated by nodal planes between the axes." },
+  },
+};
+
 function OrbitalInfoPanel({ orbitalKey, locale }: { orbitalKey: OrbitalKey; locale: Locale }) {
   const meta = ORBITAL_META[orbitalKey];
-  if (!meta) return null;
+  const copy = ORBITAL_COPY[orbitalKey];
+  if (!meta || !copy) return null;
   const totalNodes = meta.radialNodes + meta.angularNodes;
   const isIT = locale === "it";
 
@@ -987,17 +1038,9 @@ function OrbitalInfoPanel({ orbitalKey, locale }: { orbitalKey: OrbitalKey; loca
     <div className="pt-orbital-panel" aria-live="polite">
       <div className="pt-orbital-panel__header">
         <span className="pt-orbital-panel__name">{ORBITAL_DISPLAY[orbitalKey]}</span>
-        <div className="pt-orbital-phase-legend">
-          <span className="pt-orbital-phase pt-orbital-phase--pos">
-            <span className="pt-orbital-phase__swatch" />
-            +
-          </span>
-          <span className="pt-orbital-phase pt-orbital-phase--neg">
-            <span className="pt-orbital-phase__swatch" />
-            −
-          </span>
-        </div>
+        <span className={`pt-orbital-family pt-orbital-family--${meta.family}`}>{meta.family}</span>
       </div>
+      <p className="pt-orbital-shape">{isIT ? copy.shape.it : copy.shape.en}</p>
       <dl className="pt-orbital-panel__qn">
         <div><dt>n</dt><dd>{meta.n}</dd></div>
         <div><dt>l</dt><dd>{meta.l}</dd></div>
@@ -1007,10 +1050,27 @@ function OrbitalInfoPanel({ orbitalKey, locale }: { orbitalKey: OrbitalKey; loca
           <dd>{totalNodes} ({nodeDesc})</dd>
         </div>
       </dl>
+      <div className="pt-orbital-phase-legend">
+        <span className="pt-orbital-phase pt-orbital-phase--pos">
+          <span className="pt-orbital-phase__swatch" />
+          {isIT ? "fase +" : "phase +"}
+        </span>
+        <span className="pt-orbital-phase pt-orbital-phase--neg">
+          <span className="pt-orbital-phase__swatch" />
+          {isIT ? "fase −" : "phase −"}
+        </span>
+        <span className="pt-orbital-phase-note">{isIT ? "(≠ carica)" : "(≠ charge)"}</span>
+      </div>
+      <p className="pt-orbital-desc">{isIT ? copy.desc.it : copy.desc.en}</p>
       <p className="pt-orbital-disclaimer">
         {isIT
-          ? "Orbitali idrogenoidi (Z=1): geometria esatta solo per l'idrogeno; indicativa per atomi multi-elettronici."
-          : "Hydrogen-like orbitals (Z=1): exact geometry only for hydrogen; indicative for multi-electron atoms."}
+          ? "Idrogenoide (Z=1): esatto per l'idrogeno, indicativo per gli altri."
+          : "Hydrogen-like (Z=1): exact for hydrogen, indicative for others."}
+      </p>
+      <p className="pt-orbital-vs-quantum">
+        {isIT
+          ? "Inspector: mostra un orbitale isolato. Vista quantistica: mostra la nuvola aggregata dei sottolivelli dell'elemento selezionato."
+          : "Inspector: shows one isolated orbital. Quantum view: shows the aggregated cloud of the selected element's subshells."}
       </p>
     </div>
   );

@@ -2204,10 +2204,6 @@
   color: #e2f4f2;
   letter-spacing: 0.03em;
 }
-.pt-orbital-phase-legend {
-  display: flex;
-  gap: 8px;
-}
 .pt-orbital-phase {
   display: flex;
   align-items: center;
@@ -2248,6 +2244,47 @@
   font-family: 'SFMono-Regular', Consolas, monospace;
 }
 
+/* Family badge */
+.pt-orbital-family {
+  font-size: 10px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+}
+.pt-orbital-family--s { color: rgba(245,158,11,0.75);  border-color: rgba(245,158,11,0.22); }
+.pt-orbital-family--p { color: rgba(96,165,250,0.75);  border-color: rgba(96,165,250,0.22); }
+.pt-orbital-family--d { color: rgba(52,211,153,0.75);  border-color: rgba(52,211,153,0.22); }
+
+/* Shape descriptor */
+.pt-orbital-shape {
+  font-size: 10px;
+  color: rgba(180,210,230,0.60);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Phase legend */
+.pt-orbital-phase-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.pt-orbital-phase-note {
+  font-size: 10px;
+  color: rgba(160,180,200,0.35);
+}
+
+/* Per-orbital description */
+.pt-orbital-desc {
+  font-size: 10px;
+  color: rgba(160,190,210,0.50);
+  line-height: 1.5;
+  margin: 0;
+}
+
 /* Disclaimer */
 .pt-orbital-disclaimer {
   font-size: 10px;
@@ -2256,6 +2293,15 @@
   margin: 0;
   padding-top: 4px;
   border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+/* Inspector vs Quantum note */
+.pt-orbital-vs-quantum {
+  font-size: 10px;
+  color: rgba(140,170,200,0.38);
+  line-height: 1.5;
+  margin: 0;
+  font-style: italic;
 }
 
 /* Mobile: stack grid + panel, smaller */
