@@ -2,7 +2,7 @@
 
 Documento di riferimento per decisioni di prodotto, design e architettura della Tavola Periodica Interattiva (`/lab/tavola-periodica`).
 
-**Aggiornato:** 2026-05-30 (audit post-sprint d1ebfbd)  
+**Aggiornato:** 2026-05-30 (temperature slider MVP 87f52a8+)  
 **Separato da:** `docs/solar-system/` — non usare questo doc per decisioni del simulatore solare e viceversa.
 
 ---
@@ -164,10 +164,23 @@ Due sorgenti distinte, mai mescolate silenziosamente:
 - [ ] Story Mode: completare da 27 a 30 elementi chiave (mancano ~3)
 - [ ] Molecole predefinite: aggiungere benzene, etanolo, acido acetico, LiF, PCl5, XeF4 (dataset premium)
 
+### P2 già promosso e completato
+- [x] Temperature Slider MVP — slider 0–12 000 K con engine fase puro (`lib/temperature.ts`); badge solid/liquid/gas/unknown; marcatori fusione/ebollizione; crystal view gating (disabilitato se liquid/gas, warning se unknown); auto-chiusura crystalView; clamp su cambio elemento; pressione assunta 1 atm; casi edge: As (sublimazione), Z 98-103 (bp null), Z 104-118 (dati assenti); commit 87f52a8+
+
+### Regole scientifiche temperatura (invariante)
+- `state` field (ElementExtended): stato fisico a 25°C / 1 atm — NON modificare, NON re-interpretare con lo slider
+- `temperatureK` (slider): produce solo `phaseAtTemperature` e gate crystal view — nient'altro cambia
+- Pressione: 1 atm — disclaimer obbligatorio in ogni vista che mostra lo slider
+- Struttura cristallina: invariante con T (solo α-form a STP nel dataset) — nessun polimorfismo
+- Densità, raggio, EN, IE, EA: non variano con lo slider — richiederebbero dataset termici non disponibili
+- Arsenico (Z=33): mp ≥ bp → sublimazione; nessun liquid window; gestire con `note: "sublimation"`
+- Elementi Z 98-103: mp noto, bp null → solid sotto mp, unknown sopra
+- Elementi Z 104-118: entrambi null → always unknown/no-data
+
 ### P3 — Feature avanzate
 - [ ] Legami chimici (Bonding Lab) — selezione due elementi → tipo legame da ΔEN
 - [ ] Crystal UX pass — info struttura nel pannello, link da InfoPanel a vista reticolo
-- [ ] Vista materiale Level 0 — cubo + slider temperatura → cambio stato
+- [ ] Vista materiale Level 0 — cubo + slider temperatura → cambio stato visivo (fase liquid/gas già disponibile dal temperature engine)
 
 ### Escluso (non implementare senza decisione esplicita)
 - Vista nucleo avanzata Level 1b (quark/gluoni) — impatto didattico marginale per il target liceo/triennio

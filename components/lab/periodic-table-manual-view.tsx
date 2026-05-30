@@ -78,6 +78,7 @@ const MANUAL = {
           { title: "Inspector orbitali", body: "Attiva la visualizzazione di orbitali idrogenoidi isolati (1s, 2s, 2px/y/z, 3dz², 3dxy, 3dx²−y²). Mostra la forma della funzione d'onda: lobi, nodi radiali e angolari, fase (teal +, rosa −). La fase indica il segno di ψ, non la carica elettrica. Non coincide con la vista quantistica, che invece aggrega tutti i sottolivelli dell'elemento selezionato." },
           { title: "Legende contestuali", body: "Una legenda compatta appare in basso nella vista 3D e mostra i simboli del modello atomico attivo (shell, colori orbite, orientamento spin), della molecola (sfere = atomi CPK, aste = legami, modalità riempimento o polarità) o del reticolo (cubo = cella elementare, linee = coordinazione)." },
           { title: "K / °C / °F", body: "Cambia l'unità di temperatura del pannello dati. La preferenza viene salvata nel browser." },
+          { title: "Slider temperatura", body: "Sposta lo slider tra 0 K e un massimo dinamico per l'elemento selezionato (min 1000 K, max 12 000 K). Il badge mostra lo stato fisico derivato a 1 atm: solido, liquido, gas o sconosciuto. I marcatori blu (fusione) e rosso (ebollizione) sul cursore indicano le soglie di transizione quando i dati sono disponibili. Il pulsante ↺ riporta a 298,15 K (25°C). Solo lo stato fisico cambia con lo slider — densità, raggio e altre proprietà restano dati tabulati a condizioni standard." },
         ],
       },
       {
@@ -114,6 +115,7 @@ const MANUAL = {
         items: [
           { title: "Modelli storici", body: "Thomson, Rutherford, Bohr e Sommerfeld sono inclusi per confronto storico, non perché descrivano tutti l'atomo moderno." },
           { title: "Dati mancanti", body: "Per alcuni elementi sintetici o instabili alcune proprietà possono essere assenti, stimate o non applicabili." },
+          { title: "Slider temperatura", body: "Lo slider varia solo la classificazione di fase (solido/liquido/gas) e la disponibilità della vista reticolo. Pressione assunta: 1 atm. La struttura cristallina, la densità e le altre proprietà tabulari non variano con la temperatura — richiederebbero dataset termici completi non disponibili per tutti i 118 elementi. L'arsenico (As) è un caso speciale: sublima a 1 atm e non ha fase liquida stabile." },
           { title: "Fonti", body: "La pagina about elenca IUPAC, NIST, PubChem e WebElements come riferimenti dati principali." },
         ],
       },
@@ -188,6 +190,7 @@ const MANUAL = {
           { title: "Orbital Inspector", body: "Displays isolated hydrogen-like orbitals (1s, 2s, 2px/y/z, 3dz², 3dxy, 3dx²−y²). Shows wavefunction shape: lobes, radial and angular nodes, phase (teal +, rose −). Phase indicates the sign of ψ, not electric charge. Unlike the quantum view, which aggregates all subshells of the selected element." },
           { title: "Contextual legends", body: "A compact legend appears at the bottom of the 3D view and shows the symbols for the active atomic model (shells, orbit colours, spin orientation), molecule (spheres = CPK atoms, sticks = bonds, filling or polarity mode) or lattice (cube = unit cell, lines = coordination)." },
           { title: "K / °C / °F", body: "Cycles the temperature unit used in the data panel. The preference is saved in the browser." },
+          { title: "Temperature slider", body: "Drag the slider between 0 K and a dynamic maximum for the selected element (min 1000 K, max 12 000 K). The badge shows the derived physical state at 1 atm: solid, liquid, gas, or unknown. Blue (melting) and red (boiling) markers on the track indicate transition thresholds when data are available. The ↺ button resets to 298.15 K (25 °C). Only physical state changes with the slider — density, radius, and other properties remain tabulated at standard conditions." },
         ],
       },
       {
@@ -224,6 +227,7 @@ const MANUAL = {
         items: [
           { title: "Historical models", body: "Thomson, Rutherford, Bohr, and Sommerfeld are included for historical comparison, not because they all describe the modern atom." },
           { title: "Missing data", body: "For some synthetic or unstable elements, some properties may be absent, estimated, or not applicable." },
+          { title: "Temperature slider", body: "The slider only changes phase classification (solid/liquid/gas) and crystal lattice availability. Pressure assumed: 1 atm. Crystal structure, density, and other tabulated properties do not vary with temperature — full thermal datasets are not available for all 118 elements. Arsenic (As) is a special case: it sublimes at 1 atm and has no stable liquid phase." },
           { title: "Sources", body: "The about page lists IUPAC, NIST, PubChem, and WebElements as the main data references." },
         ],
       },

@@ -23,6 +23,10 @@ import {
   LAB_UI_TRANSLATIONS, ELEMENT_DESCRIPTIONS_EN, CRYSTAL_LABELS,
 } from "@/lib/elements-i18n";
 import { CrystalScene } from "./crystal-scene";
+import {
+  toKelvin, fromKelvin, inferPhaseAtTemperature, computeTemperatureRangeK,
+  ROOM_TEMPERATURE_K,
+} from "@/lib/temperature";
 
 const CrystalViewScene = dynamic(
   () => import("./crystal-view-scene").then(m => m.CrystalViewScene),
@@ -1117,6 +1121,10 @@ function ModelLegend({ model, showSpin, locale }: { model: AtomModel; showSpin: 
           <span>{isIT ? item.it : item.en}</span>
         </span>
       ))}
+      <span className="pt-context-legend__item pt-context-legend__item--dim">
+        <span className="pt-context-legend__icon">T</span>
+        <span>{isIT ? "atomo isolato · indipendente dallo stato macroscopico" : "isolated atom · independent of macroscopic state"}</span>
+      </span>
     </div>
   );
 }
@@ -1138,6 +1146,10 @@ function MolLegend({ molMode, isPubChem, locale }: { molMode: MolViewMode; isPub
         <span className="pt-context-legend__item"><span className="pt-context-legend__icon">→</span><span>{isIT ? "freccia = vettore dipolo molecolare" : "arrow = molecular dipole vector"}</span></span>
       </>}
       {isPubChem && <span className="pt-context-legend__item pt-context-legend__item--dim"><span className="pt-context-legend__icon">⊕</span><span>{isIT ? "dati: PubChem NIH — rendering Fosforonero" : "data: PubChem NIH — rendering by Fosforonero"}</span></span>}
+      <span className="pt-context-legend__item pt-context-legend__item--dim">
+        <span className="pt-context-legend__icon">≈</span>
+        <span>{isIT ? "molecole comuni · indipendenti dallo stato fisico dell'elemento puro" : "common molecules · independent of the pure element's physical state"}</span>
+      </span>
     </div>
   );
 }
@@ -1158,6 +1170,116 @@ function CrystalLegend({ structure, locale }: { structure: string | null | undef
       <span className="pt-context-legend__item"><span className="pt-context-legend__icon">●</span><span>{isIT ? "sfere = posizioni atomiche nel reticolo" : "spheres = atomic sites in the lattice"}</span></span>
       <span className="pt-context-legend__item"><span className="pt-context-legend__icon">—</span><span>{lineLabel}</span></span>
       <span className="pt-context-legend__item pt-context-legend__item--dim"><span className="pt-context-legend__icon">~</span><span>{isIT ? "scala normalizzata — non in scala reale" : "normalised scale — not to real scale"}</span></span>
+      <span className="pt-context-legend__item pt-context-legend__item--dim"><span className="pt-context-legend__icon">∥</span><span>{isIT ? "reticolo disponibile solo nello stato solido" : "lattice available in solid state only"}</span></span>
+    </div>
+  );
+}
+
+// ─── Temperature control overlay ─────────────────────────────────────────────
+
+function TemperatureControl({
+  temperatureK, onTemperatureK, unit, meltingPoint, boilingPoint, locale,
+}: {
+  temperatureK: number;
+  onTemperatureK: (k: number) => void;
+  unit: "K" | "C" | "F";
+  meltingPoint: number | null;
+  boilingPoint: number | null;
+  locale: Locale;
+}) {
+  const t = LAB_UI_TRANSLATIONS[locale];
+  const { max } = computeTemperatureRangeK(meltingPoint, boilingPoint);
+  const phaseResult = inferPhaseAtTemperature(meltingPoint, boilingPoint, temperatureK);
+
+  const [inputStr, setInputStr] = useState(String(Math.round(fromKelvin(temperatureK, unit))));
+
+  useEffect(() => {
+    setInputStr(String(Math.round(fromKelvin(temperatureK, unit))));
+  }, [temperatureK, unit]);
+
+  const commitInput = () => {
+    const parsed = parseFloat(inputStr);
+    if (!isNaN(parsed)) {
+      const k = Math.max(0, Math.min(max, toKelvin(parsed, unit)));
+      onTemperatureK(k);
+    } else {
+      setInputStr(String(Math.round(fromKelvin(temperatureK, unit))));
+    }
+  };
+
+  const mpPct = meltingPoint !== null ? Math.max(0, Math.min(100, (meltingPoint / max) * 100)) : null;
+  const bpPct = boilingPoint !== null ? Math.max(0, Math.min(100, (boilingPoint / max) * 100)) : null;
+
+  const phaseLabel =
+    phaseResult.phase === "solid"  ? t.tempPhaseSolid  :
+    phaseResult.phase === "liquid" ? t.tempPhaseLiquid :
+    phaseResult.phase === "gas"    ? t.tempPhaseGas    :
+                                     t.tempPhaseUnknown;
+
+  const noteText =
+    phaseResult.note === "sublimation"     ? t.tempNoteSublimation :
+    phaseResult.note === "no-boiling-data" ? t.tempNoteNoBoiling   :
+    phaseResult.note === "no-data"         ? t.tempNoteNoData      :
+    phaseResult.note === "no-melting-data" ? t.tempNoteNoMelting   :
+    null;
+
+  return (
+    <div className="pt-temp-control">
+      <div className="pt-temp-control__rail">
+        <input
+          type="range"
+          className="pt-temp-control__slider"
+          min={0}
+          max={Math.round(max)}
+          step={1}
+          value={Math.round(temperatureK)}
+          onChange={e => onTemperatureK(Number(e.target.value))}
+          aria-label={t.tempControlLabel}
+        />
+        {mpPct !== null && (
+          <span
+            className="pt-temp-control__marker pt-temp-control__marker--fusion"
+            style={{ left: `${mpPct}%` }}
+            title={`${t.infoMelting}: ${meltingPoint!.toFixed(0)} K`}
+          />
+        )}
+        {bpPct !== null && (
+          <span
+            className="pt-temp-control__marker pt-temp-control__marker--boiling"
+            style={{ left: `${bpPct}%` }}
+            title={`${t.infoBoiling}: ${boilingPoint!.toFixed(0)} K`}
+          />
+        )}
+      </div>
+      <div className="pt-temp-control__row">
+        <input
+          type="number"
+          className="pt-temp-control__input"
+          value={inputStr}
+          onChange={e => setInputStr(e.target.value)}
+          onBlur={commitInput}
+          onKeyDown={e => { if (e.key === "Enter") commitInput(); }}
+          aria-label={t.tempControlLabel}
+        />
+        <span className="pt-temp-control__unit">
+          {unit === "C" ? "°C" : unit === "F" ? "°F" : "K"}
+        </span>
+        <span className={`pt-temp-control__badge pt-temp-control__badge--${phaseResult.phase}`}>
+          {phaseLabel}
+        </span>
+        <button
+          className="pt-temp-control__reset"
+          onClick={() => onTemperatureK(ROOM_TEMPERATURE_K)}
+          title={t.tempReset}
+          aria-label={t.tempReset}
+        >
+          ↺
+        </button>
+      </div>
+      {noteText !== null && (
+        <p className="pt-temp-control__note">⚠ {noteText}</p>
+      )}
+      <p className="pt-temp-control__disclaimer">{t.tempDisclaimer}</p>
     </div>
   );
 }
@@ -1240,6 +1362,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
   const [lightMode,       setLightMode]       = usePersistedState<boolean>("pt:lightMode", false);
   const [thematicProp,    setThematicProp]    = usePersistedState<ThematicProperty>("pt:thematicProp", "none");
   const [tempUnit,        setTempUnit]        = usePersistedState<"K" | "C" | "F">("pt:tempUnit", "K");
+  const [temperatureK,    setTemperatureK]    = usePersistedState<number>("pt:temperatureK", ROOM_TEMPERATURE_K);
   const [searchQuery,     setSearchQuery]     = useState("");
   const [starsIntensity,  setStarsIntensity]  = usePersistedState<number>("pt:starsIntensity", 1);
   const [vdwStyle,        setVdwStyle]        = usePersistedState<VdWStyle>("pt:vdwStyle", "off");
@@ -1272,6 +1395,17 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
   const propRange = useMemo<[number, number] | null>(() => {
     return getThematicPropertiesRangeMap(thematicProp);
   }, [thematicProp]);
+
+  const selectedExt = selected ? EXTENDED[selected.z] : undefined;
+  const phaseResult = useMemo(
+    () => inferPhaseAtTemperature(
+      selectedExt?.meltingPoint ?? null,
+      selectedExt?.boilingPoint ?? null,
+      temperatureK,
+    ),
+    [selectedExt, temperatureK],
+  );
+  const inferredPhase = phaseResult.phase;
 
   const handlePanelDragStart = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
@@ -1344,6 +1478,22 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [view, handleBack]);
+
+  // Clamp temperatureK to new element's max range when element changes
+  useEffect(() => {
+    if (!selected) return;
+    const ext = EXTENDED[selected.z];
+    const { max } = computeTemperatureRangeK(ext?.meltingPoint ?? null, ext?.boilingPoint ?? null);
+    setTemperatureK(prev => prev > max ? max : prev);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected?.z]);
+
+  // Auto-close crystal view when phase becomes liquid or gas
+  useEffect(() => {
+    if (crystalView && (inferredPhase === "liquid" || inferredPhase === "gas")) {
+      setCrystalView(false);
+    }
+  }, [crystalView, inferredPhase]);
 
   // Deep-linking z query parameter parsing
   useEffect(() => {
@@ -1494,16 +1644,21 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
               >
                 {t.nucleusViewBtn}
               </button>
-              {selected && EXTENDED[selected.z]?.crystalStructure && EXTENDED[selected.z]?.crystalStructure !== "other" && (
-                <button
-                  className={`pt-crystal-view-btn${crystalView ? " active" : ""}`}
-                  onClick={() => { setCrystalView(v => !v); setNucleusView(false); setMoleculeView(false); setInspectorOrbital(null); }}
-                  aria-pressed={crystalView}
-                  title={t.crystalViewTitle}
-                >
-                  {t.crystalViewBtn}
-                </button>
-              )}
+              {selected && EXTENDED[selected.z]?.crystalStructure && EXTENDED[selected.z]?.crystalStructure !== "other" && (() => {
+                const phaseUnstable = inferredPhase === "liquid" || inferredPhase === "gas";
+                const phaseUnknown  = inferredPhase === "unknown";
+                return (
+                  <button
+                    className={`pt-crystal-view-btn${crystalView ? " active" : ""}${phaseUnstable ? " pt-crystal-view-btn--unstable" : ""}`}
+                    onClick={() => { if (!phaseUnstable) { setCrystalView(v => !v); setNucleusView(false); setMoleculeView(false); setInspectorOrbital(null); } }}
+                    disabled={phaseUnstable}
+                    aria-pressed={crystalView}
+                    title={phaseUnstable ? t.crystalUnstableTooltip : phaseUnknown ? t.crystalUnknownPhaseTooltip : t.crystalViewTitle}
+                  >
+                    {t.crystalViewBtn}{phaseUnknown && !phaseUnstable ? " ⚠" : ""}
+                  </button>
+                );
+              })()}
               {selected && MOLECULES_BY_Z[selected.z] && (
                 <button
                   className={`pt-molecule-view-btn${moleculeView ? " active" : ""}`}
@@ -1769,6 +1924,16 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
               </div>
             )}
             {!nucleusView && inspectorOrbital === null && <ModelLegend model={model} showSpin={showSpin} locale={locale} />}
+            {!nucleusView && !crystalView && !moleculeView && inspectorOrbital === null && (
+              <TemperatureControl
+                temperatureK={temperatureK}
+                onTemperatureK={setTemperatureK}
+                unit={tempUnit}
+                meltingPoint={selectedExt?.meltingPoint ?? null}
+                boilingPoint={selectedExt?.boilingPoint ?? null}
+                locale={locale}
+              />
+            )}
           </div>
           <InfoPanel
             el={selected}
