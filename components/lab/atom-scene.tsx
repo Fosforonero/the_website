@@ -484,7 +484,7 @@ function BohrAtom({ el, radiusMul, eMul, reduced, speedMul, lightMode, showSpin 
   el: Element; radiusMul: number; eMul: number;
   reduced: boolean; speedMul: number; lightMode: boolean; showSpin: boolean;
 }) {
-  const fills = useMemo(() => computeShellFills(el.z), [el.z]);
+  const fills = el.shells;
   return (
     <>
       {fills.map((c, i) => (
@@ -542,7 +542,7 @@ function SommerfeldAtom({ el, radiusMul, reduced, speedMul, lightMode, showSpin 
   const showSpinRef = useRef(showSpin);
   showSpinRef.current = showSpin;
 
-  const shellFills = useMemo(() => computeShellFills(el.z), [el.z]);
+  const shellFills = el.shells;
   const config     = useMemo(() => buildSommerfeldConfig(shellFills, radiusMul), [shellFills, radiusMul]);
 
   const totalE = config.reduce((s, o) => s + o.electronCount, 0);
@@ -879,7 +879,7 @@ function QuantumAtom({ el, radiusMul, reduced, lightMode }: {
 function VanDerWaalsSphere({ element, radiusMul, style, lightMode }: {
   element: Element; radiusMul: number; style: "wire" | "glass"; lightMode: boolean;
 }) {
-  const shellCount = useMemo(() => computeShellFills(element.z).length, [element.z]);
+  const shellCount = element.shells.length;
   const r = (SHELL_BASE_R[shellCount - 1] ?? SHELL_BASE_R.at(-1)!) * radiusMul * 1.42;
   const col = lightMode ? "#3a5fc0" : "#7ab0ff";
 
