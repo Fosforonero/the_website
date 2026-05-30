@@ -335,7 +335,7 @@ function RutherfordAtom({ el, radiusMul, reduced, speedMul, lightMode, showSpin 
         .addScaledVector(o.v, Math.sin(a) * o.r);
       const arrow = spinArrows[i];
       if (arrow) {
-        arrow.visible = doSpin;
+        arrow.visible = false; // spin post-dates Rutherford (1911)
         if (doSpin) {
           const n = orbitNormals[i]!;
           const sign = i % 2 === 0 ? 1 : -1;
@@ -354,8 +354,8 @@ function RutherfordAtom({ el, radiusMul, reduced, speedMul, lightMode, showSpin 
 
 // ─── Bohr (1913) — circular quantized orbits ─────────────────────────────────
 
-function BohrOrbit({ shellIdx, count, radiusMul, eMul, reduced, speedMul, lightMode, showSpin }: {
-  shellIdx: number; count: number; radiusMul: number; eMul: number;
+function BohrOrbit({ shellIdx, count, spins, radiusMul, eMul, reduced, speedMul, lightMode, showSpin }: {
+  shellIdx: number; count: number; spins: boolean[]; radiusMul: number; eMul: number;
   reduced: boolean; speedMul: number; lightMode: boolean; showSpin: boolean;
 }) {
   const groupRef  = useRef<THREE.Group>(null!);
@@ -363,6 +363,8 @@ function BohrOrbit({ shellIdx, count, radiusMul, eMul, reduced, speedMul, lightM
   const speedRef  = useRef(0);
   const showSpinRef = useRef(showSpin);
   showSpinRef.current = showSpin;
+  const spinsRef = useRef(spins);
+  spinsRef.current = spins;
 
   const r         = (SHELL_BASE_R[shellIdx] ?? SHELL_BASE_R.at(-1)!) * radiusMul;
   const tilt      = SHELL_TILTS[shellIdx] ?? SHELL_TILTS.at(-1)!;
@@ -413,9 +415,8 @@ function BohrOrbit({ shellIdx, count, radiusMul, eMul, reduced, speedMul, lightM
       m.scale.setScalar(eMul);
       g.add(m); electrons.push(m);
 
-      // Spin arrow: cone pointing ±Z (perpendicular to orbit plane)
-      // Even index = spin ↑ (+Z), odd = spin ↓ (-Z)  — simplified Pauli model
-      const isUp = k % 2 === 0;
+      // Spin arrow: cone pointing ±Z. Direction from Hund's rule via shellSpins().
+      const isUp = spins[k] ?? (k % 2 === 0);
       const arrow = new THREE.Mesh(
         spinArrowGeo,
         new THREE.MeshStandardMaterial({
@@ -441,7 +442,7 @@ function BohrOrbit({ shellIdx, count, radiusMul, eMul, reduced, speedMul, lightM
       spinArrows.forEach(a => (a.material as THREE.Material).dispose());
       objectsRef.current = null;
     };
-  }, [count, r, eMul, lightMode]);
+  }, [count, r, eMul, lightMode, spins]);
 
   useFrame((state, dt) => {
     if (!objectsRef.current) return;
@@ -470,7 +471,7 @@ function BohrOrbit({ shellIdx, count, radiusMul, eMul, reduced, speedMul, lightM
       if (arrow) {
         arrow.visible = doSpin;
         if (doSpin) {
-          const zOff = k % 2 === 0 ? 0.22 : -0.22;
+          const zOff = (spinsRef.current[k] ?? (k % 2 === 0)) ? 0.22 : -0.22;
           arrow.position.set(x, y, zOff);
         }
       }
@@ -485,10 +486,12 @@ function BohrAtom({ el, radiusMul, eMul, reduced, speedMul, lightMode, showSpin 
   reduced: boolean; speedMul: number; lightMode: boolean; showSpin: boolean;
 }) {
   const fills = el.shells;
+  const allSpins = useMemo(() => shellSpins(el.shells), [el.shells]);
   return (
     <>
       {fills.map((c, i) => (
-        <BohrOrbit key={i} shellIdx={i} count={c} radiusMul={radiusMul} eMul={eMul}
+        <BohrOrbit key={i} shellIdx={i} count={c} spins={allSpins[i] ?? []}
+          radiusMul={radiusMul} eMul={eMul}
           reduced={reduced} speedMul={speedMul} lightMode={lightMode} showSpin={showSpin} />
       ))}
     </>
@@ -498,7 +501,7 @@ function BohrAtom({ el, radiusMul, eMul, reduced, speedMul, lightMode, showSpin 
 // ─── Sommerfeld (1916) — elliptical Keplerian orbits ─────────────────────────
 
 interface SubOrbital {
-  shellIdx: number; k: number;
+  shellIdx: number; k: number; shellEOffset: number;
   a: number; b: number; ecc: number;
   tilt: [number, number, number];
   electronCount: number;
@@ -511,6 +514,7 @@ function buildSommerfeldConfig(shellFills: number[], radiusMul: number): SubOrbi
     const n = shellIdx + 1;
     const numSubOrbits = Math.min(n, 4); // cap for visual clarity
     let remaining = total;
+    let shellEOffset = 0;
     for (let k = 1; k <= numSubOrbits; k++) {
       const isLast = k === numSubOrbits;
       const electrons = isLast ? remaining : Math.ceil(remaining / (numSubOrbits - k + 1));
@@ -522,11 +526,12 @@ function buildSommerfeldConfig(shellFills: number[], radiusMul: number): SubOrbi
       const a = shellR / (1 + ecc);
       const baseTilt = SHELL_TILTS[shellIdx] ?? SHELL_TILTS.at(-1)!;
       result.push({
-        shellIdx, k, a, b: a * kOverN, ecc,
+        shellIdx, k, shellEOffset, a, b: a * kOverN, ecc,
         tilt: [baseTilt[0] + k * 0.44, baseTilt[1] + k * 0.60, baseTilt[2] + k * 0.35],
         electronCount: electrons,
         speed: SHELL_SPEEDS[shellIdx] ?? 0.1,
       });
+      shellEOffset += electrons;
       remaining -= electrons;
     }
   });
@@ -542,8 +547,11 @@ function SommerfeldAtom({ el, radiusMul, reduced, speedMul, lightMode, showSpin 
   const showSpinRef = useRef(showSpin);
   showSpinRef.current = showSpin;
 
-  const shellFills = el.shells;
-  const config     = useMemo(() => buildSommerfeldConfig(shellFills, radiusMul), [shellFills, radiusMul]);
+  const shellFills    = el.shells;
+  const config        = useMemo(() => buildSommerfeldConfig(shellFills, radiusMul), [shellFills, radiusMul]);
+  const spinsPerShell = useMemo(() => shellSpins(el.shells), [el.shells]);
+  const spinsPerShellRef = useRef(spinsPerShell);
+  spinsPerShellRef.current = spinsPerShell;
 
   const totalE = config.reduce((s, o) => s + o.electronCount, 0);
   const phasesRef = useRef<Float32Array>(new Float32Array(totalE));
@@ -566,8 +574,6 @@ function SommerfeldAtom({ el, radiusMul, reduced, speedMul, lightMode, showSpin 
     const orbitGroups:    THREE.Group[]   = [];
     const electronArrays: THREE.Mesh[][]  = [];
     const spinArrowArrays: THREE.Mesh[][] = [];
-    let globalEIdx = 0;
-
     for (const orbit of config) {
       const og = new THREE.Group();
       og.rotation.set(...orbit.tilt);
@@ -598,7 +604,8 @@ function SommerfeldAtom({ el, radiusMul, reduced, speedMul, lightMode, showSpin 
         }));
         og.add(m); electrons.push(m);
 
-        const isUp = (globalEIdx + i) % 2 === 0;
+        const shellSpinsArr = spinsPerShell[orbit.shellIdx] ?? [];
+        const isUp = shellSpinsArr[orbit.shellEOffset + i] ?? ((orbit.shellEOffset + i) % 2 === 0);
         const arrow = new THREE.Mesh(spinArrowGeo, new THREE.MeshStandardMaterial({
           color: isUp ? C_SPIN_UP : C_SPIN_DOWN,
           emissive: isUp ? C_SPIN_UP : C_SPIN_DOWN,
@@ -609,7 +616,6 @@ function SommerfeldAtom({ el, radiusMul, reduced, speedMul, lightMode, showSpin 
         arrow.visible = false;
         og.add(arrow); spinArrows.push(arrow);
       }
-      globalEIdx += orbit.electronCount;
       orbitGroups.push(og);
       electronArrays.push(electrons);
       spinArrowArrays.push(spinArrows);
@@ -657,7 +663,8 @@ function SommerfeldAtom({ el, radiusMul, reduced, speedMul, lightMode, showSpin 
         if (arrow) {
           arrow.visible = doSpin;
           if (doSpin) {
-            const isUp = (eIdx + i) % 2 === 0;
+            const shellSpinsArr = spinsPerShellRef.current[orbit.shellIdx] ?? [];
+            const isUp = shellSpinsArr[orbit.shellEOffset + i] ?? ((orbit.shellEOffset + i) % 2 === 0);
             arrow.position.set(ex, ey, isUp ? 0.22 : -0.22);
           }
         }
@@ -676,10 +683,30 @@ function getLColor(l: number, lightMode: boolean): THREE.Color {
   return (lightMode ? L_COLORS_LIGHT : L_COLORS_DARK)[idx];
 }
 
+const SUP_MAP: Record<string, string> = {
+  '⁰':'0','¹':'1','²':'2','³':'3','⁴':'4','⁵':'5','⁶':'6','⁷':'7','⁸':'8','⁹':'9',
+};
+
+// Full expanded electron configurations for noble gas core abbreviations
+const NOBLE_CORES: Record<string, Array<{ n: number; l: number; e: number }>> = {
+  He: [{n:1,l:0,e:2}],
+  Ne: [{n:1,l:0,e:2},{n:2,l:0,e:2},{n:2,l:1,e:6}],
+  Ar: [{n:1,l:0,e:2},{n:2,l:0,e:2},{n:2,l:1,e:6},{n:3,l:0,e:2},{n:3,l:1,e:6}],
+  Kr: [{n:1,l:0,e:2},{n:2,l:0,e:2},{n:2,l:1,e:6},{n:3,l:0,e:2},{n:3,l:1,e:6},{n:3,l:2,e:10},{n:4,l:0,e:2},{n:4,l:1,e:6}],
+  Xe: [{n:1,l:0,e:2},{n:2,l:0,e:2},{n:2,l:1,e:6},{n:3,l:0,e:2},{n:3,l:1,e:6},{n:3,l:2,e:10},{n:4,l:0,e:2},{n:4,l:1,e:6},{n:4,l:2,e:10},{n:5,l:0,e:2},{n:5,l:1,e:6}],
+  Rn: [{n:1,l:0,e:2},{n:2,l:0,e:2},{n:2,l:1,e:6},{n:3,l:0,e:2},{n:3,l:1,e:6},{n:3,l:2,e:10},{n:4,l:0,e:2},{n:4,l:1,e:6},{n:4,l:2,e:10},{n:4,l:3,e:14},{n:5,l:0,e:2},{n:5,l:1,e:6},{n:5,l:2,e:10},{n:6,l:0,e:2},{n:6,l:1,e:6}],
+};
+
 function parseSubshells(config: string): Array<{ n: number; l: number; e: number }> {
   const lMap: Record<string, number> = { s: 0, p: 1, d: 2, f: 3 };
   const result: Array<{ n: number; l: number; e: number }> = [];
-  for (const m of config.matchAll(/(\d+)([spdf])(\d+)/g)) {
+  const coreMatch = config.match(/\[(\w+)\]/);
+  if (coreMatch?.[1]) {
+    const core = NOBLE_CORES[coreMatch[1]];
+    if (core) result.push(...core);
+  }
+  const normalized = config.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]/g, c => SUP_MAP[c] ?? c);
+  for (const m of normalized.matchAll(/(\d+)([spdf])(\d+)/g)) {
     const l = lMap[m[2]!];
     if (l !== undefined) result.push({ n: +m[1]!, l, e: +m[3]! });
   }
@@ -769,6 +796,24 @@ function buildSubshells(z: number): Array<{ n: number; l: number; e: number }> {
     });
   }
   return subs;
+}
+
+// Hund-correct spin sequence per shell ring.
+// Decomposes el.shells[si] electrons into s/p/d/f intra-shell subshells
+// (capacities 2/6/10/14), fills each: first 2l+1 electrons ↑, remainder ↓.
+function shellSpins(shells: readonly number[]): boolean[][] {
+  const SUBCAPS = [2, 6, 10, 14];
+  return Array.from(shells, count => {
+    const spins: boolean[] = [];
+    let rem = count;
+    for (let l = 0; l < 4 && rem > 0; l++) {
+      const e = Math.min(SUBCAPS[l]!, rem);
+      const orbitals = 2 * l + 1;
+      for (let k = 0; k < e; k++) spins.push(k < orbitals);
+      rem -= e;
+    }
+    return spins;
+  });
 }
 
 function buildPointCloud(
