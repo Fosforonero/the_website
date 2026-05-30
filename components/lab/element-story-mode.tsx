@@ -131,6 +131,30 @@ const STORIES: Record<number, ElementStory> = {
       textEN: "Oxygen in H₂O forms hydrogen bonds with neighboring molecules (O is highly electronegative, H is partially positive). These bonds keep water liquid at room temperature, even though similar molecules (H₂S, H₂Se) are gases." },
   ]},
 
+  // ── Fluorine Z=9 ─────────────────────────────────────────────────────────
+  9: { slides: [
+    { icon: "⚡", titleIT: "L'elemento più elettronegativo", titleEN: "The most electronegative element",
+      textIT: "Il fluoro è l'elemento più elettronegativo della tavola periodica (3,98 sulla scala di Pauling) e il non-metallo più reattivo. La configurazione [He] 2s² 2p⁵ — un solo elettrone mancante al livello p — spiega la sua enorme tendenza ad acquistare elettroni e formare F⁻.",
+      textEN: "Fluorine is the most electronegative element (3.98 on the Pauling scale) and the most reactive non-metal. Its [He] 2s² 2p⁵ configuration — one electron short of a full p level — explains its enormous tendency to gain electrons and form F⁻.",
+      sourceIT: "Pauling, L. (1932). J. Am. Chem. Soc. 54(9):3570–3582; IUPAC.",
+      sourceEN: "Pauling, L. (1932). J. Am. Chem. Soc. 54(9):3570–3582; IUPAC." },
+    { icon: "🍳", titleIT: "PTFE — il materiale più inerte", titleEN: "PTFE — the most inert material",
+      textIT: "Il politetrafluoroetilene (PTFE, Teflon) è il polimero più inerte chimicamente noto: la catena di legami C–F (energia ≈ 485 kJ/mol) forma un involucro elettronico così compatto da rendere la superficie impermeabile a quasi tutti i reagenti. Scoperto accidentalmente da Roy Plunkett (DuPont) nel 1938.",
+      textEN: "Polytetrafluoroethylene (PTFE, Teflon) is the most chemically inert polymer known: the chain of C–F bonds (energy ≈ 485 kJ/mol) forms an electron sheath so compact as to make the surface impermeable to almost all reagents. Accidentally discovered by Roy Plunkett (DuPont) in 1938.",
+      sourceIT: "Plunkett, R.J. (1941). US Patent 2,230,654; RSC Periodic Table.",
+      sourceEN: "Plunkett, R.J. (1941). US Patent 2,230,654; RSC Periodic Table." },
+    { icon: "🦷", titleIT: "Fluoruro e carie dentale", titleEN: "Fluoride and dental caries",
+      textIT: "Il fluoruro (F⁻) a basse concentrazioni (0,5–1,0 mg/L nell'acqua potabile) riduce la prevalenza della carie: sostituisce il gruppo ossidrile nell'idrossiapatite [Ca₁₀(PO₄)₆(OH)₂] formando fluoroapatite, più resistente all'attacco acido dei batteri. La fluorurazione dell'acqua è adottata come misura di sanità pubblica in numerosi paesi.",
+      textEN: "Fluoride (F⁻) at low concentrations (0.5–1.0 mg/L in drinking water) reduces dental caries: it replaces the hydroxyl group in hydroxyapatite [Ca₁₀(PO₄)₆(OH)₂] forming fluorapatite, which is more resistant to bacterial acid. Water fluoridation is adopted as a public health measure in many countries.",
+      sourceIT: "WHO (2006). Fluoride in Drinking-Water; ten Cate, J.M. (1999). Eur. J. Oral Sci. 107(4):229–234.",
+      sourceEN: "WHO (2006). Fluoride in Drinking-Water; ten Cate, J.M. (1999). Eur. J. Oral Sci. 107(4):229–234." },
+    { icon: "🌍", titleIT: "CFC e strato di ozono", titleEN: "CFCs and the ozone layer",
+      textIT: "I clorofluorocarburi (CFC) — composti contenenti fluoro e cloro — erano ampiamente usati come refrigeranti. Molina e Rowland dimostrarono nel 1974 che nella stratosfera i CFC rilasciano cloro atomico che catalizza la distruzione dell'ozono (O₃). La scoperta portò al Protocollo di Montreal del 1987. Nobel per la Chimica 1995.",
+      textEN: "Chlorofluorocarbons (CFCs) — compounds containing fluorine and chlorine — were widely used as refrigerants. Molina and Rowland showed in 1974 that CFCs release atomic chlorine in the stratosphere that catalyses ozone destruction. The finding led to the Montreal Protocol (1987). Nobel Prize in Chemistry 1995.",
+      sourceIT: "Molina, M.J. & Rowland, F.S. (1974). Nature 249:810–812; UNEP Protocollo di Montreal.",
+      sourceEN: "Molina, M.J. & Rowland, F.S. (1974). Nature 249:810–812; UNEP Montreal Protocol." },
+  ]},
+
   // ── Neon Z=10 ────────────────────────────────────────────────────────────
   10: { slides: [
     { icon: "💡", titleIT: "Le insegne al neon", titleEN: "Neon signs",
@@ -357,6 +381,30 @@ const STORIES: Record<number, ElementStory> = {
       sourceEN: "Berner, R.A. (2004). The Phanerozoic Carbon Cycle. Oxford University Press; RSC." },
   ]},
 
+  // ── Titanium Z=22 ────────────────────────────────────────────────────────
+  22: { slides: [
+    { icon: "✈️", titleIT: "Resistenza e leggerezza", titleEN: "Strength and lightness",
+      textIT: "Il titanio ha uno dei migliori rapporti resistenza/peso tra i metalli strutturali. La lega Ti-6Al-4V — la più usata in aerospazio — offre alta resistenza a trazione con densità di 4,43 g/cm³, circa il 40% in meno dell'acciaio. È resistente alla corrosione per lo strato di TiO₂ che si forma spontaneamente a contatto con l'aria.",
+      textEN: "Titanium has one of the best strength-to-weight ratios among structural metals. The Ti-6Al-4V alloy — most used in aerospace — offers high tensile strength at a density of 4.43 g/cm³, about 40% lighter than steel. It resists corrosion thanks to the TiO₂ layer that forms spontaneously on air contact.",
+      sourceIT: "ASM International Handbook; NIST WebBook.",
+      sourceEN: "ASM International Handbook; NIST WebBook." },
+    { icon: "🦴", titleIT: "Biocompatibilità e osteointegrazione", titleEN: "Biocompatibility and osseointegration",
+      textIT: "Lo strato di ossido TiO₂ non scatena una risposta immunitaria rilevante, rendendo il titanio biocompatibile. Le protesi ortopediche e gli impianti dentali in titanio sfruttano l'osteointegrazione — la capacità dell'osso di crescere direttamente sull'ossido di titanio senza capsula fibrosa, descritta da Per-Ingvar Brånemark negli anni '60.",
+      textEN: "The TiO₂ oxide layer triggers no significant immune response, making titanium biocompatible. Orthopaedic prostheses and dental implants exploit osseointegration — bone's ability to grow directly onto titanium oxide without a fibrous capsule, described by Per-Ingvar Brånemark in the 1960s.",
+      sourceIT: "Brånemark, P.I. et al. (1969). Scand. J. Plast. Reconstr. Surg. 3(2):81–100.",
+      sourceEN: "Brånemark, P.I. et al. (1969). Scand. J. Plast. Reconstr. Surg. 3(2):81–100." },
+    { icon: "🎨", titleIT: "Biossido di titanio — il bianco universale", titleEN: "Titanium dioxide — the universal white",
+      textIT: "Il TiO₂ è il pigmento bianco più prodotto al mondo: elevato indice di rifrazione (~2,7) e alto potere coprente. Ha sostituito la biacca (carbonato basico di piombo, tossico) nella pittura, nelle plastiche e nei cosmetici. È anche fotocatalizzatore: sotto luce UV genera specie reattive dell'ossigeno che ossidano composti organici.",
+      textEN: "TiO₂ is the most produced white pigment globally: high refractive index (~2.7) and excellent hiding power. It replaced lead white (toxic basic lead carbonate) in paint, plastics and cosmetics. It is also a photocatalyst: under UV light it generates reactive oxygen species that oxidise organic compounds.",
+      sourceIT: "RSC Periodic Table; NIST WebBook.",
+      sourceEN: "RSC Periodic Table; NIST WebBook." },
+    { icon: "🏛️", titleIT: "Scoperta e nome mitologico", titleEN: "Discovery and mythological name",
+      textIT: "Il titanio fu scoperto nel 1791 dal mineralogista William Gregor in un minerale della Cornovaglia (menaccanite). Nel 1795 fu rinominato da Martin Heinrich Klaproth in onore dei Titani della mitologia greca. Il metallo puro fu isolato solo nel 1910 da Matthew Hunter (processo Hunter).",
+      textEN: "Titanium was discovered in 1791 by mineralogist William Gregor in a Cornish mineral (menaccanite). In 1795 it was renamed by Martin Heinrich Klaproth in honour of the Titans of Greek mythology. Pure metal was isolated only in 1910 by Matthew Hunter (Hunter process).",
+      sourceIT: "Gregor, W. (1791). Crell's Chem. Ann.; RSC Periodic Table.",
+      sourceEN: "Gregor, W. (1791). Crell's Chem. Ann.; RSC Periodic Table." },
+  ]},
+
   // ── Iron Z=26 ─────────────────────────────────────────────────────────────
   26: { slides: [
     { icon: "💥", titleIT: "Fine di una stella", titleEN: "End of a star",
@@ -371,6 +419,30 @@ const STORIES: Record<number, ElementStory> = {
     { icon: "🌍", titleIT: "Il nucleo terrestre", titleEN: "Earth's core",
       textIT: "Il nucleo interno della Terra è una sfera solida di ferro-nichel (raggio 1.220 km) a 5.700°C e 360 GPa di pressione. La rotazione differenziale rispetto al mantello genera il campo magnetico terrestre per effetto dinamo.",
       textEN: "Earth's inner core is a solid iron-nickel sphere (radius 1,220 km) at 5,700°C and 360 GPa pressure. Its differential rotation relative to the mantle generates Earth's magnetic field via the dynamo effect." },
+  ]},
+
+  // ── Cobalt Z=27 ──────────────────────────────────────────────────────────
+  27: { slides: [
+    { icon: "🎨", titleIT: "Blu di cobalto — arte e storia", titleEN: "Cobalt blue — art and history",
+      textIT: "Il blu di cobalto (Co(II)Al₂O₄, spinello di cobalto) è usato come pigmento sin dall'antichità egizia e mesopotamica per la colorazione del vetro e delle ceramiche. Louis Jacques Thénard lo sintetizzò sistematicamente nel 1802. Renoir, Monet e Van Gogh lo usarono come pigmento stabile per cieli e ombre fredde.",
+      textEN: "Cobalt blue (Co(II)Al₂O₄, cobalt spinel) has been used as a pigment since ancient Egypt and Mesopotamia for colouring glass and ceramics. Louis Jacques Thénard systematically synthesised it in 1802. Renoir, Monet, and Van Gogh used it as a stable pigment for skies and cool shadows.",
+      sourceIT: "Thénard, L.J. (1802). Ann. Chim. 26:224; RSC Periodic Table.",
+      sourceEN: "Thénard, L.J. (1802). Ann. Chim. 26:224; RSC Periodic Table." },
+    { icon: "🧬", titleIT: "Vitamina B12 — il micronutriente con il metallo", titleEN: "Vitamin B12 — the metal micronutrient",
+      textIT: "La vitamina B12 (cobalamina) è l'unico micronutriente essenziale contenente un metallo: al centro della struttura corrinoica c'è uno ione Co³⁺. È necessaria per la sintesi del DNA e la salute neurologica. La carenza causa anemia megaloblastica e neuropatia. Dorothy Hodgkin ne determinò la struttura cristallografica nel 1956 (Nobel per la Chimica 1964).",
+      textEN: "Vitamin B12 (cobalamin) is the only essential micronutrient containing a metal: at the centre of the corrin ring is a Co³⁺ ion. It is required for DNA synthesis and neurological health. Deficiency causes megaloblastic anaemia and neuropathy. Dorothy Hodgkin determined its crystal structure in 1956 (Nobel in Chemistry 1964).",
+      sourceIT: "Hodgkin, D.C. et al. (1956). Nature 178:64–66; Nelson & Cox, Lehninger Principles of Biochemistry.",
+      sourceEN: "Hodgkin, D.C. et al. (1956). Nature 178:64–66; Nelson & Cox, Lehninger Principles of Biochemistry." },
+    { icon: "🔋", titleIT: "LiCoO₂ e le batterie agli ioni di litio", titleEN: "LiCoO₂ and lithium-ion batteries",
+      textIT: "Il LiCoO₂ (ossido di litio-cobalto) è il catodo originale delle batterie agli ioni di litio, proposto da John Goodenough nel 1980. Durante la carica, gli ioni Li⁺ abbandonano il catodo e migrano all'anodo di grafite; la struttura a strati del LiCoO₂ ospita e rilascia gli ioni reversibilmente. La maggior parte dei dispositivi portatili usa derivati di questa struttura.",
+      textEN: "LiCoO₂ (lithium cobalt oxide) is the original cathode in lithium-ion batteries, proposed by John Goodenough in 1980. During charging, Li⁺ ions leave the cathode and migrate to the graphite anode; the layered LiCoO₂ structure reversibly hosts and releases them. Most portable electronics use derivatives of this structure.",
+      sourceIT: "Goodenough, J.B. et al. (1980). Mater. Res. Bull. 15(6):783–789; Nobel Committee for Chemistry 2019.",
+      sourceEN: "Goodenough, J.B. et al. (1980). Mater. Res. Bull. 15(6):783–789; Nobel Committee for Chemistry 2019." },
+    { icon: "☢️", titleIT: "Cobalto-60 e radioterapia", titleEN: "Cobalt-60 and radiotherapy",
+      textIT: "Il cobalto-60 (⁶⁰Co, t₁/₂ = 5,27 anni) decade per β⁻ producendo due raggi γ ad alta energia (1,17 e 1,33 MeV). La macchina Cobalt-60 sviluppata negli anni '50 rese la radioterapia accessibile globalmente prima degli acceleratori lineari. Il ⁶⁰Co è ancora usato per la sterilizzazione di dispositivi medici e nella radioterapia stereotassica (Gamma Knife).",
+      textEN: "Cobalt-60 (⁶⁰Co, t₁/₂ = 5.27 years) decays via β⁻ producing two high-energy γ rays (1.17 and 1.33 MeV). The Cobalt-60 machine developed in the 1950s made radiotherapy globally accessible before linear accelerators. ⁶⁰Co is still used for medical device sterilisation and stereotactic radiotherapy (Gamma Knife).",
+      sourceIT: "Johns, H.E. et al. (1951). Nature 168:502; IAEA Radiation Therapy.",
+      sourceEN: "Johns, H.E. et al. (1951). Nature 168:502; IAEA Radiation Therapy." },
   ]},
 
   // ── Copper Z=29 ──────────────────────────────────────────────────────────
@@ -573,6 +645,30 @@ const STORIES: Record<number, ElementStory> = {
       textEN: "Tetraethyl lead (TEL) was added to petrol from 1921 to increase octane number and prevent engine knock. Its global phase-out — completed around 2021 — reduced blood lead concentrations in the world population by over 75%, one of the greatest environmental policy successes of the 20th century.",
       sourceIT: "UNEP Partnership for Clean Fuels and Vehicles; Nriagu, J.O. (1990). Science 247(4944):859–862.",
       sourceEN: "UNEP Partnership for Clean Fuels and Vehicles; Nriagu, J.O. (1990). Science 247(4944):859–862." },
+  ]},
+
+  // ── Bismuth Z=83 ─────────────────────────────────────────────────────────
+  83: { slides: [
+    { icon: "🌈", titleIT: "Cristalli iridescenti", titleEN: "Iridescent crystals",
+      textIT: "Il bismuto puro solidifica formando cristalli a gradini ortogonali ('hopper crystals'). La sottile patina di ossido Bi₂O₃ che si forma in superficie mostra colori iridescenti per interferenza ottica a film sottile: il suo spessore variabile diffrange la luce in tonalità che vanno dall'oro al verde al viola.",
+      textEN: "Pure bismuth solidifies forming orthogonal stepped 'hopper crystals'. The thin Bi₂O₃ film on the surface shows iridescent colours through thin-film optical interference: its varying thickness diffracts light into hues from gold to green to violet.",
+      sourceIT: "RSC Periodic Table; NIST WebBook.",
+      sourceEN: "RSC Periodic Table; NIST WebBook." },
+    { icon: "💊", titleIT: "Bismuto subsalicilato e medicina", titleEN: "Bismuth subsalicylate and medicine",
+      textIT: "Il bismuto subsalicilato (C₇H₅BiO₄) è il principio attivo del Pepto-Bismol, usato come antidiarroico dall'inizio del XX secolo. Lo ione Bi³⁺ ha effetto battericida su Helicobacter pylori — il batterio responsabile della maggior parte delle ulcere gastriche, la cui scoperta è valsa il Nobel per la Medicina nel 2005.",
+      textEN: "Bismuth subsalicylate (C₇H₅BiO₄) is the active ingredient in Pepto-Bismol, used as an antidiarrheal since the early 20th century. The Bi³⁺ ion has bactericidal effects on Helicobacter pylori — the bacterium responsible for most gastric ulcers, whose discovery earned the Nobel Prize in Medicine 2005.",
+      sourceIT: "Gorbach, S.L. (1990). Rev. Infect. Dis. 12(Suppl 1):S15–S20; RSC.",
+      sourceEN: "Gorbach, S.L. (1990). Rev. Infect. Dis. 12(Suppl 1):S15–S20; RSC." },
+    { icon: "⏳", titleIT: "L'emivita più lunga mai misurata", titleEN: "The longest measured half-life",
+      textIT: "Il bismuto-209 (²⁰⁹Bi) era considerato il nucleo stabile più pesante fino al 2003, quando un esperimento al Laboratoire Souterrain de Modane (Francia) misurò il suo decadimento α con emivita di (1,9 ± 0,2) × 10¹⁹ anni — miliardi di volte l'età dell'universo. È la vita media più lunga mai misurata sperimentalmente.",
+      textEN: "Bismuth-209 (²⁰⁹Bi) was considered the heaviest stable nucleus until 2003, when an experiment at the Laboratoire Souterrain de Modane (France) measured its α decay with a half-life of (1.9 ± 0.2) × 10¹⁹ years — many billion times the age of the universe. It is the longest half-life ever experimentally measured.",
+      sourceIT: "de Marcillac, P. et al. (2003). Nature 422:876–878.",
+      sourceEN: "de Marcillac, P. et al. (2003). Nature 422:876–878." },
+    { icon: "♻️", titleIT: "Sostituto del piombo", titleEN: "Lead substitute",
+      textIT: "Il bismuto sta sostituendo il piombo in applicazioni dove la tossicità di quest'ultimo è un problema: saldature senza piombo (direttiva RoHS), pallini da caccia ecologici, leghe fusibili a basso punto di fusione, pigmenti ceramici. La tossicità del bismuto è molto inferiore a quella del piombo, rendendolo un sostituto tecnicamente valido in molti contesti.",
+      textEN: "Bismuth is replacing lead in applications where lead toxicity is a concern: lead-free solders (RoHS directive), eco-friendly shotgun pellets, low-melting fusible alloys, ceramic pigments. Bismuth toxicity is far lower than lead's, making it a technically valid substitute in many contexts.",
+      sourceIT: "Direttiva UE RoHS 2002/95/EC; RSC Periodic Table.",
+      sourceEN: "EU RoHS Directive 2002/95/EC; RSC Periodic Table." },
   ]},
 
   // ── Uranium Z=92 ─────────────────────────────────────────────────────────
