@@ -142,6 +142,9 @@ export const LAB_UI_TRANSLATIONS = {
     stateSynthetic: "sintetico",
     readMore: "di più",
     readLess: "meno",
+    molModeBallStick: "ball & stick",
+    molModeSpaceFill: "riempimento",
+    molModeReset: "↺ camera",
   },
   en: {
     backToTable: "← table",
@@ -213,6 +216,9 @@ export const LAB_UI_TRANSLATIONS = {
     stateSynthetic: "synthetic",
     readMore: "more",
     readLess: "less",
+    molModeBallStick: "ball & stick",
+    molModeSpaceFill: "space fill",
+    molModeReset: "↺ camera",
   }
 };
 

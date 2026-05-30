@@ -1,15 +1,16 @@
 "use client";
 
-import { useRef, useMemo } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls, Html } from "@react-three/drei";
+import { useRef, useMemo, useEffect } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { OrbitControls, Text, Billboard } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
-import { CATEGORY_COLOR } from "@/lib/elements-data";
-import { EXTENDED } from "@/lib/element-extended-data";
 import type { Molecule, BondType } from "@/lib/molecules-data";
 
-// Map atomic number → visual color (from category color palette)
+export type MolViewMode = "ball-stick" | "space-filling";
+
+// ─── Atom color palette (CPK-like) ───────────────────────────────────────────
+
 const ELEM_COLORS: Record<number, string> = {
   1:  "#d1d5db", // H: light gray
   6:  "#374151", // C: dark gray
@@ -32,112 +33,75 @@ const ELEM_COLORS: Record<number, string> = {
   82: "#9ca3af", // Pb: gray
 };
 
-// Bond type visual color
-const BOND_COLOR: Record<BondType, string> = {
-  covalent: "#93c5fd",  // blue
-  polar:    "#fde68a",  // amber
-  ionic:    "#f9a8d4",  // pink
-};
+// ─── Sphere radii ─────────────────────────────────────────────────────────────
+// Ball-stick: ~55% VdW. Space-filling: full VdW (Three.js relative units).
 
-// Van der Waals radii for atom sphere sizes (relative)
-const ATOM_RADII: Record<number, number> = {
+const BALL_STICK_R: Record<number, number> = {
   1: 0.22, 6: 0.34, 7: 0.30, 8: 0.28, 9: 0.26,
   11: 0.48, 12: 0.42, 13: 0.40, 14: 0.38, 15: 0.38,
   16: 0.36, 17: 0.36, 19: 0.52, 20: 0.46, 26: 0.42,
   29: 0.40, 47: 0.44, 79: 0.44, 82: 0.46,
 };
 
-function getAtomRadius(elem: number): number {
-  return ATOM_RADII[elem] ?? 0.35;
+const SPACE_FILL_R: Record<number, number> = {
+  1: 0.48, 6: 0.70, 7: 0.63, 8: 0.62, 9: 0.60,
+  11: 0.92, 12: 0.70, 13: 0.75, 14: 0.85, 15: 0.73,
+  16: 0.73, 17: 0.71, 19: 1.11, 20: 0.94, 26: 0.83,
+  29: 0.80, 47: 0.86, 79: 0.87, 82: 0.82,
+};
+
+function getAtomRadius(elem: number, mode: MolViewMode): number {
+  if (mode === "space-filling") return SPACE_FILL_R[elem] ?? 0.70;
+  return BALL_STICK_R[elem] ?? 0.35;
 }
 
 function getAtomColor(elem: number): string {
-  if (ELEM_COLORS[elem]) return ELEM_COLORS[elem]!;
-  const ext = EXTENDED[elem];
-  if (!ext) return "#6b7280";
-  // Fallback to category color — need to find element by Z
-  return "#6b7280";
+  return ELEM_COLORS[elem] ?? "#6b7280";
 }
 
-// ─── Bond cylinder helper ─────────────────────────────────────────────────────
+// ─── Bond color palette (revised — less pastel) ───────────────────────────────
 
-function BondMesh({
-  ax, ay, az, bx, by, bz, order, type, lightMode,
-}: {
-  ax: number; ay: number; az: number;
-  bx: number; by: number; bz: number;
-  order: 1 | 2 | 3; type: BondType; lightMode: boolean;
-}) {
-  const dx = bx-ax, dy = by-ay, dz = bz-az;
-  const len = Math.sqrt(dx*dx+dy*dy+dz*dz);
-  const mx = (ax+bx)/2, my = (ay+by)/2, mz = (az+bz)/2;
-  const colHex = BOND_COLOR[type];
-  const col = new THREE.Color(colHex);
+const BOND_COLOR: Record<BondType, string> = {
+  covalent: "#7fb0ff",
+  polar:    "#e8c477",
+  ionic:    "#c77fa8",
+};
 
-  const cylinders = useMemo(() => {
-    const result = [];
-    const r = order === 1 ? 0.065 : 0.050;
-    const offsets = order === 1 ? [0] : order === 2 ? [-0.08, 0.08] : [-0.12, 0, 0.12];
+// ─── Element symbol lookup ────────────────────────────────────────────────────
 
-    for (const off of offsets) {
-      result.push(off);
-    }
-    return result;
-  }, [order]);
-
-  // Perpendicular offset direction
-  const axis   = new THREE.Vector3(dx/len, dy/len, dz/len);
-  const up     = Math.abs(axis.y) < 0.9 ? new THREE.Vector3(0,1,0) : new THREE.Vector3(1,0,0);
-  const perp   = new THREE.Vector3().crossVectors(axis, up).normalize();
-
-  return (
-    <>
-      {cylinders.map((off, i) => {
-        const px = mx + perp.x * off;
-        const py = my + perp.y * off;
-        const pz = mz + perp.z * off;
-        const r = order === 1 ? 0.065 : 0.052;
-        return (
-          <mesh key={i} position={[px, py, pz]}>
-            <cylinderGeometry args={[r, r, len, 8, 1]} />
-            <meshStandardMaterial
-              color={col}
-              emissive={col}
-              emissiveIntensity={lightMode ? 0.05 : 0.25}
-              roughness={0.45}
-              metalness={0.05}
-              transparent
-              opacity={lightMode ? 0.75 : 0.85}
-            />
-            {/* inline quaternion via ref to rotate cylinder along bond axis */}
-            <primitive
-              object={new THREE.Object3D()}
-              onUpdate={(self: THREE.Object3D) => {
-                self.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), axis);
-              }}
-            />
-          </mesh>
-        );
-      })}
-    </>
-  );
+function getSymbol(z: number): string {
+  const syms: Record<number, string> = {
+    1:"H",2:"He",3:"Li",4:"Be",5:"B",6:"C",7:"N",8:"O",9:"F",10:"Ne",
+    11:"Na",12:"Mg",13:"Al",14:"Si",15:"P",16:"S",17:"Cl",18:"Ar",
+    19:"K",20:"Ca",26:"Fe",29:"Cu",47:"Ag",79:"Au",82:"Pb",
+  };
+  return syms[z] ?? `Z${z}`;
 }
 
-// ─── Bond with proper orientation ─────────────────────────────────────────────
+// ─── Vibration seed from formula (fixes identical vib for same-atom-count mols) ─
+
+function hashFormula(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = (h * 31 + s.charCodeAt(i)) & 0xffffffff;
+  }
+  return Math.abs(h);
+}
+
+// ─── Bond (proper cylinder orientation) ──────────────────────────────────────
 
 function Bond({
-  ax, ay, az, bx, by, bz, order, type, lightMode,
+  ax, ay, az, bx, by, bz, order, type,
 }: {
   ax: number; ay: number; az: number;
   bx: number; by: number; bz: number;
-  order: 1 | 2 | 3; type: BondType; lightMode: boolean;
+  order: 1 | 2 | 3; type: BondType;
 }) {
   const dx = bx-ax, dy = by-ay, dz = bz-az;
   const len = Math.sqrt(dx*dx+dy*dy+dz*dz);
   const mid = new THREE.Vector3((ax+bx)/2, (ay+by)/2, (az+bz)/2);
   const dir = new THREE.Vector3(dx/len, dy/len, dz/len);
-  const colHex = BOND_COLOR[type];
-  const col = new THREE.Color(colHex);
+  const col = new THREE.Color(BOND_COLOR[type]);
 
   const up   = Math.abs(dir.y) < 0.9 ? new THREE.Vector3(0,1,0) : new THREE.Vector3(1,0,0);
   const perp = new THREE.Vector3().crossVectors(dir, up).normalize();
@@ -157,14 +121,14 @@ function Bond({
         return (
           <mesh key={i} position={pos} quaternion={quat}>
             <cylinderGeometry args={[r, r, len, 8, 1]} />
-            <meshStandardMaterial
+            <meshPhysicalMaterial
               color={col}
               emissive={col}
-              emissiveIntensity={lightMode ? 0.04 : 0.22}
-              roughness={0.45}
-              metalness={0.05}
+              emissiveIntensity={0.10}
+              roughness={0.40}
+              metalness={0.10}
               transparent
-              opacity={lightMode ? 0.72 : 0.82}
+              opacity={0.82}
             />
           </mesh>
         );
@@ -173,14 +137,14 @@ function Bond({
   );
 }
 
-// ─── Electron cloud for covalent/polar bonds ──────────────────────────────────
+// ─── Electron cloud points along covalent/polar bonds ────────────────────────
 
 function BondElectrons({
-  ax, ay, az, bx, by, bz, type, lightMode,
+  ax, ay, az, bx, by, bz, type,
 }: {
   ax: number; ay: number; az: number;
   bx: number; by: number; bz: number;
-  type: BondType; lightMode: boolean;
+  type: BondType;
 }) {
   const pointsRef = useRef<THREE.Points>(null!);
   const t = useRef(0);
@@ -201,13 +165,16 @@ function BondElectrons({
     const dx = bx-ax, dy = by-ay, dz = bz-az;
     const len = Math.sqrt(dx*dx+dy*dy+dz*dz);
     const ux = dx/len, uy = dy/len, uz = dz/len;
-    const eCol = type === "covalent" ? new THREE.Color(0x93c5fd) : new THREE.Color(0xfde68a);
+    const eCol = type === "covalent"
+      ? new THREE.Color(BOND_COLOR.covalent)
+      : new THREE.Color(BOND_COLOR.polar);
     for (let i = 0; i < n; i++) {
-      const t = (i / (n-1));
-      const x = ax + ux * t * len + (Math.random()-0.5) * 0.08;
-      const y = ay + uy * t * len + (Math.random()-0.5) * 0.08;
-      const z = az + uz * t * len + (Math.random()-0.5) * 0.08;
-      pos.push(x, y, z);
+      const frac = i / (n - 1);
+      pos.push(
+        ax + ux * frac * len + (Math.random()-0.5) * 0.08,
+        ay + uy * frac * len + (Math.random()-0.5) * 0.08,
+        az + uz * frac * len + (Math.random()-0.5) * 0.08,
+      );
       col.push(eCol.r, eCol.g, eCol.b);
     }
     return { positions: new Float32Array(pos), colors: new Float32Array(col) };
@@ -215,6 +182,7 @@ function BondElectrons({
   }, [ax, ay, az, bx, by, bz, type]);
 
   if (type === "ionic" || positions.length === 0) return null;
+
   return (
     <points ref={pointsRef}>
       <bufferGeometry>
@@ -228,135 +196,176 @@ function BondElectrons({
         opacity={0.7}
         sizeAttenuation
         depthWrite={false}
-        blending={lightMode ? THREE.NormalBlending : THREE.AdditiveBlending}
+        blending={THREE.AdditiveBlending}
       />
     </points>
   );
 }
 
-// ─── Atom sphere ──────────────────────────────────────────────────────────────
+// ─── Atom sphere with SDF label (ball-stick only) ─────────────────────────────
 
 function AtomSphere({
-  elem, x, y, pz, lightMode, showLabel, meshRef,
+  elem, x, y, pz, mode, showLabel, meshRef,
 }: {
-  elem: number; x: number; y: number; pz: number; lightMode: boolean; showLabel: boolean;
+  elem: number; x: number; y: number; pz: number;
+  mode: MolViewMode; showLabel: boolean;
   meshRef?: (m: THREE.Mesh | null) => void;
 }) {
   const col    = new THREE.Color(getAtomColor(elem));
-  const r      = getAtomRadius(elem);
+  const r      = getAtomRadius(elem, mode);
   const symbol = getSymbol(elem);
 
   return (
     <mesh ref={meshRef} position={[x, y, pz]}>
       <sphereGeometry args={[r, 22, 16]} />
-      <meshStandardMaterial
+      <meshPhysicalMaterial
         color={col}
         emissive={col}
-        emissiveIntensity={lightMode ? 0.05 : 0.20}
-        roughness={0.30}
-        metalness={lightMode ? 0.05 : 0.25}
+        emissiveIntensity={0.08}
+        roughness={mode === "space-filling" ? 0.35 : 0.25}
+        metalness={0.0}
+        clearcoat={mode === "space-filling" ? 0.30 : 0.60}
+        clearcoatRoughness={0.20}
       />
       {showLabel && (
-        <Html center distanceFactor={5} style={{ pointerEvents: "none" }}>
-          <span style={{
-            fontSize: "11px",
-            fontWeight: 700,
-            color: lightMode ? "#111" : "#eee",
-            background: lightMode ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.55)",
-            padding: "1px 4px",
-            borderRadius: "4px",
-            fontFamily: "monospace",
-            whiteSpace: "nowrap",
-            userSelect: "none",
-          }}>
+        <Billboard>
+          <Text
+            position={[0, r + 0.14, 0]}
+            fontSize={0.11}
+            color="#d8d8e8"
+            anchorX="center"
+            anchorY="middle"
+            depthOffset={-1}
+          >
             {symbol}
-          </span>
-        </Html>
+          </Text>
+        </Billboard>
       )}
     </mesh>
   );
 }
 
-// Helper: get element symbol from Z
-function getSymbol(z: number): string {
-  const syms: Record<number, string> = {
-    1:"H",2:"He",3:"Li",4:"Be",5:"B",6:"C",7:"N",8:"O",9:"F",10:"Ne",
-    11:"Na",12:"Mg",13:"Al",14:"Si",15:"P",16:"S",17:"Cl",18:"Ar",
-    19:"K",20:"Ca",26:"Fe",29:"Cu",47:"Ag",79:"Au",82:"Pb",
-  };
-  return syms[z] ?? `Z${z}`;
+// ─── Vibration parameters — seed derived per-formula ─────────────────────────
+
+interface VibParam {
+  freq: number; ampX: number; ampY: number; ampZ: number;
+  phX: number; phY: number; phZ: number;
 }
 
-// ─── Vibration parameters per atom (computed once per molecule) ──────────────
+function makeVibParams(n: number, seed: number): VibParam[] {
+  return Array.from({ length: n }, (_, i) => {
+    const s = (seed + i * 7919) >>> 0;
+    return {
+      freq: 1.2 + (s % 3) * 0.4,
+      ampX: 0.025 + (s % 2) * 0.01,
+      ampY: 0.020 + (s % 3) * 0.008,
+      ampZ: 0.018 + (s % 2) * 0.012,
+      phX:  (s * 1.7) % (Math.PI * 2),
+      phY:  (s * 2.3) % (Math.PI * 2),
+      phZ:  (s * 3.1) % (Math.PI * 2),
+    };
+  });
+}
 
-interface VibParam { freq: number; ampX: number; ampY: number; ampZ: number; phX: number; phY: number; phZ: number; }
+// ─── Camera auto-fit on molecule change ──────────────────────────────────────
+// Molecules are VSEPR-centered at origin, so target stays (0,0,0).
+// makeDefault registers OrbitControls in the R3F store.
 
-function makeVibParams(n: number): VibParam[] {
-  return Array.from({ length: n }, (_, i) => ({
-    freq: 1.2 + (i % 3) * 0.4,
-    ampX: 0.025 + (i % 2) * 0.01,
-    ampY: 0.020 + (i % 3) * 0.008,
-    ampZ: 0.018 + (i % 2) * 0.012,
-    phX: (i * 1.7) % (Math.PI * 2),
-    phY: (i * 2.3) % (Math.PI * 2),
-    phZ: (i * 3.1) % (Math.PI * 2),
-  }));
+type ControlsLike = THREE.EventDispatcher & { update(): void };
+
+function CameraAutoFit({ molecule, resetKey }: { molecule: Molecule; resetKey: number }) {
+  const { camera, controls } = useThree();
+  const oc = controls as ControlsLike | null;
+
+  useEffect(() => {
+    const pts = molecule.atoms.map(a => new THREE.Vector3(a.x, a.y, a.pz));
+    const box = new THREE.Box3().setFromPoints(pts.length > 0 ? pts : [new THREE.Vector3()]);
+    const sphere = new THREE.Sphere();
+    box.getBoundingSphere(sphere);
+    const r   = Math.max(sphere.radius, 1.2);
+    const fov = (camera as THREE.PerspectiveCamera).fov * (Math.PI / 180);
+    const dist = r / Math.sin(fov / 2) * 1.5;
+    camera.position.set(0, dist * 0.15, dist);
+    oc?.update();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [molecule]);
+
+  useEffect(() => {
+    if (resetKey === 0) return;
+    camera.position.set(0, 0.8, 5.5);
+    oc?.update();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resetKey]);
+
+  return null;
 }
 
 // ─── Scene content ────────────────────────────────────────────────────────────
 
-function MolContent({ molecule, lightMode }: { molecule: Molecule; lightMode: boolean }) {
+function MolContent({
+  molecule, mode,
+}: {
+  molecule: Molecule; mode: MolViewMode;
+}) {
   const groupRef = useRef<THREE.Group>(null!);
   const atomMeshRefs = useRef<(THREE.Mesh | null)[]>([]);
   const t = useRef(0);
 
-  const vibParams = useMemo(() => makeVibParams(molecule.atoms.length), [molecule.atoms.length]);
+  const seed      = useMemo(() => hashFormula(molecule.formula), [molecule.formula]);
+  const vibParams = useMemo(
+    () => makeVibParams(molecule.atoms.length, seed),
+    [molecule.atoms.length, seed],
+  );
+
+  const showLabel = mode === "ball-stick" && molecule.atoms.length <= 16;
 
   useFrame((_, dt) => {
     if (!groupRef.current) return;
     groupRef.current.rotation.y += dt * 0.12;
     t.current += dt;
-    // Apply spring-like vibration to each atom mesh
-    molecule.atoms.forEach((a, i) => {
-      const mesh = atomMeshRefs.current[i];
-      const vp = vibParams[i];
-      if (!mesh || !vp) return;
-      mesh.position.set(
-        a.x  + vp.ampX * Math.sin(vp.freq * t.current + vp.phX),
-        a.y  + vp.ampY * Math.sin(vp.freq * 1.3 * t.current + vp.phY),
-        a.pz + vp.ampZ * Math.sin(vp.freq * 0.7 * t.current + vp.phZ),
-      );
-    });
+    // Vibration only in ball-stick mode
+    if (mode === "ball-stick") {
+      molecule.atoms.forEach((a, i) => {
+        const mesh = atomMeshRefs.current[i];
+        const vp   = vibParams[i];
+        if (!mesh || !vp) return;
+        mesh.position.set(
+          a.x  + vp.ampX * Math.sin(vp.freq * t.current + vp.phX),
+          a.y  + vp.ampY * Math.sin(vp.freq * 1.3 * t.current + vp.phY),
+          a.pz + vp.ampZ * Math.sin(vp.freq * 0.7 * t.current + vp.phZ),
+        );
+      });
+    }
   });
 
   return (
     <group ref={groupRef}>
-      {/* Bonds (behind atoms) */}
-      {molecule.bonds.map((b, i) => {
-        const a = molecule.atoms[b.a]!;
+      {/* Bonds — hidden in space-filling */}
+      {mode === "ball-stick" && molecule.bonds.map((b, i) => {
+        const a     = molecule.atoms[b.a]!;
         const bAtom = molecule.atoms[b.b]!;
         return (
           <group key={i}>
             <Bond
               ax={a.x} ay={a.y} az={a.pz}
               bx={bAtom.x} by={bAtom.y} bz={bAtom.pz}
-              order={b.order} type={b.type} lightMode={lightMode}
+              order={b.order} type={b.type}
             />
             <BondElectrons
               ax={a.x} ay={a.y} az={a.pz}
               bx={bAtom.x} by={bAtom.y} bz={bAtom.pz}
-              type={b.type} lightMode={lightMode}
+              type={b.type}
             />
           </group>
         );
       })}
-      {/* Atoms with vibrating mesh refs */}
+      {/* Atoms */}
       {molecule.atoms.map((a, i) => (
         <AtomSphere
           key={i}
           elem={a.elem} x={a.x} y={a.y} pz={a.pz}
-          lightMode={lightMode}
-          showLabel={molecule.atoms.length <= 12}
+          mode={mode}
+          showLabel={showLabel}
           meshRef={(m) => { atomMeshRefs.current[i] = m; }}
         />
       ))}
@@ -367,11 +376,14 @@ function MolContent({ molecule, lightMode }: { molecule: Molecule; lightMode: bo
 // ─── Exported component ───────────────────────────────────────────────────────
 
 export function MoleculeScene({
-  molecule, lightMode = false, lightBg = "#e8ecf5", className,
+  molecule,
+  viewMode = "ball-stick",
+  resetKey = 0,
+  className,
 }: {
   molecule: Molecule;
-  lightMode?: boolean;
-  lightBg?: string;
+  viewMode?: MolViewMode;
+  resetKey?: number;
   className?: string;
 }) {
   return (
@@ -379,28 +391,21 @@ export function MoleculeScene({
       className={className}
       gl={{ antialias: true, alpha: true }}
       dpr={[1, 2]}
-      camera={{ fov: 40, near: 0.1, far: 200, position: [0, 1, 6] }}
+      camera={{ fov: 40, near: 0.1, far: 200, position: [0, 0.8, 5.5] }}
     >
-      {!lightMode && <color attach="background" args={["#09091e"]} />}
-      {lightMode  && <color attach="background" args={[lightBg as `#${string}`]} />}
+      <color attach="background" args={["#09091e"]} />
 
-      {lightMode ? (
-        <>
-          <ambientLight intensity={2.2} />
-          <directionalLight position={[4, 6, 4]} intensity={0.5} />
-          <pointLight position={[-3, -2, -3]} intensity={0.2} />
-        </>
-      ) : (
-        <>
-          <ambientLight intensity={0.65} />
-          <pointLight position={[5, 5, 5]} intensity={1.9} />
-          <pointLight position={[-4, -3, -4]} intensity={0.6} color="#4060ff" />
-        </>
-      )}
+      {/* 3-point cinematic lighting */}
+      <ambientLight intensity={0.4} />
+      <pointLight position={[4, 5, 4]}    intensity={1.4} color="#fff4e6" />
+      <pointLight position={[-5, -2, -3]} intensity={0.5} color="#3b5bdb" />
+      <directionalLight position={[0, 4, -6]} intensity={0.7} color="#aab8ff" />
 
-      <MolContent molecule={molecule} lightMode={lightMode} />
+      <MolContent molecule={molecule} mode={viewMode} />
+      <CameraAutoFit molecule={molecule} resetKey={resetKey} />
 
       <OrbitControls
+        makeDefault
         enablePan={false}
         enableDamping
         dampingFactor={0.07}
@@ -410,11 +415,9 @@ export function MoleculeScene({
         maxDistance={20}
       />
 
-      {!lightMode && (
-        <EffectComposer>
-          <Bloom intensity={1.0} luminanceThreshold={0.18} luminanceSmoothing={0.7} mipmapBlur />
-        </EffectComposer>
-      )}
+      <EffectComposer>
+        <Bloom intensity={1.0} luminanceThreshold={0.55} luminanceSmoothing={0.7} mipmapBlur />
+      </EffectComposer>
     </Canvas>
   );
 }

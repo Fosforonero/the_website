@@ -14,6 +14,7 @@ import { MOLECULES_BY_Z, type Molecule } from "@/lib/molecules-data";
 import { fetchMoleculeFromPubChem } from "@/lib/molecules-pubchem";
 import { ElementStoryMode } from "./element-story-mode";
 import type { AtomModel, VdWStyle } from "./atom-scene";
+import type { MolViewMode } from "./molecule-scene";
 import type { Locale } from "@/lib/site";
 import {
   ELEMENT_NAMES_EN, CATEGORY_LABELS_EN, STATE_LABELS, BLOCK_LABELS,
@@ -1009,6 +1010,8 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
   const [crystalView,     setCrystalView]     = useState<boolean>(false);
   const [moleculeView,    setMoleculeView]    = useState<boolean>(false);
   const [activeMolIdx,    setActiveMolIdx]    = useState<number>(0);
+  const [molMode,         setMolMode]         = usePersistedState<MolViewMode>("pt:molMode", "ball-stick");
+  const [molResetKey,     setMolResetKey]     = useState<number>(0);
   const [molSearchQuery,  setMolSearchQuery]  = useState("");
   const [molSearchResult, setMolSearchResult] = useState<Molecule | null>(null);
   const [molSearchBusy,   setMolSearchBusy]   = useState(false);
@@ -1307,6 +1310,8 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                     <>
                       <MoleculeScene
                         molecule={mol}
+                        viewMode={molMode}
+                        resetKey={molResetKey}
                         className="pt-canvas"
                       />
                       <div className="pt-mol-overlay">
@@ -1321,6 +1326,35 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                             title={locale === "en" ? "Back to element molecules" : "Torna alle molecole dell'elemento"}
                           >✕</button>
                         )}
+                      </div>
+                      {/* View mode segmented control */}
+                      <div className="pt-mol-mode">
+                        <button
+                          className={`pt-mol-mode-btn${molMode === "ball-stick" ? " active" : ""}`}
+                          onClick={() => setMolMode("ball-stick")}
+                          aria-pressed={molMode === "ball-stick"}
+                          title={t.molModeBallStick}
+                          aria-label={t.molModeBallStick}
+                        >
+                          {t.molModeBallStick}
+                        </button>
+                        <button
+                          className={`pt-mol-mode-btn${molMode === "space-filling" ? " active" : ""}`}
+                          onClick={() => setMolMode("space-filling")}
+                          aria-pressed={molMode === "space-filling"}
+                          title={t.molModeSpaceFill}
+                          aria-label={t.molModeSpaceFill}
+                        >
+                          {t.molModeSpaceFill}
+                        </button>
+                        <button
+                          className="pt-mol-reset-btn"
+                          onClick={() => setMolResetKey(k => k + 1)}
+                          title={t.molModeReset}
+                          aria-label={t.molModeReset}
+                        >
+                          {t.molModeReset}
+                        </button>
                       </div>
                     </>
                   )}

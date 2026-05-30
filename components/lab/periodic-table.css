@@ -444,6 +444,63 @@
 }
 .pt-root--light .pt-mol-search-btn:hover:not(:disabled) { background: rgba(0,0,0,0.08); color: #111; }
 
+/* ── Molecule view mode selector (ball-stick / space-fill) ── */
+.pt-mol-mode {
+  position: absolute;
+  top: 58px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 4px; align-items: center;
+  pointer-events: auto;
+  z-index: 4;
+}
+.pt-mol-mode-btn {
+  background: rgba(12,12,24,0.78);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(216,216,232,0.55);
+  font-family: inherit; font-size: 10px; letter-spacing: 0.05em;
+  padding: 3px 10px; border-radius: 999px; cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: background 0.13s, color 0.13s, border-color 0.13s;
+}
+.pt-mol-mode-btn:hover { background: rgba(255,255,255,0.10); color: #eeeef8; }
+.pt-mol-mode-btn.active {
+  background: rgba(127,176,255,0.15);
+  border-color: rgba(127,176,255,0.45);
+  color: #7fb0ff;
+}
+.pt-mol-reset-btn {
+  background: rgba(12,12,24,0.78);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: rgba(216,216,232,0.35);
+  font-family: inherit; font-size: 10px;
+  padding: 3px 8px; border-radius: 999px; cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: color 0.13s, border-color 0.13s;
+  margin-left: 2px;
+}
+.pt-mol-reset-btn:hover { color: rgba(216,216,232,0.80); border-color: rgba(255,255,255,0.22); }
+
+/* Light mode: mode control retains dark canvas — buttons adapt to chrome only */
+.pt-root--light .pt-mol-mode-btn {
+  background: rgba(255,255,255,0.82);
+  border-color: rgba(0,0,0,0.12);
+  color: rgba(10,10,20,0.55);
+}
+.pt-root--light .pt-mol-mode-btn:hover {
+  background: rgba(255,255,255,0.96);
+  color: #0a0a14;
+}
+.pt-root--light .pt-mol-mode-btn.active {
+  background: rgba(59,91,219,0.10);
+  border-color: rgba(59,91,219,0.40);
+  color: #3b5bdb;
+}
+.pt-root--light .pt-mol-reset-btn {
+  background: rgba(255,255,255,0.75);
+  border-color: rgba(0,0,0,0.10);
+  color: rgba(10,10,20,0.35);
+}
+.pt-root--light .pt-mol-reset-btn:hover { color: rgba(10,10,20,0.75); border-color: rgba(0,0,0,0.22); }
+
 /* ── Molecule badges in info panel ── */
 .pt-info__mol-row { display: flex; flex-direction: column; gap: 6px !important; }
 .pt-info__mol-list { display: flex; flex-wrap: wrap; gap: 5px; }
