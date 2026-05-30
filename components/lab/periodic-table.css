@@ -450,9 +450,11 @@
 /* ── Molecule PubChem search bar ── */
 .pt-mol-pubchem-section {
   position: absolute;
-  bottom: 50px; left: 50%; transform: translateX(-50%);
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  bottom: 18px; left: 18px;
+  transform: none;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
   z-index: 4;
+  max-width: min(300px, calc(100% - 36px));
 }
 .pt-mol-pubchem-label {
   font-size: 9px; letter-spacing: 0.10em; text-transform: uppercase;
@@ -460,7 +462,7 @@
 }
 .pt-mol-pubchem-desc {
   font-size: 9px; color: rgba(216,216,232,0.22);
-  text-align: center; max-width: 250px; margin: 0; line-height: 1.4;
+  text-align: left; max-width: 280px; margin: 0; line-height: 1.4;
   pointer-events: none;
 }
 .pt-mol-search {
@@ -474,7 +476,15 @@
 .pt-mol-search-input {
   background: none; border: none; outline: none;
   color: #d8d8e8; font-family: inherit; font-size: 12px;
-  padding: 6px 10px; width: 200px;
+  padding: 6px 10px; width: min(220px, calc(100% - 36px));
+}
+@media (max-width: 680px) {
+  .pt-mol-pubchem-section {
+    bottom: 12px; left: 12px;
+    max-width: calc(100% - 24px);
+  }
+  .pt-mol-pubchem-desc { display: none; }
+  .pt-mol-search-input { width: min(180px, calc(100% - 36px)); }
 }
 .pt-mol-search-input::placeholder { color: rgba(216,216,232,0.35); }
 .pt-mol-search-input::-webkit-search-cancel-button { display: none; }
@@ -2514,4 +2524,56 @@
 .pt-root--light .pt-temp-control__reset:hover { border-color: rgba(0,0,0,0.35); color: rgba(30,30,50,0.90); }
 .pt-root--light .pt-temp-control__note { color: rgba(180,90,10,0.85); }
 .pt-root--light .pt-temp-control__disclaimer { color: rgba(80,80,100,0.42); }
+
+/* ── Canvas fullscreen mode ───────────────────────────────────────────────── */
+.pt-root--canvas-fs .pt-atom-view { grid-template-columns: 1fr; }
+.pt-root--canvas-fs .pt-info      { display: none; }
+
+.pt-canvas-fs-btn {
+  position: absolute;
+  top: 10px; right: 10px;
+  background: rgba(10,10,20,0.55);
+  border: 1px solid rgba(255,255,255,0.13);
+  border-radius: 6px;
+  color: rgba(200,200,215,0.65);
+  font-size: 14px;
+  width: 28px; height: 28px;
+  padding: 0;
+  cursor: pointer;
+  z-index: 4;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color 0.15s, color 0.15s;
+  line-height: 1;
+}
+.pt-canvas-fs-btn:hover { border-color: rgba(255,255,255,0.35); color: #eeeef8; }
+.pt-canvas-fs-btn.active {
+  border-color: rgba(96,165,250,0.50);
+  color: #60a5fa;
+  background: rgba(96,165,250,0.08);
+}
+
+/* Light mode */
+.pt-root--light .pt-canvas-fs-btn {
+  background: rgba(240,240,248,0.78);
+  border-color: rgba(0,0,0,0.12);
+  color: rgba(30,30,50,0.55);
+}
+.pt-root--light .pt-canvas-fs-btn:hover { border-color: rgba(0,0,0,0.35); color: rgba(10,10,30,0.90); }
+.pt-root--light .pt-canvas-fs-btn.active { border-color: rgba(29,78,216,0.40); color: #1d4ed8; background: rgba(29,78,216,0.06); }
+
+/* ── OrbitalInfoPanel collapsed state ────────────────────────────────────── */
+.pt-orbital-panel--collapsed {
+  padding-bottom: 6px;
+}
+.pt-orbital-panel--collapsed .pt-orbital-panel__header {
+  cursor: pointer;
+  margin-bottom: 0;
+}
+.pt-orbital-panel__toggle {
+  font-size: 9px;
+  color: rgba(180,200,220,0.45);
+  margin-left: auto;
+  padding-left: 6px;
+  flex-shrink: 0;
+}
 

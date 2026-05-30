@@ -1023,7 +1023,14 @@ const ORBITAL_COPY: Record<OrbitalKey, OrbitalCopy> = {
   },
 };
 
-function OrbitalInfoPanel({ orbitalKey, locale }: { orbitalKey: OrbitalKey; locale: Locale }) {
+function OrbitalInfoPanel({
+  orbitalKey, locale, isOpen = true, onToggle,
+}: {
+  orbitalKey: OrbitalKey;
+  locale: Locale;
+  isOpen?: boolean;
+  onToggle?: () => void;
+}) {
   const meta = ORBITAL_META[orbitalKey];
   const copy = ORBITAL_COPY[orbitalKey];
   if (!meta || !copy) return null;
@@ -1039,43 +1046,56 @@ function OrbitalInfoPanel({ orbitalKey, locale }: { orbitalKey: OrbitalKey; loca
   })();
 
   return (
-    <div className="pt-orbital-panel" aria-live="polite">
-      <div className="pt-orbital-panel__header">
+    <div className={`pt-orbital-panel${isOpen ? "" : " pt-orbital-panel--collapsed"}`} aria-live="polite">
+      <div
+        className="pt-orbital-panel__header"
+        onClick={onToggle}
+        role={onToggle ? "button" : undefined}
+        aria-expanded={onToggle ? isOpen : undefined}
+        style={onToggle ? { cursor: "pointer" } : undefined}
+      >
         <span className="pt-orbital-panel__name">{ORBITAL_DISPLAY[orbitalKey]}</span>
         <span className={`pt-orbital-family pt-orbital-family--${meta.family}`}>{meta.family}</span>
+        {onToggle && (
+          <span className="pt-orbital-panel__toggle" aria-hidden="true">{isOpen ? "▲" : "▼"}</span>
+        )}
       </div>
-      <p className="pt-orbital-shape">{isIT ? copy.shape.it : copy.shape.en}</p>
-      <dl className="pt-orbital-panel__qn">
-        <div><dt>n</dt><dd>{meta.n}</dd></div>
-        <div><dt>l</dt><dd>{meta.l}</dd></div>
-        <div><dt>m_l</dt><dd>{meta.ml}</dd></div>
-        <div>
-          <dt>{isIT ? "nodi" : "nodes"}</dt>
-          <dd>{totalNodes} ({nodeDesc})</dd>
-        </div>
-      </dl>
-      <div className="pt-orbital-phase-legend">
-        <span className="pt-orbital-phase pt-orbital-phase--pos">
-          <span className="pt-orbital-phase__swatch" />
-          {isIT ? "fase +" : "phase +"}
-        </span>
-        <span className="pt-orbital-phase pt-orbital-phase--neg">
-          <span className="pt-orbital-phase__swatch" />
-          {isIT ? "fase −" : "phase −"}
-        </span>
-        <span className="pt-orbital-phase-note">{isIT ? "(≠ carica)" : "(≠ charge)"}</span>
-      </div>
-      <p className="pt-orbital-desc">{isIT ? copy.desc.it : copy.desc.en}</p>
-      <p className="pt-orbital-disclaimer">
-        {isIT
-          ? "Idrogenoide (Z=1): esatto per l'idrogeno, indicativo per gli altri."
-          : "Hydrogen-like (Z=1): exact for hydrogen, indicative for others."}
-      </p>
-      <p className="pt-orbital-vs-quantum">
-        {isIT
-          ? "Inspector: mostra un orbitale isolato. Vista quantistica: mostra la nuvola aggregata dei sottolivelli dell'elemento selezionato."
-          : "Inspector: shows one isolated orbital. Quantum view: shows the aggregated cloud of the selected element's subshells."}
-      </p>
+      {isOpen && (
+        <>
+          <p className="pt-orbital-shape">{isIT ? copy.shape.it : copy.shape.en}</p>
+          <dl className="pt-orbital-panel__qn">
+            <div><dt>n</dt><dd>{meta.n}</dd></div>
+            <div><dt>l</dt><dd>{meta.l}</dd></div>
+            <div><dt>m_l</dt><dd>{meta.ml}</dd></div>
+            <div>
+              <dt>{isIT ? "nodi" : "nodes"}</dt>
+              <dd>{totalNodes} ({nodeDesc})</dd>
+            </div>
+          </dl>
+          <div className="pt-orbital-phase-legend">
+            <span className="pt-orbital-phase pt-orbital-phase--pos">
+              <span className="pt-orbital-phase__swatch" />
+              {isIT ? "fase +" : "phase +"}
+            </span>
+            <span className="pt-orbital-phase pt-orbital-phase--neg">
+              <span className="pt-orbital-phase__swatch" />
+              {isIT ? "fase −" : "phase −"}
+            </span>
+            <span className="pt-orbital-phase-note">{isIT ? "(≠ carica)" : "(≠ charge)"}</span>
+          </div>
+          <p className="pt-orbital-desc">{isIT ? copy.desc.it : copy.desc.en}</p>
+          <p className="pt-orbital-disclaimer">
+            {isIT
+              ? "Idrogenoide (Z=1): esatto per l'idrogeno, indicativo per gli altri."
+              : "Hydrogen-like (Z=1): exact for hydrogen, indicative for others."}
+          </p>
+          <p className="pt-orbital-vs-quantum">
+            {isIT
+              ? "Inspector: mostra un orbitale isolato. Vista quantistica: mostra la nuvola aggregata dei sottolivelli dell'elemento selezionato."
+              : "Inspector: shows one isolated orbital. Quantum view: shows the aggregated cloud of the selected element's subshells."}
+          </p>
+        </>
+      )}
     </div>
   );
 }
@@ -1382,6 +1402,8 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
   const [molSearchError,  setMolSearchError]  = useState<"notfound" | "networkerror" | null>(null);
   const [molSearchHasSearched, setMolSearchHasSearched] = useState(false);
   const [storyMode,       setStoryMode]       = useState(false);
+  const [canvasFullscreen, setCanvasFullscreen] = useState(false);
+  const [orbitalInfoOpen, setOrbitalInfoOpen] = useState(true);
 
   const [panelWidth,      setPanelWidth]      = usePersistedState<number>("pt:panelWidth", 264);
   const panelWidthRef                         = useRef(panelWidth);
@@ -1452,6 +1474,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
     setMolSearchQuery("");
     setMolSearchError(null);
     setMolSearchHasSearched(false);
+    setCanvasFullscreen(false);
   }, []);
 
   const handleMolSearch = useCallback(async (q: string) => {
@@ -1577,7 +1600,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
   const selectedName = selected ? (locale === "en" ? (ELEMENT_NAMES_EN[selected.z] || selected.name) : selected.name) : "";
 
   return (
-    <div className={`pt-root${lightMode ? " pt-root--light" : ""}`}>
+    <div className={`pt-root${lightMode ? " pt-root--light" : ""}${canvasFullscreen ? " pt-root--canvas-fs" : ""}`}>
       {/* ── Header ── */}
       <header className={`pt-header${showHeader ? "" : " pt-header--hidden"}`}>
         <div className="pt-header__left">
@@ -1732,6 +1755,20 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
       {view === "atom" && selected && (
         <div className="pt-atom-view" style={{ '--pt-info-width': `${panelWidth}px` } as React.CSSProperties}>
           <div className="pt-canvas-wrap">
+            {/* Fullscreen toggle — always visible in atom view */}
+            <button
+              className={`pt-canvas-fs-btn${canvasFullscreen ? " active" : ""}`}
+              onClick={() => setCanvasFullscreen(v => !v)}
+              aria-pressed={canvasFullscreen}
+              title={canvasFullscreen
+                ? (locale === "en" ? "Exit fullscreen" : "Esci schermo intero")
+                : (locale === "en" ? "Fullscreen canvas" : "Schermo intero")}
+              aria-label={canvasFullscreen
+                ? (locale === "en" ? "Exit fullscreen" : "Esci schermo intero")
+                : (locale === "en" ? "Fullscreen canvas" : "Schermo intero")}
+            >
+              {canvasFullscreen ? "⊡" : "⊞"}
+            </button>
             {moleculeView && (() => {
               const mols      = MOLECULES_BY_Z[selected.z];
               const predefined = mols?.[activeMolIdx];
@@ -1893,7 +1930,12 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                       current={inspectorOrbital}
                       onChange={setInspectorOrbital}
                     />
-                    <OrbitalInfoPanel orbitalKey={inspectorOrbital} locale={locale} />
+                    <OrbitalInfoPanel
+                      orbitalKey={inspectorOrbital}
+                      locale={locale}
+                      isOpen={orbitalInfoOpen}
+                      onToggle={() => setOrbitalInfoOpen(v => !v)}
+                    />
                   </>
                 )}
               </>

@@ -66,6 +66,7 @@ const SCALE_REAL   = { radiusMul: 3.6, nucleonScale: 0.25, electronScale: 0.35 }
 const NUCLEON_RADIUS       = 0.17;
 const NUCLEON_MIN_SEP      = NUCLEON_RADIUS * 2; // = 0.34 — hard-sphere contact, no visual overlap
 const NUCLEUS_PACK_ATTEMPTS = 120;
+const ORBIT_CLEARANCE      = 0.30; // visual didactic clearance: orbit periapsis ≥ nucleus visual edge + this
 
 // Shared geometry (never disposed — app lifetime)
 const nucleonGeo   = new THREE.SphereGeometry(NUCLEON_RADIUS, 16, 10);
@@ -76,6 +77,10 @@ const spinArrowGeo = new THREE.ConeGeometry(0.045, 0.13, 6);
 
 function nucleusRadius(z: number, n: number) {
   return 0.30 + Math.pow(z + n, 1 / 3) * 0.095;
+}
+
+function visualNucleusR(z: number, n: number, nucleonScale: number): number {
+  return (nucleusRadius(z, n) + NUCLEON_RADIUS) * nucleonScale;
 }
 
 // Exact geometric positions for H/He nuclei (total ≤ 4) — no visual overlap guaranteed
@@ -285,8 +290,8 @@ type RuthOrbit = {
   r: number; u: THREE.Vector3; v: THREE.Vector3; phase: number; speed: number;
 };
 
-function randomRuthOrbit(baseR: number): RuthOrbit {
-  const r = baseR * (0.55 + Math.random() * 0.9);
+function randomRuthOrbit(baseR: number, minR: number): RuthOrbit {
+  const r = Math.max(baseR * (0.55 + Math.random() * 0.9), minR);
   const n = new THREE.Vector3(Math.random()*2-1, Math.random()*2-1, Math.random()*2-1).normalize();
   let u = new THREE.Vector3(1, 0, 0);
   if (Math.abs(n.x) > 0.92) u.set(0, 1, 0);
@@ -295,8 +300,8 @@ function randomRuthOrbit(baseR: number): RuthOrbit {
   return { r, u, v, phase: Math.random() * Math.PI * 2, speed: (0.4 + Math.random() * 0.5) / Math.sqrt(r) };
 }
 
-function RutherfordAtom({ el, radiusMul, reduced, speedMul, lightMode, showSpin }: {
-  el: Element; radiusMul: number; reduced: boolean; speedMul: number; lightMode: boolean; showSpin: boolean;
+function RutherfordAtom({ el, radiusMul, reduced, speedMul, lightMode, showSpin, minOrbitR }: {
+  el: Element; radiusMul: number; reduced: boolean; speedMul: number; lightMode: boolean; showSpin: boolean; minOrbitR: number;
 }) {
   const groupRef = useRef<THREE.Group>(null!);
   const tRef = useRef(0);
@@ -307,9 +312,9 @@ function RutherfordAtom({ el, radiusMul, reduced, speedMul, lightMode, showSpin 
   const baseR = 1.6 * radiusMul;
 
   const orbits = useMemo<RuthOrbit[]>(
-    () => Array.from({ length: el.z }, () => randomRuthOrbit(baseR)),
+    () => Array.from({ length: el.z }, () => randomRuthOrbit(baseR, minOrbitR)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [el.z, baseR],
+    [el.z, baseR, minOrbitR],
   );
 
   const objectsRef = useRef<{
@@ -398,9 +403,9 @@ function RutherfordAtom({ el, radiusMul, reduced, speedMul, lightMode, showSpin 
 
 // ─── Bohr (1913) — circular quantized orbits ─────────────────────────────────
 
-function BohrOrbit({ shellIdx, count, spins, radiusMul, eMul, reduced, speedMul, lightMode, showSpin }: {
+function BohrOrbit({ shellIdx, count, spins, radiusMul, eMul, reduced, speedMul, lightMode, showSpin, minR }: {
   shellIdx: number; count: number; spins: boolean[]; radiusMul: number; eMul: number;
-  reduced: boolean; speedMul: number; lightMode: boolean; showSpin: boolean;
+  reduced: boolean; speedMul: number; lightMode: boolean; showSpin: boolean; minR: number;
 }) {
   const groupRef  = useRef<THREE.Group>(null!);
   const phaseRef  = useRef(0);
@@ -410,7 +415,7 @@ function BohrOrbit({ shellIdx, count, spins, radiusMul, eMul, reduced, speedMul,
   const spinsRef = useRef(spins);
   spinsRef.current = spins;
 
-  const r         = (SHELL_BASE_R[shellIdx] ?? SHELL_BASE_R.at(-1)!) * radiusMul;
+  const r         = Math.max((SHELL_BASE_R[shellIdx] ?? SHELL_BASE_R.at(-1)!) * radiusMul, minR);
   const tilt      = SHELL_TILTS[shellIdx] ?? SHELL_TILTS.at(-1)!;
   const baseSpeed = SHELL_SPEEDS[shellIdx] ?? 0.09;
   speedRef.current = baseSpeed * speedMul;
@@ -525,9 +530,9 @@ function BohrOrbit({ shellIdx, count, spins, radiusMul, eMul, reduced, speedMul,
   return <group ref={groupRef} rotation={tilt} />;
 }
 
-function BohrAtom({ el, radiusMul, eMul, reduced, speedMul, lightMode, showSpin }: {
+function BohrAtom({ el, radiusMul, eMul, reduced, speedMul, lightMode, showSpin, minOrbitR }: {
   el: Element; radiusMul: number; eMul: number;
-  reduced: boolean; speedMul: number; lightMode: boolean; showSpin: boolean;
+  reduced: boolean; speedMul: number; lightMode: boolean; showSpin: boolean; minOrbitR: number;
 }) {
   const fills = el.shells;
   const allSpins = useMemo(() => shellSpins(el.shells), [el.shells]);
@@ -535,7 +540,7 @@ function BohrAtom({ el, radiusMul, eMul, reduced, speedMul, lightMode, showSpin 
     <>
       {fills.map((c, i) => (
         <BohrOrbit key={i} shellIdx={i} count={c} spins={allSpins[i] ?? []}
-          radiusMul={radiusMul} eMul={eMul}
+          radiusMul={radiusMul} eMul={eMul} minR={minOrbitR}
           reduced={reduced} speedMul={speedMul} lightMode={lightMode} showSpin={showSpin} />
       ))}
     </>
@@ -552,7 +557,7 @@ interface SubOrbital {
   speed: number;
 }
 
-function buildSommerfeldConfig(shellFills: number[], radiusMul: number): SubOrbital[] {
+function buildSommerfeldConfig(shellFills: number[], radiusMul: number, minOrbitR: number): SubOrbital[] {
   const result: SubOrbital[] = [];
   shellFills.forEach((total, shellIdx) => {
     const n = shellIdx + 1;
@@ -567,7 +572,9 @@ function buildSommerfeldConfig(shellFills: number[], radiusMul: number): SubOrbi
       const kOverN = k / n;
       const ecc = Math.sqrt(Math.max(0, 1 - kOverN * kOverN));
       // Scale a so the apoapsis (= a*(1+ecc)) equals shellR — orbit never exits the shell boundary
-      const a = shellR / (1 + ecc);
+      // Then clamp periapsis for visual clearance: periapsis = a*(1-ecc) ≥ minOrbitR (didactic, not physical)
+      let a = shellR / (1 + ecc);
+      if (ecc > 0 && a * (1 - ecc) < minOrbitR) a = minOrbitR / (1 - ecc);
       const baseTilt = SHELL_TILTS[shellIdx] ?? SHELL_TILTS.at(-1)!;
       result.push({
         shellIdx, k, shellEOffset, l: k - 1, a, b: a * kOverN, ecc,
@@ -582,8 +589,8 @@ function buildSommerfeldConfig(shellFills: number[], radiusMul: number): SubOrbi
   return result;
 }
 
-function SommerfeldAtom({ el, radiusMul, reduced, speedMul, lightMode, showSpin }: {
-  el: Element; radiusMul: number; reduced: boolean; speedMul: number; lightMode: boolean; showSpin: boolean;
+function SommerfeldAtom({ el, radiusMul, reduced, speedMul, lightMode, showSpin, minOrbitR }: {
+  el: Element; radiusMul: number; reduced: boolean; speedMul: number; lightMode: boolean; showSpin: boolean; minOrbitR: number;
 }) {
   const groupRef    = useRef<THREE.Group>(null!);
   const speedMulRef = useRef(speedMul);
@@ -592,7 +599,7 @@ function SommerfeldAtom({ el, radiusMul, reduced, speedMul, lightMode, showSpin 
   showSpinRef.current = showSpin;
 
   const shellFills    = el.shells;
-  const config        = useMemo(() => buildSommerfeldConfig(shellFills, radiusMul), [shellFills, radiusMul]);
+  const config        = useMemo(() => buildSommerfeldConfig(shellFills, radiusMul, minOrbitR), [shellFills, radiusMul, minOrbitR]);
   const spinsPerShell = useMemo(() => shellSpins(el.shells), [el.shells]);
   const spinsPerShellRef = useRef(spinsPerShell);
   spinsPerShellRef.current = spinsPerShell;
@@ -1268,6 +1275,7 @@ export function AtomScene({
       : false;
 
   const sc = realScale ? SCALE_REAL : SCALE_NORMAL;
+  const minOrbitR = visualNucleusR(element.z, element.stableN, sc.nucleonScale) + ORBIT_CLEARANCE;
   // Inspector always uses dark canvas for visual quality
   const isInspector = inspectorOrbital !== null;
   const effectiveLight = isInspector ? false : lightMode;
@@ -1326,15 +1334,15 @@ export function AtomScene({
       )}
       {!isInspector && !nucleusView && model === "rutherford" && (
         <RutherfordAtom el={element} radiusMul={sc.radiusMul} reduced={reduced}
-          speedMul={speedMultiplier} lightMode={effectiveLight} showSpin={showSpin} />
+          speedMul={speedMultiplier} lightMode={effectiveLight} showSpin={showSpin} minOrbitR={minOrbitR} />
       )}
       {!isInspector && !nucleusView && model === "bohr" && (
         <BohrAtom el={element} radiusMul={sc.radiusMul} eMul={sc.electronScale}
-          reduced={reduced} speedMul={speedMultiplier} lightMode={effectiveLight} showSpin={showSpin} />
+          reduced={reduced} speedMul={speedMultiplier} lightMode={effectiveLight} showSpin={showSpin} minOrbitR={minOrbitR} />
       )}
       {!isInspector && !nucleusView && model === "sommerfeld" && (
         <SommerfeldAtom el={element} radiusMul={sc.radiusMul} reduced={reduced}
-          speedMul={speedMultiplier} lightMode={effectiveLight} showSpin={showSpin} />
+          speedMul={speedMultiplier} lightMode={effectiveLight} showSpin={showSpin} minOrbitR={minOrbitR} />
       )}
       {!isInspector && !nucleusView && model === "quantum" && (
         <QuantumAtom el={element} radiusMul={sc.radiusMul} reduced={reduced} lightMode={effectiveLight} />

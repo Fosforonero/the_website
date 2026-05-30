@@ -79,6 +79,8 @@ const MANUAL = {
           { title: "Legende contestuali", body: "Una legenda compatta appare in basso nella vista 3D e mostra i simboli del modello atomico attivo (shell, colori orbite, orientamento spin), della molecola (sfere = atomi CPK, aste = legami, modalità riempimento o polarità) o del reticolo (cubo = cella elementare, linee = coordinazione)." },
           { title: "K / °C / °F", body: "Cambia l'unità di temperatura del pannello dati. La preferenza viene salvata nel browser." },
           { title: "Slider temperatura", body: "Sposta lo slider tra 0 K e un massimo dinamico per l'elemento selezionato (min 1000 K, max 12 000 K). Il badge mostra lo stato fisico derivato a 1 atm: solido, liquido, gas o sconosciuto. I marcatori blu (fusione) e rosso (ebollizione) sul cursore indicano le soglie di transizione quando i dati sono disponibili. Il pulsante ↺ riporta a 298,15 K (25°C). Solo lo stato fisico cambia con lo slider — densità, raggio e altre proprietà restano dati tabulati a condizioni standard." },
+          { title: "Schermo intero canvas", body: "Il pulsante ⊞ in alto a destra nel canvas espande la scena 3D a tutta la larghezza, nascondendo il pannello dati. Premi ⊡ per tornare alla vista a due colonne. Funziona per tutti i modelli atomici, l'Inspector orbitali, il reticolo e la vista molecole." },
+          { title: "Inspector orbitali — collassabile", body: "Nella vista Inspector orbitali, clicca sull'intestazione del pannello (nome + famiglia + ▼/▲) per espandere o collassare i dettagli. Quando collassato, nome e famiglia rimangono visibili. Utile su schermi piccoli dove il pannello copre parte della scena." },
         ],
       },
       {
@@ -116,6 +118,7 @@ const MANUAL = {
           { title: "Modelli storici", body: "Thomson, Rutherford, Bohr e Sommerfeld sono inclusi per confronto storico, non perché descrivano tutti l'atomo moderno." },
           { title: "Dati mancanti", body: "Per alcuni elementi sintetici o instabili alcune proprietà possono essere assenti, stimate o non applicabili." },
           { title: "Slider temperatura", body: "Lo slider varia solo la classificazione di fase (solido/liquido/gas) e la disponibilità della vista reticolo. Pressione assunta: 1 atm. La struttura cristallina, la densità e le altre proprietà tabulari non variano con la temperatura — richiederebbero dataset termici completi non disponibili per tutti i 118 elementi. L'arsenico (As) è un caso speciale: sublima a 1 atm e non ha fase liquida stabile." },
+          { title: "Scale nucleo–orbite", body: "Le distanze tra nucleo e orbite elettroniche sono didattiche, non in scala fisica reale. Nei modelli storici (Bohr, Sommerfeld, Rutherford) le orbite hanno una distanza minima garantita dal nucleo visivo per evitare sovrapposizioni che renderebbero la visualizzazione illeggibile. Il modello quantistico non applica questo vincolo perché la densità elettronica al nucleo è fisicamente corretta per gli orbitali s." },
           { title: "Fonti", body: "La pagina about elenca IUPAC, NIST, PubChem e WebElements come riferimenti dati principali." },
         ],
       },
@@ -191,6 +194,8 @@ const MANUAL = {
           { title: "Contextual legends", body: "A compact legend appears at the bottom of the 3D view and shows the symbols for the active atomic model (shells, orbit colours, spin orientation), molecule (spheres = CPK atoms, sticks = bonds, filling or polarity mode) or lattice (cube = unit cell, lines = coordination)." },
           { title: "K / °C / °F", body: "Cycles the temperature unit used in the data panel. The preference is saved in the browser." },
           { title: "Temperature slider", body: "Drag the slider between 0 K and a dynamic maximum for the selected element (min 1000 K, max 12 000 K). The badge shows the derived physical state at 1 atm: solid, liquid, gas, or unknown. Blue (melting) and red (boiling) markers on the track indicate transition thresholds when data are available. The ↺ button resets to 298.15 K (25 °C). Only physical state changes with the slider — density, radius, and other properties remain tabulated at standard conditions." },
+          { title: "Fullscreen canvas", body: "The ⊞ button at the top-right of the canvas expands the 3D scene to full width, hiding the data panel. Press ⊡ to return to the two-column layout. Works for all atomic models, the Orbital Inspector, lattice, and molecule views." },
+          { title: "Orbital Inspector — collapsible", body: "In the Orbital Inspector view, click the panel header (name + family + ▼/▲) to expand or collapse the details. When collapsed, name and family remain visible. Useful on small screens where the panel covers part of the scene." },
         ],
       },
       {
@@ -228,6 +233,7 @@ const MANUAL = {
           { title: "Historical models", body: "Thomson, Rutherford, Bohr, and Sommerfeld are included for historical comparison, not because they all describe the modern atom." },
           { title: "Missing data", body: "For some synthetic or unstable elements, some properties may be absent, estimated, or not applicable." },
           { title: "Temperature slider", body: "The slider only changes phase classification (solid/liquid/gas) and crystal lattice availability. Pressure assumed: 1 atm. Crystal structure, density, and other tabulated properties do not vary with temperature — full thermal datasets are not available for all 118 elements. Arsenic (As) is a special case: it sublimes at 1 atm and has no stable liquid phase." },
+          { title: "Nucleus–orbit distances", body: "Distances between the nucleus and electron orbits are educational, not physically to scale. In historical models (Bohr, Sommerfeld, Rutherford) orbits have a guaranteed minimum clearance from the visual nucleus to avoid overlaps that would make the visualization unreadable. The quantum model does not apply this constraint because electron density at the nucleus is physically correct for s orbitals." },
           { title: "Sources", body: "The about page lists IUPAC, NIST, PubChem, and WebElements as the main data references." },
         ],
       },

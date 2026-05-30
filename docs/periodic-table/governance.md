@@ -167,6 +167,14 @@ Due sorgenti distinte, mai mescolate silenziosamente:
 ### P2 già promosso e completato
 - [x] Temperature Slider MVP — slider 0–12 000 K con engine fase puro (`lib/temperature.ts`); badge solid/liquid/gas/unknown; marcatori fusione/ebollizione; crystal view gating (disabilitato se liquid/gas, warning se unknown); auto-chiusura crystalView; clamp su cambio elemento; pressione assunta 1 atm; casi edge: As (sublimazione), Z 98-103 (bp null), Z 104-118 (dati assenti); commit 87f52a8+
 
+### Regola visiva orbite–nucleo (invariante)
+- **Scale didattiche**: distanze nucleo–orbite NON sono in scala fisica. Scopo: leggibilità.
+- **`ORBIT_CLEARANCE = 0.30` scene units**: periapsis orbite (Bohr/Sommerfeld) e raggio orbite (Rutherford) sono clamped a `visualNucleusR(z, n, nucleonScale) + 0.30`.
+- **Quantum model escluso**: densità al nucleo fisicamente corretta per orbitali s — non clampare mai la nuvola quantistica.
+- **In REAL scale**: non necessario (nucleo scala 0.25, orbite scala 3.6 → abbondante clearance automatico).
+- **Sommerfeld**: clamp su `a` preserva l'eccentricità, modifica solo la dimensione dell'ellisse; orbita resta geometricamente corretta.
+- **Modificare solo con motivazione esplicita** — il clamp è un compromesso estetico/educativo consapevole.
+
 ### Regole scientifiche temperatura (invariante)
 - `state` field (ElementExtended): stato fisico a 25°C / 1 atm — NON modificare, NON re-interpretare con lo slider
 - `temperatureK` (slider): produce solo `phaseAtTemperature` e gate crystal view — nient'altro cambia
