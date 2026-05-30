@@ -2,7 +2,7 @@
 
 Documento di riferimento per decisioni di prodotto, design e architettura della Tavola Periodica Interattiva (`/lab/tavola-periodica`).
 
-**Aggiornato:** 2026-05-29 (audit post-sprint 82e7962)  
+**Aggiornato:** 2026-05-30 (audit post-sprint d1ebfbd)  
 **Separato da:** `docs/solar-system/` — non usare questo doc per decisioni del simulatore solare e viceversa.
 
 ---
@@ -130,9 +130,8 @@ Due sorgenti distinte, mai mescolate silenziosamente:
 |---|---|---|
 | InfoPanel: lista piatta di 16 righe senza gerarchia | Leggibilità, percezione di strumento preciso | P1 |
 | Trend heatmap non annotati (il "perché" della variazione) | Valore educativo | P1 |
-| Story Mode: 11/118 elementi | Engagement narrativo | P2 |
+| Story Mode: 27/118 elementi | Engagement narrativo | P2 |
 | Molecole predefinite: ~19 Z con dati locali | Copertura vista molecolare | P2 |
-| Molecole: solo ball-and-stick (space-filling assente) | Visualizzazione | P3 |
 | Legami chimici tra due elementi (Bonding Lab) | Feature educativa avanzata | P3 |
 
 ---
@@ -142,12 +141,19 @@ Due sorgenti distinte, mai mescolate silenziosamente:
 ### Completato (non riaprire)
 - [x] Stati di ossidazione — badge colorati, OX 118/118
 - [x] Temperature °C/°F — toggle ciclico K→°C→°F
-- [x] Spin elettronico ↑↓ — toggle su Bohr/Rutherford/Sommerfeld
+- [x] Spin elettronico ↑↓ — toggle su Bohr/Rutherford/Sommerfeld (Hund's rule, spin ↑↓ accurato)
 - [x] Isotopi naturali — ISO 84/118, gaps documentati
 - [x] Vista nucleo Level 1 — overlay protoni/neutroni
 - [x] Raggio covalente — COV 96/118, gap Z=97–118 documentato (Alvarez 2008)
 - [x] Struttura cristallina 3D — CRYSTAL 88/118, unit cell wireframe (sprint 82e7962)
 - [x] Canvas 3D sempre dark — rimosso lightBg selector/vignette (sprint 82e7962)
+- [x] Sommerfeld subshell colorati per tipo s/p/d/f — chiarezza visiva orbite ellittiche
+- [x] Nucleus packing refactor — rejection sampling, separazione minima garantita
+- [x] Molecule Lab — ball-and-stick + space-filling (riempimento) + polarity mode
+- [x] PubChem search — live lookup NIH/NLM, visivamente secondario, badge + nota "dati esterni" (sprint c4fea99)
+- [x] Orbital Inspector — 8 orbitali idrogenoidi (1s, 2s, 2px/y/z, 3dz², 3dxy, 3dx²−y²), fase, nodi, marker nucleo (sprint 0915df5–d1ebfbd)
+- [x] Story Mode — espanso da 11 a 27 elementi chiave (sprint 458702f)
+- [x] SEO/GA hardening — hreflang EN, consent reload, sitemap IT+EN (sprint 1313)
 
 ### P1 — Leggibilità e valore educativo
 - [ ] Raggruppamento InfoPanel in 4 sezioni semantiche (Identità / Proprietà periodiche / Struttura / Storia)
@@ -155,12 +161,12 @@ Due sorgenti distinte, mai mescolate silenziosamente:
 - [ ] Annotazione trend sulle heatmap EN/raggio vdW/covalente/IE (il "perché" del trend)
 
 ### P2 — Copertura contenuto
-- [ ] Story Mode: espandere da 11 a ~30 elementi chiave
-- [ ] Molecole predefinite: espandere da ~19 a ~40 Z con dati locali verificati
+- [ ] Story Mode: completare da 27 a 30 elementi chiave (mancano ~3)
+- [ ] Molecole predefinite: aggiungere benzene, etanolo, acido acetico, LiF, PCl5, XeF4 (dataset premium)
 
 ### P3 — Feature avanzate
 - [ ] Legami chimici (Bonding Lab) — selezione due elementi → tipo legame da ΔEN
-- [ ] Molecole space-filling — vista alternativa a ball-and-stick
+- [ ] Crystal UX pass — info struttura nel pannello, link da InfoPanel a vista reticolo
 - [ ] Vista materiale Level 0 — cubo + slider temperatura → cambio stato
 
 ### Escluso (non implementare senza decisione esplicita)
