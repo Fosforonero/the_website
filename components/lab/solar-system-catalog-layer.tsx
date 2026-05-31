@@ -15,6 +15,15 @@ const CATEGORY_COLOR: Record<CatalogCategory, THREE.Color> = {
   centaur:          new THREE.Color("#d8c8a8"),
 };
 
+type HBucket = { maxH: number; size: number; opacity: number };
+const H_BUCKETS: HBucket[] = [
+  { maxH: 5,        size: 0.080, opacity: 0.95 },
+  { maxH: 10,       size: 0.048, opacity: 0.90 },
+  { maxH: 15,       size: 0.026, opacity: 0.78 },
+  { maxH: 20,       size: 0.016, opacity: 0.65 },
+  { maxH: Infinity, size: 0.010, opacity: 0.50 },
+];
+
 const TWO_PI = 2 * Math.PI;
 const UNIX_EPOCH_JD = 2_440_587.5;
 
@@ -62,23 +71,24 @@ export type CatalogLayerProps = {
 
 export function CatalogLayer({ entries, category, epoch, distanceMode, visible }: CatalogLayerProps) {
   const lastComputedEpochRef = useRef<number>(0);
-  const cachedPositionsRef = useRef<Float32Array>(new Float32Array(0));
+  const cachedBucketsRef = useRef<Array<{ positions: Float32Array; bucket: HBucket }>>([]);
 
   const color = CATEGORY_COLOR[category] ?? new THREE.Color(1, 1, 1);
 
-  const positions = useMemo(() => {
+  const bucketData = useMemo(() => {
     const epochMs = epoch.getTime();
     const jd = epochMs / 86_400_000 + UNIX_EPOCH_JD;
 
     if (
-      cachedPositionsRef.current.length > 0 &&
+      cachedBucketsRef.current.length > 0 &&
       Math.abs(epochMs - lastComputedEpochRef.current) < 86_400_000
     ) {
-      return cachedPositionsRef.current;
+      return cachedBucketsRef.current;
     }
 
-    const buf = new Float32Array(entries.length * 3);
-    let n = 0;
+    // Temporary arrays: one per bucket
+    const bufs: Float32Array[] = H_BUCKETS.map(() => new Float32Array(entries.length * 3));
+    const counts: number[] = new Array(H_BUCKETS.length).fill(0);
 
     for (const e of entries) {
       if (e.eccentricity >= 1.0 || e.semiMajorAxisAu <= 0 || e.periodDays <= 0) continue;
@@ -93,49 +103,61 @@ export function CatalogLayer({ entries, category, epoch, distanceMode, visible }
         e.longitudeAscNodeDeg, e.argPeriapsisDeg, M
       );
 
+      let sx: number, sy: number, sz: number;
       if (distanceMode === "compressed") {
-        buf[n * 3]     = xAu;
-        buf[n * 3 + 1] = yAu;
-        buf[n * 3 + 2] = zAu;
+        sx = xAu; sy = yAu; sz = zAu;
       } else {
-        const xKm = xAu * AU_KM;
-        const yKm = yAu * AU_KM;
-        const zKm = zAu * AU_KM;
+        const xKm = xAu * AU_KM, yKm = yAu * AU_KM, zKm = zAu * AU_KM;
         const magKm = Math.sqrt(xKm * xKm + yKm * yKm + zKm * zKm);
-        if (magKm < 1) { n++; continue; }
+        if (magKm < 1) continue;
         const renderMag = scaleDistance(magKm, distanceMode);
         const f = renderMag / magKm;
-        buf[n * 3]     = xKm * f;
-        buf[n * 3 + 1] = yKm * f;
-        buf[n * 3 + 2] = zKm * f;
+        sx = xKm * f; sy = yKm * f; sz = zKm * f;
       }
-      n++;
+
+      // Assign to H bucket
+      const H = e.absoluteMagnitude ?? Infinity;
+      const bi = H_BUCKETS.findIndex((b) => H < b.maxH);
+      const bucketIdx = bi === -1 ? H_BUCKETS.length - 1 : bi;
+      const n = counts[bucketIdx]!;
+      const buf = bufs[bucketIdx]!;
+      buf[n * 3]     = sx;
+      buf[n * 3 + 1] = sy;
+      buf[n * 3 + 2] = sz;
+      counts[bucketIdx]!++;
     }
 
-    const slice = buf.slice(0, n * 3);
-    cachedPositionsRef.current = slice;
+    const result = H_BUCKETS.map((bucket, i) => ({
+      positions: bufs[i]!.slice(0, counts[i]! * 3),
+      bucket,
+    }));
+
+    cachedBucketsRef.current = result;
     lastComputedEpochRef.current = epochMs;
-    return slice;
+    return result;
   }, [entries, epoch, distanceMode]);
 
-  const geometry = useMemo(() => {
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-    return geo;
-  }, [positions]);
-
-  if (!visible || positions.length === 0) return null;
+  if (!visible) return null;
 
   return (
-    <points geometry={geometry}>
-      <pointsMaterial
-        color={color}
-        size={0.022}
-        sizeAttenuation
-        transparent
-        opacity={0.65}
-        depthWrite={false}
-      />
-    </points>
+    <>
+      {bucketData.map((bd, i) => {
+        if (bd.positions.length === 0) return null;
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute("position", new THREE.BufferAttribute(bd.positions, 3));
+        return (
+          <points key={i} geometry={geo}>
+            <pointsMaterial
+              color={color}
+              size={bd.bucket.size}
+              sizeAttenuation
+              transparent
+              opacity={bd.bucket.opacity}
+              depthWrite={false}
+            />
+          </points>
+        );
+      })}
+    </>
   );
 }
