@@ -22,31 +22,35 @@ type FetchJob = {
 
 const JOBS: FetchJob[] = [
   {
+    // NEOs: Apollos (APO) + Atens (ATE) + Amors (AMO) + Atiras (IEO)
+    // sb-class accepts comma-separated values; no single "neo" group exists.
     filename: "neo.json",
     category: "asteroid-neo",
-    params: { "group": "neo", "kind": "a", "fullname": "true" },
-    limit: 40_000,
+    params: { "sb-kind": "a", "sb-class": "APO,ATE,AMO,IEO" },
+    limit: 10_000, // ~41k total; 10k snapshot for this sprint to avoid timeout
   },
   {
     filename: "mba-top5000.json",
     category: "asteroid-mba",
-    params: { "group": "mba", "kind": "a", "fullname": "true", "sort": "H", "dir": "ASC" },
+    // Default order is by numbered designation (Ceres first), which gives the largest/most-studied MBAs.
+    // sort+dir params are not supported together in this API version; omit them.
+    params: { "sb-kind": "a", "sb-class": "MBA" },
     limit: 5_000,
   },
   {
     filename: "comets.json",
     category: "comet",
-    params: { "kind": "c", "fullname": "true" },
+    params: { "sb-kind": "c" },
   },
   {
     filename: "tnos.json",
     category: "tno",
-    params: { "group": "tno", "kind": "a", "fullname": "true" },
+    params: { "sb-kind": "a", "sb-class": "TNO" },
   },
   {
     filename: "centaurs.json",
     category: "centaur",
-    params: { "class": "Cen", "kind": "a", "fullname": "true" },
+    params: { "sb-kind": "a", "sb-class": "CEN" },
   },
 ];
 
