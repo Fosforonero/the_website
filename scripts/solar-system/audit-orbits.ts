@@ -1,4 +1,4 @@
-import { readFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import { SOLAR_BODIES } from "../../lib/solar-system/bodies";
 import { getBodyStatesForDate } from "../../lib/solar-system/ephemeris";
@@ -333,6 +333,39 @@ console.log(
   `  ${hasOldDecay ? " [WARN]" : "    OK"} Old non-physical decay=1.8 removed from scene`
 );
 if (hasOldDecay) warnings++;
+
+// --- G. Catalog snapshot validation [sprint 03B] --------------------------
+
+console.log("\n--- Catalog snapshot validation [sprint 03B] ---");
+
+const CATALOG_DIR_PATH = join(process.cwd(), "public/lab/solar-system/catalog");
+const CATALOG_REQUIRED = [
+  "neo.json",
+  "mba-top5000.json",
+  "comets.json",
+  "tnos.json",
+  "centaurs.json",
+  "manifest.json",
+];
+
+for (const file of CATALOG_REQUIRED) {
+  const filePath = join(CATALOG_DIR_PATH, file);
+  if (!existsSync(filePath)) {
+    console.log(`  [WARN] Missing: ${file} — run pnpm solar:fetch-catalog`);
+    warnings++;
+  } else {
+    const raw = JSON.parse(readFileSync(filePath, "utf-8")) as {
+      meta?: { count?: number; retrievedAt?: string };
+      chunks?: unknown[];
+    };
+    const count = raw.meta?.count ?? (raw.chunks ? raw.chunks.length : "?");
+    const date = raw.meta?.retrievedAt ?? "—";
+    const kb = Math.round(readFileSync(filePath).length / 1024);
+    console.log(
+      `    OK  ${file.padEnd(24)} ${String(kb).padStart(5)} kB  count=${count}  retrieved=${date}`
+    );
+  }
+}
 
 // --- Summary ---------------------------------------------------------------
 

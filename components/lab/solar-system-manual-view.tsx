@@ -22,6 +22,7 @@ const T = {
       { id: "inspector", label: "Campi dell'ispettore" },
       { id: "visual-confidence", label: "Etichette di confidenza visiva" },
       { id: "firmament", label: "Strato firmamento" },
+      { id: "catalog-layers", label: "Livelli catalogo" },
       { id: "reference-frame", label: "Sistema di riferimento" },
       { id: "axial-tilt", label: "Inclinazione assiale e rotazione" },
       { id: "lighting", label: "Illuminazione" },
@@ -191,6 +192,18 @@ Mesh reale (roadmap): una mesh 3D modellata su dati topografici reali (USGS, NAS
 
 Mappa reale (roadmap): texture fotografica da dati NASA/USGS/JAXA applicata alla mesh. Pianificata per Sprint 02+ insieme alle mesh reali.`,
       },
+      catalogLayers: {
+        title: "Livelli catalogo",
+        content: `Il laboratorio carica corpi dal JPL Small-Body Database (SBDB) per cinque categorie: NEO (Asteroidi Near-Earth), Fascia principale, Comete, TNO (Trans-Nettuniani) e Centauri. I toggle nella barra degli strumenti (solo desktop) attivano ogni livello on-demand.
+
+Rendering: i corpi del catalogo sono visualizzati come punti (Three.js Points), mai come mesh React individuali. Questo permette di mostrare decine di migliaia di oggetti senza impatto sulle prestazioni.
+
+Posizioni catalogo: calcolate da elementi orbitali kepleriani SBDB nel frame HEC-J2000. Non sono vettori live JPL Horizons. La data dello snapshot è visibile nell'ispettore. I dati hanno qualità "catalog-keplerian" — adeguata per visualizzazione educativa, non per navigazione di precisione.
+
+Ricerca: la barra di ricerca interroga JPL SBDB in tempo reale (300ms debounce). I risultati mostrano il nome del corpo, la classe orbitale e i tag NEO/PHA se applicabili. Selezionando un risultato, viene richiesta la posizione di precisione a JPL Horizons per quella data e visualizzata come marcatore teal (qualità sub-km).
+
+Limite dataset: il snapshot NEO è limitato a 10.000 corpi (su ~42.000 noti). Il catalogo completo è in roadmap (Sprint 04+).`,
+      },
       firmament: {
         title: "Strato firmamento",
         content: `Il firmamento è lo sfondo stellare della scena 3D. È costruito da dati astronomici reali:
@@ -279,6 +292,7 @@ Per problemi di performance su hardware vecchio: prova a disattivare il firmamen
       { id: "inspector", label: "Inspector fields" },
       { id: "visual-confidence", label: "Visual confidence labels" },
       { id: "firmament", label: "Firmament layer" },
+      { id: "catalog-layers", label: "Catalog layers" },
       { id: "reference-frame", label: "Reference frame" },
       { id: "axial-tilt", label: "Axial tilt and rotation" },
       { id: "lighting", label: "Lighting" },
@@ -447,6 +461,18 @@ Symbolic: the body is represented only by a point indicator or marker, without 3
 Real mesh (roadmap): a 3D mesh modeled on real topographic data (USGS, NASA DEM). Planned for Sprint 02+ for Earth, Moon, Mars, and other well-documented bodies.
 
 Real map (roadmap): photographic texture from NASA/USGS/JAXA data applied to the mesh. Planned for Sprint 02+ alongside real meshes.`,
+      },
+      catalogLayers: {
+        title: "Catalog layers",
+        content: `The lab loads bodies from the JPL Small-Body Database (SBDB) for five categories: NEOs (Near-Earth Objects), Main Belt asteroids, Comets, TNOs (Trans-Neptunian Objects), and Centaurs. Toolbar toggles (desktop only) enable each layer on demand.
+
+Rendering: catalog bodies are rendered as Three.js Points, never as individual React meshes. This allows tens of thousands of objects to be displayed without performance issues.
+
+Catalog positions: computed from SBDB Keplerian orbital elements in the HEC-J2000 frame. Not live JPL Horizons vectors. The snapshot date is visible in the inspector. Data quality is "catalog-keplerian" — suitable for educational visualization, not precision navigation.
+
+Search: the search bar queries JPL SBDB in real time (300ms debounce). Results show body name, orbit class, and NEO/PHA tags where applicable. Selecting a result fetches a precision position from JPL Horizons for that date and displays it as a teal marker (sub-km accuracy).
+
+Dataset limit: the NEO snapshot is capped at 10,000 bodies (out of ~42,000 known). The full catalog is on the roadmap (Sprint 04+).`,
       },
       firmament: {
         title: "Firmament layer",
@@ -708,10 +734,23 @@ export function SolarSystemManualView({ locale }: SolarManualViewProps) {
           </div>
         </section>
 
-        {/* ── 12. Sandbox roadmap ── */}
-        <section id="sandbox-roadmap" className="sm-manual-section">
+        {/* ── 12. Catalog layers ── */}
+        <section id="catalog-layers" className="sm-manual-section">
           <h2 className="sm-manual-section-title">
             <span className="sm-manual-section-num">12.</span>
+            {s.catalogLayers.title}
+          </h2>
+          <div className="sm-manual-prose">
+            {s.catalogLayers.content.split("\n\n").map((para, i) => (
+              <p key={i}>{para}</p>
+            ))}
+          </div>
+        </section>
+
+        {/* ── 13. Sandbox roadmap ── */}
+        <section id="sandbox-roadmap" className="sm-manual-section">
+          <h2 className="sm-manual-section-title">
+            <span className="sm-manual-section-num">13.</span>
             {s.sandboxRoadmap.title}
           </h2>
           <div className="sm-manual-prose">
@@ -721,10 +760,10 @@ export function SolarSystemManualView({ locale }: SolarManualViewProps) {
           </div>
         </section>
 
-        {/* ── 13. Mobile & performance ── */}
+        {/* ── 14. Mobile & performance ── */}
         <section id="mobile-performance" className="sm-manual-section">
           <h2 className="sm-manual-section-title">
-            <span className="sm-manual-section-num">13.</span>
+            <span className="sm-manual-section-num">14.</span>
             {s.mobilePerformance.title}
           </h2>
           <div className="sm-manual-prose">
@@ -734,10 +773,10 @@ export function SolarSystemManualView({ locale }: SolarManualViewProps) {
           </div>
         </section>
 
-        {/* ── 14. FAQ ── */}
+        {/* ── 15. FAQ ── */}
         <section id="faq" className="sm-manual-section">
           <h2 className="sm-manual-section-title">
-            <span className="sm-manual-section-num">14.</span>
+            <span className="sm-manual-section-num">15.</span>
             {s.faq.title}
           </h2>
           <dl className="sm-manual-faq">

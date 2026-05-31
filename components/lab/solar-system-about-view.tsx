@@ -92,7 +92,7 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
     { done: true,  label: isIT ? "Sprint 01: Keplerian solver, catalogo corpi, firmamento Hipparcos, rendering WebGL procedural." : "Sprint 01: Keplerian solver, body catalog, Hipparcos firmament, procedural WebGL rendering." },
     { done: true,  label: isIT ? "Sprint 02: Elementi orbitali completi (Ω, ω, M₀ J2000), percorsi orbitali ellittici campionati, scala raggi logaritmica categoriale, sistemi luna/satellite leggibili, playback giorni/sec." : "Sprint 02: Full orbital elements (Ω, ω, M₀ J2000), sampled elliptical orbit paths, category-aware log radius scaling, readable moon/satellite systems, days/sec playback." },
     { done: true,  label: isIT ? "Sprint 03A: Fisica reale — inclinazione assiale IAU 2015, anelli Saturno/Urano, illuminazione 1/r², sistema di riferimento HEC-J2000, frame/accuracy nell'ispettore." : "Sprint 03A: Physical realism — IAU 2015 axial tilt, Saturn/Uranus rings, 1/r² lighting, HEC-J2000 reference frame, inspector frame/accuracy." },
-    { done: false, label: isIT ? "Sprint 03B: API route JPL Horizons per posizioni di precisione; catalogo completo corpi minori con caricamento progressivo; texture reali NASA/USGS." : "Sprint 03B: JPL Horizons API route for precision positions; full minor-body catalog with progressive loading; real NASA/USGS textures." },
+    { done: true,  label: isIT ? "Sprint 03B: Catalogo SBDB (NEO/MBA/comete/TNO/centauri), ricerca live SBDB, marcatore Horizons precisione sub-km, API routes solar/catalog/search e solar/horizons." : "Sprint 03B: SBDB catalog (NEO/MBA/comets/TNOs/centaurs), live SBDB search, sub-km Horizons precision marker, solar/catalog/search and solar/horizons API routes." },
     { done: false, label: isIT ? "Sprint 04: RA/Dec IAU WGCCRE per azimut poli planetari; catalogo satelliti naturali; fascia asteroidale come punti instanziati." : "Sprint 04: IAU WGCCRE RA/Dec for planetary pole azimuths; natural satellite catalog; asteroid belt as instanced points." },
     { done: false, label: isIT ? "Sprint 05: Satelliti artificiali CelesTrak; modalità sandbox con fisica." : "Sprint 05: CelesTrak artificial satellites; sandbox physics mode." },
   ];
@@ -509,6 +509,42 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
             </ul>
           </section>
 
+          {/* Sprint 03B catalog data */}
+          <section className="ss-about-section" aria-labelledby="ss-s-catalog">
+            <h2 className="ss-about-section-title" id="ss-s-catalog">
+              {isIT ? "DATI CATALOGO CORPI MINORI (SPRINT 03B)" : "MINOR BODY CATALOG DATA (SPRINT 03B)"}
+            </h2>
+            <div className="ss-about-notice">
+              <strong>{isIT ? "Snapshot statico:" : "Static snapshot:"}</strong>{" "}
+              {isIT
+                ? "I chunk del catalogo sono snapshot generati da JPL SBDB Query API. Non si aggiornano automaticamente. Data di recupero: visibile in manifest.json."
+                : "Catalog chunks are snapshots generated from the JPL SBDB Query API. They do not auto-refresh. Retrieval date: visible in manifest.json."}
+            </div>
+            <ul className="ss-about-sources">
+              {[
+                {
+                  label: "JPL Small-Body Database Query API",
+                  url: "https://ssd-api.jpl.nasa.gov/doc/sbdb_query.html",
+                  desc: isIT
+                    ? "Asteroidi NEO (10.000), fascia principale (5.000), comete (~4.000), TNO (~6.000), centauri (~1.000). Elementi orbitali kepleriani, frame HEC-J2000."
+                    : "NEO asteroids (10,000), main belt (5,000), comets (~4,000), TNOs (~6,000), centaurs (~1,000). Keplerian orbital elements, HEC-J2000 frame.",
+                },
+                {
+                  label: "JPL Horizons System",
+                  url: "https://ssd.jpl.nasa.gov/horizons/",
+                  desc: isIT
+                    ? "Vettori cartesiani on-demand per corpi selezionati dalla ricerca. Cache 1h. Precisione sub-km. Frame: Eclittica/J2000."
+                    : "On-demand Cartesian vectors for search-selected bodies. 1h cache. Sub-km accuracy. Frame: Ecliptic/J2000.",
+                },
+              ].map(({ label, url, desc }) => (
+                <li key={label}>
+                  <a href={url} target="_blank" rel="noopener noreferrer">{label}</a>
+                  <span className="ss-about-sources-desc">{desc}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+
           {/* Texture and 3D asset sources */}
           <section className="ss-about-section" aria-labelledby="ss-s-textures">
             <h2 className="ss-about-section-title" id="ss-s-textures">
@@ -560,6 +596,10 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
                 "Eclissi, ombre e transiti: non implementati.",
                 "Il catalogo stelle è un subset curato di Hipparcos (44 stelle), non il catalogo completo.",
                 "Le texture sono procedurali; i dettagli superficiali non sono scientificamente rappresentativi.",
+                "Catalog SBDB: posizioni da elementi kepleriani snapshot. Non vettori live. Precisione degrada per oggetti fortemente perturbati.",
+                "Corpo selezionato (Horizons): vettore Horizons cached 1h. Accurato sub-km al momento della query. Non aggiornato in tempo reale.",
+                "Copertura catalogo: basata sullo snapshot SBDB alla data di recupero. Non si aggiorna automaticamente.",
+                "Catalogo NEO: snapshot limitato a 10.000 corpi su ~42.000 noti.",
               ] : [
                 "Orbital positions: J2000 Keplerian elements in the HEC-J2000 frame. Not numerical integrations, not live JPL Horizons vectors. Accuracy: a few million km over multi-year timescales.",
                 "Axis orientation: IAU 2015 obliquity correct; pole azimuth approximated (IAU WGCCRE RA/Dec in Sprint 04). Precession and nutation not modelled.",
@@ -572,6 +612,10 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
                 "Eclipses, shadows, and transits: not implemented.",
                 "Star catalog is a curated subset of Hipparcos (44 stars), not the full catalog.",
                 "Textures are procedural; surface details are not scientifically representative.",
+                "Catalog SBDB: positions from Keplerian element snapshots. Not live vectors. Accuracy degrades for highly perturbed objects.",
+                "Selected body (Horizons): Horizons vector cached 1h. Sub-km accurate at query time. Not updated in real time.",
+                "Catalog coverage: based on SBDB snapshot at retrieval date. Does not auto-refresh.",
+                "NEO catalog: snapshot capped at 10,000 bodies out of ~42,000 known.",
               ]).map((text) => (
                 <li key={text}>
                   <span className="ss-about-limits-bullet" aria-hidden="true">—</span>
