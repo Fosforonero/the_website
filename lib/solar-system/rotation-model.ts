@@ -67,8 +67,7 @@ export function getBodyOrientation(
   }
 
   const tiltRad = (body.axialTiltDeg * Math.PI) / 180;
-  const isRetrograde =
-    body.siderealRotationHours < 0 || body.axialTiltDeg > 90;
+  const isRetrograde = isRetrogradeRotation(body);
 
   const elapsedHours = (epochMs - J2000_MS) / 3_600_000;
   const periodHours = Math.abs(body.siderealRotationHours);
@@ -101,14 +100,18 @@ export const ROTATION_ACCURACY_NOTES = {
 } as const;
 
 /**
- * Returns true if the body's axial tilt or rotation direction is retrograde.
- * Retrograde: sidereal period negative OR tilt > 90°.
+ * Returns true if the body's rotation is retrograde.
  *
- * Accepts any SolarBody; rotation fields are optional until Task 2 lands.
+ * Uses the explicit `rotationDirection` field when available.
+ * Falls back to `siderealRotationHours < 0` for compatibility with bodies
+ * that have not yet been assigned a `rotationDirection`.
+ * Does NOT infer from axialTiltDeg alone — obliquity > 90° is a necessary
+ * but not sufficient condition for retrograde in all conventions.
  */
 export function isRetrogradeRotation(body: RotatableSolarBody): boolean {
-  if (body.siderealRotationHours !== undefined && body.siderealRotationHours < 0) return true;
-  if (body.axialTiltDeg !== undefined && body.axialTiltDeg > 90) return true;
+  if (body.rotationDirection !== undefined) return body.rotationDirection === "retrograde";
+  // Fallback for bodies without explicit rotationDirection
+  if (body.siderealRotationHours !== undefined) return body.siderealRotationHours < 0;
   return false;
 }
 
@@ -147,4 +150,19 @@ export function formatRotationPeriod(
     return `${(h / 24).toFixed(2)} d${suffix}`;
   }
   return `${h.toFixed(1)} h${suffix}`;
+}
+
+/**
+ * Format the rotation direction for display in the inspector.
+ * Uses explicit rotationDirection field.
+ * Returns "—" if not set.
+ */
+export function formatRotationDirection(
+  body: RotatableSolarBody,
+  locale: "it" | "en"
+): string {
+  if (body.rotationDirection === undefined) return "—";
+  return body.rotationDirection === "retrograde"
+    ? locale === "it" ? "Retrograda" : "Retrograde"
+    : locale === "it" ? "Prograda" : "Prograde";
 }
