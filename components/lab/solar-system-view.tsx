@@ -404,7 +404,7 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
               title={catalogCategoryLabel(cat, locale)}
             >
               {catalogCategoryLabel(cat, locale)}
-              {count !== undefined && ` (${count.toLocaleString()})`}
+              {count !== undefined && ` (${formatNumber(count, locale)})`}
             </button>
           );
         })}
