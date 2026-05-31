@@ -1,12 +1,74 @@
 # Fosforonero — Handoff
 
 > Documento di passaggio tra sessioni. Aggiornato a fine sessione corrente.
-> **Ultimo aggiornamento: 2026-05-28 18:00 CEST** (sessione tavola periodica + SEO/GEO + landing preview)
+> **Ultimo aggiornamento: 2026-05-31 23:30 CEST** (chiusura Tavola Periodica, Solar System separato in corso)
 >
-> 🎯 **Domani: review landing preview + decisione go-live.** La home completa
-> è già pronta in `/preview` e `/en/preview`, aggiornata con le ultime info.
-> La home pubblica `/` e `/en` resta in modalità welcome/Coming Soon finché
-> non si fa lo swap esplicito.
+> 🎯 **Domani: ripartire dalla Tavola Periodica solo dopo smoke test molecole v2.**
+> Il lavoro Solar System è aperto in un altro contesto/agente: non mischiare i due sprint.
+
+---
+
+## Sessione 2026-05-31 — stato finale
+
+### Tavola Periodica — chiusa e pushata
+
+Branch `init` sincronizzato con `origin/init`. Ultimo commit Periodic Table:
+
+```txt
+5d9104a feat(periodic-table): add premium local molecule dataset v2
+```
+
+Commit di supporto successivo:
+
+```txt
+6a514fd chore: ignore local visual audit screenshots
+```
+
+Sprint completati oggi:
+
+| Area | Commit | Stato |
+|---|---:|---|
+| Mobile UX 1 — controlli portrait + temperature control | `e74d9e0` | Pushato |
+| Mobile UX 2 — Orbital Inspector bottom sheet, close, nucleus overlay | `d2711b6` | Pushato |
+| Mobile UX 3 — tap targets, font floor, PubChem 2D note | `e493288` | Pushato |
+| Mobile UX cleanup — touch target residui | `3514bdb` | Pushato |
+| Crystal UX Pass v1 — CN/APF, overlay struttura, legenda mobile | `f1aee4f` | Pushato |
+| Molecule Dataset Premium v2 — cisplatin, Li2CO3, N2O, ZnO, FeSO4, benzene | `5d9104a` | Pushato |
+| Screenshot ignore patterns | `6a514fd` | Pushato |
+
+Stato funzionale Tavola Periodica:
+
+- Mobile portrait ora ha controlli principali visibili, temperatura accessibile, Orbital Inspector chiudibile e touch target ripuliti.
+- Crystal View mostra nome struttura, CN e APF; legenda compatta visibile su mobile.
+- Applications v1 copre 23 elementi e collega le molecole correlate al viewer.
+- Molecule Dataset v2 riduce dipendenza da PubChem per casi chiave: Pt/cisplatin, Li/lithium carbonate, N/nitrous oxide, Zn/zinc oxide, Fe/ferrous sulfate, C/benzene.
+- PharmaDive/Moore Metrics escluso dal core: usare dati curati, PubChem, in futuro eventuale audit ChEMBL/RCSB PDB.
+- URL inglese canonico tavola: `/en/lab/periodic-table`; vecchio `/en/lab/tavola-periodica` redirige permanentemente.
+
+### Tavola Periodica — prossimo riavvio consigliato
+
+1. **Smoke test Molecule Dataset v2** su produzione:
+   - Pt -> Applications -> cisplatin locale, no badge PubChem.
+   - Li -> lithium carbonate locale.
+   - N -> nitrous oxide locale.
+   - Zn -> zinc oxide locale.
+   - Fe -> ferrous sulfate locale.
+   - C -> benzene locale, ball-stick e space-filling.
+2. **Aggiornare `docs/periodic-table/governance.md`** con gli sprint completati il 2026-05-31. Il documento contiene ancora alcune righe stale: canonical EN vecchio, Applications panel v0, molecole premium non aggiornate.
+3. Dopo smoke/governance, scegliere uno sprint:
+   - Molecule Dataset v3: XeF4, PCl5, ethanol, acetic acid.
+   - Crystal UX v2: site-coloring, single-cell/extended-lattice toggle, reset camera.
+   - ChEMBL audit read-only.
+
+### Solar System — separato, non toccare da sprint Tavola
+
+Il Solar System resta aperto in un altro contesto/agente. A fine controllo locale risultavano modifiche non committate in:
+
+- `components/lab/solar-system-scene.tsx`
+- `docs/solar-system/governance.md`
+- vari file nuovi in `docs/solar-system/`
+
+Regola per domani: non fare cleanup, commit o revert su questi file dalla sessione Tavola Periodica.
 
 ---
 
