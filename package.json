@@ -13,7 +13,8 @@
     "seo:audit": "tsx scripts/seo/audit.ts",
     "seo:indexnow": "tsx scripts/seo/ping-indexnow.ts",
     "gen:icons": "tsx scripts/generate-icons.ts",
-    "solar:audit": "tsx scripts/solar-system/audit-orbits.ts"
+    "solar:audit": "tsx scripts/solar-system/audit-orbits.ts",
+    "solar:fetch-catalog": "tsx scripts/solar-system/fetch-catalog.ts"
   },
   "dependencies": {
     "@next/third-parties": "^16.2.6",

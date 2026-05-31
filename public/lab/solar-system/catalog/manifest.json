@@ -1,0 +1,29 @@
+{
+  "retrievedAt": "2026-05-31",
+  "source": "JPL SBDB Query API",
+  "sourceUrl": "https://ssd-api.jpl.nasa.gov/doc/sbdb_query.html",
+  "chunks": [],
+  "failed": [
+    {
+      "filename": "neo.json",
+      "error": "SBDB 400 for neo.json: {\"code\":\"400\",\"message\":\"one or more query parameter was not recognized\"}\n"
+    },
+    {
+      "filename": "mba-top5000.json",
+      "error": "SBDB 400 for mba-top5000.json: {\"message\":\"one or more query parameter was not recognized\",\"code\":\"400\"}\n"
+    },
+    {
+      "filename": "comets.json",
+      "error": "SBDB 400 for comets.json: {\"code\":\"400\",\"message\":\"one or more query parameter was not recognized\"}\n"
+    },
+    {
+      "filename": "tnos.json",
+      "error": "SBDB 400 for tnos.json: {\"message\":\"one or more query parameter was not recognized\",\"code\":\"400\"}\n"
+    },
+    {
+      "filename": "centaurs.json",
+      "error": "SBDB 400 for centaurs.json: {\"code\":\"400\",\"message\":\"one or more query parameter was not recognized\"}\n"
+    }
+  ],
+  "disclaimer": "Positions computed from SBDB Keplerian orbital elements (HEC-J2000 frame). Not live JPL Horizons vectors. Accuracy: educational-keplerian."
+}
