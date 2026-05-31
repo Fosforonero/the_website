@@ -1134,7 +1134,7 @@ function ModelLegend({ model, showSpin, locale }: { model: AtomModel; showSpin: 
     : { icon: "↑↓", it: "spin nascosto — attiva ↑↓", en: "spin hidden — enable ↑↓", dim: true };
   const items: Item[] = [...(BASE_ITEMS[model] ?? []), ...(spinSupported ? [spinItem] : [])];
   return (
-    <div className="pt-context-legend" aria-hidden="true">
+    <div className="pt-context-legend pt-context-legend--atom" aria-hidden="true">
       {items.map((item, i) => (
         <span key={i} className={`pt-context-legend__item${item.dim ? " pt-context-legend__item--dim" : ""}`}>
           <span className="pt-context-legend__icon">{item.icon}</span>
@@ -1152,7 +1152,7 @@ function ModelLegend({ model, showSpin, locale }: { model: AtomModel; showSpin: 
 function MolLegend({ molMode, isPubChem, locale }: { molMode: MolViewMode; isPubChem: boolean; locale: Locale }) {
   const isIT = locale === "it";
   return (
-    <div className="pt-context-legend" aria-hidden="true">
+    <div className="pt-context-legend pt-context-legend--mol" aria-hidden="true">
       {molMode === "ball-stick" && <>
         <span className="pt-context-legend__item"><span className="pt-context-legend__icon">●</span><span>{isIT ? "sfere = atomi (colori CPK)" : "spheres = atoms (CPK colours)"}</span></span>
         <span className="pt-context-legend__item"><span className="pt-context-legend__icon">—</span><span>{isIT ? "aste = legami covalenti" : "sticks = covalent bonds"}</span></span>
@@ -1185,7 +1185,7 @@ function CrystalLegend({ structure, locale }: { structure: string | null | undef
     ? (isIT ? "linee = legami covalenti (reale)" : "lines = covalent bonds (real)")
     : (isIT ? "linee = contatti di coordinazione" : "lines = coordination contacts");
   return (
-    <div className="pt-context-legend" aria-hidden="true">
+    <div className="pt-context-legend pt-context-legend--crystal" aria-hidden="true">
       <span className="pt-context-legend__item"><span className="pt-context-legend__icon">{isHcp ? "⬡" : "□"}</span><span>{cellLabel}</span></span>
       <span className="pt-context-legend__item"><span className="pt-context-legend__icon">●</span><span>{isIT ? "sfere = posizioni atomiche nel reticolo" : "spheres = atomic sites in the lattice"}</span></span>
       <span className="pt-context-legend__item"><span className="pt-context-legend__icon">—</span><span>{lineLabel}</span></span>

@@ -307,22 +307,57 @@
 /* ── Context legend (atomic model / molecule / crystal) ───────────────────── */
 .pt-context-legend {
   position: absolute;
-  bottom: 16px; left: 50%;
-  transform: translateX(-50%);
   display: flex;
-  gap: 10px;
+  gap: 8px;
   pointer-events: none;
-  z-index: 2;
+  z-index: 3;
   flex-wrap: wrap;
-  justify-content: center;
-  max-width: calc(100% - 32px);
+  /* Shared backdrop for readability over 3D canvas */
+  background: rgba(6,6,16,0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border-radius: 8px;
+  padding: 5px 10px;
+  border: 1px solid rgba(255,255,255,0.06);
 }
+
+/* Atom model legend — above the temperature control (≥148px from bottom) */
+.pt-context-legend--atom {
+  bottom: 148px;
+  left: 50%;
+  transform: translateX(-50%);
+  justify-content: center;
+  max-width: min(600px, calc(100% - 32px));
+}
+
+/* Molecule legend — bottom-right, clear of PubChem (bottom-left) and mol-tabs (center) */
+.pt-context-legend--mol {
+  bottom: 58px;
+  right: 16px;
+  left: auto;
+  transform: none;
+  justify-content: flex-end;
+  max-width: min(280px, calc(100% - 32px));
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+/* Crystal legend — center-bottom, no competing overlays in crystal view */
+.pt-context-legend--crystal {
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  justify-content: center;
+  max-width: min(600px, calc(100% - 32px));
+}
+
 .pt-context-legend__item {
   display: flex;
   align-items: center;
   gap: 5px;
   font-size: 10px;
-  color: rgba(216,216,232,0.52);
+  color: rgba(216,216,232,0.60);
   letter-spacing: 0.04em;
   white-space: nowrap;
 }
@@ -337,6 +372,14 @@
   min-width: 14px;
   text-align: center;
 }
+
+/* Light mode overrides */
+.pt-root--light .pt-context-legend {
+  background: rgba(240,240,250,0.80);
+  border-color: rgba(0,0,0,0.07);
+}
+.pt-root--light .pt-context-legend__item { color: rgba(10,10,20,0.55); }
+
 @media (max-width: 680px) { .pt-context-legend { display: none; } }
 
 /* ── Nucleus view toggle button ── */
@@ -1186,7 +1229,6 @@
 }
 .pt-root--light .pt-info__kofi:hover { color: rgba(10,10,10,0.70); border-color: rgba(10,10,10,0.28); }
 .pt-root--light .pt-model-desc { color: rgba(10,10,10,0.65); }
-.pt-root--light .pt-context-legend__item { color: rgba(10,10,20,0.48); }
 /* footer */
 .pt-root--light .pt-footer-hint { color: rgba(10,10,10,0.65); }
 .pt-footer-hint__val { color: #7ab0ff; font-weight: 600; }
