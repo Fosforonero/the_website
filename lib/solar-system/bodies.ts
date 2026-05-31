@@ -47,8 +47,7 @@ export type SolarBody = {
    *   >90° = geometric retrograde sense (e.g. Venus 177°, Uranus 98°)
    *
    * Source: IAU WGCCRE 2015 obliquity values, referenced to each body's
-   * mean orbital plane. NOT the IAU pole RA/Dec in ICRF — that requires
-   * the full WGCCRE rotation model (planned for Sprint 04).
+   * mean orbital plane. Implemented in Sprint 04 — see poleRaDeg/poleDecDeg fields.
    *
    * rotationDirection: explicit prograde/retrograde classification.
    * MUST be set for all bodies with axialTiltDeg. Do not infer from tilt.
@@ -74,6 +73,19 @@ export type SolarBody = {
   ringInnerKm?: number;
   /** Outer edge of ring system (km from body centre). */
   ringOuterKm?: number;
+  /**
+   * IAU WGCCRE 2015 north pole orientation in ICRF J2000 (equatorial frame).
+   * Sprint 04: used by rotation-model.ts to compute the correct ecliptic-frame
+   * pole vector, replacing the scene X-axis approximation from Sprint 03A.
+   *
+   * poleRaDeg: right ascension of north pole (degrees, ICRF J2000)
+   * poleDecDeg: declination of north pole (degrees, ICRF J2000)
+   *
+   * Source: IAU WGCCRE 2015 values at J2000 epoch.
+   * Bodies without these fields fall back to the Sprint 03A axial-tilt approximation.
+   */
+  poleRaDeg?: number;
+  poleDecDeg?: number;
   color: string;
   sourceIds: string[];
   assetId?: string;
@@ -209,6 +221,8 @@ export const SOLAR_BODIES: SolarBody[] = [
     axialTiltDeg: 0.034,
     rotationDirection: "prograde",
     siderealRotationHours: 1407.6,
+    poleRaDeg: 281.0103,
+    poleDecDeg: 61.4155,
     color: "#B5B5B5",
     sourceIds: ["nasaJplHorizons"],
   },
@@ -230,6 +244,8 @@ export const SOLAR_BODIES: SolarBody[] = [
     axialTiltDeg: 177.36,
     rotationDirection: "retrograde",
     siderealRotationHours: -5832.5,
+    poleRaDeg: 272.76,
+    poleDecDeg: 67.16,
     color: "#E8C46A",
     sourceIds: ["nasaJplHorizons"],
   },
@@ -251,6 +267,8 @@ export const SOLAR_BODIES: SolarBody[] = [
     axialTiltDeg: 23.439,
     rotationDirection: "prograde",
     siderealRotationHours: 23.934,
+    poleRaDeg: 0.00,
+    poleDecDeg: 90.00,
     color: "#3A9BDC",
     sourceIds: ["nasaJplHorizons"],
   },
@@ -272,6 +290,8 @@ export const SOLAR_BODIES: SolarBody[] = [
     axialTiltDeg: 25.189,
     rotationDirection: "prograde",
     siderealRotationHours: 24.623,
+    poleRaDeg: 317.269,
+    poleDecDeg: 54.432,
     color: "#C1440E",
     sourceIds: ["nasaJplHorizons"],
   },
@@ -293,6 +313,8 @@ export const SOLAR_BODIES: SolarBody[] = [
     axialTiltDeg: 3.128,
     rotationDirection: "prograde",
     siderealRotationHours: 9.925,
+    poleRaDeg: 268.057,
+    poleDecDeg: 64.495,
     color: "#C88B3A",
     sourceIds: ["nasaJplHorizons"],
   },
@@ -316,6 +338,8 @@ export const SOLAR_BODIES: SolarBody[] = [
     siderealRotationHours: 10.656,
     ringInnerKm: 74_500,
     ringOuterKm: 140_220,
+    poleRaDeg: 40.589,
+    poleDecDeg: 83.537,
     color: "#E4D191",
     sourceIds: ["nasaJplHorizons"],
   },
@@ -339,6 +363,8 @@ export const SOLAR_BODIES: SolarBody[] = [
     siderealRotationHours: -17.240,
     ringInnerKm: 38_000,
     ringOuterKm: 51_149,
+    poleRaDeg: 257.311,
+    poleDecDeg: -15.175,
     color: "#7DE8E8",
     sourceIds: ["nasaJplHorizons"],
   },
@@ -360,6 +386,8 @@ export const SOLAR_BODIES: SolarBody[] = [
     axialTiltDeg: 28.322,
     rotationDirection: "prograde",
     siderealRotationHours: 16.110,
+    poleRaDeg: 299.36,
+    poleDecDeg: 43.46,
     color: "#4B70DD",
     sourceIds: ["nasaJplHorizons"],
   },
@@ -383,6 +411,8 @@ export const SOLAR_BODIES: SolarBody[] = [
     axialTiltDeg: 6.687,
     rotationDirection: "prograde",
     siderealRotationHours: 655.720,
+    poleRaDeg: 269.9949,
+    poleDecDeg: 66.5392,
     color: "#C8C8C8",
     sourceIds: ["nasaJplHorizons", "jplSatellites"],
   },
@@ -510,6 +540,8 @@ export const SOLAR_BODIES: SolarBody[] = [
     axialTiltDeg: 119.6,
     rotationDirection: "retrograde",
     siderealRotationHours: -153.293,
+    poleRaDeg: 132.993,
+    poleDecDeg: -6.163,
     color: "#C8B89A",
     sourceIds: ["nasaJplHorizons", "jplSbdb"],
   },
