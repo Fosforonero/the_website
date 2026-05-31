@@ -364,6 +364,14 @@ for (const file of CATALOG_REQUIRED) {
     console.log(
       `    OK  ${file.padEnd(24)} ${String(kb).padStart(5)} kB  count=${count}  retrieved=${date}`
     );
+    // For neo.json: warn if count is below the full NEO population threshold
+    if (file === "neo.json") {
+      const neoCount = raw.meta?.count ?? 0;
+      if (neoCount < 20_000) {
+        console.log(`  [WARN] neo.json count=${neoCount} is below 20,000 — snapshot may be capped. Run pnpm solar:fetch-catalog.`);
+        warnings++;
+      }
+    }
   }
 }
 

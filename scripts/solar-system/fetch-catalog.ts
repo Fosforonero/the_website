@@ -22,14 +22,6 @@ type FetchJob = {
 
 const JOBS: FetchJob[] = [
   {
-    // NEOs: Apollos (APO) + Atens (ATE) + Amors (AMO) + Atiras (IEO)
-    // sb-class accepts comma-separated values; no single "neo" group exists.
-    filename: "neo.json",
-    category: "asteroid-neo",
-    params: { "sb-kind": "a", "sb-class": "APO,ATE,AMO,IEO" },
-    limit: 10_000, // ~41k total; 10k snapshot for this sprint to avoid timeout
-  },
-  {
     filename: "mba-top5000.json",
     category: "asteroid-mba",
     // Default order is by numbered designation (Ceres first), which gives the largest/most-studied MBAs.
@@ -94,10 +86,76 @@ async function fetchChunk(job: FetchJob): Promise<number> {
   return raw.data.length;
 }
 
+async function fetchNeoComplete(): Promise<number> {
+  const NEO_CLASSES = "APO,ATE,AMO,IEO";
+  const CHUNK = 10_000;
+  const allData: unknown[][] = [];
+  let fields: string[] = [];
+  let offset = 0;
+
+  console.log("Fetching NEOs (paginated)…");
+
+  while (true) {
+    const params = new URLSearchParams({
+      "sb-kind": "a",
+      "sb-class": NEO_CLASSES,
+      fields: FIELDS,
+      limit: String(CHUNK),
+      "limit-from": String(offset),
+    });
+    const url = `${BASE_URL}?${params}`;
+    console.log(`  page offset=${offset} …`);
+
+    const res = await fetch(url, {
+      headers: { "User-Agent": "Fosforonero-Lab/1.0 (lab.fosforonero.com; hello@fosforonero.com)" },
+    });
+
+    if (!res.ok) throw new Error(`SBDB NEO ${res.status}: ${await res.text()}`);
+    const raw = (await res.json()) as { fields: string[]; data: unknown[][] };
+    if (!raw.fields || !raw.data) throw new Error("Unexpected SBDB shape for NEO page");
+
+    if (fields.length === 0) fields = raw.fields;
+    allData.push(...raw.data);
+    console.log(`  → page has ${raw.data.length} entries (total so far: ${allData.length})`);
+
+    if (raw.data.length < CHUNK) break; // last page
+    offset += CHUNK;
+    await new Promise((r) => setTimeout(r, 1100));
+  }
+
+  const out = {
+    meta: {
+      source: "JPL SBDB Query API",
+      url: BASE_URL,
+      retrievedAt: TODAY,
+      category: "asteroid-neo",
+      count: allData.length,
+      fields,
+    },
+    data: allData,
+  };
+
+  writeFileSync(join(OUT_DIR, "neo.json"), JSON.stringify(out), "utf-8");
+  const kb = Math.round(JSON.stringify(out).length / 1024);
+  console.log(`neo.json → ${allData.length} entries, ${kb} kB`);
+  return allData.length;
+}
+
 async function main() {
   mkdirSync(OUT_DIR, { recursive: true });
   const results: Array<{ filename: string; category: string; count: number }> = [];
   const failed: Array<{ filename: string; error: string }> = [];
+
+  // Fetch NEOs with pagination first (removes the 10k cap from Sprint 03B)
+  try {
+    const neoCount = await fetchNeoComplete();
+    results.push({ filename: "neo.json", category: "asteroid-neo", count: neoCount });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error(`✗ Failed: neo.json — ${msg}`);
+    failed.push({ filename: "neo.json", error: msg });
+  }
+  await new Promise((r) => setTimeout(r, 1100)); // courtesy delay before next request
 
   for (const job of JOBS) {
     try {
@@ -128,7 +186,8 @@ async function main() {
   } else {
     console.log(`✅ Catalog fetched with ${results.length} successful, ${failed.length} failed.`);
     console.log(`Failed chunks: ${failed.map((f) => f.filename).join(", ")}`);
-    process.exit(failed.length === JOBS.length ? 1 : 0);
+    // +1 for neo.json which is handled separately
+    process.exit(failed.length === JOBS.length + 1 ? 1 : 0);
   }
 }
 
