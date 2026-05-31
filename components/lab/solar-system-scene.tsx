@@ -6,7 +6,7 @@ import { OrbitControls, Html } from "@react-three/drei";
 import * as THREE from "three";
 import { FirmamentLayer } from "./firmament-layer";
 import { SOLAR_BODIES } from "@/lib/solar-system/bodies";
-import { getBodyStatesForDate } from "@/lib/solar-system/ephemeris";
+import { getBodyStatesForDate, sampleOrbitPath } from "@/lib/solar-system/ephemeris";
 import { scaleDistance, scaleRadius, AU_KM } from "@/lib/solar-system/scales";
 import type {
   ScaleDistanceMode,
@@ -33,9 +33,6 @@ export type SolarSystemSceneProps = {
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
-
-/** Ring geometry segment count — enough for smooth circles. */
-const ORBIT_RING_SEGMENTS = 128;
 
 /** How much to scale up the selected body for highlight. */
 const SELECTED_SCALE = 1.4;
@@ -92,30 +89,49 @@ function SceneSetup() {
 }
 
 // ---------------------------------------------------------------------------
-// Orbit ring for a single body
+// Sampled orbit path for a single body
 // ---------------------------------------------------------------------------
 
-function OrbitRing({
-  semiMajorAxisKm,
-  distanceMode,
-}: {
-  semiMajorAxisKm: number;
+type OrbitPathProps = {
+  bodyId: string;
+  isMoon: boolean;
+  parentState?: BodyState;
   distanceMode: ScaleDistanceMode;
-}) {
-  const r = scaleDistance(semiMajorAxisKm, distanceMode);
+};
+
+function OrbitPath({ bodyId, isMoon, parentState, distanceMode }: OrbitPathProps) {
+  const points = useMemo(() => sampleOrbitPath(bodyId, 256), [bodyId]);
+  if (points.length < 2) return null;
+
+  const scaledPoints = useMemo(() => {
+    if (isMoon && parentState) {
+      // Moon orbit: local km → scale → offset by parent's scaled world position
+      const [ppx, ppy, ppz] = scalePositionVector(parentState.positionKm, distanceMode);
+      return points.map(([x, y, z]) => {
+        const [sx, sy, sz] = scalePositionVector([x, y, z], distanceMode);
+        return new THREE.Vector3(ppx + sx, ppy + sy, ppz + sz);
+      });
+    }
+    return points.map(([x, y, z]) => {
+      const [sx, sy, sz] = scalePositionVector([x, y, z], distanceMode);
+      return new THREE.Vector3(sx, sy, sz);
+    });
+  }, [points, isMoon, parentState, distanceMode]);
+
+  const geometry = useMemo(() => {
+    const geo = new THREE.BufferGeometry().setFromPoints(scaledPoints);
+    return geo;
+  }, [scaledPoints]);
 
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]}>
-      {/* ringGeometry args: [innerRadius, outerRadius, thetaSegments] */}
-      <ringGeometry args={[r * 0.9985, r * 1.0015, ORBIT_RING_SEGMENTS]} />
-      <meshBasicMaterial
+    <lineLoop args={[geometry]}>
+      <lineBasicMaterial
         color="#1a3050"
-        side={THREE.DoubleSide}
         transparent
-        opacity={0.35}
+        opacity={0.45}
         depthWrite={false}
       />
-    </mesh>
+    </lineLoop>
   );
 }
 
@@ -260,16 +276,28 @@ function InnerScene({
         labelsVisible={labelsVisible}
       />
 
-      {/* Orbit rings */}
+      {/* Orbit paths — sampled from same solver as body positions */}
       {SOLAR_BODIES.map((body) => {
         if (!body.semiMajorAxisKm) return null;
-        // Only draw rings for direct Sun children (planets, dwarf planets, etc.)
-        if (body.parentId !== "sun" && body.parentId !== null) return null;
         if (body.category === "star") return null;
+
+        const isMoon = body.parentId !== null && body.parentId !== "sun";
+        if (isMoon) {
+          // Draw moon orbit only when the moon or its parent is selected
+          const isVisible =
+            body.id === selectedBodyId ||
+            body.parentId === selectedBodyId;
+          if (!isVisible) return null;
+        }
+
+        const parentState = body.parentId ? stateById.get(body.parentId) : undefined;
+
         return (
-          <OrbitRing
-            key={`ring-${body.id}`}
-            semiMajorAxisKm={body.semiMajorAxisKm}
+          <OrbitPath
+            key={`orbit-${body.id}`}
+            bodyId={body.id}
+            isMoon={isMoon}
+            parentState={parentState}
             distanceMode={distanceMode}
           />
         );
