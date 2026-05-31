@@ -36,6 +36,14 @@ const APP_CAT_LABELS = {
   "daily-life": { it: "Vita quotidiana",  en: "Daily life" },
 } as const;
 
+const CRYSTAL_STATS: Record<string, { cn: number; apf: number; nameIT: string; nameEN: string }> = {
+  sc:      { cn: 6,  apf: 52, nameIT: "Cubica semplice",       nameEN: "Simple cubic" },
+  bcc:     { cn: 8,  apf: 68, nameIT: "Cubica corpo centrato", nameEN: "Body-centred cubic" },
+  fcc:     { cn: 12, apf: 74, nameIT: "Cubica facce centrate", nameEN: "Face-centred cubic" },
+  hcp:     { cn: 12, apf: 74, nameIT: "Esagonale compatta",    nameEN: "Hexagonal close-packed" },
+  diamond: { cn: 4,  apf: 34, nameIT: "Cubica diamante",       nameEN: "Diamond cubic" },
+};
+
 const CrystalViewScene = dynamic(
   () => import("./crystal-view-scene").then(m => m.CrystalViewScene),
   { ssr: false, loading: () => <div className="atom-loading">...</div> }
@@ -1263,19 +1271,39 @@ function CrystalLegend({ structure, locale }: { structure: string | null | undef
   const isIT = locale === "it";
   const isHcp = structure === "hcp";
   const isCovalent = structure === "diamond";
+  const stats = structure ? CRYSTAL_STATS[structure] : undefined;
+  const structName = stats ? (isIT ? stats.nameIT : stats.nameEN) : null;
+
   const cellLabel = isHcp
     ? (isIT ? "prisma esagonale = cella HCP normalizzata" : "hexagonal prism = normalised HCP cell")
     : (isIT ? "cubo = cella elementare (unit cell)" : "cube = unit cell");
   const lineLabel = isCovalent
     ? (isIT ? "linee = legami covalenti (reale)" : "lines = covalent bonds (real)")
     : (isIT ? "linee = contatti di coordinazione" : "lines = coordination contacts");
+
   return (
     <div className="pt-context-legend pt-context-legend--crystal" aria-hidden="true">
-      <span className="pt-context-legend__item"><span className="pt-context-legend__icon">{isHcp ? "⬡" : "□"}</span><span>{cellLabel}</span></span>
-      <span className="pt-context-legend__item"><span className="pt-context-legend__icon">●</span><span>{isIT ? "sfere = posizioni atomiche nel reticolo" : "spheres = atomic sites in the lattice"}</span></span>
-      <span className="pt-context-legend__item"><span className="pt-context-legend__icon">—</span><span>{lineLabel}</span></span>
-      <span className="pt-context-legend__item pt-context-legend__item--dim"><span className="pt-context-legend__icon">~</span><span>{isIT ? "scala normalizzata — non in scala reale" : "normalised scale — not to real scale"}</span></span>
-      <span className="pt-context-legend__item pt-context-legend__item--dim"><span className="pt-context-legend__icon">∥</span><span>{isIT ? "reticolo disponibile solo nello stato solido" : "lattice available in solid state only"}</span></span>
+      {stats && (
+        <span className="pt-context-legend__item pt-context-legend__item--stats">
+          <span className="pt-context-legend__icon">◈</span>
+          <span>
+            {structName}
+            <span className="pt-crystal-stat"> · CN={stats.cn} · APF≈{stats.apf}%</span>
+          </span>
+        </span>
+      )}
+      <span className="pt-context-legend__item pt-context-legend__item--note">
+        <span className="pt-context-legend__icon">{isHcp ? "⬡" : "□"}</span>
+        <span>{cellLabel}</span>
+      </span>
+      <span className="pt-context-legend__item pt-context-legend__item--note">
+        <span className="pt-context-legend__icon">—</span>
+        <span>{lineLabel}</span>
+      </span>
+      <span className="pt-context-legend__item pt-context-legend__item--dim">
+        <span className="pt-context-legend__icon">~</span>
+        <span>{isIT ? "scala normalizzata — non in scala reale" : "normalised scale — not to real scale"}</span>
+      </span>
     </div>
   );
 }
@@ -2082,6 +2110,20 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                   color={CATEGORY_COLOR[selected.category] ?? "#6b7280"}
                   className="pt-canvas"
                 />
+                {(() => {
+                  const struct = EXTENDED[selected.z]!.crystalStructure as string;
+                  const stats = CRYSTAL_STATS[struct];
+                  const elName = locale === "en" ? (ELEMENT_NAMES_EN[selected.z] ?? selected.name) : selected.name;
+                  return stats ? (
+                    <div className="pt-crystal-overlay" aria-hidden="true">
+                      <span className="pt-crystal-overlay__el">{elName}</span>
+                      <span className="pt-crystal-overlay__sep">·</span>
+                      <span className="pt-crystal-overlay__struct">{struct.toUpperCase()}</span>
+                      <span className="pt-crystal-overlay__sep">·</span>
+                      <span className="pt-crystal-overlay__cn">CN={stats.cn}</span>
+                    </div>
+                  ) : null;
+                })()}
                 <CrystalLegend structure={EXTENDED[selected.z]?.crystalStructure} locale={locale} />
               </>
             ) : materialView && !moleculeView && inferredPhase !== "unknown" ? (

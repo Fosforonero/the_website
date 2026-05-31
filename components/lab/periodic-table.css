@@ -393,7 +393,22 @@
 }
 .pt-root--light .pt-context-legend__item { color: rgba(10,10,20,0.55); }
 
-@media (max-width: 680px) { .pt-context-legend { display: none; } }
+@media (max-width: 680px) {
+  /* Atom and molecule legends too verbose for mobile — hide */
+  .pt-context-legend--atom,
+  .pt-context-legend--mol { display: none; }
+  /* Crystal legend: compact column, essentials only */
+  .pt-context-legend--crystal {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    bottom: 10px;
+    max-width: calc(100% - 24px);
+    padding: 5px 10px;
+  }
+  /* Hide verbose note items on mobile — stats row stays visible */
+  .pt-context-legend--crystal .pt-context-legend__item--note { display: none; }
+}
 
 /* ── Nucleus view toggle button ── */
 .pt-nucleus-view-btn {
@@ -918,11 +933,48 @@
   transition: opacity 0.15s;
 }
 .pt-crystal-canvas-btn:hover .pt-crystal-canvas-hint { opacity: 1; }
+@media (pointer: coarse) {
+  .pt-crystal-canvas-hint { opacity: 0.65; }
+}
 .pt-root--light .pt-crystal-canvas {
   background: rgba(0,0,0,0.03);
   border-color: rgba(0,0,0,0.08);
 }
 .pt-root--light .pt-info__crystal-label { color: #111111; }
+
+/* ── Crystal stats in legend ── */
+.pt-crystal-stat {
+  color: rgba(94,234,212,0.75);
+  font-weight: 500;
+}
+.pt-context-legend__item--stats {
+  font-size: 11px;
+  color: rgba(216,216,232,0.85);
+}
+.pt-root--light .pt-crystal-stat { color: rgba(5,150,105,0.85); }
+
+/* ── Crystal canvas overlay (element · struct · CN) ── */
+.pt-crystal-overlay {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 11px;
+  color: rgba(216,216,232,0.52);
+  letter-spacing: 0.04em;
+  pointer-events: none;
+  z-index: 4;
+  white-space: nowrap;
+}
+.pt-crystal-overlay__el  { color: rgba(216,216,232,0.70); }
+.pt-crystal-overlay__sep { opacity: 0.35; }
+.pt-crystal-overlay__struct { color: rgba(94,234,212,0.65); }
+.pt-crystal-overlay__cn { color: rgba(216,216,232,0.50); }
+
+@media (max-width: 375px) { .pt-crystal-overlay { display: none; } }
 
 .pt-info__footer {
   display: flex;
