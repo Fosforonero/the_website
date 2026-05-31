@@ -202,10 +202,13 @@ for (const check of TILT_CHECKS) {
 
 console.log("\n--- Retrograde rotation checks [sprint 03A] ---");
 
-const RETROGRADE_BODIES = [
-  { id: "venus",  reason: "177° tilt + negative sidereal period" },
-  { id: "uranus", reason: "97.8° tilt (>90° = retrograde sense)" },
-  { id: "pluto",  reason: "122.5° tilt + negative sidereal period" },
+// Explicit rotationDirection field checks (must be set, never inferred)
+const RETROGRADE_BODIES: Array<{ id: string; expectedDir: "retrograde" | "prograde"; reason: string }> = [
+  { id: "venus",  expectedDir: "retrograde", reason: "177.4° obliquity + negative sidereal period" },
+  { id: "uranus", expectedDir: "retrograde", reason: "97.8° obliquity (>90°) + negative sidereal period" },
+  { id: "pluto",  expectedDir: "retrograde", reason: "119.6° obliquity + negative sidereal period" },
+  { id: "earth",  expectedDir: "prograde",   reason: "23.4° obliquity, prograde" },
+  { id: "saturn", expectedDir: "prograde",   reason: "26.7° obliquity, prograde" },
 ];
 
 for (const check of RETROGRADE_BODIES) {
@@ -215,13 +218,16 @@ for (const check of RETROGRADE_BODIES) {
     warnings++;
     continue;
   }
+  // Must have explicit rotationDirection field (not inferred)
+  const hasDir = body.rotationDirection !== undefined;
+  const dirMatch = body.rotationDirection === check.expectedDir;
   const isRetro = isRetrogradeRotation(body);
-  const hasTilt = body.axialTiltDeg !== undefined;
-  const hasPeriod = body.siderealRotationHours !== undefined;
+  const ok = hasDir && dirMatch;
   console.log(
-    `  ${isRetro ? "    OK" : " [WARN]"} ${check.id.padEnd(8)} retrograde=${isRetro} tilt=${body.axialTiltDeg ?? "—"}° period=${body.siderealRotationHours ?? "—"}h (${check.reason})`
+    `  ${ok ? "    OK" : " [WARN]"} ${check.id.padEnd(8)} rotationDirection=${body.rotationDirection ?? "MISSING"} (expected ${check.expectedDir}) tilt=${body.axialTiltDeg ?? "—"}° — ${check.reason}`
   );
-  if (!isRetro || !hasTilt || !hasPeriod) warnings++;
+  if (!ok) warnings++;
+  void isRetro;
 }
 
 // --- C. Ring system checks [sprint 03A] ------------------------------------
