@@ -178,6 +178,8 @@ export const LAB_UI_TRANSLATIONS = {
     materialLegendSolid: "particelle ordinate · vibrazione locale",
     materialLegendLiquid: "particelle vicine · moto disordinato",
     materialLegendGas: "particelle distanti · moto quasi libero",
+    infoGroupApplications: "Applicazioni reali",
+    appDisclaimerMedical: "Contesto educativo, non consiglio medico.",
   },
   en: {
     backToTable: "← table",
@@ -285,6 +287,8 @@ export const LAB_UI_TRANSLATIONS = {
     materialLegendSolid: "ordered particles · local vibration",
     materialLegendLiquid: "nearby particles · disordered motion",
     materialLegendGas: "distant particles · near-free motion",
+    infoGroupApplications: "Real-world applications",
+    appDisclaimerMedical: "Educational context, not medical advice.",
   }
 };
 

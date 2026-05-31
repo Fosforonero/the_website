@@ -240,10 +240,17 @@ Roadmap alternativa raccomandata (ordine ROI):
 | PharmaDive | 50/mese / $15–50 | Sì (non-retrievable) | **Nessuno** | Basso | Medio |
 
 ### Backlog: Applicazioni reali elementi
-- [ ] **Real-world applications panel (P2)** — tabella statica curata ~20 elementi; "Usato in: cisplatino (chemioterapia)"; Option A minima nell'InfoPanel. Fonte: WHO Essential Medicines + ChEMBL indications. Ogni claim deve avere fonte verificabile — regola "never fake" si applica doppiamente ai claim sanitari.
-- [ ] **PubChem molecule link per farmaci curati (P2)** — link farmaco curato → molecola nel viewer esistente. Effort minimo, massima sinergia.
+- [x] **Real-world applications panel v0 (P2)** — `lib/element-applications-data.ts`: 10 elementi (Li, F, Na, K, Ca, Fe, Ag, I, Pt, Au) con 1 entry ciascuno. Fonte: PubChem (CID verificati). Sezione collassata nell'InfoPanel con badge categoria, link esterno, disclaimer medico su entry `isMedical`. Commit: feat(periodic-table): add curated real-world applications panel.
+- [ ] **PubChem molecule link per farmaci curati (P2)** — link farmaco curato → molecola nel viewer esistente tramite `relatedMolecule` già presente nel dataset. Effort minimo, massima sinergia.
 - [ ] **ChEMBL on-demand enrichment (P3)** — `lib/pharma-chembl.ts`, specchio del pattern PubChem. Solo su richiesta esplicita utente, mai on-load automatico.
-- [ ] **Disclaimer obbligatorio** — se in futuro viene aggiunto contenuto farmacologico: "Contenuto a scopo educativo. Non costituisce consiglio medico."
+- [x] **Disclaimer obbligatorio** — presente su tutte le entry `isMedical: true` con copia IT/EN verificata ("Contesto educativo, non consiglio medico." / "Educational context, not medical advice.").
+
+### Regole invarianti Applications Panel
+- **Fonte obbligatoria per ogni entry**: ogni `ElementApplication` deve avere `sourceUrl` verificabile (PubChem, ChEMBL, WHO, NIST). Nessun claim senza fonte.
+- **Disclaimer medico su `isMedical: true`**: obbligatorio in UI. Non rimuovere senza decisione esplicita.
+- **Max 3 entry per elemento** in v0: non superare senza revisione governance.
+- **Nessun consiglio medico**: descrizioni contestualizzano la chimica/biologia, non indicano trattamenti. Non usare frasi imperative ("usa", "prendi", "assume").
+- **PharmaDive non usato**: vedi sezione audit. Dataset sempre offline e curato manualmente.
 
 ---
 

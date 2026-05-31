@@ -27,6 +27,14 @@ import {
   toKelvin, fromKelvin, inferPhaseAtTemperature, computeTemperatureRangeK,
   ROOM_TEMPERATURE_K,
 } from "@/lib/temperature";
+import { APPLICATIONS } from "@/lib/element-applications-data";
+
+const APP_CAT_LABELS = {
+  medicine:     { it: "Medicina",         en: "Medicine" },
+  biology:      { it: "Biologia",         en: "Biology" },
+  material:     { it: "Materiali",        en: "Materials" },
+  "daily-life": { it: "Vita quotidiana",  en: "Daily life" },
+} as const;
 
 const CrystalViewScene = dynamic(
   () => import("./crystal-view-scene").then(m => m.CrystalViewScene),
@@ -626,6 +634,49 @@ function InfoPanel({ el, locale, tempUnit, lightMode, onDragStart, onCrystalClic
                 )}
               </dd>
             </div>
+          </div>
+        )}
+
+        {/* ── Applicazioni reali ── */}
+        {(APPLICATIONS[el.z]?.length ?? 0) > 0 && (
+          <div className="pt-info__group">
+            <details className="pt-info__apps-details">
+              <summary className="pt-info__apps-summary">
+                <span className="pt-info__group-label">{t.infoGroupApplications}</span>
+              </summary>
+              <div className="pt-info__apps">
+                {(APPLICATIONS[el.z] ?? []).map((app, i) => (
+                  <div key={i} className="pt-info__app-card">
+                    <div className="pt-info__app-header">
+                      <span className="pt-info__app-title">
+                        {locale === "en" ? app.titleEN : app.titleIT}
+                      </span>
+                      <span className={`pt-info__app-cat pt-info__app-cat--${app.category}`}>
+                        {APP_CAT_LABELS[app.category][locale]}
+                      </span>
+                    </div>
+                    <p className="pt-info__app-desc">
+                      {locale === "en" ? app.descEN : app.descIT}
+                    </p>
+                    <div className="pt-info__app-footer">
+                      <a
+                        href={app.sourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="pt-info__app-source"
+                      >
+                        {app.sourceLabel} ↗
+                      </a>
+                      {app.isMedical && (
+                        <span className="pt-info__app-disclaimer">
+                          {t.appDisclaimerMedical}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </details>
           </div>
         )}
 
