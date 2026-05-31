@@ -52,3 +52,7 @@ verify-*.png
 solar-*.png
 mobile-sprint*.png
 03a-*.png
+smoke-*.png
+03b-*.png
+04-*.png
+*-regression.png
