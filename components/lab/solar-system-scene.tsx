@@ -43,6 +43,10 @@ export type SolarSystemSceneProps = {
   showAxes?: boolean;  // show planet rotation axis markers, default false
   brightnessMode: ScaleBrightnessMode;
   catalogLayers?: CatalogLayerSpec[];
+  horizonsMarker?: {
+    name: string;
+    positionKm: [number, number, number];
+  } | null;
 };
 
 // ---------------------------------------------------------------------------
@@ -358,6 +362,7 @@ function InnerScene({
   showAxes,
   brightnessMode,
   catalogLayers,
+  horizonsMarker,
 }: InnerSceneProps) {
   const bodyStates = useMemo(
     () => getBodyStatesForDate(epoch),
@@ -463,6 +468,28 @@ function InnerScene({
           visible={layer.visible}
         />
       ))}
+
+      {/* Horizons precision marker — teal sphere + ring for selected catalog body */}
+      {horizonsMarker && (() => {
+        const [x, y, z] = scalePositionVector(horizonsMarker.positionKm, distanceMode);
+        return (
+          <group position={[x, y, z]}>
+            <mesh scale={0.035}>
+              <sphereGeometry args={[1, 16, 16]} />
+              <meshBasicMaterial color="#00ffcc" transparent opacity={0.85} />
+            </mesh>
+            <mesh rotation={[-Math.PI / 2, 0, 0]}>
+              <ringGeometry args={[0.045, 0.055, 32]} />
+              <meshBasicMaterial color="#00ffcc" transparent opacity={0.5} side={THREE.DoubleSide} depthWrite={false} />
+            </mesh>
+            <Html position={[0, 0.08, 0]} occlude={false} style={{ pointerEvents: "none" }}>
+              <span className="solar-body-label solar-body-label--selected" style={{ color: "#00ffcc", borderColor: "#00ffcc" }}>
+                {horizonsMarker.name}
+              </span>
+            </Html>
+          </group>
+        );
+      })()}
 
       {/* Camera controls */}
       <OrbitControls

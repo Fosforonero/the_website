@@ -83,6 +83,18 @@ export type SolarSystemViewProps = {
   locale: SolarLocale;
 };
 
+type HorizonsMarker = {
+  id: string;
+  name: string;
+  positionKm: [number, number, number];
+  velocityKmS: [number, number, number];
+  dataQuality: "sub-km";
+  epochIso: string;
+  referenceFrame: string;
+  source: "jpl-horizons";
+  cachedAt: string;
+};
+
 // ---------------------------------------------------------------------------
 // Helper: format mass in scientific notation
 // ---------------------------------------------------------------------------
@@ -127,6 +139,8 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
     Map<CatalogCategory, import("@/lib/solar-system/catalog").CatalogEntry[]>
   >(new Map());
   const [visibleCatalog, setVisibleCatalog] = useState<Set<CatalogCategory>>(new Set());
+  const [horizonsMarker, setHorizonsMarker] = useState<HorizonsMarker | null>(null);
+  const [horizonsLoading, setHorizonsLoading] = useState(false);
 
   // ── Playback ─────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -215,9 +229,23 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
   );
 
   // ── Search handler ────────────────────────────────────────────────────────
-  function handleSearchSelect(result: SearchResult) {
-    // Task 7 will add Horizons fetch here
-    console.info("[03B] Selected catalog body:", result.id, result.name);
+  async function handleSearchSelect(result: SearchResult) {
+    const date = new Date(epoch).toISOString().slice(0, 10);
+    setHorizonsLoading(true);
+    setHorizonsMarker(null);
+    try {
+      const res = await fetch(`/api/solar/horizons?id=${encodeURIComponent(result.id)}&date=${date}`);
+      if (!res.ok) {
+        console.warn("Horizons fetch failed:", res.status, await res.text());
+        return;
+      }
+      const data = await res.json() as Omit<HorizonsMarker, "name">;
+      setHorizonsMarker({ ...data, name: result.name });
+    } catch (e) {
+      console.error("Horizons fetch error:", e);
+    } finally {
+      setHorizonsLoading(false);
+    }
   }
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -397,6 +425,7 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
           deepSkyVisible={deepSkyVisible}
           showAxes={showAxes}
           catalogLayers={catalogLayerSpecs}
+          horizonsMarker={horizonsMarker}
         />
       </div>
 
@@ -590,6 +619,54 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
           <p style={{ fontSize: "0.62rem", color: "#4a7090", lineHeight: 1.5, margin: 0 }}>
             {t.moonScaleNote}
           </p>
+        )}
+
+        {/* Horizons precision marker info */}
+        {horizonsLoading && (
+          <p style={{ fontSize: "0.62rem", color: "#00ffcc", lineHeight: 1.5, margin: 0 }}>
+            {locale === "it" ? "Caricamento posizione Horizons…" : "Fetching Horizons position…"}
+          </p>
+        )}
+        {horizonsMarker && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+            <div className="solar-inspector__row">
+              <span className="solar-inspector__label">
+                {locale === "it" ? "Corpo selezionato (Horizons)" : "Selected body (Horizons)"}
+              </span>
+              <span className="solar-inspector__value" style={{ color: "#00ffcc" }}>
+                {horizonsMarker.name}
+              </span>
+            </div>
+            <div className="solar-inspector__row">
+              <span className="solar-inspector__label">
+                {locale === "it" ? "Precisione" : "Accuracy"}
+              </span>
+              <span className="solar-inspector__value" style={{ fontSize: "0.65rem", color: "#00ffcc" }}>
+                sub-km (JPL Horizons)
+              </span>
+            </div>
+            <div className="solar-inspector__row">
+              <span className="solar-inspector__label">Frame</span>
+              <span className="solar-inspector__value" style={{ fontSize: "0.65rem" }}>
+                {horizonsMarker.referenceFrame}
+              </span>
+            </div>
+            <div className="solar-inspector__row">
+              <span className="solar-inspector__label">
+                {locale === "it" ? "Dati alle" : "Data at"}
+              </span>
+              <span className="solar-inspector__value" style={{ fontSize: "0.65rem" }}>
+                {horizonsMarker.epochIso.slice(0, 10)}
+              </span>
+            </div>
+            <button
+              className="solar-control"
+              style={{ marginTop: 2, fontSize: "0.65rem" }}
+              onClick={() => setHorizonsMarker(null)}
+            >
+              {locale === "it" ? "Rimuovi marcatore" : "Clear marker"}
+            </button>
+          </div>
         )}
 
         {/* Active scale modes disclosure */}
