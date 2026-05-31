@@ -158,7 +158,7 @@ Comete: corpi con orbite molto eccentriche. Sprint 01 include alcune comete note
 
 Oggetti Transnettuniani (TNO): corpi oltre l'orbita di Nettuno, inclusa la fascia di Kuiper. Sprint 01 include i TNO più noti.
 
-Tutti i corpi presenti nell'MVP sono dati statici curati manualmente. Un catalogo completo di corpi minori (JPL Small Body Database) è pianificato per sprint successivi.`,
+I corpi principali (pianeti, lune, pianeti nani, comete notevoli) sono dati curati manualmente. Sprint 03B ha aggiunto uno snapshot SBDB con 26.132 corpi minori (NEO, fascia principale, comete, TNO, centauri) visualizzati come livelli di punti attivabili. Un catalogo completo auto-aggiornante è in roadmap.`,
       },
       inspector: {
         title: "Campi dell'ispettore",
@@ -237,7 +237,7 @@ Desktop: l'esperienza principale. Il canvas WebGL e tutti i pannelli sono proget
 
 Mobile: il canvas si renderizza correttamente anche su dispositivi mobili. I controlli (pannelli laterali, toolbar) potrebbero risultare sovrapposti o ridotti su schermi piccoli. I gesti touch per la navigazione (ruota, zoom, pan) sono parzialmente supportati in Sprint 01. Sprint futuri aggiungeranno pannelli collassabili e gesture ottimizzate per touch.
 
-Performance: il caricamento del modulo WebGL avviene tramite dynamic import (lazy loading), quindi non impatta il caricamento iniziale della pagina. Sprint 01 non carica texture pesanti. Il numero di corpi attivi è gestibile (~28 corpi). Il rendering è ottimizzato con requestAnimationFrame e aggiornamenti posizionali ogni 100ms.
+Performance: il caricamento del modulo WebGL avviene tramite dynamic import (lazy loading), quindi non impatta il caricamento iniziale della pagina. Nessuna texture pesante (materiali procedurali). Il numero di corpi principali è ~28; i livelli catalogo SBDB (fino a 26.132 punti) si caricano on-demand solo quando attivati. Il rendering è ottimizzato con requestAnimationFrame e aggiornamenti posizionali ogni 100ms.
 
 Per problemi di performance su hardware vecchio: prova a disattivare il firmamento stellare dal pannello impostazioni (riduce il numero di vertex da renderizzare).`,
       },
@@ -262,11 +262,11 @@ Per problemi di performance su hardware vecchio: prova a disattivare il firmamen
           },
           {
             q: "Che catalogo stellare viene usato?",
-            a: "Il catalogo Hipparcos dell'ESA (High Precision Parallax Collecting Satellite). 44 stelle nominate con posizioni RA/Dec J2000 reali e magnitudini reali. Il catalogo completo Gaia è pianificato per Sprint 02.",
+            a: "Il catalogo Hipparcos dell'ESA (High Precision Parallax Collecting Satellite). 44 stelle nominate con posizioni RA/Dec J2000 reali e magnitudini reali. Il catalogo completo Gaia (>1 miliardo di stelle) è pianificato per un sprint futuro.",
           },
           {
             q: "Quanti corpi sono inclusi?",
-            a: "Sprint 01 include circa 28 corpi curati: il Sole, 8 pianeti, 5 pianeti nani principali, le lune principali, alcuni asteroidi rappresentativi, e alcune comete notevoli. Un catalogo completo di corpi minori (JPL Small Body Database, >1 milione di oggetti) è pianificato per sprint successivi.",
+            a: "Il laboratorio include ~28 corpi principali curati (Sole, pianeti, lune principali, pianeti nani, comete notevoli). Sprint 03B ha aggiunto uno snapshot SBDB con 26.132 corpi minori suddivisi in 5 livelli: NEO (10.000 su ~42.000 noti), fascia principale top-5.000, comete (~4.000), TNO (~6.000), centauri (~1.000). I livelli si attivano on-demand dalla toolbar.",
           },
           {
             q: "Da dove vengono i dati orbitali?",
@@ -428,7 +428,7 @@ Comets: bodies with highly eccentric orbits. Sprint 01 includes some notable com
 
 Trans-Neptunian Objects (TNOs): bodies beyond Neptune's orbit, including the Kuiper Belt. Sprint 01 includes the most notable TNOs.
 
-All bodies in the MVP are manually curated static data. A full minor-body catalog (JPL Small Body Database) is planned for future sprints.`,
+Major bodies (planets, moons, dwarf planets, notable comets) are manually curated. Sprint 03B added an SBDB snapshot with 26,132 minor bodies (NEOs, main belt, comets, TNOs, centaurs) rendered as toggleable point layers. A full auto-refreshing catalog is on the roadmap.`,
       },
       inspector: {
         title: "Inspector fields",
@@ -507,7 +507,7 @@ Desktop: the primary experience. The WebGL canvas and all panels are designed fo
 
 Mobile: the canvas renders correctly on mobile devices. Controls (side panels, toolbar) may overlap or feel cramped on small screens. Touch gestures for navigation (rotate, zoom, pan) are partially supported in Sprint 01. Future sprints will add collapsible panels and optimized touch gestures.
 
-Performance: the WebGL module loads via dynamic import (lazy loading), so it does not impact the initial page load. Sprint 01 does not load heavy textures. The number of active bodies is manageable (~28 bodies). Rendering is optimized with requestAnimationFrame and positional updates every 100ms.
+Performance: the WebGL module loads via dynamic import (lazy loading), so it does not impact the initial page load. No heavy texture maps (procedural materials). The number of major bodies is ~28; SBDB catalog layers (up to 26,132 points) load on-demand only when toggled. Rendering is optimized with requestAnimationFrame and positional updates every 100ms.
 
 If you experience performance issues on older hardware: try disabling the star firmament from the settings panel (this reduces the number of vertices to render).`,
       },
@@ -536,7 +536,7 @@ If you experience performance issues on older hardware: try disabling the star f
           },
           {
             q: "How many bodies are included?",
-            a: "Sprint 01 includes approximately 28 curated bodies: the Sun, 8 planets, 5 main dwarf planets, major moons, some representative asteroids, and a few notable comets. A full minor-body catalog (JPL Small Body Database, >1 million objects) is planned for future sprints.",
+            a: "The lab includes ~28 curated major bodies (Sun, planets, major moons, dwarf planets, notable comets). Sprint 03B added an SBDB snapshot with 26,132 minor bodies across 5 layers: NEOs (10,000 out of ~42,000 known), top-5,000 main belt, comets (~4,000), TNOs (~6,000), centaurs (~1,000). Layers activate on demand from the toolbar.",
           },
           {
             q: "Where does the orbital data come from?",

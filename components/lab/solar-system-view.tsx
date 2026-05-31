@@ -106,6 +106,15 @@ function formatMass(massKg: number): string {
 }
 
 // ---------------------------------------------------------------------------
+// Helper: locale-aware number formatter (SSR-safe, no hydration mismatch)
+// Uses explicit locale so server and client always agree.
+// ---------------------------------------------------------------------------
+
+function formatNumber(n: number, locale: SolarLocale): string {
+  return new Intl.NumberFormat(locale === "it" ? "it-IT" : "en-US").format(n);
+}
+
+// ---------------------------------------------------------------------------
 // Helper: format date value for <input type="date">
 // ---------------------------------------------------------------------------
 
@@ -479,7 +488,7 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
         <div className="solar-inspector__row">
           <span className="solar-inspector__label">{t.radius}</span>
           <span className="solar-inspector__value">
-            {selectedBody.radiusKm.toLocaleString()} km
+            {formatNumber(selectedBody.radiusKm, locale)} km
           </span>
         </div>
         <div className="solar-inspector__row" style={{ flexDirection: "column", alignItems: "flex-start", gap: 2 }}>
@@ -535,7 +544,7 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
           <div className="solar-inspector__row">
             <span className="solar-inspector__label">{t.ringSystem}</span>
             <span className="solar-inspector__value" style={{ fontSize: "0.65rem" }}>
-              {selectedBody.ringInnerKm.toLocaleString()}–{selectedBody.ringOuterKm.toLocaleString()} km
+              {formatNumber(selectedBody.ringInnerKm, locale)}–{formatNumber(selectedBody.ringOuterKm, locale)} km
             </span>
           </div>
         )}

@@ -634,13 +634,13 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
               {(isIT ? [
                 "Canvas WebGL caricato via dynamic import (SSR-safe).",
                 "Nessuna texture pesante (materiali procedurali).",
-                "Catalogo corpi minori limitato a ~28 corpi curati.",
-                "Rendering instanziato pianificato per cataloghi densi futuri (Sprint 03B+).",
+                "Corpi principali curati: ~28 (pianeti, lune, pianeti nani, comete notevoli).",
+                "Sprint 03B: snapshot SBDB da 26.132 corpi minori caricati on-demand come livelli di punti. NEO limitati a 10.000 su ~42.000 noti.",
               ] : [
                 "WebGL canvas loaded via dynamic import (SSR-safe).",
                 "No heavy texture maps (procedural materials).",
-                "Minor body catalog limited to ~28 curated bodies.",
-                "Instanced rendering planned for future dense catalogs (Sprint 03B+).",
+                "Curated major bodies: ~28 (planets, moons, dwarf planets, notable comets).",
+                "Sprint 03B: SBDB snapshot of 26,132 minor bodies loaded on-demand as point layers. NEOs capped at 10,000 out of ~42,000 known.",
               ]).map((text) => (
                 <li key={text}>
                   <span className="ss-about-limits-bullet" aria-hidden="true">—</span>
