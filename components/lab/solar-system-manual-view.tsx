@@ -22,6 +22,9 @@ const T = {
       { id: "inspector", label: "Campi dell'ispettore" },
       { id: "visual-confidence", label: "Etichette di confidenza visiva" },
       { id: "firmament", label: "Strato firmamento" },
+      { id: "reference-frame", label: "Sistema di riferimento" },
+      { id: "axial-tilt", label: "Inclinazione assiale e rotazione" },
+      { id: "lighting", label: "Illuminazione" },
       { id: "sandbox-roadmap", label: "Roadmap: modalità sandbox" },
       { id: "mobile-performance", label: "Mobile e performance" },
       { id: "faq", label: "FAQ" },
@@ -94,6 +97,37 @@ Scala raggi:
 — Relativo: i raggi sono proporzionali al Sole. La Terra appare come un punto minuscolo. Fisicamente più corretto, ma molti corpi diventano invisibili a occhio nudo.
 
 In entrambe le modalità di scala, la visualizzazione è educativa, non fisicamente accurata. Lo scopo è rendere il sistema solare esplorabile nel browser.`,
+      },
+      referenceFrame: {
+        title: "Sistema di riferimento",
+        content: `Sistema di riferimento: tutte le posizioni sono calcolate nel frame Eclittica Eliocentrica J2000.0 (HEC-J2000).
+
+Origine: baricentro del Sistema Solare (approssimato al Sole in questo laboratorio).
+Piano xy: piano dell'eclittica medio a J2000.0.
+Asse x: equinozio di primavera medio a J2000.0.
+Unità: chilometri.
+
+Questo sistema NON coincide con le coordinate equatoriali ICRF/J2000 (usate da SIMBAD, Gaia, ecc.). La conversione richiede una rotazione di ~23.44° attorno all'asse x (obliquità dell'eclittica, IAU 2006).
+
+Cosa è approssimato: l'origine è al Sole, non al vero baricentro; le posizioni vengono da elementi kepleriani, non da integrazione numerica; l'azimut del polo planetario è approssimato (RA/Dec IAU WGCCRE previsto per Sprint 04).`,
+      },
+      axialTilt: {
+        title: "Inclinazione assiale e rotazione",
+        content: `Inclinazione assiale: i pianeti principali mostrano la reale obliquità rispetto all'eclittica (dati IAU 2015). L'asse di rotazione è visibile opzionalmente tramite il toggle "Assi" nella barra degli strumenti.
+
+Rotazione retrograda: Venere (177°), Urano (98°) e Plutone (122°) ruotano in senso retrogrado. Urano ha il polo quasi nel piano orbitale.
+
+Anelli: Saturno mostra gli anelli nel piano equatoriale (74 500–140 220 km). Urano mostra anelli più tenui (38 000–51 149 km), quasi perpendicolari al piano orbitale per via dell'inclinazione di 98°.
+
+Nota tecnica: l'azimut del polo è approssimato — la precisa direzione RA/Dec IAU WGCCRE non è ancora implementata. La fase di rotazione segue il periodo siderale reale da J2000.0, senza precessione o nutazione.`,
+      },
+      lighting: {
+        title: "Illuminazione",
+        content: `Illuminazione educativa (predefinita): luce solare con legge inversa del quadrato (1/r²) più un piccolo boost ambientale dichiarato che mantiene visibili i pianeti esterni. Non è fisicamente precisa per i pianeti lontani.
+
+Illuminazione fisica (1/r²): nessun boost. Nettuno a ~30 UA riceve circa 1/900 dell'irradianza terrestre — scuro come nella realtà. Selezionabile dal menu "Illuminazione" nella barra degli strumenti.
+
+La modalità attiva è sempre indicata nell'ispettore sotto "Scale attive".`,
       },
       bodyCategories: {
         title: "Categorie di corpi celesti",
@@ -235,6 +269,9 @@ Per problemi di performance su hardware vecchio: prova a disattivare il firmamen
       { id: "inspector", label: "Inspector fields" },
       { id: "visual-confidence", label: "Visual confidence labels" },
       { id: "firmament", label: "Firmament layer" },
+      { id: "reference-frame", label: "Reference frame" },
+      { id: "axial-tilt", label: "Axial tilt and rotation" },
+      { id: "lighting", label: "Lighting" },
       { id: "sandbox-roadmap", label: "Roadmap: sandbox mode" },
       { id: "mobile-performance", label: "Mobile & performance" },
       { id: "faq", label: "FAQ" },
@@ -307,6 +344,37 @@ Radius scale:
 — Relative: radii are proportional to the Sun. Earth appears as a tiny dot. Physically more accurate, but many bodies become invisible to the naked eye.
 
 In both scale modes, the visualization is educational, not physically accurate. The goal is to make the solar system explorable in the browser.`,
+      },
+      referenceFrame: {
+        title: "Reference frame",
+        content: `Reference frame: all positions are computed in the Heliocentric Ecliptic J2000.0 frame (HEC-J2000).
+
+Origin: Solar System Barycentre (approximated to the Sun in this lab).
+xy-plane: mean ecliptic plane at J2000.0.
+x-axis: mean vernal equinox at J2000.0.
+Units: kilometres.
+
+This is NOT the same as equatorial ICRF/J2000 (used by SIMBAD, Gaia, etc.). The conversion requires a ~23.44° rotation around x (obliquity of the ecliptic, IAU 2006).
+
+What is approximated: origin is at the Sun, not the true barycentre; positions come from Keplerian elements, not numerical integration; planetary pole azimuth is approximated (IAU WGCCRE RA/Dec planned for Sprint 04).`,
+      },
+      axialTilt: {
+        title: "Axial tilt and rotation",
+        content: `Axial tilt: major planets show their real obliquity to the ecliptic (IAU 2015 data). The rotation axis is optionally visible via the "Axes" toggle in the toolbar.
+
+Retrograde rotation: Venus (177°), Uranus (98°) and Pluto (122°) rotate retrograde. Uranus has its pole nearly in the orbital plane.
+
+Rings: Saturn shows rings in its equatorial plane (74,500–140,220 km). Uranus shows fainter rings (38,000–51,149 km), nearly perpendicular to the orbital plane due to its 98° tilt.
+
+Technical note: pole azimuth is approximated — the precise IAU WGCCRE RA/Dec direction is not yet implemented. Rotation phase follows the real sidereal period from J2000.0, without precession or nutation.`,
+      },
+      lighting: {
+        title: "Lighting",
+        content: `Educational lighting (default): solar light with inverse-square law (1/r²) plus a small declared ambient boost that keeps outer planets visible. Not physically accurate for distant planets.
+
+Physical lighting (1/r²): no boost. Neptune at ~30 AU receives ~1/900 of Earth's irradiance — as dark as reality. Selectable from the "Lighting" menu in the toolbar.
+
+The active mode is always shown in the inspector under "Active scales".`,
       },
       bodyCategories: {
         title: "Body categories",
@@ -529,10 +597,49 @@ export function SolarSystemManualView({ locale }: SolarManualViewProps) {
           </div>
         </section>
 
-        {/* ── 5. Body categories ── */}
-        <section id="body-categories" className="sm-manual-section">
+        {/* ── 5. Reference frame ── */}
+        <section id="reference-frame" className="sm-manual-section">
           <h2 className="sm-manual-section-title">
             <span className="sm-manual-section-num">5.</span>
+            {s.referenceFrame.title}
+          </h2>
+          <div className="sm-manual-prose">
+            {s.referenceFrame.content.split("\n\n").map((para, i) => (
+              <p key={i}>{para}</p>
+            ))}
+          </div>
+        </section>
+
+        {/* ── 6. Axial tilt and rotation ── */}
+        <section id="axial-tilt" className="sm-manual-section">
+          <h2 className="sm-manual-section-title">
+            <span className="sm-manual-section-num">6.</span>
+            {s.axialTilt.title}
+          </h2>
+          <div className="sm-manual-prose">
+            {s.axialTilt.content.split("\n\n").map((para, i) => (
+              <p key={i}>{para}</p>
+            ))}
+          </div>
+        </section>
+
+        {/* ── 7. Lighting ── */}
+        <section id="lighting" className="sm-manual-section">
+          <h2 className="sm-manual-section-title">
+            <span className="sm-manual-section-num">7.</span>
+            {s.lighting.title}
+          </h2>
+          <div className="sm-manual-prose">
+            {s.lighting.content.split("\n\n").map((para, i) => (
+              <p key={i}>{para}</p>
+            ))}
+          </div>
+        </section>
+
+        {/* ── 8. Body categories ── */}
+        <section id="body-categories" className="sm-manual-section">
+          <h2 className="sm-manual-section-title">
+            <span className="sm-manual-section-num">8.</span>
             {s.bodyCategories.title}
           </h2>
           <div className="sm-manual-prose">
@@ -542,10 +649,10 @@ export function SolarSystemManualView({ locale }: SolarManualViewProps) {
           </div>
         </section>
 
-        {/* ── 6. Inspector ── */}
+        {/* ── 9. Inspector ── */}
         <section id="inspector" className="sm-manual-section">
           <h2 className="sm-manual-section-title">
-            <span className="sm-manual-section-num">6.</span>
+            <span className="sm-manual-section-num">9.</span>
             {s.inspector.title}
           </h2>
           <div className="sm-manual-prose">
@@ -555,10 +662,10 @@ export function SolarSystemManualView({ locale }: SolarManualViewProps) {
           </div>
         </section>
 
-        {/* ── 7. Visual confidence ── */}
+        {/* ── 10. Visual confidence ── */}
         <section id="visual-confidence" className="sm-manual-section">
           <h2 className="sm-manual-section-title">
-            <span className="sm-manual-section-num">7.</span>
+            <span className="sm-manual-section-num">10.</span>
             {s.visualConfidence.title}
           </h2>
           <div className="sm-manual-prose">
@@ -568,10 +675,10 @@ export function SolarSystemManualView({ locale }: SolarManualViewProps) {
           </div>
         </section>
 
-        {/* ── 8. Firmament ── */}
+        {/* ── 11. Firmament ── */}
         <section id="firmament" className="sm-manual-section">
           <h2 className="sm-manual-section-title">
-            <span className="sm-manual-section-num">8.</span>
+            <span className="sm-manual-section-num">11.</span>
             {s.firmament.title}
           </h2>
           <div className="sm-manual-prose">
@@ -581,10 +688,10 @@ export function SolarSystemManualView({ locale }: SolarManualViewProps) {
           </div>
         </section>
 
-        {/* ── 9. Sandbox roadmap ── */}
+        {/* ── 12. Sandbox roadmap ── */}
         <section id="sandbox-roadmap" className="sm-manual-section">
           <h2 className="sm-manual-section-title">
-            <span className="sm-manual-section-num">9.</span>
+            <span className="sm-manual-section-num">12.</span>
             {s.sandboxRoadmap.title}
           </h2>
           <div className="sm-manual-prose">
@@ -594,10 +701,10 @@ export function SolarSystemManualView({ locale }: SolarManualViewProps) {
           </div>
         </section>
 
-        {/* ── 10. Mobile & performance ── */}
+        {/* ── 13. Mobile & performance ── */}
         <section id="mobile-performance" className="sm-manual-section">
           <h2 className="sm-manual-section-title">
-            <span className="sm-manual-section-num">10.</span>
+            <span className="sm-manual-section-num">13.</span>
             {s.mobilePerformance.title}
           </h2>
           <div className="sm-manual-prose">
@@ -607,10 +714,10 @@ export function SolarSystemManualView({ locale }: SolarManualViewProps) {
           </div>
         </section>
 
-        {/* ── 11. FAQ ── */}
+        {/* ── 14. FAQ ── */}
         <section id="faq" className="sm-manual-section">
           <h2 className="sm-manual-section-title">
-            <span className="sm-manual-section-num">11.</span>
+            <span className="sm-manual-section-num">14.</span>
             {s.faq.title}
           </h2>
           <dl className="sm-manual-faq">

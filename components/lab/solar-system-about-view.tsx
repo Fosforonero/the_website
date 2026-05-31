@@ -91,8 +91,9 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
   const ROADMAP = [
     { done: true,  label: isIT ? "Sprint 01: Keplerian solver, catalogo corpi, firmamento Hipparcos, rendering WebGL procedural." : "Sprint 01: Keplerian solver, body catalog, Hipparcos firmament, procedural WebGL rendering." },
     { done: true,  label: isIT ? "Sprint 02: Elementi orbitali completi (Ω, ω, M₀ J2000), percorsi orbitali ellittici campionati, scala raggi logaritmica categoriale, sistemi luna/satellite leggibili, playback giorni/sec." : "Sprint 02: Full orbital elements (Ω, ω, M₀ J2000), sampled elliptical orbit paths, category-aware log radius scaling, readable moon/satellite systems, days/sec playback." },
-    { done: false, label: isIT ? "Sprint 03: API route JPL Horizons per posizioni di precisione; catalogo completo corpi minori con caricamento progressivo; texture reali NASA/USGS." : "Sprint 03: JPL Horizons API route for precision positions; full minor-body catalog with progressive loading; real NASA/USGS textures." },
-    { done: false, label: isIT ? "Sprint 04: Catalogo satelliti naturali; fascia asteroidale come punti instanziati." : "Sprint 04: Natural satellite catalog; asteroid belt as instanced points." },
+    { done: true,  label: isIT ? "Sprint 03A: Fisica reale — inclinazione assiale IAU 2015, anelli Saturno/Urano, illuminazione 1/r², sistema di riferimento HEC-J2000, frame/accuracy nell'ispettore." : "Sprint 03A: Physical realism — IAU 2015 axial tilt, Saturn/Uranus rings, 1/r² lighting, HEC-J2000 reference frame, inspector frame/accuracy." },
+    { done: false, label: isIT ? "Sprint 03B: API route JPL Horizons per posizioni di precisione; catalogo completo corpi minori con caricamento progressivo; texture reali NASA/USGS." : "Sprint 03B: JPL Horizons API route for precision positions; full minor-body catalog with progressive loading; real NASA/USGS textures." },
+    { done: false, label: isIT ? "Sprint 04: RA/Dec IAU WGCCRE per azimut poli planetari; catalogo satelliti naturali; fascia asteroidale come punti instanziati." : "Sprint 04: IAU WGCCRE RA/Dec for planetary pole azimuths; natural satellite catalog; asteroid belt as instanced points." },
     { done: false, label: isIT ? "Sprint 05: Satelliti artificiali CelesTrak; modalità sandbox con fisica." : "Sprint 05: CelesTrak artificial satellites; sandbox physics mode." },
   ];
 
@@ -473,6 +474,9 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
                 { label: "@react-three/postprocessing", url: "https://github.com/pmndrs/react-postprocessing", desc: isIT ? "Effetti post-processing: bloom, vignette." : "Post-processing effects: bloom, vignette." },
                 { label: isIT ? "Meccanica orbitale (Keplerian solver)" : "Orbital mechanics (Keplerian solver)", url: null, desc: isIT ? "Solver Kepleriano custom basato su elementi orbitali pubblici." : "Custom Keplerian solver using public orbital elements." },
                 { label: isIT ? "Catalogo stelle: ESA Hipparcos" : "Star catalog: ESA Hipparcos", url: "https://www.cosmos.esa.int/web/hipparcos/catalogues", desc: isIT ? "Subset curato per rendering browser-ready." : "Curated subset for browser-ready firmament rendering." },
+                { label: "lib/solar-system/reference-frames.ts", url: null, desc: isIT ? "Documentazione frame HEC-J2000, conversione eclittica-equatoriale." : "HEC-J2000 frame documentation, ecliptic-to-equatorial conversion." },
+                { label: "lib/solar-system/rotation-model.ts", url: null, desc: isIT ? "Obliquità assiale IAU 2015, rotazione siderale, rilevamento retrogrado." : "IAU 2015 axial tilt, sidereal rotation, retrograde detection." },
+                { label: "lib/solar-system/lighting-model.ts", url: null, desc: isIT ? "Configurazioni illuminazione fisica (1/r²) ed educativa." : "Physical (1/r²) and educational lighting configurations." },
                 { label: "Vercel", url: "https://vercel.com/", desc: isIT ? "Hosting e deployment." : "Hosting and deployment." },
               ].map(({ label, url, desc }) => (
                 <li key={label}>
@@ -545,16 +549,20 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
             </h2>
             <ul className="ss-about-limits">
               {(isIT ? [
-                "Le posizioni orbitali usano elementi Kepleriani con Ω, ω, M₀ J2000 (Sprint 02), non vettori live JPL Horizons.",
-                "Le modalità di scala sono educative, non fisicamente accurate.",
+                "Posizioni orbitali: elementi kepleriani J2000 nel frame HEC-J2000. Non integrazioni numeriche, non vettori live JPL Horizons. Precisione: pochi milioni di km su scale di anni.",
+                "Orientamento assi: obliquità IAU 2015 corretta; azimut del polo approssimato (RA/Dec IAU WGCCRE in Sprint 04). Precessione e nutazione non modellate.",
+                "Anelli: geometria semplificata. Saturn: no divisione di Cassini, no divisioni degli anelli, no ombre degli anelli sul pianeta. Uranus: solo la banda principale degli anelli epsilon.",
+                "Illuminazione: la modalità educativa aggiunge un boost ambientale non fisico per la visibilità. La modalità fisica (1/r²) è disponibile ma rende i pianeti esterni molto scuri.",
+                "Raggi visivi: scala logaritmica educativa per categoria. I corpi sono molto più grandi del reale rispetto alle distanze. Dichiarato nell'ispettore sotto \"Scale attive\".",
                 "Il catalogo stelle è un subset curato di Hipparcos (44 stelle), non il catalogo completo.",
-                "Le linee delle costellazioni fanno riferimento ai dati Stellarium sky cultures.",
                 "Le texture sono procedurali; i dettagli superficiali non sono scientificamente rappresentativi.",
               ] : [
-                "Orbital positions use Keplerian elements with Ω, ω, M₀ at J2000 (Sprint 02), not live JPL Horizons vectors.",
-                "Scale modes are educational, not physically accurate.",
+                "Orbital positions: J2000 Keplerian elements in the HEC-J2000 frame. Not numerical integrations, not live JPL Horizons vectors. Accuracy: a few million km over multi-year timescales.",
+                "Axis orientation: IAU 2015 obliquity correct; pole azimuth approximated (IAU WGCCRE RA/Dec in Sprint 04). Precession and nutation not modelled.",
+                "Rings: simplified geometry. Saturn: no Cassini Division, no ring divisions, no ring shadow on planet. Uranus: main epsilon ring band only.",
+                "Lighting: educational mode adds a non-physical ambient boost for visibility. Physical mode (1/r²) is available but makes outer planets very dark.",
+                "Visual radii: educational logarithmic scale by category. Bodies are much larger than real scale relative to distances. Declared in inspector under \"Active scales\".",
                 "Star catalog is a curated subset of Hipparcos (44 stars), not the full catalog.",
-                "Constellation lines reference Stellarium sky cultures data.",
                 "Textures are procedural; surface details are not scientifically representative.",
               ]).map((text) => (
                 <li key={text}>
