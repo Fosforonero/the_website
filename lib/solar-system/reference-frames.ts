@@ -69,13 +69,13 @@ export const REFERENCE_FRAME = {
     it: [
       "Origine al Sole, non al vero baricentro del Sistema Solare.",
       "axialTiltDeg = obliquità rispetto alla normale del piano orbitale medio del corpo (non la RA/Dec assoluta del polo in ICRF). Nel renderer 03A l'obliquità è applicata come rotazione attorno all'asse X della scena — approssimazione valida per pianeti con bassa inclinazione (<3°), meno precisa per lune ad alta inclinazione.",
-      "Direzione del polo (azimut RA/Dec IAU WGCCRE) non implementata — prevista Sprint 04. Il piano orbitale per-corpo come riferimento del tilt è Sprint 04.",
+      "Direzione del polo: IAU WGCCRE RA/Dec implementata (Sprint 04) per i pianeti principali e la Luna. Lune minori, asteroidi e comete usano ancora l'approssimazione asse-X da Sprint 03A. Piano orbitale per-corpo: Sprint 05.",
       "Precessione e nutazione degli assi non modellate.",
     ],
     en: [
       "Origin at the Sun, not the true Solar System Barycentre.",
       "axialTiltDeg = obliquity relative to the body's mean orbital plane normal (not absolute ICRF RA/Dec of the pole). In the 03A renderer, obliquity is applied as rotation around the scene X-axis — good approximation for low-inclination planets (<3°), less accurate for high-inclination moons.",
-      "Pole azimuth direction (IAU WGCCRE RA/Dec) not implemented — planned Sprint 04. Per-body orbital plane as tilt reference is Sprint 04.",
+      "Pole direction: IAU WGCCRE RA/Dec implemented (Sprint 04) for major planets and Moon. Minor moons, asteroids and comets still use the Sprint 03A scene-X approximation. Per-body orbital plane: Sprint 05.",
       "Precession and nutation of rotation axes not modelled.",
     ],
   },
@@ -137,6 +137,6 @@ export const SCENE_COORD_NOTE =
  * This is planned for Sprint 04 along with IAU WGCCRE pole RA/Dec.
  */
 export const AXIAL_TILT_RENDERING_NOTE = {
-  it: "Tilt 03A: obliquità applicata attorno all'asse X della scena (approssimazione eclittica). Errore < 3° per pianeti con inclinazione orbitale < 3°. Correzione per-corpo in Sprint 04.",
-  en: "03A tilt: obliquity applied around scene X-axis (ecliptic approximation). Error < 3° for planets with orbital inclination < 3°. Per-body correction in Sprint 04.",
+  it: "Tilt Sprint 04: pianeti principali usano vettore polo IAU WGCCRE nel frame eclittico. Lune minori e corpi del catalogo usano ancora l'approssimazione asse-X (Sprint 03A). Piano orbitale per-corpo: Sprint 05.",
+  en: "Sprint 04 tilt: major planets use IAU WGCCRE pole vector in ecliptic frame. Minor moons and catalog bodies still use Sprint 03A X-axis approximation. Per-body orbital plane: Sprint 05.",
 } as const;

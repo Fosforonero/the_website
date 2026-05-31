@@ -16,6 +16,7 @@ import {
   formatAxialTilt,
   formatRotationPeriod,
   formatRotationDirection,
+  getBodyOrientation,
 } from "@/lib/solar-system/rotation-model";
 import type { CatalogCategory } from "@/lib/solar-system/catalog";
 import { catalogCategoryLabel } from "@/lib/solar-system/catalog-filter";
@@ -575,13 +576,19 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
         {selectedBody.axialTiltDeg !== undefined && (
           <div className="solar-inspector__row">
             <span className="solar-inspector__label">{t.rotationAccuracy}</span>
-            <span
-              className="solar-inspector__value"
-              style={{ fontSize: "0.60rem", color: "#4a7090", lineHeight: 1.3 }}
-              title={AXIAL_TILT_RENDERING_NOTE[locale]}
-            >
-              axial-tilt-approximate
-            </span>
+            {(() => {
+              const orient = getBodyOrientation(selectedBody, epoch);
+              const accuracyColor = orient.accuracy === "iau-pole-vector" ? "#70c090" : "#4a7090";
+              return (
+                <span
+                  className="solar-inspector__value"
+                  style={{ fontSize: "0.60rem", color: accuracyColor, lineHeight: 1.3 }}
+                  title={AXIAL_TILT_RENDERING_NOTE[locale]}
+                >
+                  {orient.accuracy}
+                </span>
+              );
+            })()}
           </div>
         )}
 

@@ -79,6 +79,9 @@ export const SOLAR_UI = {
     positionAccuracy: "Precisione posizione",
     rotationAccuracy: "Precisione orientamento",
     ringSystem: "Anelli",
+    catalogLayers: "Livelli catalogo",
+    catalogDataQuality: "Qualità dati catalogo",
+    neoCount: "Corpi NEO",
     searchPlaceholder: "Cerca corpo celeste…",
   },
   en: {
@@ -155,6 +158,9 @@ export const SOLAR_UI = {
     positionAccuracy: "Position accuracy",
     rotationAccuracy: "Rotation accuracy",
     ringSystem: "Rings",
+    catalogLayers: "Catalog layers",
+    catalogDataQuality: "Catalog data quality",
+    neoCount: "NEO bodies",
     searchPlaceholder: "Search catalog…",
   },
 } as const;
