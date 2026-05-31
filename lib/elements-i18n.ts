@@ -171,6 +171,13 @@ export const LAB_UI_TRANSLATIONS = {
     tempNoteNoMelting: "Dati termici incompleti",
     crystalUnstableTooltip: "Reticolo cristallino non stabile sopra il punto di fusione",
     crystalUnknownPhaseTooltip: "Stato fisico non determinabile: dati termici incompleti",
+    materialViewBtn: "materiale",
+    materialViewTitle: "Vista materiale: modello particellare dello stato della materia in funzione della temperatura",
+    materialUnknownTooltip: "Dati termici insufficienti per questa visualizzazione",
+    materialDisclaimer: "modello concettuale · non simulazione fisica quantitativa",
+    materialLegendSolid: "particelle ordinate · vibrazione locale",
+    materialLegendLiquid: "particelle vicine · moto disordinato",
+    materialLegendGas: "particelle distanti · moto quasi libero",
   },
   en: {
     backToTable: "← table",
@@ -271,6 +278,13 @@ export const LAB_UI_TRANSLATIONS = {
     tempNoteNoMelting: "Incomplete thermal data",
     crystalUnstableTooltip: "Crystal lattice is not stable above the melting point",
     crystalUnknownPhaseTooltip: "Physical state undetermined: incomplete thermal data",
+    materialViewBtn: "material",
+    materialViewTitle: "Material view: particle model of the state of matter as a function of temperature",
+    materialUnknownTooltip: "Insufficient thermal data for this visualization",
+    materialDisclaimer: "conceptual model · not a quantitative physical simulation",
+    materialLegendSolid: "ordered particles · local vibration",
+    materialLegendLiquid: "nearby particles · disordered motion",
+    materialLegendGas: "distant particles · near-free motion",
   }
 };
 

@@ -165,7 +165,16 @@ Due sorgenti distinte, mai mescolate silenziosamente:
 - [ ] Molecole predefinite: aggiungere benzene, etanolo, acido acetico, LiF, PCl5, XeF4 (dataset premium)
 
 ### P2 già promosso e completato
-- [x] Temperature Slider MVP — slider 0–12 000 K con engine fase puro (`lib/temperature.ts`); badge solid/liquid/gas/unknown; marcatori fusione/ebollizione; crystal view gating (disabilitato se liquid/gas, warning se unknown); auto-chiusura crystalView; clamp su cambio elemento; pressione assunta 1 atm; casi edge: As (sublimazione), Z 98-103 (bp null), Z 104-118 (dati assenti); commit 87f52a8+
+- [x] Temperature Slider MVP
+- [x] Material Level 0 — modello particellare concettuale (solid/liquid/gas) guidato da slider temperatura; scene Three.js dedicate per fase; legenda MaterialLegend; esclusività con crystal/molecule/inspector/nucleus; auto-close su unknown. Commit: feat(periodic-table): add material phase view driven by temperature
+
+### Regole scientifiche Material View (invariante)
+- **NON è un reticolo cristallino**: solid = griglia didattica 3×3×3, NON collegata a crystalStructure
+- **Crystal View è l'unica vista** per struttura cristallina/cella unitaria reale
+- **Fase dalla temperatura corrente**: `inferredPhase` da `temperatureK` via `inferPhaseAtTemperature`, NON dal campo statico `state`
+- **Disclaimer obbligatorio**: "modello concettuale · non simulazione fisica quantitativa"
+- **Nessuna proprietà termica nuova**: velocità/distanze sono puramente visive, non fisiche
+- **unknown → view disabilitata**: bottone disabled + tooltip, niente MaterialScene renderizzata — slider 0–12 000 K con engine fase puro (`lib/temperature.ts`); badge solid/liquid/gas/unknown; marcatori fusione/ebollizione; crystal view gating (disabilitato se liquid/gas, warning se unknown); auto-chiusura crystalView; clamp su cambio elemento; pressione assunta 1 atm; casi edge: As (sublimazione), Z 98-103 (bp null), Z 104-118 (dati assenti); commit 87f52a8+
 
 ### Regola visiva orbite–nucleo (invariante)
 - **Scale didattiche**: distanze nucleo–orbite NON sono in scala fisica. Scopo: leggibilità.

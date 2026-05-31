@@ -33,6 +33,11 @@ const CrystalViewScene = dynamic(
   { ssr: false, loading: () => <div className="atom-loading">...</div> }
 );
 
+const MaterialScene = dynamic(
+  () => import("./material-scene").then(m => m.MaterialScene),
+  { ssr: false, loading: () => <div className="atom-loading">...</div> }
+);
+
 const MoleculeScene = dynamic(
   () => import("./molecule-scene").then(m => m.MoleculeScene),
   { ssr: false, loading: () => <div className="atom-loading">...</div> }
@@ -1316,6 +1321,32 @@ function TemperatureControl({
   );
 }
 
+// ─── Material phase legend ────────────────────────────────────────────────────
+
+function MaterialLegend({ phase, locale }: { phase: "solid" | "liquid" | "gas"; locale: Locale }) {
+  const t = LAB_UI_TRANSLATIONS[locale];
+  const phaseText =
+    phase === "solid"  ? t.materialLegendSolid  :
+    phase === "liquid" ? t.materialLegendLiquid :
+                         t.materialLegendGas;
+  const phaseIcon =
+    phase === "solid"  ? "●●●" :
+    phase === "liquid" ? "◉◌◉" :
+                         "◌  ◌";
+  return (
+    <div className="pt-context-legend pt-context-legend--material" aria-hidden="true">
+      <span className="pt-context-legend__item">
+        <span className="pt-context-legend__icon">{phaseIcon}</span>
+        <span>{phaseText}</span>
+      </span>
+      <span className="pt-context-legend__item pt-context-legend__item--dim">
+        <span className="pt-context-legend__icon">ℹ</span>
+        <span>{t.materialDisclaimer}</span>
+      </span>
+    </div>
+  );
+}
+
 // ─── Speed slider ─────────────────────────────────────────────────────────────
 
 function SpeedSlider({ value, onChange, locale }: { value: number; onChange: (v: number) => void; locale: Locale }) {
@@ -1416,6 +1447,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
   const [storyMode,       setStoryMode]       = useState(false);
   const [canvasFullscreen, setCanvasFullscreen] = useState(false);
   const [orbitalInfoOpen, setOrbitalInfoOpen] = useState(true);
+  const [materialView,    setMaterialView]    = useState(false);
 
   const [panelWidth,      setPanelWidth]      = usePersistedState<number>("pt:panelWidth", 264);
   const panelWidthRef                         = useRef(panelWidth);
@@ -1487,6 +1519,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
     setMolSearchError(null);
     setMolSearchHasSearched(false);
     setCanvasFullscreen(false);
+    setMaterialView(false);
   }, []);
 
   const handleMolSearch = useCallback(async (q: string) => {
@@ -1529,6 +1562,13 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
       setCrystalView(false);
     }
   }, [crystalView, inferredPhase]);
+
+  // Auto-close material view when phase becomes unknown (defensive)
+  useEffect(() => {
+    if (materialView && inferredPhase === "unknown") {
+      setMaterialView(false);
+    }
+  }, [materialView, inferredPhase]);
 
   // Deep-linking z query parameter parsing
   useEffect(() => {
@@ -1649,6 +1689,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                     setCrystalView(false);
                     setMoleculeView(false);
                     setNucleusView(false);
+                    setMaterialView(false);
                   }
                 }}
                 aria-pressed={inspectorOrbital !== null}
@@ -1673,7 +1714,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
               <TempToggle value={tempUnit} onChange={setTempUnit} locale={locale} />
               <button
                 className={`pt-nucleus-view-btn${nucleusView ? " active" : ""}`}
-                onClick={() => { setNucleusView(v => !v); setCrystalView(false); setMoleculeView(false); setInspectorOrbital(null); }}
+                onClick={() => { setNucleusView(v => !v); setCrystalView(false); setMoleculeView(false); setInspectorOrbital(null); setMaterialView(false); }}
                 aria-pressed={nucleusView}
                 title={t.nucleusViewTitle}
               >
@@ -1685,7 +1726,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                 return (
                   <button
                     className={`pt-crystal-view-btn${crystalView ? " active" : ""}${phaseUnstable ? " pt-crystal-view-btn--unstable" : ""}`}
-                    onClick={() => { if (!phaseUnstable) { setCrystalView(v => !v); setNucleusView(false); setMoleculeView(false); setInspectorOrbital(null); } }}
+                    onClick={() => { if (!phaseUnstable) { setCrystalView(v => !v); setNucleusView(false); setMoleculeView(false); setInspectorOrbital(null); setMaterialView(false); } }}
                     disabled={phaseUnstable}
                     aria-pressed={crystalView}
                     title={phaseUnstable ? t.crystalUnstableTooltip : phaseUnknown ? t.crystalUnknownPhaseTooltip : t.crystalViewTitle}
@@ -1697,11 +1738,31 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
               {selected && MOLECULES_BY_Z[selected.z] && (
                 <button
                   className={`pt-molecule-view-btn${moleculeView ? " active" : ""}`}
-                  onClick={() => { setMoleculeView(v => !v); setCrystalView(false); setNucleusView(false); setInspectorOrbital(null); setActiveMolIdx(0); }}
+                  onClick={() => { setMoleculeView(v => !v); setCrystalView(false); setNucleusView(false); setInspectorOrbital(null); setActiveMolIdx(0); setMaterialView(false); }}
                   aria-pressed={moleculeView}
                   title={t.moleculeViewTitle}
                 >
                   {t.moleculeViewBtn}
+                </button>
+              )}
+              {selected && (
+                <button
+                  className={`pt-material-view-btn${materialView ? " active" : ""}`}
+                  onClick={() => {
+                    const opening = !materialView;
+                    setMaterialView(v => !v);
+                    if (opening) {
+                      setCrystalView(false);
+                      setMoleculeView(false);
+                      setNucleusView(false);
+                      setInspectorOrbital(null);
+                    }
+                  }}
+                  disabled={inferredPhase === "unknown"}
+                  aria-pressed={materialView}
+                  title={inferredPhase === "unknown" ? t.materialUnknownTooltip : t.materialViewTitle}
+                >
+                  {t.materialViewBtn}
                 </button>
               )}
             </>
@@ -1921,6 +1982,15 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                 />
                 <CrystalLegend structure={EXTENDED[selected.z]?.crystalStructure} locale={locale} />
               </>
+            ) : materialView && !moleculeView && inferredPhase !== "unknown" ? (
+              <>
+                <MaterialScene
+                  phase={inferredPhase as "solid" | "liquid" | "gas"}
+                  color={CATEGORY_COLOR[selected.category] ?? "#6b7280"}
+                  className="pt-canvas"
+                />
+                <MaterialLegend phase={inferredPhase as "solid" | "liquid" | "gas"} locale={locale} />
+              </>
             ) : !moleculeView ? (
               <>
                 <AtomScene
@@ -1952,10 +2022,10 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                 )}
               </>
             ) : null}
-            {(crystalView || moleculeView) && (
+            {(crystalView || moleculeView || materialView) && (
               <button
                 className="pt-view-back-btn"
-                onClick={() => { setCrystalView(false); setMoleculeView(false); setMolSearchResult(null); }}
+                onClick={() => { setCrystalView(false); setMoleculeView(false); setMaterialView(false); setMolSearchResult(null); }}
                 title={locale === "en" ? "Back to atom view" : "Torna alla vista atomo"}
               >
                 ← {locale === "en" ? "atom" : "atomo"}
@@ -1977,7 +2047,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                 </div>
               </div>
             )}
-            {!nucleusView && inspectorOrbital === null && <ModelLegend model={model} showSpin={showSpin} locale={locale} />}
+            {!nucleusView && inspectorOrbital === null && !materialView && <ModelLegend model={model} showSpin={showSpin} locale={locale} />}
             {!nucleusView && !crystalView && !moleculeView && inspectorOrbital === null && (
               <TemperatureControl
                 temperatureK={temperatureK}

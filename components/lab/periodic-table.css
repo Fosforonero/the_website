@@ -343,6 +343,19 @@
   gap: 4px;
 }
 
+/* Material legend — bottom-left, clear of centred temp control */
+.pt-context-legend--material {
+  bottom: 16px;
+  left: 16px;
+  right: auto;
+  transform: none;
+  justify-content: flex-start;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  max-width: min(280px, calc(100% - 32px));
+}
+
 /* Crystal legend — center-bottom, no competing overlays in crystal view */
 .pt-context-legend--crystal {
   bottom: 16px;
@@ -423,6 +436,32 @@
   border-color: rgba(52, 211, 153, 0.50);
   color: #6ee7b7;
 }
+
+/* ── Material view toggle button ── */
+.pt-material-view-btn {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  color: rgba(216, 216, 232, 0.65);
+  font-family: inherit;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  padding: 5px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+.pt-material-view-btn:hover { border-color: rgba(255,255,255,0.30); color: #eeeef8; }
+.pt-material-view-btn.active {
+  background: rgba(245,158,11,0.12);
+  border-color: rgba(245,158,11,0.50);
+  color: #fbbf24;
+}
+.pt-material-view-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.pt-material-view-btn:disabled:hover { border-color: rgba(255,255,255,0.11); color: rgba(216,216,232,0.65); }
 
 /* ── Molecule view toggle button ── */
 .pt-molecule-view-btn {
@@ -2610,6 +2649,10 @@
 }
 
 /* Light mode */
+.pt-root--light .pt-material-view-btn { border-color: rgba(0,0,0,0.14); color: rgba(10,10,20,0.60); }
+.pt-root--light .pt-material-view-btn:hover { border-color: rgba(0,0,0,0.40); color: #0a0a14; }
+.pt-root--light .pt-material-view-btn.active { background: rgba(180,100,0,0.10); border-color: rgba(180,100,0,0.45); color: #b46000; }
+
 .pt-root--light .pt-canvas-fs-btn {
   background: rgba(240,240,248,0.78);
   border-color: rgba(0,0,0,0.12);
