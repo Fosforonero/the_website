@@ -8,6 +8,7 @@ export type PubChemFetchResult =
   | { ok: true;  mol: Molecule }
   | { ok: false; reason: "notfound" | "networkerror" };
 import { EXTENDED } from "./element-extended-data";
+import { ELEMENTS } from "./elements-data";
 
 // ─── PubChem JSON schema (partial) ───────────────────────────────────────────
 
@@ -35,11 +36,8 @@ function bondType(elemA: number, elemB: number, order: number): BondType {
 
 // ─── Hill-order molecular formula builder ────────────────────────────────────
 
-const SYMBOLS: Record<number, string> = {
-  1:"H",2:"He",3:"Li",4:"Be",5:"B",6:"C",7:"N",8:"O",9:"F",10:"Ne",
-  11:"Na",12:"Mg",13:"Al",14:"Si",15:"P",16:"S",17:"Cl",18:"Ar",
-  19:"K",20:"Ca",26:"Fe",29:"Cu",35:"Br",47:"Ag",53:"I",79:"Au",82:"Pb",
-};
+// Complete Z → symbol lookup derived from the project's elements table (all 118).
+const SYMBOLS: Record<number, string> = Object.fromEntries(ELEMENTS.map(e => [e.z, e.sym]));
 
 function buildFormula(elements: number[]): string {
   const counts: Record<number, number> = {};

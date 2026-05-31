@@ -6,6 +6,7 @@ import { OrbitControls, Text, Billboard } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
 import type { Molecule, BondType } from "@/lib/molecules-data";
+import { ELEMENTS } from "@/lib/elements-data";
 
 export type MolViewMode = "ball-stick" | "space-filling" | "polarity";
 
@@ -79,13 +80,11 @@ const ELEM_EN: Record<number, number> = {
 
 // ─── Element symbol lookup ────────────────────────────────────────────────────
 
+// Complete Z → symbol map from the project's elements table (all 118).
+const ELEM_SYMBOLS: Record<number, string> = Object.fromEntries(ELEMENTS.map(e => [e.z, e.sym]));
+
 function getSymbol(z: number): string {
-  const syms: Record<number, string> = {
-    1:"H",2:"He",3:"Li",4:"Be",5:"B",6:"C",7:"N",8:"O",9:"F",10:"Ne",
-    11:"Na",12:"Mg",13:"Al",14:"Si",15:"P",16:"S",17:"Cl",18:"Ar",
-    19:"K",20:"Ca",26:"Fe",29:"Cu",47:"Ag",79:"Au",82:"Pb",
-  };
-  return syms[z] ?? `Z${z}`;
+  return ELEM_SYMBOLS[z] ?? `Z${z}`;
 }
 
 // ─── Vibration seed from formula (fixes identical vib for same-atom-count mols) ─
