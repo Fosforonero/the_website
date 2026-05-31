@@ -9,6 +9,8 @@ import { SOLAR_BODIES } from "@/lib/solar-system/bodies";
 import { getBodyStatesForDate, sampleOrbitPath } from "@/lib/solar-system/ephemeris";
 import { scaleDistance, scaleRadius, scaleSatelliteOffsetKm, AU_KM } from "@/lib/solar-system/scales";
 import { getBodyOrientation } from "@/lib/solar-system/rotation-model";
+import type { ScaleBrightnessMode } from "@/lib/solar-system/scales";
+import { getLightingConfig } from "@/lib/solar-system/lighting-model";
 import type {
   ScaleDistanceMode,
   ScaleRadiusMode,
@@ -30,6 +32,7 @@ export type SolarSystemSceneProps = {
   constellationsVisible: boolean;
   deepSkyVisible: boolean;
   showAxes?: boolean;  // show planet rotation axis markers, default false
+  brightnessMode: ScaleBrightnessMode;
 };
 
 // ---------------------------------------------------------------------------
@@ -343,6 +346,7 @@ function InnerScene({
   constellationsVisible,
   deepSkyVisible,
   showAxes,
+  brightnessMode,
 }: InnerSceneProps) {
   const bodyStates = useMemo(
     () => getBodyStatesForDate(epoch),
@@ -359,15 +363,27 @@ function InnerScene({
     <>
       <SceneSetup />
 
-      {/* Lighting */}
-      <ambientLight intensity={0.18} color="#0a1520" />
-      <pointLight
-        position={[0, 0, 0]}
-        intensity={4}
-        color="#fff8e8"
-        distance={2000}
-        decay={1.8}
-      />
+      {/* Lighting — mode declared by brightnessMode prop */}
+      {(() => {
+        const cfg = getLightingConfig(brightnessMode);
+        return (
+          <>
+            {cfg.ambientIntensity > 0 && (
+              <ambientLight
+                intensity={cfg.ambientIntensity}
+                color={cfg.ambientColor}
+              />
+            )}
+            <pointLight
+              position={[0, 0, 0]}
+              intensity={cfg.sunIntensity}
+              color="#fff8e8"
+              distance={cfg.sunDistance}
+              decay={cfg.sunDecay}
+            />
+          </>
+        );
+      })()}
 
       {/* Background firmament */}
       <FirmamentLayer

@@ -61,6 +61,14 @@ export const SOLAR_UI = {
       "Posizioni calcolate da elementi kepleriani pubblici (Ω, ω, M₀ J2000). Non sono vettori live JPL Horizons — integrazione di precisione in roadmap.",
     moonScaleNote: "Le lune usano una scala locale aumentata per restare leggibili.",
     radiusScaleNote: "Il raggio visivo è scalato indipendentemente dalla distanza orbitale.",
+    brightnessMode: "Illuminazione",
+    brightnessModes: {
+      educational: "Educativa (boost)",
+      physical: "Fisica (1/r²)",
+    },
+    axisMarkers: "Assi",
+    lightingNote: "Boost educativo attivo: pianeti esterni più luminosi della realtà.",
+    physicalLightingNote: "Illuminazione fisica 1/r²: nessun boost. Pianeti esterni scuri come nella realtà.",
   },
   en: {
     title: "Solar System",
@@ -118,5 +126,13 @@ export const SOLAR_UI = {
       "Positions computed from public Keplerian elements (Ω, ω, M₀ at J2000). Not live JPL Horizons vectors — precision integration on the roadmap.",
     moonScaleNote: "Moons use an expanded local scale so they remain readable.",
     radiusScaleNote: "Visual radius is scaled independently from orbital distance.",
+    brightnessMode: "Lighting",
+    brightnessModes: {
+      educational: "Educational (boost)",
+      physical: "Physical (1/r²)",
+    },
+    axisMarkers: "Axes",
+    lightingNote: "Educational boost active: outer planets brighter than physically accurate.",
+    physicalLightingNote: "Physical 1/r² lighting: no boost. Outer planets as dark as reality.",
   },
 } as const;

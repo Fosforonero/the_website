@@ -6,6 +6,7 @@ import Link from "next/link";
 import { SOLAR_BODIES, SOLAR_SOURCES } from "@/lib/solar-system/bodies";
 import { SOLAR_ASSETS } from "@/lib/solar-system/assets";
 import { SOLAR_UI, type SolarLocale } from "@/lib/solar-system/i18n";
+import type { ScaleBrightnessMode } from "@/lib/solar-system/scales";
 import type {
   ScaleDistanceMode,
   ScaleRadiusMode,
@@ -92,6 +93,8 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
   const [speedKey, setSpeedKey] = useState<SpeedKey>("year-per-second");
   const [distanceMode, setDistanceMode] = useState<ScaleDistanceMode>("compressed");
   const [radiusMode, setRadiusMode] = useState<ScaleRadiusMode>("visible");
+  const [brightnessMode, setBrightnessMode] = useState<ScaleBrightnessMode>("educational");
+  const [showAxes, setShowAxes] = useState(false);
   const [labelsVisible, setLabelsVisible] = useState(true);
   const [constellationsVisible, setConstellationsVisible] = useState(true);
   const [deepSkyVisible, setDeepSkyVisible] = useState(false);
@@ -226,6 +229,19 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
           </select>
         </label>
 
+        {/* Brightness mode */}
+        <label className="solar-control solar-toolbar__hide-sm">
+          <span>{t.brightnessMode}</span>
+          <select
+            value={brightnessMode}
+            onChange={(e) => setBrightnessMode(e.target.value as ScaleBrightnessMode)}
+          >
+            {(["educational", "physical"] as ScaleBrightnessMode[]).map((m) => (
+              <option key={m} value={m}>{t.brightnessModes[m]}</option>
+            ))}
+          </select>
+        </label>
+
         <div className="solar-toolbar__sep solar-toolbar__hide-sm" />
 
         {/* Label toggle */}
@@ -234,6 +250,14 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
           onClick={() => setLabelsVisible((v) => !v)}
         >
           {t.labels}
+        </button>
+
+        {/* Axis markers toggle */}
+        <button
+          className={`solar-control solar-toolbar__hide-sm${showAxes ? " solar-control--active" : ""}`}
+          onClick={() => setShowAxes((v) => !v)}
+        >
+          {t.axisMarkers}
         </button>
 
         {/* Constellation toggle */}
@@ -270,10 +294,12 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
           selectedBodyId={selectedBodyId}
           distanceMode={distanceMode}
           radiusMode={radiusMode}
+          brightnessMode={brightnessMode}
           onSelectBody={setSelectedBodyId}
           labelsVisible={labelsVisible}
           constellationsVisible={constellationsVisible}
           deepSkyVisible={deepSkyVisible}
+          showAxes={showAxes}
         />
       </div>
 
