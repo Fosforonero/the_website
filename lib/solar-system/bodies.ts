@@ -33,22 +33,44 @@ export type SolarBody = {
   longitudeOfAscendingNodeDeg?: number;
   argumentOfPeriapsisDeg?: number;
   /**
-   * Obliquity (axial tilt) of the body's rotation axis to the ecliptic plane (degrees).
-   * 0° = pole aligned with ecliptic north. 90° = pole in the ecliptic plane.
-   * > 90° = retrograde rotation sense (e.g. Venus 177°, Uranus 98°, Pluto 122°).
-   * Source: IAU WGCCRE 2015 / IAU planetary fact sheets.
+   * ROTATION MODEL — Sprint 03A convention.
+   *
+   * axialTiltDeg: obliquity of the body's rotation axis relative to the
+   * normal of its MEAN ORBITAL PLANE (not the ecliptic north pole, not
+   * absolute ICRF RA/Dec).
+   *
+   * Convention:
+   *   0°   = pole aligned with orbital plane normal (no tilt)
+   *   90°  = pole in the orbital plane
+   *   >90° = geometric retrograde sense (e.g. Venus 177°, Uranus 98°)
+   *
+   * Source: IAU WGCCRE 2015 obliquity values, referenced to each body's
+   * mean orbital plane. NOT the IAU pole RA/Dec in ICRF — that requires
+   * the full WGCCRE rotation model (planned for Sprint 04).
+   *
+   * rotationDirection: explicit prograde/retrograde classification.
+   * MUST be set for all bodies with axialTiltDeg. Do not infer from tilt.
+   * Retrograde = rotation opposite to orbital motion.
+   *
+   * Approximation declared (Sprint 03A):
+   * The scene applies tiltAroundXRad as a rotation around scene X-axis.
+   * This approximates the tilt relative to the ecliptic, not the exact
+   * orbital plane for each body. For planets with low inclination (<3°)
+   * the error is negligible. For high-inclination moons the approximation
+   * is larger. Full per-body orbital-plane-normal tilt is Sprint 04.
    */
   axialTiltDeg?: number;
+  /** Explicit rotation direction. Never infer from axialTiltDeg alone. */
+  rotationDirection?: "prograde" | "retrograde";
   /**
    * Sidereal rotation period in hours.
-   * Positive = prograde (same direction as orbital motion).
-   * Negative = retrograde (Venus, Uranus sense, Pluto).
-   * Source: IAU WGCCRE 2015 / IAU planetary fact sheets.
+   * Positive = prograde sense. Negative = retrograde sense (matches
+   * rotationDirection). Both fields must agree.
    */
   siderealRotationHours?: number;
   /** Inner edge of ring system (km from body centre). Saturn and Uranus only. */
   ringInnerKm?: number;
-  /** Outer edge of ring system (km from body centre). Saturn and Uranus only. */
+  /** Outer edge of ring system (km from body centre). */
   ringOuterKm?: number;
   color: string;
   sourceIds: string[];
@@ -183,6 +205,7 @@ export const SOLAR_BODIES: SolarBody[] = [
     longitudeOfAscendingNodeDeg: 48.340,
     argumentOfPeriapsisDeg: 29.118,
     axialTiltDeg: 0.034,
+    rotationDirection: "prograde",
     siderealRotationHours: 1407.6,
     color: "#B5B5B5",
     sourceIds: ["nasaJplHorizons"],
@@ -203,6 +226,7 @@ export const SOLAR_BODIES: SolarBody[] = [
     longitudeOfAscendingNodeDeg: 76.673,
     argumentOfPeriapsisDeg: 55.095,
     axialTiltDeg: 177.36,
+    rotationDirection: "retrograde",
     siderealRotationHours: -5832.5,
     color: "#E8C46A",
     sourceIds: ["nasaJplHorizons"],
@@ -223,6 +247,7 @@ export const SOLAR_BODIES: SolarBody[] = [
     longitudeOfAscendingNodeDeg: 0.0,
     argumentOfPeriapsisDeg: 102.930,
     axialTiltDeg: 23.439,
+    rotationDirection: "prograde",
     siderealRotationHours: 23.934,
     color: "#3A9BDC",
     sourceIds: ["nasaJplHorizons"],
@@ -243,6 +268,7 @@ export const SOLAR_BODIES: SolarBody[] = [
     longitudeOfAscendingNodeDeg: 49.713,
     argumentOfPeriapsisDeg: 286.369,
     axialTiltDeg: 25.189,
+    rotationDirection: "prograde",
     siderealRotationHours: 24.623,
     color: "#C1440E",
     sourceIds: ["nasaJplHorizons"],
@@ -263,6 +289,7 @@ export const SOLAR_BODIES: SolarBody[] = [
     longitudeOfAscendingNodeDeg: 100.293,
     argumentOfPeriapsisDeg: 273.982,
     axialTiltDeg: 3.128,
+    rotationDirection: "prograde",
     siderealRotationHours: 9.925,
     color: "#C88B3A",
     sourceIds: ["nasaJplHorizons"],
@@ -283,6 +310,7 @@ export const SOLAR_BODIES: SolarBody[] = [
     longitudeOfAscendingNodeDeg: 113.640,
     argumentOfPeriapsisDeg: 339.221,
     axialTiltDeg: 26.732,
+    rotationDirection: "prograde",
     siderealRotationHours: 10.656,
     ringInnerKm: 74_500,
     ringOuterKm: 140_220,
@@ -305,6 +333,7 @@ export const SOLAR_BODIES: SolarBody[] = [
     longitudeOfAscendingNodeDeg: 73.963,
     argumentOfPeriapsisDeg: 98.472,
     axialTiltDeg: 97.774,
+    rotationDirection: "retrograde",
     siderealRotationHours: -17.240,
     ringInnerKm: 38_000,
     ringOuterKm: 51_149,
@@ -327,6 +356,7 @@ export const SOLAR_BODIES: SolarBody[] = [
     longitudeOfAscendingNodeDeg: 131.784,
     argumentOfPeriapsisDeg: 274.898,
     axialTiltDeg: 28.322,
+    rotationDirection: "prograde",
     siderealRotationHours: 16.110,
     color: "#4B70DD",
     sourceIds: ["nasaJplHorizons"],
@@ -349,6 +379,7 @@ export const SOLAR_BODIES: SolarBody[] = [
     longitudeOfAscendingNodeDeg: 125.045,
     argumentOfPeriapsisDeg: 318.150,
     axialTiltDeg: 6.687,
+    rotationDirection: "prograde",
     siderealRotationHours: 655.720,
     color: "#C8C8C8",
     sourceIds: ["nasaJplHorizons", "jplSatellites"],
@@ -474,7 +505,8 @@ export const SOLAR_BODIES: SolarBody[] = [
     meanAnomalyDeg: 238.929,
     longitudeOfAscendingNodeDeg: 110.303,
     argumentOfPeriapsisDeg: 224.067,
-    axialTiltDeg: 122.530,
+    axialTiltDeg: 119.6,
+    rotationDirection: "retrograde",
     siderealRotationHours: -153.293,
     color: "#C8B89A",
     sourceIds: ["nasaJplHorizons", "jplSbdb"],
