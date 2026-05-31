@@ -50,10 +50,10 @@ export const SOLAR_UI = {
       relative: "Relativa reale",
     },
     speeds: {
-      "1": "×1 (tempo reale)",
-      "24": "×24 (1 giorno/ora)",
-      "365": "×365 (1 anno/ora)",
-      "3650": "×3650 (10 anni/ora)",
+      realtime: "Tempo reale",
+      "day-per-second": "1 giorno/sec",
+      "month-per-second": "1 mese/sec",
+      "year-per-second": "1 anno/sec",
     },
     firmamentSource:
       "Stelle: catalogo Hipparcos ESA · Costellazioni: Stellarium Sky Cultures · Oggetti profondi: OpenNGC",
@@ -107,10 +107,10 @@ export const SOLAR_UI = {
       relative: "Physical relative",
     },
     speeds: {
-      "1": "×1 (real time)",
-      "24": "×24 (1 day/hour)",
-      "365": "×365 (1 year/hour)",
-      "3650": "×3650 (10 years/hour)",
+      realtime: "Real time",
+      "day-per-second": "1 day/sec",
+      "month-per-second": "1 month/sec",
+      "year-per-second": "1 year/sec",
     },
     firmamentSource:
       "Stars: ESA Hipparcos catalog · Constellations: Stellarium Sky Cultures · Deep-sky: OpenNGC",

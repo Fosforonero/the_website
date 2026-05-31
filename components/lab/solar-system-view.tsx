@@ -40,7 +40,14 @@ const CATEGORY_ORDER: SolarBodyCategory[] = [
   "tno",
 ];
 
-const SPEED_OPTIONS = [1, 24, 365, 3650] as const;
+const SPEED_OPTIONS = [
+  { key: "realtime",          daysPerSecond: 1 / 86400 },
+  { key: "day-per-second",    daysPerSecond: 1 },
+  { key: "month-per-second",  daysPerSecond: 30 },
+  { key: "year-per-second",   daysPerSecond: 365.25 },
+] as const;
+
+type SpeedKey = typeof SPEED_OPTIONS[number]["key"];
 
 // ---------------------------------------------------------------------------
 // Types
@@ -79,7 +86,7 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
   const [selectedBodyId, setSelectedBodyId] = useState("earth");
   const [epoch, setEpoch] = useState(() => Date.now());
   const [playing, setPlaying] = useState(false);
-  const [speedMultiplier, setSpeedMultiplier] = useState<number>(365);
+  const [speedKey, setSpeedKey] = useState<SpeedKey>("year-per-second");
   const [distanceMode, setDistanceMode] = useState<ScaleDistanceMode>("compressed");
   const [radiusMode, setRadiusMode] = useState<ScaleRadiusMode>("visible");
   const [labelsVisible, setLabelsVisible] = useState(true);
@@ -89,11 +96,24 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
   // ── Playback ─────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!playing) return;
-    const id = setInterval(() => {
-      setEpoch((prev) => prev + speedMultiplier * 100);
-    }, 100);
-    return () => clearInterval(id);
-  }, [playing, speedMultiplier]);
+    const option = SPEED_OPTIONS.find((o) => o.key === speedKey) ?? SPEED_OPTIONS[3];
+    const msPerDay = 86_400_000;
+    let lastTime: number | null = null;
+    let rafId: number;
+
+    function tick(now: number) {
+      if (lastTime !== null) {
+        const deltaMs = now - lastTime;
+        const deltaDays = (deltaMs / 1000) * option.daysPerSecond;
+        setEpoch((prev) => prev + deltaDays * msPerDay);
+      }
+      lastTime = now;
+      rafId = requestAnimationFrame(tick);
+    }
+
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, [playing, speedKey]);
 
   // ── Derived: selected body ────────────────────────────────────────────────
   // SOLAR_BODIES always contains at least the Sun, so the fallback is safe.
@@ -160,12 +180,12 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
         <label className="solar-control">
           <span>{t.speed}</span>
           <select
-            value={speedMultiplier}
-            onChange={(e) => setSpeedMultiplier(Number(e.target.value))}
+            value={speedKey}
+            onChange={(e) => setSpeedKey(e.target.value as SpeedKey)}
           >
-            {SPEED_OPTIONS.map((s) => (
-              <option key={s} value={s}>
-                {t.speeds[String(s) as keyof typeof t.speeds]}
+            {SPEED_OPTIONS.map((o) => (
+              <option key={o.key} value={o.key}>
+                {t.speeds[o.key]}
               </option>
             ))}
           </select>
