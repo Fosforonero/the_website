@@ -51,7 +51,7 @@ B — Fisica approssimata/educativa (dichiarata nell'UI):
 — Distanze lune: boost ×200 per leggibilità. Dichiarato.
 — Illuminazione educativa (default): 1/r² + boost ambientale dichiarato.
 — Lato notte/giorno: shading Three.js su sfere senza texture; nessuna eclissi.
-— Direzione del polo: approssimazione eclittica, non RA/Dec IAU WGCCRE per-corpo. Prevista Sprint 04.
+— Direzione del polo (pianeti principali + Luna): IAU WGCCRE 2015 J2000, implementata Sprint 04. Lune minori e corpi del catalogo: approssimazione asse-X Sprint 03A.
 — Anelli: colore fisso (non ricevono la luce solare della PointLight).
 
 C — Non ancora implementato:
@@ -392,7 +392,7 @@ Units: kilometres.
 
 This is NOT the same as equatorial ICRF/J2000 (used by SIMBAD, Gaia, etc.). The conversion requires a ~23.44° rotation around x (obliquity of the ecliptic, IAU 2006).
 
-What is approximated: origin is at the Sun, not the true barycentre; positions come from Keplerian elements, not numerical integration; planetary pole azimuth is approximated (IAU WGCCRE RA/Dec planned for Sprint 04).`,
+What is approximated: origin is at the Sun, not the true barycentre; positions come from Keplerian elements, not numerical integration. Pole direction: IAU WGCCRE RA/Dec implemented for major planets and Moon (Sprint 04); minor moons and catalog bodies still use the Sprint 03A X-axis approximation.`,
       },
       axialTilt: {
         title: "Axial tilt and rotation",
