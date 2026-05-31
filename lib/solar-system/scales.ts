@@ -143,3 +143,60 @@ export function scaleSatelliteOffsetKm(offsetKm: number, parentId: string): numb
   const bonus = parentId === "pluto" ? 2.5 : 1.0;
   return Math.max(0.04, raw * bonus);
 }
+
+// ---------------------------------------------------------------------------
+// Brightness mode
+// ---------------------------------------------------------------------------
+
+/**
+ * Brightness/luminosity scaling mode.
+ * Independent from distance and radius modes.
+ *
+ * physical    : inverse-square solar falloff, no ambient. Outer planets dark.
+ * educational : same falloff + declared ambient boost. All planets visible.
+ */
+export type ScaleBrightnessMode = "physical" | "educational";
+
+// ---------------------------------------------------------------------------
+// Combined scale mode set — for inspector disclosure
+// ---------------------------------------------------------------------------
+
+/**
+ * The three independent scale axes active in the scene.
+ * All three must be disclosed in the UI whenever active.
+ */
+export type ScaleModeSet = {
+  distance: ScaleDistanceMode;
+  radius: ScaleRadiusMode;
+  brightness: ScaleBrightnessMode;
+};
+
+// ---------------------------------------------------------------------------
+// Scale mode disclaimers (for inspector)
+// ---------------------------------------------------------------------------
+
+export const DISTANCE_MODE_DISCLAIMERS: Record<ScaleDistanceMode, { it: string; en: string }> = {
+  compressed: {
+    it: "Distanza compressa (1 AU = 1 unità). Non in scala reale.",
+    en: "Compressed distance (1 AU = 1 unit). Not to scale.",
+  },
+  "real-log": {
+    it: "Distanza logaritmica. Preserva struttura globale. Non in scala reale.",
+    en: "Logarithmic distance. Preserves large-scale structure. Not to scale.",
+  },
+  "inner-system": {
+    it: "Sistema interno espanso ×3. Non in scala reale.",
+    en: "Inner system expanded ×3. Not to scale.",
+  },
+};
+
+export const RADIUS_MODE_DISCLAIMERS: Record<ScaleRadiusMode, { it: string; en: string }> = {
+  visible: {
+    it: "Raggio visivo educativo (esagerato, categoriale). Non in scala reale.",
+    en: "Educational visible radius (exaggerated, category-based). Not to scale.",
+  },
+  relative: {
+    it: "Raggio proporzionale al Sole (ancora esagerato rispetto alle distanze).",
+    en: "Radius proportional to the Sun (still exaggerated relative to distances).",
+  },
+};
