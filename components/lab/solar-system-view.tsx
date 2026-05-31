@@ -12,6 +12,16 @@ import type {
   ScaleRadiusMode,
   SolarBodyCategory,
 } from "@/lib/solar-system/bodies";
+import {
+  formatAxialTilt,
+  formatRotationPeriod,
+} from "@/lib/solar-system/rotation-model";
+import { REFERENCE_FRAME } from "@/lib/solar-system/reference-frames";
+import {
+  DISTANCE_MODE_DISCLAIMERS,
+  RADIUS_MODE_DISCLAIMERS,
+} from "@/lib/solar-system/scales";
+import { LIGHTING_DISCLOSURE } from "@/lib/solar-system/lighting-model";
 
 // ---------------------------------------------------------------------------
 // Dynamic import — required so WebGL Canvas never runs on the server
@@ -374,12 +384,67 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
           </div>
         )}
 
+        {/* Axial tilt */}
+        {selectedBody.axialTiltDeg !== undefined && (
+          <div className="solar-inspector__row">
+            <span className="solar-inspector__label">{t.axialTilt}</span>
+            <span className="solar-inspector__value">
+              {formatAxialTilt(selectedBody, locale)}
+            </span>
+          </div>
+        )}
+
+        {/* Rotation period */}
+        {selectedBody.siderealRotationHours !== undefined && (
+          <div className="solar-inspector__row">
+            <span className="solar-inspector__label">{t.rotationPeriod}</span>
+            <span className="solar-inspector__value">
+              {formatRotationPeriod(selectedBody, locale)}
+            </span>
+          </div>
+        )}
+
+        {/* Ring system */}
+        {selectedBody.ringInnerKm !== undefined && selectedBody.ringOuterKm !== undefined && (
+          <div className="solar-inspector__row">
+            <span className="solar-inspector__label">{t.ringSystem}</span>
+            <span className="solar-inspector__value" style={{ fontSize: "0.65rem" }}>
+              {selectedBody.ringInnerKm.toLocaleString()}–{selectedBody.ringOuterKm.toLocaleString()} km
+            </span>
+          </div>
+        )}
+
         <div className="solar-inspector__row">
           <span className="solar-inspector__label">{t.epoch}</span>
           <span className="solar-inspector__value">
             {new Date(epoch).toISOString().slice(0, 10)}
           </span>
         </div>
+
+        {/* Reference frame */}
+        <div className="solar-inspector__row">
+          <span className="solar-inspector__label">{t.referenceFrame}</span>
+          <span className="solar-inspector__value" style={{ fontSize: "0.65rem" }}>
+            {REFERENCE_FRAME.id}
+          </span>
+        </div>
+
+        {/* Position accuracy */}
+        <div className="solar-inspector__row">
+          <span className="solar-inspector__label">{t.positionAccuracy}</span>
+          <span className="solar-inspector__value" style={{ fontSize: "0.65rem", color: "#7aa0c0" }}>
+            educational-keplerian
+          </span>
+        </div>
+
+        {selectedBody.axialTiltDeg !== undefined && (
+          <div className="solar-inspector__row">
+            <span className="solar-inspector__label">{t.rotationAccuracy}</span>
+            <span className="solar-inspector__value" style={{ fontSize: "0.65rem", color: "#7aa0c0" }}>
+              axial-tilt-approximate
+            </span>
+          </div>
+        )}
 
         <div className="solar-inspector__divider" />
 
@@ -425,6 +490,21 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
             {t.moonScaleNote}
           </p>
         )}
+
+        {/* Active scale modes disclosure */}
+        <div className="solar-inspector__divider" />
+        <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+          <span className="solar-inspector__label" style={{ fontSize: "0.62rem" }}>{t.activeScales}</span>
+          <p style={{ fontSize: "0.60rem", color: "#4a7090", lineHeight: 1.4, margin: 0 }}>
+            {DISTANCE_MODE_DISCLAIMERS[distanceMode][locale]}
+          </p>
+          <p style={{ fontSize: "0.60rem", color: "#4a7090", lineHeight: 1.4, margin: 0 }}>
+            {RADIUS_MODE_DISCLAIMERS[radiusMode][locale]}
+          </p>
+          <p style={{ fontSize: "0.60rem", color: "#4a7090", lineHeight: 1.4, margin: 0 }}>
+            {LIGHTING_DISCLOSURE[brightnessMode][locale]}
+          </p>
+        </div>
 
         {/* Firmament source */}
         <p
