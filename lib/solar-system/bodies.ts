@@ -28,6 +28,10 @@ export type SolarBody = {
   orbitalPeriodDays?: number;
   eccentricity?: number;
   inclinationDeg?: number;
+  epochJd?: number;
+  meanAnomalyDeg?: number;
+  longitudeOfAscendingNodeDeg?: number;
+  argumentOfPeriapsisDeg?: number;
   color: string;
   sourceIds: string[];
   assetId?: string;
@@ -36,6 +40,8 @@ export type SolarBody = {
 export type BodyState = {
   id: string;
   positionKm: [number, number, number];
+  localPositionKm?: [number, number, number];
+  parentId: string | null;
   velocityKmS?: [number, number, number];
   epochIso: string;
   source: "mvp-orbital-elements" | "jpl-horizons";
@@ -154,6 +160,10 @@ export const SOLAR_BODIES: SolarBody[] = [
     orbitalPeriodDays: 87.969,
     eccentricity: 0.2056,
     inclinationDeg: 7.005,
+    epochJd: 2451545.0,
+    meanAnomalyDeg: 174.794,
+    longitudeOfAscendingNodeDeg: 48.340,
+    argumentOfPeriapsisDeg: 29.118,
     color: "#B5B5B5",
     sourceIds: ["nasaJplHorizons"],
   },
@@ -168,6 +178,10 @@ export const SOLAR_BODIES: SolarBody[] = [
     orbitalPeriodDays: 224.701,
     eccentricity: 0.0067,
     inclinationDeg: 3.394,
+    epochJd: 2451545.0,
+    meanAnomalyDeg: 50.212,
+    longitudeOfAscendingNodeDeg: 76.673,
+    argumentOfPeriapsisDeg: 55.095,
     color: "#E8C46A",
     sourceIds: ["nasaJplHorizons"],
   },
@@ -182,6 +196,10 @@ export const SOLAR_BODIES: SolarBody[] = [
     orbitalPeriodDays: 365.25,
     eccentricity: 0.0167,
     inclinationDeg: 0.0,
+    epochJd: 2451545.0,
+    meanAnomalyDeg: 357.537,
+    longitudeOfAscendingNodeDeg: 0.0,
+    argumentOfPeriapsisDeg: 102.930,
     color: "#3A9BDC",
     sourceIds: ["nasaJplHorizons"],
   },
@@ -196,6 +214,10 @@ export const SOLAR_BODIES: SolarBody[] = [
     orbitalPeriodDays: 686.971,
     eccentricity: 0.0934,
     inclinationDeg: 1.850,
+    epochJd: 2451545.0,
+    meanAnomalyDeg: 19.349,
+    longitudeOfAscendingNodeDeg: 49.713,
+    argumentOfPeriapsisDeg: 286.369,
     color: "#C1440E",
     sourceIds: ["nasaJplHorizons"],
   },
@@ -210,6 +232,10 @@ export const SOLAR_BODIES: SolarBody[] = [
     orbitalPeriodDays: 4_332.589,
     eccentricity: 0.0489,
     inclinationDeg: 1.303,
+    epochJd: 2451545.0,
+    meanAnomalyDeg: 20.060,
+    longitudeOfAscendingNodeDeg: 100.293,
+    argumentOfPeriapsisDeg: 273.982,
     color: "#C88B3A",
     sourceIds: ["nasaJplHorizons"],
   },
@@ -224,6 +250,10 @@ export const SOLAR_BODIES: SolarBody[] = [
     orbitalPeriodDays: 10_759.22,
     eccentricity: 0.0565,
     inclinationDeg: 2.485,
+    epochJd: 2451545.0,
+    meanAnomalyDeg: 317.214,
+    longitudeOfAscendingNodeDeg: 113.640,
+    argumentOfPeriapsisDeg: 339.221,
     color: "#E4D191",
     sourceIds: ["nasaJplHorizons"],
   },
@@ -238,6 +268,10 @@ export const SOLAR_BODIES: SolarBody[] = [
     orbitalPeriodDays: 30_688.5,
     eccentricity: 0.0463,
     inclinationDeg: 0.773,
+    epochJd: 2451545.0,
+    meanAnomalyDeg: 141.769,
+    longitudeOfAscendingNodeDeg: 73.963,
+    argumentOfPeriapsisDeg: 98.472,
     color: "#7DE8E8",
     sourceIds: ["nasaJplHorizons"],
   },
@@ -252,6 +286,10 @@ export const SOLAR_BODIES: SolarBody[] = [
     orbitalPeriodDays: 60_182,
     eccentricity: 0.0086,
     inclinationDeg: 1.770,
+    epochJd: 2451545.0,
+    meanAnomalyDeg: 257.541,
+    longitudeOfAscendingNodeDeg: 131.784,
+    argumentOfPeriapsisDeg: 274.898,
     color: "#4B70DD",
     sourceIds: ["nasaJplHorizons"],
   },
@@ -268,6 +306,10 @@ export const SOLAR_BODIES: SolarBody[] = [
     orbitalPeriodDays: 27.321,
     eccentricity: 0.0549,
     inclinationDeg: 5.145,
+    epochJd: 2451545.0,
+    meanAnomalyDeg: 135.270,
+    longitudeOfAscendingNodeDeg: 125.045,
+    argumentOfPeriapsisDeg: 318.150,
     color: "#C8C8C8",
     sourceIds: ["nasaJplHorizons", "jplSatellites"],
   },
@@ -388,6 +430,10 @@ export const SOLAR_BODIES: SolarBody[] = [
     orbitalPeriodDays: 90_560,
     eccentricity: 0.2488,
     inclinationDeg: 17.14,
+    epochJd: 2451545.0,
+    meanAnomalyDeg: 238.929,
+    longitudeOfAscendingNodeDeg: 110.303,
+    argumentOfPeriapsisDeg: 224.067,
     color: "#C8B89A",
     sourceIds: ["nasaJplHorizons", "jplSbdb"],
   },
@@ -402,6 +448,10 @@ export const SOLAR_BODIES: SolarBody[] = [
     orbitalPeriodDays: 1_680.5,
     eccentricity: 0.0755,
     inclinationDeg: 10.594,
+    epochJd: 2451545.0,
+    meanAnomalyDeg: 77.372,
+    longitudeOfAscendingNodeDeg: 80.327,
+    argumentOfPeriapsisDeg: 73.597,
     color: "#A89880",
     sourceIds: ["nasaJplHorizons", "jplSbdb"],
   },
@@ -450,6 +500,10 @@ export const SOLAR_BODIES: SolarBody[] = [
     orbitalPeriodDays: 27_516,
     eccentricity: 0.9671,
     inclinationDeg: 162.26, // retrograde
+    epochJd: 2451545.0,
+    meanAnomalyDeg: 38.380,
+    longitudeOfAscendingNodeDeg: 58.420,
+    argumentOfPeriapsisDeg: 111.332,
     color: "#C0D8F0",
     sourceIds: ["nasaJplHorizons", "jplSbdb"],
   },
@@ -480,6 +534,10 @@ export const SOLAR_BODIES: SolarBody[] = [
     orbitalPeriodDays: 203_830,
     eccentricity: 0.4418,
     inclinationDeg: 44.04,
+    epochJd: 2451545.0,
+    meanAnomalyDeg: 198.0,
+    longitudeOfAscendingNodeDeg: 35.960,
+    argumentOfPeriapsisDeg: 151.310,
     color: "#D8D0C8",
     sourceIds: ["nasaJplHorizons", "jplSbdb"],
   },
@@ -522,6 +580,10 @@ export const SOLAR_BODIES: SolarBody[] = [
     orbitalPeriodDays: 4_404_480,
     eccentricity: 0.8496,
     inclinationDeg: 11.93,
+    epochJd: 2451545.0,
+    meanAnomalyDeg: 358.0,
+    longitudeOfAscendingNodeDeg: 144.520,
+    argumentOfPeriapsisDeg: 311.190,
     color: "#D08060",
     sourceIds: ["nasaJplHorizons", "jplSbdb"],
   },
