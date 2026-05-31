@@ -627,13 +627,166 @@ const SF6: Molecule = {
   ],
 };
 
+// ─── Premium dataset v2 ───────────────────────────────────────────────────────
+
+// Cisplatin — cis-[Pt(NH₃)₂Cl₂] — square planar, Pt(II) d⁸
+// Bond lengths: Pt–Cl 2.32 Å, Pt–N 2.05 Å, N–H 1.02 Å (approximate)
+const Cisplatin: Molecule = {
+  formula: "Pt(NH₃)₂Cl₂", nameIT: "Cisplatino", nameEN: "Cisplatin",
+  geometry: "square planar (cis)",
+  descIT: "Geometria piana quadrata (Pt²⁺, d⁸). I due Cl sono adiacenti (90°, cis), non opposti. Farmaco antitumorale che forma addotti sul DNA bloccandone la replicazione.",
+  descEN: "Square planar geometry (Pt²⁺, d⁸). The two Cl ligands are adjacent (90°, cis), not opposite. Anticancer drug that forms DNA adducts blocking replication.",
+  atoms: [
+    { elem:78, x:  0,     y:  0,     pz:  0     }, // 0 Pt
+    { elem: 7, x:  0,     y:  2.05,  pz:  0     }, // 1 N₁
+    { elem: 7, x:  2.05,  y:  0,     pz:  0     }, // 2 N₂
+    { elem:17, x:  0,     y: -2.32,  pz:  0     }, // 3 Cl₁
+    { elem:17, x: -2.32,  y:  0,     pz:  0     }, // 4 Cl₂
+    { elem: 1, x:  0.62,  y:  2.65,  pz:  0.62  }, // 5 H₁a
+    { elem: 1, x: -0.62,  y:  2.65,  pz:  0.62  }, // 6 H₁b
+    { elem: 1, x:  0,     y:  2.65,  pz: -0.87  }, // 7 H₁c
+    { elem: 1, x:  2.65,  y:  0.62,  pz:  0.62  }, // 8 H₂a
+    { elem: 1, x:  2.65,  y: -0.62,  pz:  0.62  }, // 9 H₂b
+    { elem: 1, x:  2.65,  y:  0,     pz: -0.87  }, // 10 H₂c
+  ],
+  bonds: [
+    { a:0, b:1, order:1, type:"polar" },  // Pt–N₁
+    { a:0, b:2, order:1, type:"polar" },  // Pt–N₂
+    { a:0, b:3, order:1, type:"polar" },  // Pt–Cl₁
+    { a:0, b:4, order:1, type:"polar" },  // Pt–Cl₂
+    { a:1, b:5, order:1, type:"polar" },  // N₁–H
+    { a:1, b:6, order:1, type:"polar" },
+    { a:1, b:7, order:1, type:"polar" },
+    { a:2, b:8, order:1, type:"polar" },  // N₂–H
+    { a:2, b:9, order:1, type:"polar" },
+    { a:2, b:10, order:1, type:"polar" },
+  ],
+};
+
+// Li₂CO₃ — formula unit di sale ionico cristallino, non molecola discreta.
+// Lo ione CO₃²⁻ è planare (D₃h, 120°). Le posizioni Li sono approssimate.
+const Li2CO3: Molecule = {
+  formula: "Li₂CO₃", nameIT: "Carbonato di litio", nameEN: "Lithium carbonate",
+  geometry: "trigonal planar (CO₃²⁻)",
+  descIT: "Formula unit di sale ionico cristallino — non è una molecola discreta. Lo ione carbonato CO₃²⁻ è triangolare planare (D₃h, 120°) per risonanza. Li⁺ e CO₃²⁻ si attraggono elettrostaticamente.",
+  descEN: "Formula unit of an ionic crystal — not a discrete molecule. The carbonate ion CO₃²⁻ is trigonal planar (D₃h, 120°) due to resonance. Li⁺ and CO₃²⁻ attract each other electrostatically.",
+  atoms: [
+    { elem: 6, x:  0,     y:  0,     pz:  0    }, // 0 C
+    { elem: 8, x:  1.30,  y:  0,     pz:  0    }, // 1 O₁
+    { elem: 8, x: -0.65,  y:  1.13,  pz:  0    }, // 2 O₂
+    { elem: 8, x: -0.65,  y: -1.13,  pz:  0    }, // 3 O₃
+    { elem: 3, x:  0,     y:  0,     pz:  2.00 }, // 4 Li₁
+    { elem: 3, x:  0,     y:  0,     pz: -2.00 }, // 5 Li₂
+  ],
+  bonds: [
+    { a:0, b:1, order:1, type:"polar" },   // C–O₁ (risonanza)
+    { a:0, b:2, order:1, type:"polar" },   // C–O₂
+    { a:0, b:3, order:1, type:"polar" },   // C–O₃
+    { a:4, b:1, order:1, type:"ionic" },   // Li₁–O₁
+    { a:5, b:3, order:1, type:"ionic" },   // Li₂–O₃
+  ],
+};
+
+// N₂O — lineare N≡N–O. Cariche formali e risonanza semplificate.
+const NitrousOxide: Molecule = {
+  formula: "N₂O", nameIT: "Protossido d'azoto", nameEN: "Nitrous oxide",
+  geometry: "linear",
+  descIT: "Lineare (N≡N–O). Struttura di risonanza dominante con triplo legame N–N e doppio N–O. Anestetico inalatorio (GAS ESILARANTE) e potente gas serra (GWP 273).",
+  descEN: "Linear (N≡N–O). Dominant resonance structure with N–N triple bond and N–O double bond. Inhalation anaesthetic (laughing gas) and potent greenhouse gas (GWP 273).",
+  atoms: [
+    { elem:7, x:-1.13, y:0, pz:0 }, // 0 N terminale
+    { elem:7, x: 0,    y:0, pz:0 }, // 1 N centrale
+    { elem:8, x: 1.19, y:0, pz:0 }, // 2 O
+  ],
+  bonds: [
+    { a:0, b:1, order:3, type:"covalent" }, // N≡N
+    { a:1, b:2, order:2, type:"polar" },    // N–O
+  ],
+};
+
+// ZnO — formula unit di solido ionico.
+const ZincOxide: Molecule = {
+  formula: "ZnO", nameIT: "Ossido di zinco", nameEN: "Zinc oxide",
+  geometry: "diatomic (ionic)",
+  descIT: "Formula unit di solido ionico (wurtzite o zincite). Zn²⁺ e O²⁻ si attraggono elettrostaticamente. Filtro UV fisico ad ampio spettro.",
+  descEN: "Formula unit of an ionic solid (wurtzite or zincite). Zn²⁺ and O²⁻ attract electrostatically. Broad-spectrum physical UV filter.",
+  atoms: [
+    { elem:30, x:-0.985, y:0, pz:0 }, // Zn
+    { elem: 8, x: 0.985, y:0, pz:0 }, // O
+  ],
+  bonds: [
+    { a:0, b:1, order:1, type:"ionic" },
+  ],
+};
+
+// FeSO₄ — forma anidra semplificata (non FeSO₄·7H₂O). Struttura identica a CuSO₄.
+const FerrousSulfate: Molecule = {
+  formula: "FeSO₄", nameIT: "Solfato ferroso", nameEN: "Ferrous sulfate",
+  geometry: "tetrahedral (SO₄²⁻)",
+  descIT: "Fe²⁺ (ferroso, non Fe³⁺ ferrico) con ione solfato tetraedrico SO₄²⁻. Forma anidra semplificata; il solfato commerciale è FeSO₄·7H₂O. Trattamento standard per l'anemia sideropenica.",
+  descEN: "Fe²⁺ (ferrous, not ferric Fe³⁺) with tetrahedral sulfate SO₄²⁻. Simplified anhydrous form; commercial grade is FeSO₄·7H₂O. Standard treatment for iron-deficiency anaemia.",
+  atoms: [
+    { elem:26, x:-2.30, y: 0,    pz: 0     }, // Fe²⁺
+    { elem:16, x: 0,    y: 0,    pz: 0     }, // S
+    { elem: 8, x: 1.05, y: 0.60, pz: 0.74  }, // O₁
+    { elem: 8, x:-1.05, y: 0.60, pz:-0.74  }, // O₂
+    { elem: 8, x: 1.05, y:-0.80, pz:-0.44  }, // O₃
+    { elem: 8, x:-1.05, y:-0.80, pz: 0.44  }, // O₄
+  ],
+  bonds: [
+    { a:0, b:1, order:1, type:"ionic" },
+    { a:1, b:2, order:2, type:"polar" },
+    { a:1, b:3, order:2, type:"polar" },
+    { a:1, b:4, order:1, type:"polar" },
+    { a:1, b:5, order:1, type:"polar" },
+  ],
+};
+
+// C₆H₆ — esagono planare D₆h. Legami Kekulé alternati (convenzionali).
+// I legami C–C sono tutti equivalenti (1.40 Å) per risonanza.
+const Benzene: Molecule = {
+  formula: "C₆H₆", nameIT: "Benzene", nameEN: "Benzene",
+  geometry: "hexagonal planar",
+  descIT: "Anello aromatico planare D₆h. I sei legami C–C sono equivalenti (1.40 Å) per risonanza; l'alternanza singolo/doppio (Kekulé) è convenzionale. π delocalizzato su tutti i carboni.",
+  descEN: "Planar aromatic ring D₆h. All six C–C bonds are equivalent (1.40 Å) due to resonance; the single/double alternation (Kekulé) is conventional. π system delocalised over all carbons.",
+  atoms: [
+    { elem:6, x: 1.40,  y:  0,    pz:0 }, // 0 C₁
+    { elem:6, x: 0.70,  y:  1.21, pz:0 }, // 1 C₂
+    { elem:6, x:-0.70,  y:  1.21, pz:0 }, // 2 C₃
+    { elem:6, x:-1.40,  y:  0,    pz:0 }, // 3 C₄
+    { elem:6, x:-0.70,  y: -1.21, pz:0 }, // 4 C₅
+    { elem:6, x: 0.70,  y: -1.21, pz:0 }, // 5 C₆
+    { elem:1, x: 2.49,  y:  0,    pz:0 }, // 6 H₁
+    { elem:1, x: 1.245, y:  2.156,pz:0 }, // 7 H₂
+    { elem:1, x:-1.245, y:  2.156,pz:0 }, // 8 H₃
+    { elem:1, x:-2.49,  y:  0,    pz:0 }, // 9 H₄
+    { elem:1, x:-1.245, y: -2.156,pz:0 }, // 10 H₅
+    { elem:1, x: 1.245, y: -2.156,pz:0 }, // 11 H₆
+  ],
+  bonds: [
+    { a:0, b:1, order:2, type:"covalent" }, // C₁=C₂ (Kekulé)
+    { a:1, b:2, order:1, type:"covalent" }, // C₂–C₃
+    { a:2, b:3, order:2, type:"covalent" }, // C₃=C₄
+    { a:3, b:4, order:1, type:"covalent" }, // C₄–C₅
+    { a:4, b:5, order:2, type:"covalent" }, // C₅=C₆
+    { a:5, b:0, order:1, type:"covalent" }, // C₆–C₁
+    { a:0, b:6,  order:1, type:"covalent" },
+    { a:1, b:7,  order:1, type:"covalent" },
+    { a:2, b:8,  order:1, type:"covalent" },
+    { a:3, b:9,  order:1, type:"covalent" },
+    { a:4, b:10, order:1, type:"covalent" },
+    { a:5, b:11, order:1, type:"covalent" },
+  ],
+};
+
 // ─── Index: element Z → list of molecules ────────────────────────────────────
 
 export const MOLECULES_BY_Z: Record<number, Molecule[]> = {
   1:  [H2, H2O, HCl, HF],
+  3:  [Li2CO3],
   5:  [BF3],
-  6:  [CH4, CO2, CO, C2H6, C2H2, C2H4],
-  7:  [N2, NH3, HNO3],
+  6:  [CH4, CO2, CO, C2H6, C2H2, C2H4, Benzene],
+  7:  [N2, NH3, HNO3, NitrousOxide],
   8:  [O2, H2O, CO2, SO2, O3],
   9:  [F2, HF, BF3, SF6],
   11: [NaCl, NaOH],
@@ -645,9 +798,11 @@ export const MOLECULES_BY_Z: Record<number, Molecule[]> = {
   17: [Cl2, HCl, NaCl],
   19: [KCl],
   20: [CaCO3],
-  26: [FeCl3],
+  26: [FeCl3, FerrousSulfate],
   29: [CuSO4],
+  30: [ZincOxide],
   47: [AgNO3],
+  78: [Cisplatin],
   79: [AuCl3],
   82: [PbO2],
 };
