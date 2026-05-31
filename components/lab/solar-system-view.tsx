@@ -50,6 +50,8 @@ const CATEGORY_ORDER: SolarBodyCategory[] = [
   "asteroid",
   "comet",
   "tno",
+  // Note: centaur and spacecraft are for catalog layer only,
+  // not shown in the main body browser
 ];
 
 const SPEED_OPTIONS = [
@@ -142,11 +144,14 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
   const asset = SOLAR_ASSETS.find((a) => a.bodyId === selectedBodyId);
 
   // ── Derived: grouped bodies for browser ──────────────────────────────────
-  const grouped = CATEGORY_ORDER.map((cat) => ({
-    category: cat,
-    label: t.categories[cat],
-    bodies: SOLAR_BODIES.filter((b) => b.category === cat),
-  })).filter((g) => g.bodies.length > 0);
+  const grouped = CATEGORY_ORDER.map((cat) => {
+    const label = (t.categories as Record<string, string>)[cat] ?? cat;
+    return {
+      category: cat,
+      label,
+      bodies: SOLAR_BODIES.filter((b) => b.category === cat),
+    };
+  }).filter((g) => g.bodies.length > 0);
 
   // ── Memoised Date object for SolarSystemScene ─────────────────────────────
   const epochDate = useMemo(() => new Date(epoch), [epoch]);
@@ -347,7 +352,7 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
         <div className="solar-inspector__heading">{t.inspector}</div>
         <div className="solar-inspector__name">{selectedBody.name[locale]}</div>
         <span className="solar-inspector__badge">
-          {t.categories[selectedBody.category]}
+          {(t.categories as Record<string, string>)[selectedBody.category] ?? selectedBody.category}
         </span>
 
         <div className="solar-inspector__divider" />

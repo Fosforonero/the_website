@@ -41,6 +41,8 @@ export const FALLBACK_MATERIALS: Record<
   asteroid: "rocky",
   comet: "comet",
   tno: "icy",
+  centaur: "icy",
+  spacecraft: "rocky",
 };
 
 // ---------------------------------------------------------------------------

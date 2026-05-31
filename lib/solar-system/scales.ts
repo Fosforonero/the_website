@@ -63,6 +63,8 @@ const CATEGORY_BASE: Record<SolarBodyCategory, number> = {
   asteroid: 0.008,
   comet: 0.007,
   tno: 0.015,
+  centaur: 0.015,
+  spacecraft: 0.010,
 };
 
 /**
@@ -76,6 +78,8 @@ const CATEGORY_MIN: Record<SolarBodyCategory, number> = {
   asteroid: 0.005,
   comet: 0.005,
   tno: 0.008,
+  centaur: 0.008,
+  spacecraft: 0.007,
 };
 
 /**

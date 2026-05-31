@@ -12,7 +12,9 @@ export type SolarBodyCategory =
   | "moon"
   | "asteroid"
   | "comet"
-  | "tno";
+  | "tno"
+  | "centaur"
+  | "spacecraft";
 
 export type ScaleDistanceMode = "compressed" | "real-log" | "inner-system";
 export type ScaleRadiusMode = "visible" | "relative";
