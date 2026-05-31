@@ -17,6 +17,9 @@ import {
   formatRotationPeriod,
   formatRotationDirection,
 } from "@/lib/solar-system/rotation-model";
+import type { CatalogCategory } from "@/lib/solar-system/catalog";
+import { catalogCategoryLabel } from "@/lib/solar-system/catalog-filter";
+import type { CatalogLayerSpec } from "./solar-system-scene";
 import { REFERENCE_FRAME, AXIAL_TILT_RENDERING_NOTE } from "@/lib/solar-system/reference-frames";
 import {
   DISTANCE_MODE_DISCLAIMERS,
@@ -62,6 +65,14 @@ const SPEED_OPTIONS = [
 ] as const;
 
 type SpeedKey = typeof SPEED_OPTIONS[number]["key"];
+
+const CATALOG_FILES: Partial<Record<CatalogCategory, string>> = {
+  "asteroid-neo": "neo.json",
+  "asteroid-mba": "mba-top5000.json",
+  comet:          "comets.json",
+  tno:            "tnos.json",
+  centaur:        "centaurs.json",
+};
 
 // ---------------------------------------------------------------------------
 // Types
@@ -111,6 +122,10 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
   const [labelsVisible, setLabelsVisible] = useState(true);
   const [constellationsVisible, setConstellationsVisible] = useState(true);
   const [deepSkyVisible, setDeepSkyVisible] = useState(false);
+  const [catalogEntries, setCatalogEntries] = useState<
+    Map<CatalogCategory, import("@/lib/solar-system/catalog").CatalogEntry[]>
+  >(new Map());
+  const [visibleCatalog, setVisibleCatalog] = useState<Set<CatalogCategory>>(new Set());
 
   // ── Playback ─────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -163,6 +178,40 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
     const ms = new Date(v).getTime();
     if (!isNaN(ms)) setEpoch(ms);
   }
+
+  // ── Catalog loader / toggle ───────────────────────────────────────────────
+  async function loadCatalogLayer(cat: CatalogCategory) {
+    if (catalogEntries.has(cat)) return;
+    const file = CATALOG_FILES[cat];
+    if (!file) return;
+    try {
+      const res = await fetch(`/lab/solar-system/catalog/${file}`);
+      if (!res.ok) return;
+      const { decodeCatalogChunk } = await import("@/lib/solar-system/catalog");
+      const chunk = decodeCatalogChunk(await res.json() as Parameters<typeof decodeCatalogChunk>[0]);
+      setCatalogEntries((prev) => new Map(prev).set(cat, chunk.entries));
+    } catch (e) {
+      console.error("Failed to load catalog layer:", cat, e);
+    }
+  }
+
+  function toggleCatalogLayer(cat: CatalogCategory) {
+    setVisibleCatalog((prev) => {
+      const next = new Set(prev);
+      if (next.has(cat)) {
+        next.delete(cat);
+      } else {
+        next.add(cat);
+        void loadCatalogLayer(cat);
+      }
+      return next;
+    });
+  }
+
+  // ── Derived: catalog layer specs ──────────────────────────────────────────
+  const catalogLayerSpecs: CatalogLayerSpec[] = Array.from(catalogEntries.entries()).map(
+    ([category, entries]) => ({ category, entries, visible: visibleCatalog.has(category) })
+  );
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -292,6 +341,23 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
           {t.deepSky}
         </button>
 
+        <div className="solar-toolbar__sep solar-toolbar__hide-sm" />
+        {(Object.keys(CATALOG_FILES) as CatalogCategory[]).map((cat) => {
+          const count = catalogEntries.get(cat)?.length;
+          const active = visibleCatalog.has(cat);
+          return (
+            <button
+              key={cat}
+              className={`solar-control solar-toolbar__hide-sm${active ? " solar-control--active" : ""}`}
+              onClick={() => toggleCatalogLayer(cat)}
+              title={catalogCategoryLabel(cat, locale)}
+            >
+              {catalogCategoryLabel(cat, locale)}
+              {count !== undefined && ` (${count.toLocaleString()})`}
+            </button>
+          );
+        })}
+
         {/* Ko-fi */}
         <a
           className="solar-kofi solar-toolbar__hide-sm"
@@ -316,6 +382,7 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
           constellationsVisible={constellationsVisible}
           deepSkyVisible={deepSkyVisible}
           showAxes={showAxes}
+          catalogLayers={catalogLayerSpecs}
         />
       </div>
 

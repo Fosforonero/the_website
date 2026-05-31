@@ -5,6 +5,9 @@ import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls, Html } from "@react-three/drei";
 import * as THREE from "three";
 import { FirmamentLayer } from "./firmament-layer";
+import { CatalogLayer } from "./solar-system-catalog-layer";
+import type { CatalogCategory } from "@/lib/solar-system/catalog";
+import type { CatalogEntry } from "@/lib/solar-system/catalog";
 import { SOLAR_BODIES } from "@/lib/solar-system/bodies";
 import { getBodyStatesForDate, sampleOrbitPath } from "@/lib/solar-system/ephemeris";
 import { scaleDistance, scaleRadius, scaleSatelliteOffsetKm, AU_KM } from "@/lib/solar-system/scales";
@@ -22,6 +25,12 @@ import type {
 // Types
 // ---------------------------------------------------------------------------
 
+export type CatalogLayerSpec = {
+  category: CatalogCategory;
+  entries: CatalogEntry[];
+  visible: boolean;
+};
+
 export type SolarSystemSceneProps = {
   epoch: Date;
   selectedBodyId: string;
@@ -33,6 +42,7 @@ export type SolarSystemSceneProps = {
   deepSkyVisible: boolean;
   showAxes?: boolean;  // show planet rotation axis markers, default false
   brightnessMode: ScaleBrightnessMode;
+  catalogLayers?: CatalogLayerSpec[];
 };
 
 // ---------------------------------------------------------------------------
@@ -347,6 +357,7 @@ function InnerScene({
   deepSkyVisible,
   showAxes,
   brightnessMode,
+  catalogLayers,
 }: InnerSceneProps) {
   const bodyStates = useMemo(
     () => getBodyStatesForDate(epoch),
@@ -440,6 +451,18 @@ function InnerScene({
           />
         );
       })}
+
+      {/* Catalog layers — THREE.Points, never individual meshes */}
+      {catalogLayers?.map((layer) => (
+        <CatalogLayer
+          key={`catalog-${layer.category}`}
+          entries={layer.entries}
+          category={layer.category}
+          epoch={epoch}
+          distanceMode={distanceMode}
+          visible={layer.visible}
+        />
+      ))}
 
       {/* Camera controls */}
       <OrbitControls
