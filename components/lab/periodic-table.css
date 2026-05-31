@@ -1351,6 +1351,21 @@
   justify-content: space-between;
   margin-bottom: 4px;
 }
+
+/* ── Discovery source link ── */
+.pt-info__discovery-link {
+  display: inline-block;
+  margin-left: 5px;
+  font-size: 10px;
+  color: rgba(216,216,232,0.35);
+  text-decoration: none;
+  vertical-align: middle;
+  transition: color 0.15s;
+}
+.pt-info__discovery-link:hover { color: rgba(216,216,232,0.80); }
+.pt-root--light .pt-info__discovery-link { color: rgba(10,10,20,0.30); }
+.pt-root--light .pt-info__discovery-link:hover { color: rgba(10,10,20,0.70); }
+
 .pt-info__share {
   background: none;
   border: 1px solid rgba(255,255,255,0.12);

@@ -607,7 +607,19 @@ function InfoPanel({ el, locale, tempUnit, lightMode, onDragStart, onCrystalClic
             <p className="pt-info__group-label">{t.infoGroupHistory}</p>
             <div>
               <dt>{t.infoDiscoveredBy}</dt>
-              <dd>{ext.discoverer}{ext.discoveryYear ? `, ${ext.discoveryYear}` : ""}</dd>
+              <dd>
+                {ext.discoverer}{ext.discoveryYear ? `, ${ext.discoveryYear}` : ""}
+                {ext.discoverySource && (
+                  <a
+                    href={ext.discoverySource}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="pt-info__discovery-link"
+                    title={locale === "en" ? "Source (RSC Periodic Table)" : "Fonte (RSC Tavola Periodica)"}
+                    aria-label={locale === "en" ? "Discovery source" : "Fonte della scoperta"}
+                  >↗</a>
+                )}
+              </dd>
             </div>
           </div>
         )}

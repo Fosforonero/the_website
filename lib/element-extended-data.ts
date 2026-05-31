@@ -52,6 +52,8 @@ export interface ElementExtended {
   covalentRadius: number | null;
   /** Dominant crystal structure at ambient conditions; null for gases, liquids, synthetic */
   crystalStructure: CrystalStructure;
+  /** Authoritative URL for the discovery / discoverer (RSC / IUPAC / NIST / Nobel); null if not curated */
+  discoverySource: string | null;
 }
 
 export interface Isotope {
@@ -67,7 +69,7 @@ export interface Isotope {
 // Columns: z, config, block, state, EN, atomR, IE1, density, Tm(K), Tb(K), EA, crust(mg/kg), year, discoverer, description
 // oxidationStates / commonOxidation are merged separately via OX lookup below.
 
-type ElementRaw = Omit<ElementExtended, "oxidationStates" | "commonOxidation" | "isotopes" | "covalentRadius" | "crystalStructure">;
+type ElementRaw = Omit<ElementExtended, "oxidationStates" | "commonOxidation" | "isotopes" | "covalentRadius" | "crystalStructure" | "discoverySource">;
 const RAW: ElementRaw[] = [
   { z:1,   config:"1s¹",                  block:"s", state:"gas",       electronegativity:2.20, atomicRadius:120, ionizationEnergy:1312.0, density:0.0899, meltingPoint:14.0,   boilingPoint:20.3,    electronAffinity:72.8,  crustAbundance:1400,   discoveryYear:1766, discoverer:"Henry Cavendish",       description:"Elemento più leggero e abbondante dell'universo (≈75% della massa barionica). Alimenta le reazioni di fusione stellare e costituisce la base delle molecole organiche; l'elettrolisi dell'acqua ne è la principale fonte industriale." },
   { z:2,   config:"1s²",                  block:"s", state:"gas",       electronegativity:null, atomicRadius:140, ionizationEnergy:2372.3, density:0.1785, meltingPoint:0.95,   boilingPoint:4.2,     electronAffinity:-48,   crustAbundance:0.008,  discoveryYear:1868, discoverer:"Pierre Janssen / Norman Lockyer", description:"Gas nobile con il secondo punto di ebollizione più basso di qualsiasi sostanza (4,22 K). Prodotto primordiale del Big Bang e dalla fusione dell'idrogeno nelle stelle; usato come refrigerante in superconduttori e acceleratori di particelle." },
@@ -461,6 +463,23 @@ const CRYSTAL: Record<number, CrystalStructure> = {
   // Z=99–118: synthetic/transient → null
 };
 
+// ─── Discovery source links — Royal Society of Chemistry Periodic Table ───────
+// Only curated entries; null is inferred for all other Z values.
+// Sources: RSC Periodic Table (https://www.rsc.org/periodic-table/)
+const DSRC: Record<number, string> = {
+  1:  "https://www.rsc.org/periodic-table/element/1/hydrogen",
+  6:  "https://www.rsc.org/periodic-table/element/6/carbon",
+  8:  "https://www.rsc.org/periodic-table/element/8/oxygen",
+  9:  "https://www.rsc.org/periodic-table/element/9/fluorine",
+  22: "https://www.rsc.org/periodic-table/element/22/titanium",
+  26: "https://www.rsc.org/periodic-table/element/26/iron",
+  27: "https://www.rsc.org/periodic-table/element/27/cobalt",
+  78: "https://www.rsc.org/periodic-table/element/78/platinum",
+  79: "https://www.rsc.org/periodic-table/element/79/gold",
+  83: "https://www.rsc.org/periodic-table/element/83/bismuth",
+  92: "https://www.rsc.org/periodic-table/element/92/uranium",
+};
+
 // ─── Map indexed by Z ─────────────────────────────────────────────────────────
 export const EXTENDED: Record<number, ElementExtended> = Object.fromEntries(
   RAW.map(e => {
@@ -470,7 +489,8 @@ export const EXTENDED: Record<number, ElementExtended> = Object.fromEntries(
     }));
     const covalentRadius = COV[e.z] ?? null;
     const crystalStructure = CRYSTAL[e.z] ?? null;
-    return [e.z, { ...e, oxidationStates, commonOxidation, isotopes, covalentRadius, crystalStructure }];
+    const discoverySource = DSRC[e.z] ?? null;
+    return [e.z, { ...e, oxidationStates, commonOxidation, isotopes, covalentRadius, crystalStructure, discoverySource }];
   })
 );
 
