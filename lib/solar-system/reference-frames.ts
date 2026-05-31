@@ -68,12 +68,14 @@ export const REFERENCE_FRAME = {
   approximations: {
     it: [
       "Origine al Sole, non al vero baricentro del Sistema Solare.",
-      "Orientamento del polo planetario: obliquità IAU 2015 corretta, azimut del polo approssimato (RA/Dec IAU WGCCRE in Sprint 04).",
+      "axialTiltDeg = obliquità rispetto alla normale del piano orbitale medio del corpo (non la RA/Dec assoluta del polo in ICRF). Nel renderer 03A l'obliquità è applicata come rotazione attorno all'asse X della scena — approssimazione valida per pianeti con bassa inclinazione (<3°), meno precisa per lune ad alta inclinazione.",
+      "Direzione del polo (azimut RA/Dec IAU WGCCRE) non implementata — prevista Sprint 04. Il piano orbitale per-corpo come riferimento del tilt è Sprint 04.",
       "Precessione e nutazione degli assi non modellate.",
     ],
     en: [
       "Origin at the Sun, not the true Solar System Barycentre.",
-      "Planetary pole orientation: IAU 2015 obliquity correct; pole azimuth approximated (IAU WGCCRE RA/Dec in Sprint 04).",
+      "axialTiltDeg = obliquity relative to the body's mean orbital plane normal (not absolute ICRF RA/Dec of the pole). In the 03A renderer, obliquity is applied as rotation around the scene X-axis — good approximation for low-inclination planets (<3°), less accurate for high-inclination moons.",
+      "Pole azimuth direction (IAU WGCCRE RA/Dec) not implemented — planned Sprint 04. Per-body orbital plane as tilt reference is Sprint 04.",
       "Precession and nutation of rotation axes not modelled.",
     ],
   },
@@ -114,3 +116,27 @@ export function eclipticToEquatorialJ2000(
 export const SCENE_COORD_NOTE =
   "Scene frame: ecliptic x→sceneX, y→sceneY, z→sceneZ. " +
   "Ecliptic plane ≈ scene XY. Ecliptic north pole = scene +Z.";
+
+/**
+ * Axial tilt rendering approximation note — Sprint 03A.
+ *
+ * The scene applies each planet's axialTiltDeg as a rotation around the
+ * scene X-axis (i.e., the ecliptic x-direction). This approximates the
+ * tilt relative to the ecliptic normal, not the exact orbital plane normal
+ * for each body.
+ *
+ * For planets with inclinations < 3° (Mercury, Venus, Earth, Mars, Jupiter,
+ * Saturn, Neptune), the error introduced by this approximation is very small
+ * (< 3° difference in pole direction).
+ *
+ * For Uranus (inclination 0.77°) and Pluto (inclination 17.1°) the
+ * approximation is less accurate but acceptable for visualization.
+ *
+ * Full correction requires computing each body's orbital plane normal
+ * in the HEC-J2000 frame and applying the tilt relative to that normal.
+ * This is planned for Sprint 04 along with IAU WGCCRE pole RA/Dec.
+ */
+export const AXIAL_TILT_RENDERING_NOTE = {
+  it: "Tilt 03A: obliquità applicata attorno all'asse X della scena (approssimazione eclittica). Errore < 3° per pianeti con inclinazione orbitale < 3°. Correzione per-corpo in Sprint 04.",
+  en: "03A tilt: obliquity applied around scene X-axis (ecliptic approximation). Error < 3° for planets with orbital inclination < 3°. Per-body correction in Sprint 04.",
+} as const;

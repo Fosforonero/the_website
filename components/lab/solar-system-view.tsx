@@ -15,8 +15,9 @@ import type {
 import {
   formatAxialTilt,
   formatRotationPeriod,
+  formatRotationDirection,
 } from "@/lib/solar-system/rotation-model";
-import { REFERENCE_FRAME } from "@/lib/solar-system/reference-frames";
+import { REFERENCE_FRAME, AXIAL_TILT_RENDERING_NOTE } from "@/lib/solar-system/reference-frames";
 import {
   DISTANCE_MODE_DISCLAIMERS,
   RADIUS_MODE_DISCLAIMERS,
@@ -404,6 +405,16 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
           </div>
         )}
 
+        {/* Rotation direction */}
+        {selectedBody.rotationDirection !== undefined && (
+          <div className="solar-inspector__row">
+            <span className="solar-inspector__label">{t.rotationDirection}</span>
+            <span className="solar-inspector__value">
+              {formatRotationDirection(selectedBody, locale)}
+            </span>
+          </div>
+        )}
+
         {/* Ring system */}
         {selectedBody.ringInnerKm !== undefined && selectedBody.ringOuterKm !== undefined && (
           <div className="solar-inspector__row">
@@ -440,7 +451,11 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
         {selectedBody.axialTiltDeg !== undefined && (
           <div className="solar-inspector__row">
             <span className="solar-inspector__label">{t.rotationAccuracy}</span>
-            <span className="solar-inspector__value" style={{ fontSize: "0.65rem", color: "#7aa0c0" }}>
+            <span
+              className="solar-inspector__value"
+              style={{ fontSize: "0.60rem", color: "#4a7090", lineHeight: 1.3 }}
+              title={AXIAL_TILT_RENDERING_NOTE[locale]}
+            >
               axial-tilt-approximate
             </span>
           </div>
