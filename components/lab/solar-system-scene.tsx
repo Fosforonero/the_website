@@ -1,6 +1,7 @@
 "use client";
 
-import { Suspense, useMemo, useEffect } from "react";
+import { Suspense, useMemo, useEffect, useRef } from "react";
+import type { ElementRef, RefObject } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls, Html } from "@react-three/drei";
 import * as THREE from "three";
@@ -56,6 +57,8 @@ export type SolarSystemSceneProps = {
 /** How much to scale up the selected body for highlight. */
 const SELECTED_SCALE = 1.4;
 
+type OrbitControlsHandle = ElementRef<typeof OrbitControls>;
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -91,6 +94,64 @@ function hexToThreeColor(hex: string): THREE.Color {
   } catch {
     return new THREE.Color(1, 1, 1);
   }
+}
+
+function getRenderedBodyPosition(
+  body: SolarBody,
+  state: BodyState,
+  parentState: BodyState | undefined,
+  distanceMode: ScaleDistanceMode
+): [number, number, number] {
+  if (body.category === "moon" && state.localPositionKm && parentState) {
+    const [lx, ly, lz] = state.localPositionKm;
+    const localMag = Math.sqrt(lx * lx + ly * ly + lz * lz);
+    const [ppx, ppy, ppz] = scalePositionVector(parentState.positionKm, distanceMode);
+
+    if (localMag > 0) {
+      const boosted = scaleSatelliteOffsetKm(localMag, body.parentId ?? "");
+      const nx = lx / localMag;
+      const ny = ly / localMag;
+      const nz = lz / localMag;
+      return [ppx + nx * boosted, ppy + ny * boosted, ppz + nz * boosted];
+    }
+
+    return scalePositionVector(parentState.positionKm, distanceMode);
+  }
+
+  return scalePositionVector(state.positionKm, distanceMode);
+}
+
+function CameraFocus({
+  target,
+  focusRadius,
+  focusKey,
+  controls,
+}: {
+  target: [number, number, number] | null;
+  focusRadius: number;
+  focusKey: string;
+  controls: RefObject<OrbitControlsHandle | null>;
+}) {
+  const { camera } = useThree();
+
+  useEffect(() => {
+    if (!target || !controls.current) return;
+
+    const targetVec = new THREE.Vector3(...target);
+    const previousTarget = controls.current.target.clone();
+    const currentOffset = camera.position.clone().sub(previousTarget);
+    const direction = currentOffset.lengthSq() > 0.0001
+      ? currentOffset.normalize()
+      : new THREE.Vector3(2, 1.4, 2).normalize();
+    const distance = THREE.MathUtils.clamp(focusRadius * 14, 0.85, 12);
+
+    controls.current.target.copy(targetVec);
+    camera.position.copy(targetVec.clone().add(direction.multiplyScalar(distance)));
+    camera.updateProjectionMatrix();
+    controls.current.update();
+  }, [camera, controls, focusKey, focusRadius, target]);
+
+  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -226,27 +287,12 @@ function BodyMesh({
 }: BodyMeshProps) {
   // For moons: use boosted local offset from parent instead of world position.
   // This makes moon systems legible without pretending the offset is to scale.
-  let scaledX: number, scaledY: number, scaledZ: number;
-
-  if (body.category === "moon" && state.localPositionKm && parentState) {
-    const [lx, ly, lz] = state.localPositionKm;
-    const localMag = Math.sqrt(lx * lx + ly * ly + lz * lz);
-    const [ppx, ppy, ppz] = scalePositionVector(parentState.positionKm, distanceMode);
-
-    if (localMag > 0) {
-      const boosted = scaleSatelliteOffsetKm(localMag, body.parentId ?? "");
-      const nx = lx / localMag;
-      const ny = ly / localMag;
-      const nz = lz / localMag;
-      scaledX = ppx + nx * boosted;
-      scaledY = ppy + ny * boosted;
-      scaledZ = ppz + nz * boosted;
-    } else {
-      [scaledX, scaledY, scaledZ] = scalePositionVector(parentState.positionKm, distanceMode);
-    }
-  } else {
-    [scaledX, scaledY, scaledZ] = scalePositionVector(state.positionKm, distanceMode);
-  }
+  const [scaledX, scaledY, scaledZ] = getRenderedBodyPosition(
+    body,
+    state,
+    parentState,
+    distanceMode
+  );
 
   const r = scaleRadius(body.radiusKm, radiusMode, body.category);
   const displayR = isSelected ? r * SELECTED_SCALE : r;
@@ -376,6 +422,8 @@ function InnerScene({
   catalogLayers,
   horizonsMarker,
 }: InnerSceneProps) {
+  const controlsRef = useRef<OrbitControlsHandle | null>(null);
+
   const bodyStates = useMemo(
     () => getBodyStatesForDate(epoch),
     [epoch]
@@ -387,9 +435,36 @@ function InnerScene({
     return map;
   }, [bodyStates]);
 
+  const selectedFocus = useMemo(() => {
+    if (horizonsMarker) {
+      return {
+        key: `horizons:${horizonsMarker.name}:${epoch.getTime()}:${distanceMode}`,
+        position: scalePositionVector(horizonsMarker.positionKm, distanceMode),
+        radius: 0.05,
+      };
+    }
+
+    const body = SOLAR_BODIES.find((b) => b.id === selectedBodyId);
+    if (!body) return null;
+    const state = stateById.get(body.id);
+    if (!state) return null;
+    const parentState = body.parentId ? stateById.get(body.parentId) : undefined;
+    return {
+      key: `body:${body.id}:${epoch.getTime()}:${distanceMode}:${radiusMode}`,
+      position: getRenderedBodyPosition(body, state, parentState, distanceMode),
+      radius: scaleRadius(body.radiusKm, radiusMode, body.category),
+    };
+  }, [distanceMode, epoch, horizonsMarker, radiusMode, selectedBodyId, stateById]);
+
   return (
     <>
       <SceneSetup />
+      <CameraFocus
+        target={selectedFocus?.position ?? null}
+        focusRadius={selectedFocus?.radius ?? 0.05}
+        focusKey={selectedFocus?.key ?? "none"}
+        controls={controlsRef}
+      />
 
       {/* Lighting — mode declared by brightnessMode prop */}
       {(() => {
@@ -505,6 +580,7 @@ function InnerScene({
 
       {/* Camera controls */}
       <OrbitControls
+        ref={controlsRef}
         enableDamping
         dampingFactor={0.08}
         minDistance={0.1}

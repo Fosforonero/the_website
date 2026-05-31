@@ -1,10 +1,11 @@
 /**
  * Solar asset manifest — confidence levels and fallback materials.
  *
- * Sprint 01: All entries use procedural or symbolic confidence levels;
- * no real textures are downloaded yet.
+ * Current: All entries use procedural or symbolic confidence levels;
+ * no real textures are integrated. plannedTextureUrl marks Sprint 05 targets.
  *
- * Sources: NASA Images and Media Guidelines (nasaMedia), USGS Astrogeology (usgsAstrogeology).
+ * Sources: NASA Images and Media Guidelines, USGS Astrogeology, NASA Visible Earth.
+ * Processing required: GeoTIFF/mosaic → equirectangular WebP 1K/2K/4K tiers.
  */
 
 import type { SolarBodyCategory } from "./bodies";
@@ -24,6 +25,12 @@ export type SolarAsset = {
   credit: string;
   retrievedAt: string;
   licenseNote: string;
+  /**
+   * Sprint 05 target: URL of specific NASA/USGS texture product to download
+   * and process into a web-ready equirectangular WebP.
+   * NOT integrated yet — confidence remains "procedural" until file exists.
+   */
+  plannedTextureUrl?: string;
 };
 
 // ---------------------------------------------------------------------------
@@ -56,9 +63,10 @@ export const SOLAR_ASSETS: SolarAsset[] = [
     confidence: "procedural",
     fallbackMaterial: "star",
     sourceUrl: "https://www.nasa.gov/nasa-brand-center/images-and-media/",
-    credit: "NASA",
+    credit: "NASA SDO / AIA",
     retrievedAt: "2026-05-29",
     licenseNote: "NASA media may be used for educational purposes; verify attribution requirements at source URL.",
+    plannedTextureUrl: "https://svs.gsfc.nasa.gov/cgi-bin/details.cgi?aid=4768",
   },
   {
     id: "asset-mercury",
@@ -66,9 +74,10 @@ export const SOLAR_ASSETS: SolarAsset[] = [
     confidence: "procedural",
     fallbackMaterial: "rocky",
     sourceUrl: "https://astrogeology.usgs.gov/search",
-    credit: "USGS Astrogeology / NASA",
+    credit: "USGS Astrogeology / NASA MESSENGER",
     retrievedAt: "2026-05-29",
     licenseNote: "Placeholder; real texture requires download and processing from USGS source.",
+    plannedTextureUrl: "https://astrogeology.usgs.gov/search/map/Mercury/Messenger/MDIS/Mercury_Messenger_MDIS_Basemap_BDR_Mosaic_Global_166m",
   },
   {
     id: "asset-venus",
@@ -85,10 +94,11 @@ export const SOLAR_ASSETS: SolarAsset[] = [
     bodyId: "earth",
     confidence: "procedural",
     fallbackMaterial: "rocky",
-    sourceUrl: "https://astrogeology.usgs.gov/search",
-    credit: "USGS Astrogeology / NASA",
+    sourceUrl: "https://visibleearth.nasa.gov/",
+    credit: "NASA Visible Earth / Blue Marble",
     retrievedAt: "2026-05-29",
-    licenseNote: "Placeholder; real texture requires download and processing from USGS source.",
+    licenseNote: "NASA imagery is generally public domain for educational use; verify at nasa.gov.",
+    plannedTextureUrl: "https://visibleearth.nasa.gov/view.php?id=74117",
   },
   {
     id: "asset-moon",
@@ -96,9 +106,10 @@ export const SOLAR_ASSETS: SolarAsset[] = [
     confidence: "procedural",
     fallbackMaterial: "rocky",
     sourceUrl: "https://astrogeology.usgs.gov/search",
-    credit: "USGS Astrogeology / NASA",
+    credit: "USGS Astrogeology / NASA LRO",
     retrievedAt: "2026-05-29",
     licenseNote: "Placeholder; real texture requires download and processing from USGS source.",
+    plannedTextureUrl: "https://astrogeology.usgs.gov/search/map/Moon/LRO/LROC_WAC/Lunar_LRO_LROC-WAC_Mosaic_global_100m_June2013",
   },
   {
     id: "asset-mars",
@@ -106,9 +117,10 @@ export const SOLAR_ASSETS: SolarAsset[] = [
     confidence: "procedural",
     fallbackMaterial: "rocky",
     sourceUrl: "https://astrogeology.usgs.gov/search",
-    credit: "USGS Astrogeology / NASA",
+    credit: "USGS Astrogeology / NASA Viking",
     retrievedAt: "2026-05-29",
     licenseNote: "Placeholder; real texture requires download and processing from USGS source.",
+    plannedTextureUrl: "https://astrogeology.usgs.gov/search/map/Mars/Viking/MDIM21/Mars_Viking_MDIM21_ClrMosaic_global_232m",
   },
   {
     id: "asset-jupiter",

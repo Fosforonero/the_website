@@ -675,6 +675,11 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
                 {horizonsMarker.epochIso.slice(0, 10)}
               </span>
             </div>
+            <p style={{ fontSize: "0.60rem", color: "#4a7090", lineHeight: 1.4, margin: "4px 0 0" }}>
+              {locale === "it"
+                ? "Percorso orbitale non visualizzato per questo oggetto (Sprint 06). Dati: catalog-keplerian (punti layer) + sub-km (marcatore)."
+                : "Orbit path not displayed for this object (Sprint 06). Data: catalog-keplerian (point layer) + sub-km (marker)."}
+            </p>
             <button
               className="solar-control"
               style={{ marginTop: 2, fontSize: "0.65rem" }}
@@ -695,10 +700,33 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
           <p style={{ fontSize: "0.60rem", color: "#4a7090", lineHeight: 1.4, margin: 0 }}>
             {RADIUS_MODE_DISCLAIMERS[radiusMode][locale]}
           </p>
+          {distanceMode === "compressed" && radiusMode === "visible" && (
+            <p style={{ fontSize: "0.60rem", color: "#c08050", lineHeight: 1.4, margin: 0 }}>
+              {locale === "it"
+                ? "Scala educativa: distanza compressa e raggi esagerati non sono in scala reale simultanea."
+                : "Educational scale: compressed distances and exaggerated radii are not simultaneously to real scale."}
+            </p>
+          )}
+          {distanceMode === "compressed" && radiusMode === "relative" && (
+            <p style={{ fontSize: "0.60rem", color: "#70a0c0", lineHeight: 1.4, margin: 0 }}>
+              {locale === "it"
+                ? "Proporzioni separate: rapporti di distanza corretti, rapporti di raggi corretti. Ancora non visivamente in scala reale simultanea."
+                : "Separate proportions: distance ratios correct, radius ratios correct. Still not visually to simultaneous real scale."}
+            </p>
+          )}
           <p style={{ fontSize: "0.60rem", color: "#4a7090", lineHeight: 1.4, margin: 0 }}>
             {LIGHTING_DISCLOSURE[brightnessMode][locale]}
           </p>
         </div>
+
+        {/* Catalog layer disclosure */}
+        {visibleCatalog.size > 0 && (
+          <p style={{ fontSize: "0.60rem", color: "#4a7090", lineHeight: 1.4, margin: 0 }}>
+            {locale === "it"
+              ? `${visibleCatalog.size} ${visibleCatalog.size === 1 ? "livello catalogo attivo" : "livelli catalogo attivi"} — posizioni kepleriane da snapshot SBDB. Percorsi orbitali per oggetto singolo: Sprint 06.`
+              : `${visibleCatalog.size} catalog ${visibleCatalog.size === 1 ? "layer" : "layers"} active — Keplerian positions from SBDB snapshot. Per-object orbit paths: Sprint 06.`}
+          </p>
+        )}
 
         {/* Firmament source */}
         <p
