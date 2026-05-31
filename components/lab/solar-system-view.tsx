@@ -307,6 +307,14 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
             {selectedBody.radiusKm.toLocaleString()} km
           </span>
         </div>
+        <div className="solar-inspector__row" style={{ flexDirection: "column", alignItems: "flex-start", gap: 2 }}>
+          <span className="solar-inspector__label">{t.radiusMode}</span>
+          <span className="solar-inspector__value" style={{ fontSize: "0.60rem", color: "#4a7090" }}>
+            {t.radiusModes[radiusMode]} — {locale === "it"
+              ? "il raggio visivo è scalato indipendentemente dalla distanza."
+              : "visual radius is scaled independently from orbital distance."}
+          </span>
+        </div>
 
         {selectedBody.massKg !== undefined && (
           <div className="solar-inspector__row">

@@ -46,8 +46,8 @@ export const SOLAR_UI = {
       "inner-system": "Sistema interno",
     },
     radiusModes: {
-      visible: "Visibile",
-      relative: "Relativa",
+      visible: "Visibile educativa",
+      relative: "Relativa reale",
     },
     speeds: {
       "1": "×1 (tempo reale)",
@@ -101,8 +101,8 @@ export const SOLAR_UI = {
       "inner-system": "Inner system",
     },
     radiusModes: {
-      visible: "Visible",
-      relative: "Relative",
+      visible: "Educational visible",
+      relative: "Physical relative",
     },
     speeds: {
       "1": "×1 (real time)",

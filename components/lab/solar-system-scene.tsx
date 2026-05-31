@@ -7,7 +7,7 @@ import * as THREE from "three";
 import { FirmamentLayer } from "./firmament-layer";
 import { SOLAR_BODIES } from "@/lib/solar-system/bodies";
 import { getBodyStatesForDate, sampleOrbitPath } from "@/lib/solar-system/ephemeris";
-import { scaleDistance, scaleRadius, AU_KM } from "@/lib/solar-system/scales";
+import { scaleDistance, scaleRadius, scaleSatelliteOffsetKm, AU_KM } from "@/lib/solar-system/scales";
 import type {
   ScaleDistanceMode,
   ScaleRadiusMode,
@@ -160,7 +160,7 @@ function BodyMesh({
 }: BodyMeshProps) {
   const [scaledX, scaledY, scaledZ] = scalePositionVector(state.positionKm, distanceMode);
 
-  const r = scaleRadius(body.radiusKm, radiusMode);
+  const r = scaleRadius(body.radiusKm, radiusMode, body.category);
   const displayR = isSelected ? r * SELECTED_SCALE : r;
 
   const isSun = body.category === "star";
