@@ -202,6 +202,48 @@ Due sorgenti distinte, mai mescolate silenziosamente:
 ### Escluso (non implementare senza decisione esplicita)
 - Vista nucleo avanzata Level 1b (quark/gluoni) — impatto didattico marginale per il target liceo/triennio
 - Vista materiale / Powers of Ten avanzata — scope troppo ampio rispetto al valore
+- **PharmaDive / Moore Metrics** — non è un database chimico/farmaceutico (vedi audit 2026-05-31)
+
+---
+
+## Audit: PharmaDive / Moore Metrics (2026-05-31)
+
+**Decisione: NO** — integrazione diretta esclusa permanentemente.
+
+### Motivazione
+- Non è un database chimico/farmaceutico primario: è un motore di raccomandazione consumer (uno dei 13 domini "Dive", accanto a MovieDive e ChowDive).
+- Non espone formula molecolare, struttura, SMILES, PubChem CID, ChEMBL/DrugBank ID, né ATC therapeutic class.
+- Non esiste nessun campo "elemento" o "composizione" — nessun join possibile tra Z e farmaco senza name-matching fragile e non verificabile.
+- Free tier (50 req/mese) inutilizzabile per qualsiasi feature pubblica che si attiva su click-elemento.
+- Tier utili (Basic $15/mese, Pro $50/mese) richiedono un proxy server-side per proteggere la API key non-retrievable — costo e complessità senza valore proporzionato.
+- I 16 score (es. "ionic_inorganic", "neuroactive") sono valutazioni soggettive editoriali, non proprietà scientifiche verificabili — incompatibili con il principio "fail loud, never fake".
+
+### Direzione Element → Medicine/Applicazioni reali (rimane valida)
+La roadmap Element→Composto→Farmaco→Applicazione Biologica ha valore educativo alto, **ma non passa attraverso PharmaDive**.
+
+Roadmap alternativa raccomandata (ordine ROI):
+
+| Phase | Contenuto | Effort | Fonte | Costo |
+|-------|-----------|--------|-------|-------|
+| **1** | Tabella statica curata `lib/element-pharma-data.ts` — ~20 elementi con applicazione medica nota (Pt→cisplatino, Au→auranofin, Li→carbonato di litio, Fe→emoglobina/solfato ferroso, Ag→sulfadiazina d'argento, I→ormoni tiroidei, F→fluoruro dentale…) | Basso | Manuale (WHO/ChEMBL) | $0 |
+| **2** | Link dal farmaco curato al **molecule viewer PubChem esistente** — "click cisplatino → vedi molecola 3D". Riuso puro di codice già in produzione. | Bassissimo | PubChem (già integrato) | $0 |
+| **3** | `lib/pharma-chembl.ts` (specchio di `molecules-pubchem.ts`) — ChEMBL REST no-key, CORS-OK, per "altri farmaci / meccanismo / indicazione" on-demand, cached per elemento. | Medio | ChEMBL (free, CC-BY-SA) | $0 |
+| **4** | RCSB PDB per strutture proteiche 3D degli elementi biologicamente centrali (Fe→emoglobina, Zn→insulina). Visivamente spettacolare e on-brand con il rendering 3D. | Alto | RCSB PDB (free) | $0 |
+
+### Fonti competitive (sintesi)
+| Fonte | Gratuita | API key | Dati strutturali | Valore educativo | Rischio |
+|-------|---------|---------|-----------------|-----------------|---------|
+| PubChem (già integrato) | Sì | No | Sì (SMILES, 3D) | Alto | Nessuno |
+| ChEMBL | Sì | No | Sì + indicazioni | Alto | Basso |
+| RCSB PDB | Sì | No | Strutture proteiche 3D | Alto | Nessuno |
+| DrugBank | No (commercial) | Licenza commerciale | Ottima curation clinica | Alto | Alto (costi) |
+| PharmaDive | 50/mese / $15–50 | Sì (non-retrievable) | **Nessuno** | Basso | Medio |
+
+### Backlog: Applicazioni reali elementi
+- [ ] **Real-world applications panel (P2)** — tabella statica curata ~20 elementi; "Usato in: cisplatino (chemioterapia)"; Option A minima nell'InfoPanel. Fonte: WHO Essential Medicines + ChEMBL indications. Ogni claim deve avere fonte verificabile — regola "never fake" si applica doppiamente ai claim sanitari.
+- [ ] **PubChem molecule link per farmaci curati (P2)** — link farmaco curato → molecola nel viewer esistente. Effort minimo, massima sinergia.
+- [ ] **ChEMBL on-demand enrichment (P3)** — `lib/pharma-chembl.ts`, specchio del pattern PubChem. Solo su richiesta esplicita utente, mai on-load automatico.
+- [ ] **Disclaimer obbligatorio** — se in futuro viene aggiunto contenuto farmacologico: "Contenuto a scopo educativo. Non costituisce consiglio medico."
 
 ---
 
