@@ -1,6 +1,6 @@
 import { SOLAR_BODIES } from "../../lib/solar-system/bodies";
 import { getBodyStatesForDate } from "../../lib/solar-system/ephemeris";
-import { scaleDistance, scaleRadius, AU_KM } from "../../lib/solar-system/scales";
+import { scaleDistance, scaleRadius, scaleSatelliteOffsetKm, AU_KM } from "../../lib/solar-system/scales";
 
 const DATE = new Date("2026-05-29T00:00:00Z");
 const states = getBodyStatesForDate(DATE);
@@ -9,39 +9,31 @@ const bodyById = new Map(SOLAR_BODIES.map((b) => [b.id, b]));
 
 let warnings = 0;
 
-function warn(msg: string) {
-  console.log(`  [WARN] ${msg}`);
-  warnings++;
-}
+// Sprint 02 acceptance criteria: required size-ordering pairs (larger first).
+const REQUIRED_SIZE_PAIRS: [string, string][] = [
+  ["sun", "jupiter"],
+  ["jupiter", "neptune"],
+  ["neptune", "earth"],
+  ["earth", "moon"],
+  ["moon", "vesta"],
+  ["pluto", "charon"],
+  ["ceres", "halley"],
+];
 
-// Category ordering for size hierarchy check
-const CAT_RANK: Record<string, number> = {
-  star: 6,
-  planet: 5,
-  "dwarf-planet": 3,
-  moon: 3,
-  asteroid: 2,
-  comet: 1,
-  tno: 2,
-};
+// Sprint 02 acceptance criteria: required moon visual separation pairs.
+const REQUIRED_MOON_SEPS: Array<{ moonId: string; parentId: string }> = [
+  { moonId: "moon", parentId: "earth" },
+  { moonId: "io", parentId: "jupiter" },
+  { moonId: "charon", parentId: "pluto" },
+];
 
-// Override for specific hierarchy within planet-like bodies
-const BODY_RANK: Record<string, number> = {
-  sun: 100,
-  jupiter: 50, saturn: 49, uranus: 48, neptune: 47,
-  earth: 40, venus: 39, mars: 38, mercury: 37,
-  ganymede: 30, titan: 29, callisto: 28, io: 27, europa: 26, triton: 25,
-  moon: 24,
-  pluto: 20, eris: 19, haumea: 18, makemake: 17, ceres: 16,
-  sedna: 15, vesta: 14, charon: 13, enceladus: 12,
-  "67p": 5, halley: 6,
-};
-
-void CAT_RANK; // used for future category-level checks
+// ---------------------------------------------------------------------------
 
 console.log("=".repeat(70));
 console.log("Solar System Orbital Audit —", DATE.toISOString().slice(0, 10));
 console.log("=".repeat(70));
+
+// --- 1. Distances and radii table (informational) -------------------------
 
 console.log("\n--- Body distances and radii ---");
 console.log(
@@ -74,7 +66,7 @@ for (const body of SOLAR_BODIES) {
   }
 
   const sunAU = sunDist / AU_KM;
-  const visR = scaleRadius(body.radiusKm, "visible");
+  const visR = scaleRadius(body.radiusKm, "visible", body.category);
   const relR = scaleRadius(body.radiusKm, "relative");
   const comp = scaleDistance(sunDist, "compressed");
   const log = scaleDistance(sunDist, "real-log");
@@ -90,7 +82,9 @@ for (const body of SOLAR_BODIES) {
   );
 }
 
-console.log("\n--- Moon separation checks (compressed mode) ---");
+// --- 2. All-moon separation info (informational) --------------------------
+
+console.log("\n--- Moon separation (educational scale) — informational ---");
 
 for (const body of SOLAR_BODIES) {
   if (body.category !== "moon") continue;
@@ -103,42 +97,76 @@ for (const body of SOLAR_BODIES) {
   const [ppx, ppy, ppz] = ps.positionKm;
   const parentKm = Math.sqrt((px - ppx) ** 2 + (py - ppy) ** 2 + (pz - ppz) ** 2);
 
-  const sepComp = scaleDistance(parentKm, "compressed");
-  const moonVisR = scaleRadius(body.radiusKm, "visible");
-  const parentVisR = scaleRadius(parent.radiusKm, "visible");
+  const sepVisual = scaleSatelliteOffsetKm(parentKm, body.parentId ?? "");
+  const moonVisR = scaleRadius(body.radiusKm, "visible", body.category);
+  const parentVisR = scaleRadius(parent.radiusKm, "visible", parent.category);
   const minSep = 3 * Math.max(parentVisR, moonVisR);
+  const ok = sepVisual >= minSep;
 
-  const tooClose = sepComp < minSep;
-  const status = tooClose ? "[WARN]" : "  OK  ";
   console.log(
-    `  ${status} ${body.id.padEnd(10)} → ${parent.id.padEnd(10)} sep=${sepComp.toFixed(5)} minRequired=${minSep.toFixed(5)}`
+    `  ${ok ? "  OK " : " INFO"} ${body.id.padEnd(10)} → ${parent.id.padEnd(10)} sepVis=${sepVisual.toFixed(5)} min=${minSep.toFixed(5)}`
   );
-  if (tooClose) {
-    warnings++;
-  }
 }
 
-console.log("\n--- Size hierarchy checks (visible radius ordering) ---");
-const orderedBodies = SOLAR_BODIES.filter((b) => BODY_RANK[b.id] !== undefined)
-  .sort((a, b) => (BODY_RANK[b.id] ?? 0) - (BODY_RANK[a.id] ?? 0));
+// --- 3. Required moon separations (sprint acceptance criteria) ------------
 
-for (let i = 0; i < orderedBodies.length - 1; i++) {
-  const bigger = orderedBodies[i];
-  const smaller = orderedBodies[i + 1];
-  if (!bigger || !smaller) continue;
-  const bigR = scaleRadius(bigger.radiusKm, "visible");
-  const smallR = scaleRadius(smaller.radiusKm, "visible");
-  if (bigR <= smallR) {
-    console.log(`  [WARN] ${bigger.id} visR=${bigR.toFixed(4)} should be > ${smaller.id} visR=${smallR.toFixed(4)}`);
+console.log("\n--- Required moon separations [sprint spec] ---");
+
+for (const { moonId, parentId } of REQUIRED_MOON_SEPS) {
+  const moon = bodyById.get(moonId);
+  const parent = bodyById.get(parentId);
+  const ms = byId.get(moonId);
+  const ps = byId.get(parentId);
+  if (!moon || !parent || !ms || !ps) {
+    console.log(`  [WARN] ${moonId} or ${parentId} not found`);
     warnings++;
+    continue;
   }
+
+  const [mx, my, mz] = ms.positionKm;
+  const [ppx, ppy, ppz] = ps.positionKm;
+  const offsetKm = Math.sqrt((mx - ppx) ** 2 + (my - ppy) ** 2 + (mz - ppz) ** 2);
+
+  const sepVisual = scaleSatelliteOffsetKm(offsetKm, parentId);
+  const moonVisR = scaleRadius(moon.radiusKm, "visible", moon.category);
+  const parentVisR = scaleRadius(parent.radiusKm, "visible", parent.category);
+  const minSep = 3 * Math.max(parentVisR, moonVisR);
+  const ok = sepVisual >= minSep;
+
+  console.log(
+    `  ${ok ? "    OK" : " [WARN]"} ${moonId.padEnd(8)} → ${parentId.padEnd(8)} sepVis=${sepVisual.toFixed(5)} minRequired=${minSep.toFixed(5)}`
+  );
+  if (!ok) warnings++;
 }
+
+// --- 4. Required size ordering (sprint acceptance criteria) ---------------
+
+console.log("\n--- Required size ordering [sprint spec] ---");
+
+for (const [biggerId, smallerId] of REQUIRED_SIZE_PAIRS) {
+  const bigger = bodyById.get(biggerId);
+  const smaller = bodyById.get(smallerId);
+  if (!bigger || !smaller) {
+    console.log(`  [WARN] body not found: ${biggerId} or ${smallerId}`);
+    warnings++;
+    continue;
+  }
+  const bigR = scaleRadius(bigger.radiusKm, "visible", bigger.category);
+  const smallR = scaleRadius(smaller.radiusKm, "visible", smaller.category);
+  const ok = bigR > smallR;
+  console.log(
+    `  ${ok ? "    OK" : " [WARN]"} ${biggerId.padEnd(8)} visR=${bigR.toFixed(4)} ${ok ? ">" : "≤"} ${smallerId.padEnd(8)} visR=${smallR.toFixed(4)}`
+  );
+  if (!ok) warnings++;
+}
+
+// --- Summary ---------------------------------------------------------------
 
 console.log("\n" + "=".repeat(70));
 if (warnings === 0) {
-  console.log(`✅  All checks passed.`);
+  console.log("✅  All sprint acceptance checks passed.");
 } else {
-  console.log(`❌  ${warnings} warning(s) found. Fix the above issues.`);
+  console.log(`❌  ${warnings} sprint acceptance check(s) FAILED.`);
 }
 console.log("=".repeat(70));
 

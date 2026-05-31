@@ -58,8 +58,8 @@ export function scaleDistance(km: number, mode: ScaleDistanceMode): number {
 const CATEGORY_BASE: Record<SolarBodyCategory, number> = {
   star: 0.70,         // Sun — capped separately
   planet: 0.10,       // gas giants anchor
-  "dwarf-planet": 0.020,
-  moon: 0.018,
+  "dwarf-planet": 0.025,
+  moon: 0.040,        // large moons (Ganymede 2634 km) need room above the floor
   asteroid: 0.008,
   comet: 0.007,
   tno: 0.015,
@@ -71,11 +71,11 @@ const CATEGORY_BASE: Record<SolarBodyCategory, number> = {
 const CATEGORY_MIN: Record<SolarBodyCategory, number> = {
   star: 0.25,
   planet: 0.035,
-  "dwarf-planet": 0.014,
-  moon: 0.012,
-  asteroid: 0.007,
-  comet: 0.006,
-  tno: 0.010,
+  "dwarf-planet": 0.007,  // below log-scale of Pluto so Pluto > Ceres
+  moon: 0.008,
+  asteroid: 0.005,
+  comet: 0.005,
+  tno: 0.008,
 };
 
 /**
