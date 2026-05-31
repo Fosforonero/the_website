@@ -5,7 +5,7 @@
 import type { Molecule, BondType, BondOrder } from "./molecules-data";
 
 export type PubChemFetchResult =
-  | { ok: true;  mol: Molecule }
+  | { ok: true;  mol: Molecule; is2D?: boolean }
   | { ok: false; reason: "notfound" | "networkerror" };
 import { EXTENDED } from "./element-extended-data";
 import { ELEMENTS } from "./elements-data";
@@ -67,13 +67,18 @@ export async function fetchMoleculeFromPubChem(name: string): Promise<PubChemFet
   // Try 3D conformer first, fall back to 2D
   let data: PCResponse | null = null;
   let hadNetworkError = false;
+  let usedFallback2D = false;
   for (const suffix of ["?record_type=3d", ""]) {
     try {
       const res = await fetch(
         `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encoded}/record/JSON${suffix}`,
         { signal: AbortSignal.timeout(8000) },
       );
-      if (res.ok) { data = (await res.json()) as PCResponse; break; }
+      if (res.ok) {
+        data = (await res.json()) as PCResponse;
+        if (suffix === "") usedFallback2D = true;
+        break;
+      }
       if (res.status !== 404) hadNetworkError = true;
     } catch { hadNetworkError = true; }
   }
@@ -128,6 +133,7 @@ export async function fetchMoleculeFromPubChem(name: string): Promise<PubChemFet
 
   return {
     ok: true,
+    is2D: usedFallback2D,
     mol: {
       formula:  buildFormula(elements),
       nameIT:   name,

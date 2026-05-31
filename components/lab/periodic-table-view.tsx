@@ -1509,6 +1509,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
   const [molResetKey,     setMolResetKey]     = useState<number>(0);
   const [molSearchQuery,  setMolSearchQuery]  = useState("");
   const [molSearchResult, setMolSearchResult] = useState<Molecule | null>(null);
+  const [molIs2D, setMolIs2D] = useState(false);
   const [molSearchBusy,   setMolSearchBusy]   = useState(false);
   const [molSearchError,  setMolSearchError]  = useState<"notfound" | "networkerror" | null>(null);
   const [molSearchHasSearched, setMolSearchHasSearched] = useState(false);
@@ -1599,9 +1600,11 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
     const result = await fetchMoleculeFromPubChem(trimmed);
     if (result.ok) {
       setMolSearchResult(result.mol);
+      setMolIs2D(result.is2D ?? false);
       setMolSearchError(null);
     } else {
       setMolSearchResult(null);
+      setMolIs2D(false);
       setMolSearchError(result.reason);
     }
     setMolSearchHasSearched(true);
@@ -1972,11 +1975,14 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                             <span className="pt-mol-external-note">{t.molPubChemExternalNote}</span>
                             <button
                               className="pt-mol-clear-search"
-                              onClick={() => { setMolSearchResult(null); setMolSearchQuery(""); setMolSearchError(null); setMolSearchHasSearched(false); }}
+                              onClick={() => { setMolSearchResult(null); setMolIs2D(false); setMolSearchQuery(""); setMolSearchError(null); setMolSearchHasSearched(false); }}
                               title={t.molBackToLocal}
                               aria-label={t.molBackToLocal}
                             >✕</button>
                           </>
+                        )}
+                        {molSearchResult && molIs2D && (
+                          <p className="pt-mol-2d-note">{t.molPubChem2DFallback}</p>
                         )}
                       </div>
                       {/* View mode segmented control */}

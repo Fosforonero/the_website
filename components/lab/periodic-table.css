@@ -566,7 +566,7 @@
     max-width: calc(100% - 24px);
   }
   .pt-mol-pubchem-desc { display: none; }
-  .pt-mol-search-input { width: min(180px, calc(100% - 36px)); }
+  .pt-mol-search-input { width: min(180px, calc(100% - 36px)); font-size: 16px; }
 }
 .pt-mol-search-input::placeholder { color: rgba(216,216,232,0.35); }
 .pt-mol-search-input::-webkit-search-cancel-button { display: none; }
@@ -603,6 +603,15 @@
   transition: color 0.12s;
 }
 .pt-mol-clear-search:hover { color: #eee; }
+.pt-mol-2d-note {
+  margin: 4px 0 0;
+  font-size: 10px;
+  color: rgba(216,216,232,0.42);
+  font-style: italic;
+  line-height: 1.4;
+  width: 100%;
+}
+.pt-root--light .pt-mol-2d-note { color: rgba(10,10,20,0.35); }
 /* Light mode overrides */
 .pt-root--light .pt-mol-pubchem-label { color: rgba(10,10,20,0.30); }
 .pt-root--light .pt-mol-pubchem-desc  { color: rgba(10,10,20,0.22); }
@@ -2955,5 +2964,43 @@
 
   /* Raise header max-height to accommodate view-mode row */
   .pt-header { max-height: 400px; }
+
+  /* ── Tap target floors (≥44px) ── */
+  .pt-canvas-fs-btn {
+    width: 44px;
+    height: 44px;
+    top: 6px;
+    right: 6px;
+  }
+  .pt-view-back-btn {
+    min-height: 44px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+  }
+  .pt-scale-toggle {
+    min-height: 44px;
+    padding: 0 12px 0 9px;
+  }
+  .pt-orbital-btn {
+    min-height: 44px;
+    padding: 0 9px;
+    font-size: 12px;
+  }
+  .pt-info__app-mol-btn {
+    min-height: 44px;
+    padding: 0 12px;
+    font-size: 12px;
+  }
+  .pt-info__apps-summary {
+    min-height: 44px;
+    align-items: center;
+  }
+
+  /* ── Font floor (≥12px) ── */
+  .pt-portrait-hint   { font-size: 12px; }
+  .pt-orbital-panel__qn dt { font-size: 11px; }
+  .pt-orbital-panel__qn dd { font-size: 12px; }
+  .pt-orbital-shape { font-size: 12px; }
 }
 
