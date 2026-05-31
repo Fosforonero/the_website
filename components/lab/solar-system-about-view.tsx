@@ -494,7 +494,7 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
           {/* Scientific data sources */}
           <section className="ss-about-section" aria-labelledby="ss-s-sources">
             <h2 className="ss-about-section-title" id="ss-s-sources">
-              {isIT ? "FONTI DATI SCIENTIFICI (SPRINT 01)" : "SCIENTIFIC DATA SOURCES (SPRINT 01)"}
+              {isIT ? "FONTI DATI SCIENTIFICI" : "SCIENTIFIC DATA SOURCES"}
             </h2>
             <ul className="ss-about-sources">
               {SPRINT01_SOURCES.map((key) => {
@@ -515,10 +515,10 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
               {isIT ? "TEXTURE E ASSET 3D (SPRINT 02+)" : "TEXTURES AND 3D ASSETS (SPRINT 02+)"}
             </h2>
             <div className="ss-about-notice">
-              <strong>{isIT ? "Sprint 01:" : "Sprint 01:"}</strong>{" "}
+              <strong>{isIT ? "Stato attuale:" : "Current status:"}</strong>{" "}
               {isIT
-                ? "Tutti i materiali sono procedurali. Nessuna texture reale è ancora stata scaricata. Le seguenti fonti saranno integrate in sprint futuri."
-                : "All materials are procedural. No real texture maps have been downloaded yet. The following sources will be integrated in future sprints."}
+                ? "Tutti i materiali sono procedurali. Nessuna texture reale è ancora stata integrata. Le seguenti fonti saranno utilizzate in sprint futuri."
+                : "All materials are procedural. No real texture maps have been integrated yet. The following sources will be used in future sprints."}
             </div>
             <ul className="ss-about-sources">
               {TEXTURE_SOURCES.map(({ label, url, usage }) => (
@@ -551,17 +551,25 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
               {(isIT ? [
                 "Posizioni orbitali: elementi kepleriani J2000 nel frame HEC-J2000. Non integrazioni numeriche, non vettori live JPL Horizons. Precisione: pochi milioni di km su scale di anni.",
                 "Orientamento assi: obliquità IAU 2015 corretta; azimut del polo approssimato (RA/Dec IAU WGCCRE in Sprint 04). Precessione e nutazione non modellate.",
-                "Anelli: geometria semplificata. Saturn: no divisione di Cassini, no divisioni degli anelli, no ombre degli anelli sul pianeta. Uranus: solo la banda principale degli anelli epsilon.",
+                "Anelli: geometria semplificata; le proporzioni anello/pianeta sono fisicamente corrette. Mancano: divisione di Cassini, ombre degli anelli sul pianeta. Gli anelli usano un materiale a colore fisso (meshBasicMaterial) e non ricevono la luce solare della PointLight.",
                 "Illuminazione: la modalità educativa aggiunge un boost ambientale non fisico per la visibilità. La modalità fisica (1/r²) è disponibile ma rende i pianeti esterni molto scuri.",
                 "Raggi visivi: scala logaritmica educativa per categoria. I corpi sono molto più grandi del reale rispetto alle distanze. Dichiarato nell'ispettore sotto \"Scale attive\".",
+                "Massa: mostrata nell'ispettore come dato di riferimento. Non viene usata nella simulazione — le orbite sono kepleriane statiche, non N-body.",
+                "Temperatura: nessun dato e nessun calcolo di temperatura superficiale, media o di equilibrio radiativo.",
+                "Gravità e N-body: non implementati. Non ci sono forze gravitazionali tra i corpi.",
+                "Eclissi, ombre e transiti: non implementati.",
                 "Il catalogo stelle è un subset curato di Hipparcos (44 stelle), non il catalogo completo.",
                 "Le texture sono procedurali; i dettagli superficiali non sono scientificamente rappresentativi.",
               ] : [
                 "Orbital positions: J2000 Keplerian elements in the HEC-J2000 frame. Not numerical integrations, not live JPL Horizons vectors. Accuracy: a few million km over multi-year timescales.",
                 "Axis orientation: IAU 2015 obliquity correct; pole azimuth approximated (IAU WGCCRE RA/Dec in Sprint 04). Precession and nutation not modelled.",
-                "Rings: simplified geometry. Saturn: no Cassini Division, no ring divisions, no ring shadow on planet. Uranus: main epsilon ring band only.",
+                "Rings: simplified geometry; ring/planet proportions are physically correct. Missing: Cassini Division, ring shadow on planet. Rings use a fixed-colour material (meshBasicMaterial) and do not receive sunlight from the PointLight.",
                 "Lighting: educational mode adds a non-physical ambient boost for visibility. Physical mode (1/r²) is available but makes outer planets very dark.",
                 "Visual radii: educational logarithmic scale by category. Bodies are much larger than real scale relative to distances. Declared in inspector under \"Active scales\".",
+                "Mass: shown in the inspector as reference data. Not used in the simulation — orbits are static Keplerian, not N-body.",
+                "Temperature: no data and no calculations for surface, mean, or radiative equilibrium temperature.",
+                "Gravity and N-body: not implemented. No gravitational forces between bodies.",
+                "Eclipses, shadows, and transits: not implemented.",
                 "Star catalog is a curated subset of Hipparcos (44 stars), not the full catalog.",
                 "Textures are procedural; surface details are not scientifically representative.",
               ]).map((text) => (
@@ -581,14 +589,14 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
             <ul className="ss-about-limits">
               {(isIT ? [
                 "Canvas WebGL caricato via dynamic import (SSR-safe).",
-                "Nessuna texture pesante in Sprint 01.",
+                "Nessuna texture pesante (materiali procedurali).",
                 "Catalogo corpi minori limitato a ~28 corpi curati.",
-                "Rendering instanziato pianificato per cataloghi densi futuri.",
+                "Rendering instanziato pianificato per cataloghi densi futuri (Sprint 03B+).",
               ] : [
                 "WebGL canvas loaded via dynamic import (SSR-safe).",
-                "No heavy texture maps in Sprint 01.",
+                "No heavy texture maps (procedural materials).",
                 "Minor body catalog limited to ~28 curated bodies.",
-                "Instanced rendering planned for future dense catalogs.",
+                "Instanced rendering planned for future dense catalogs (Sprint 03B+).",
               ]).map((text) => (
                 <li key={text}>
                   <span className="ss-about-limits-bullet" aria-hidden="true">—</span>

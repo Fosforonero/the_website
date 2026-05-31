@@ -32,24 +32,34 @@ const T = {
     sections: {
       overview: {
         title: "Panoramica",
-        content: `Il Sistema Solare 3D di Fosforonero Lab è un osservatorio interattivo nel browser costruito con WebGL (Three.js). Permette di esplorare i corpi del sistema solare in tempo simulato, con dati astronomici reali dove disponibili e dati di riferimento pubblici per gli elementi orbitali.
+        content: `Il Sistema Solare 3D di Fosforonero Lab è un osservatorio interattivo nel browser costruito con WebGL (Three.js). Permette di esplorare i corpi del sistema solare in tempo simulato, con dati astronomici reali dove disponibili.
 
-Cosa è reale in questo MVP:
-— Il catalogo stellare del firmamento proviene dal catalogo Hipparcos dell'ESA (44 stelle nominate, posizioni RA/Dec reali, magnitudini reali).
-— Le costellazioni sono tratte dai metadati di Stellarium Sky Cultures.
-— Gli oggetti del cielo profondo (M31, M42, M45, ecc.) provengono da OpenNGC/Messier.
-— Le categorie e i nomi dei corpi sono coerenti con la classificazione IAU.
+A — Fisica rispettata:
+— Elementi orbitali (a, e, i, Ω, ω, M₀) da NASA/JPL Horizons, valori reali.
+— Propagazione kepleriana corretta: equazione di Keplero risolta numericamente, rotazione perifocale completa.
+— Rapporti di distanza in scala "Compressa": 1 AU = 1 unità, fisicamente corretti.
+— Rapporti di raggi in scala "Relativo": proporzionali al Sole, fisicamente corretti.
+— Illuminazione 1/r² in modalità fisica: nessun boost, Nettuno scuro come nella realtà.
+— Obliquità assiale: valori IAU 2015 reali (Terra 23,44°, Venere 177,36°, Urano 97,77°).
+— Fase di rotazione siderale: calcolata dal periodo siderale reale a partire da J2000.0.
+— Proporzioni degli anelli: i rapporti anello/pianeta sono fisicamente corretti.
+— Catalogo stellare Hipparcos (44 stelle nominate, posizioni RA/Dec J2000 reali).
 
-Cosa è approssimativo in questo MVP (Sprint 01):
-— Gli elementi orbitali sono dati statici di riferimento pubblici (NASA/JPL), non integrazioni live da JPL Horizons. Le posizioni sono calcolate con formule kepleriane semplificate.
-— Le texture superficiali sono procedurali (colore + forma approssimativa). Le mappe reali NASA/USGS arriveranno nello Sprint 02.
-— La luna e le lune minori dei pianeti sono incluse come corpi statici con parametri orbitali di riferimento.
+B — Fisica approssimata/educativa (dichiarata nell'UI):
+— Scala raggi "Visibile" (default): logaritmica categoriale, non proporzionale. Dichiarata.
+— Distanze lune: boost ×200 per leggibilità. Dichiarato.
+— Illuminazione educativa (default): 1/r² + boost ambientale dichiarato.
+— Lato notte/giorno: shading Three.js su sfere senza texture; nessuna eclissi.
+— Direzione del polo: approssimazione eclittica, non RA/Dec IAU WGCCRE per-corpo. Prevista Sprint 04.
+— Anelli: colore fisso (non ricevono la luce solare della PointLight).
 
-In arrivo:
-— Integrazione live con JPL Horizons per posizioni di precisione.
-— Texture reali da NASA/USGS/JAXA.
-— Catalogo completo Gaia per le stelle.
-— Modalità sandbox con fisica N-body.`,
+C — Non ancora implementato:
+— Gravità newtoniana / N-body: le orbite sono elementi kepleriani statici.
+— Temperatura: nessun dato, nessun calcolo.
+— Eclissi, ombre, transiti.
+— Correzioni relativistiche (inclusa precessione del perielio di Mercurio).
+— massKg mostrato nell'ispettore ma non usato nella simulazione.
+— Texture superficiali reali (roadmap).`,
       },
       navigation: {
         title: "Navigazione nella scena",
@@ -96,7 +106,7 @@ Scala raggi:
 — Visibile (default): impone una dimensione minima visibile a tutti i corpi. I pianeti piccoli e le lune sono più grandi di quanto sarebbero realisticamente a queste distanze. Garantisce che ogni corpo sia cliccabile.
 — Relativo: i raggi sono proporzionali al Sole. La Terra appare come un punto minuscolo. Fisicamente più corretto, ma molti corpi diventano invisibili a occhio nudo.
 
-In entrambe le modalità di scala, la visualizzazione è educativa, non fisicamente accurata. Lo scopo è rendere il sistema solare esplorabile nel browser.`,
+Nota sui rapporti fisici: in modalità "Compressa" i rapporti tra distanze orbitali sono fisicamente corretti. In modalità "Relativo" i rapporti tra raggi sono fisicamente corretti. Non esiste però una modalità dove raggi e distanze sono contemporaneamente in scala reale: a proporzioni fisiche reali i pianeti sarebbero invisibili rispetto alle distanze.`,
       },
       referenceFrame: {
         title: "Sistema di riferimento",
@@ -161,7 +171,7 @@ Corpo genitore: il corpo attorno a cui orbita (es. "Terra" per la Luna, "Sole" p
 
 Raggio: raggio medio in km. Per corpi non sferici (come asteroidi) è il raggio equivalente.
 
-Massa: massa in kg, in notazione scientifica (es. 5,972 × 10²⁴ kg per la Terra).
+Massa: massa in kg, in notazione scientifica (es. 5,972 × 10²⁴ kg per la Terra). Dato di riferimento: la massa non è usata nei calcoli di simulazione (le orbite sono kepleriane, non N-body).
 
 Epoca: data ISO 8601 a cui si riferisce la posizione calcolata. Corrisponde alla data attualmente impostata nei controlli del tempo.
 
@@ -204,7 +214,7 @@ In modalità sandbox, l'utente potrà:
 — Osservare come i nuovi corpi interagiscono gravitazionalmente con il sistema esistente.
 — Esportare la configurazione come JSON per condividerla o riaprirla in seguito.
 
-La modalità attuale (Sprint 01) mostra esclusivamente i dati reali del sistema solare. Non è possibile aggiungere o modificare corpi.`,
+La modalità attuale mostra esclusivamente i dati reali del sistema solare. Non è possibile aggiungere o modificare corpi.`,
       },
       mobilePerformance: {
         title: "Mobile e performance",
@@ -279,24 +289,34 @@ Per problemi di performance su hardware vecchio: prova a disattivare il firmamen
     sections: {
       overview: {
         title: "Overview",
-        content: `The Fosforonero Lab Solar System 3D is an interactive in-browser observatory built with WebGL (Three.js). It lets you explore solar system bodies in simulated time, using real astronomical data where available and public reference data for orbital elements.
+        content: `The Fosforonero Lab Solar System 3D is an interactive in-browser observatory built with WebGL (Three.js). It lets you explore solar system bodies in simulated time, using real astronomical data where available.
 
-What is real in this MVP:
-— The firmament star catalog comes from the ESA Hipparcos catalog (44 named stars, real RA/Dec positions, real magnitudes).
-— Constellations are drawn from Stellarium Sky Cultures metadata.
-— Deep-sky objects (M31, M42, M45, etc.) come from OpenNGC/Messier.
-— Body categories and names follow IAU classification.
+A — Physics genuinely respected:
+— Orbital elements (a, e, i, Ω, ω, M₀) from NASA/JPL Horizons — real values.
+— Correct Keplerian propagation: Kepler's equation solved numerically, full perifocal rotation.
+— Distance ratios in "Compressed" scale: 1 AU = 1 unit, physically correct.
+— Radius ratios in "Relative" scale: proportional to the Sun, physically correct.
+— 1/r² lighting in physical mode: no boost; Neptune is as dark as in reality.
+— Axial obliquity: real IAU 2015 values (Earth 23.44°, Venus 177.36°, Uranus 97.77°).
+— Sidereal rotation phase: computed from the real sidereal period from J2000.0.
+— Ring proportions: ring/planet ratios are physically correct.
+— Hipparcos star catalog (44 named stars, real J2000 RA/Dec positions).
 
-What is approximate in this MVP (Sprint 01):
-— Orbital elements are static public reference data (NASA/JPL), not live feeds from JPL Horizons. Positions are computed using simplified Keplerian formulas.
-— Surface textures are procedural (approximate color + shape). Real NASA/USGS maps are planned for Sprint 02.
-— The Moon and minor moons of planets are included as static bodies with reference orbital parameters.
+B — Approximated or educational (disclosed in the UI):
+— "Visible" radius scale (default): logarithmic category-based, not proportional. Disclosed.
+— Moon distances: ~200× boost for legibility. Disclosed.
+— Educational lighting (default): 1/r² + declared ambient boost.
+— Day/night side: Three.js shading on untextured spheres; no eclipse shadow casting.
+— Pole direction: ecliptic approximation, not per-body IAU WGCCRE RA/Dec. Planned Sprint 04.
+— Rings: fixed colour (do not receive sunlight from the PointLight).
 
-Coming soon:
-— Live integration with JPL Horizons for precision positions.
-— Real textures from NASA/USGS/JAXA.
-— Full Gaia star catalog.
-— Sandbox mode with N-body physics.`,
+C — Not yet implemented:
+— Newtonian gravity / N-body: orbits are static Keplerian elements.
+— Temperature: no data, no calculations.
+— Eclipses, shadows, transits.
+— Relativistic corrections (including Mercury perihelion precession).
+— massKg shown in the inspector but not used in the simulation.
+— Real surface textures (roadmap).`,
       },
       navigation: {
         title: "Scene navigation",
@@ -343,7 +363,7 @@ Radius scale:
 — Visible (default): enforces a minimum visible size for all bodies. Small planets and moons are larger than they would realistically be at these distances. Ensures every body is clickable.
 — Relative: radii are proportional to the Sun. Earth appears as a tiny dot. Physically more accurate, but many bodies become invisible to the naked eye.
 
-In both scale modes, the visualization is educational, not physically accurate. The goal is to make the solar system explorable in the browser.`,
+A note on physical ratios: in "Compressed" mode, orbital distance ratios are physically correct. In "Relative" mode, radius ratios are physically correct. However, there is no mode where both radii and distances are simultaneously to physical scale — at true proportions, planets would be invisible against the vast distances between them.`,
       },
       referenceFrame: {
         title: "Reference frame",
@@ -408,7 +428,7 @@ Parent body: the body it orbits (e.g. "Earth" for the Moon, "Sun" for planets).
 
 Radius: mean radius in km. For non-spherical bodies (like asteroids), this is the equivalent radius.
 
-Mass: mass in kg, in scientific notation (e.g. 5.972 × 10²⁴ kg for Earth).
+Mass: mass in kg, in scientific notation (e.g. 5.972 × 10²⁴ kg for Earth). Reference data only: mass is not used in simulation calculations (orbits are Keplerian, not N-body).
 
 Epoch: ISO 8601 date to which the computed position refers. This matches the date currently set in the time controls.
 
@@ -451,7 +471,7 @@ In sandbox mode, the user will be able to:
 — Observe how new bodies interact gravitationally with the existing system.
 — Export the configuration as JSON to share or reopen later.
 
-The current mode (Sprint 01) shows only real solar system data. It is not possible to add or modify bodies.`,
+The current mode shows only real solar system data. It is not possible to add or modify bodies.`,
       },
       mobilePerformance: {
         title: "Mobile & performance",
