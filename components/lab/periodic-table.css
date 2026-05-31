@@ -3002,5 +3002,46 @@
   .pt-orbital-panel__qn dt { font-size: 11px; }
   .pt-orbital-panel__qn dd { font-size: 12px; }
   .pt-orbital-shape { font-size: 12px; }
+
+  /* ── Residual touch targets (R-01 / R-03 / R-05) ── */
+
+  /* R-01: "← tavola" header back button */
+  .pt-back {
+    min-height: 44px;
+    padding: 0 12px;
+    display: inline-flex;
+    align-items: center;
+    font-size: 12px;
+  }
+
+  /* R-03: Orbital inspector toggle */
+  .pt-orbital-toggle {
+    min-height: 44px;
+    padding: 0 11px;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* R-02: "di più" / "di meno" description expander */
+  .pt-info__desc-toggle {
+    font-size: 12px;
+    padding: 8px 4px;
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* R-05: Micro-controls — 36px floor, ≥12px font */
+  .pt-stars-toggle,
+  .pt-temp-toggle,
+  .pt-spin-toggle,
+  .pt-vdw-toggle {
+    min-height: 36px;
+    padding: 0 10px;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+  }
 }
 
