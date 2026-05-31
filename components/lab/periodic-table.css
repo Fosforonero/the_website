@@ -2739,7 +2739,9 @@
   background: none !important;
 }
 
-@media (max-width: 680px) { .pt-temp-control { display: none; } }
+/* Small landscape ≤680px: keep temp-control hidden (too cramped).
+   Portrait portrait gets a compact variant below. */
+@media (max-width: 680px) and (orientation: landscape) { .pt-temp-control { display: none; } }
 
 /* Light mode overrides */
 .pt-root--light .pt-temp-control {
@@ -2816,5 +2818,70 @@
   margin-left: auto;
   padding-left: 6px;
   flex-shrink: 0;
+}
+
+/* ── Portrait mobile: view-mode row + temperature control ─────────────────────
+   pt-view-mode-row is display:contents by default so its children appear
+   as inline flex items inside pt-header__right (desktop / landscape).
+   In portrait ≤680px it becomes a visible full-width flex row, ordered
+   before the model controls for immediate discoverability.           ── */
+
+.pt-view-mode-row { display: contents; }
+
+@media (max-width: 680px) and (orientation: portrait) {
+  /* Prevent the column-wrap that causes pt-header__right to appear as a second
+     column to the right of pt-header__left (x=378 instead of x=12).
+     Raising max-height ensures both children fit in a single column.  */
+  .pt-header {
+    flex-wrap: nowrap;
+    max-height: 350px;
+  }
+
+  /* Allow the header-right to wrap so the view-mode row sits on its own line */
+  .pt-header__right {
+    flex-wrap: wrap !important;   /* overrides the nowrap !important at ≤500px */
+    overflow-x: auto;
+    row-gap: 4px;
+  }
+
+  /* View-mode row: full-width, placed BEFORE model controls via order:-1 */
+  .pt-view-mode-row {
+    display: flex !important;
+    order: -1;
+    width: 100%;
+    gap: 4px;
+  }
+
+  /* Each view button: equal width, min 44px tall for touch */
+  .pt-view-mode-row > button {
+    flex: 1 1 0;
+    min-height: 44px;
+    min-width: 0;
+    font-size: 9px;
+    padding: 4px 3px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Temperature control: compact portrait version */
+  .pt-temp-control {
+    display: flex;               /* un-hide; display:none only applies to landscape now */
+    width: calc(100% - 16px);
+    max-width: 340px;
+    min-width: 0;
+    bottom: 6px;
+    padding: 6px 10px 4px;
+  }
+  /* Hide verbose disclaimer on small portrait screens to save space */
+  .pt-temp-control__disclaimer { display: none; }
+  .pt-temp-control__note { font-size: 9px; }
+
+  /* Light mode variant for portrait temp control */
+  .pt-root--light .pt-temp-control {
+    background: rgba(245,245,252,0.94);
+    border-color: rgba(0,0,0,0.09);
+  }
 }
 

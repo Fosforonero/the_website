@@ -1796,6 +1796,9 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                 </button>
               )}
               <TempToggle value={tempUnit} onChange={setTempUnit} locale={locale} />
+              {/* pt-view-mode-row: display:contents on desktop (inert wrapper),
+                  becomes a dedicated full-width row in portrait mobile */}
+              <div className="pt-view-mode-row">
               <button
                 className={`pt-nucleus-view-btn${nucleusView ? " active" : ""}`}
                 onClick={() => { setNucleusView(v => !v); setCrystalView(false); setMoleculeView(false); setInspectorOrbital(null); setMaterialView(false); }}
@@ -1849,6 +1852,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                   {t.materialViewBtn}
                 </button>
               )}
+              </div>
             </>
           )}
           {view === "table" && (
