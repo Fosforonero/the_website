@@ -371,6 +371,12 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
           {t.epochNote}
         </p>
 
+        {selectedBody.category === "moon" && (
+          <p style={{ fontSize: "0.62rem", color: "#4a7090", lineHeight: 1.5, margin: 0 }}>
+            {t.moonScaleNote}
+          </p>
+        )}
+
         {/* Firmament source */}
         <p
           style={{

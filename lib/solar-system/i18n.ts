@@ -59,6 +59,8 @@ export const SOLAR_UI = {
       "Stelle: catalogo Hipparcos ESA · Costellazioni: Stellarium Sky Cultures · Oggetti profondi: OpenNGC",
     epochNote:
       "Posizioni approssimate (elementi orbitali MVP). Precisione JPL Horizons in arrivo.",
+    moonScaleNote: "Le lune usano una scala locale aumentata per restare leggibili.",
+    radiusScaleNote: "Il raggio visivo è scalato indipendentemente dalla distanza orbitale.",
   },
   en: {
     title: "Solar System",
@@ -114,5 +116,7 @@ export const SOLAR_UI = {
       "Stars: ESA Hipparcos catalog · Constellations: Stellarium Sky Cultures · Deep-sky: OpenNGC",
     epochNote:
       "Approximate positions (MVP orbital elements). JPL Horizons precision coming soon.",
+    moonScaleNote: "Moons use an expanded local scale so they remain readable.",
+    radiusScaleNote: "Visual radius is scaled independently from orbital distance.",
   },
 } as const;

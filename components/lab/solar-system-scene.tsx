@@ -142,6 +142,7 @@ function OrbitPath({ bodyId, isMoon, parentState, distanceMode }: OrbitPathProps
 type BodyMeshProps = {
   body: SolarBody;
   state: BodyState;
+  parentState?: BodyState;
   distanceMode: ScaleDistanceMode;
   radiusMode: ScaleRadiusMode;
   isSelected: boolean;
@@ -152,13 +153,36 @@ type BodyMeshProps = {
 function BodyMesh({
   body,
   state,
+  parentState,
   distanceMode,
   radiusMode,
   isSelected,
   labelsVisible,
   onSelect,
 }: BodyMeshProps) {
-  const [scaledX, scaledY, scaledZ] = scalePositionVector(state.positionKm, distanceMode);
+  // For moons: use boosted local offset from parent instead of world position.
+  // This makes moon systems legible without pretending the offset is to scale.
+  let scaledX: number, scaledY: number, scaledZ: number;
+
+  if (body.category === "moon" && state.localPositionKm && parentState) {
+    const [lx, ly, lz] = state.localPositionKm;
+    const localMag = Math.sqrt(lx * lx + ly * ly + lz * lz);
+    const [ppx, ppy, ppz] = scalePositionVector(parentState.positionKm, distanceMode);
+
+    if (localMag > 0) {
+      const boosted = scaleSatelliteOffsetKm(localMag, body.parentId ?? "");
+      const nx = lx / localMag;
+      const ny = ly / localMag;
+      const nz = lz / localMag;
+      scaledX = ppx + nx * boosted;
+      scaledY = ppy + ny * boosted;
+      scaledZ = ppz + nz * boosted;
+    } else {
+      [scaledX, scaledY, scaledZ] = scalePositionVector(parentState.positionKm, distanceMode);
+    }
+  } else {
+    [scaledX, scaledY, scaledZ] = scalePositionVector(state.positionKm, distanceMode);
+  }
 
   const r = scaleRadius(body.radiusKm, radiusMode, body.category);
   const displayR = isSelected ? r * SELECTED_SCALE : r;
@@ -307,11 +331,13 @@ function InnerScene({
       {SOLAR_BODIES.map((body) => {
         const state = stateById.get(body.id);
         if (!state) return null;
+        const parentState = body.parentId ? stateById.get(body.parentId) : undefined;
         return (
           <BodyMesh
             key={body.id}
             body={body}
             state={state}
+            parentState={parentState}
             distanceMode={distanceMode}
             radiusMode={radiusMode}
             isSelected={body.id === selectedBodyId}
