@@ -124,13 +124,15 @@ Cosa è approssimato: l'origine è al Sole, non al vero baricentro; le posizioni
       },
       axialTilt: {
         title: "Inclinazione assiale e rotazione",
-        content: `Inclinazione assiale: i pianeti principali mostrano la reale obliquità rispetto all'eclittica (dati IAU 2015). L'asse di rotazione è visibile opzionalmente tramite il toggle "Assi" nella barra degli strumenti.
+        content: `Inclinazione assiale — Sprint 04: i pianeti principali (Mercurio, Venere, Terra, Marte, Giove, Saturno, Urano, Nettuno, Luna, Plutone) usano il polo IAU WGCCRE 2015 nel frame eclittico. Il vettore del polo è calcolato dalla RA/Dec ICRF J2000 e applicato come quaternione nel renderer. Questo corregge l'approssimazione Sprint 03A (asse X della scena): Urano, ad esempio, mostra ora l'asse corretto quasi nel piano dell'eclittica.
 
-Rotazione retrograda: Venere (177°), Urano (98°) e Plutone (122°) ruotano in senso retrogrado. Urano ha il polo quasi nel piano orbitale.
+Lune minori, asteroidi e comete: usano ancora l'approssimazione asse-X Sprint 03A (errore < 3° per corpi con inclinazione orbitale bassa). Correzione per-corpo: Sprint 05.
 
-Anelli: Saturno mostra gli anelli nel piano equatoriale (74 500–140 220 km). Urano mostra anelli più tenui (38 000–51 149 km), quasi perpendicolari al piano orbitale per via dell'inclinazione di 98°.
+Rotazione retrograda: Venere (177°), Urano (98°) e Plutone (120°) ruotano in senso retrogrado. L'ispettore mostra la precisione del modello: "iau-pole-vector" (verde) per i pianeti principali, "axial-tilt-approximate" per gli altri.
 
-Nota tecnica: l'azimut del polo è approssimato — la precisa direzione RA/Dec IAU WGCCRE non è ancora implementata. La fase di rotazione segue il periodo siderale reale da J2000.0, senza precessione o nutazione.`,
+Anelli: Saturno (74.500–140.220 km) e Urano (38.000–51.149 km). Il piano degli anelli è allineato all'equatore del pianeta, ora calcolato con il polo IAU WGCCRE corretto.
+
+Nota tecnica: precessione e nutazione degli assi non sono ancora modellate (Sprint 05+).`,
       },
       lighting: {
         title: "Illuminazione",
@@ -202,7 +204,7 @@ Posizioni catalogo: calcolate da elementi orbitali kepleriani SBDB nel frame HEC
 
 Ricerca: la barra di ricerca interroga JPL SBDB in tempo reale (300ms debounce). I risultati mostrano il nome del corpo, la classe orbitale e i tag NEO/PHA se applicabili. Selezionando un risultato, viene richiesta la posizione di precisione a JPL Horizons per quella data e visualizzata come marcatore teal (qualità sub-km).
 
-Limite dataset: il snapshot NEO è limitato a 10.000 corpi (su ~42.000 noti). Il catalogo completo è in roadmap (Sprint 04+).`,
+Dimensione punti: i punti del catalogo variano per dimensione e opacità in base alla magnitudine assoluta H — corpi più grandi/luminosi (H basso) appaiono come punti più grandi. Cinque livelli: H<5 (massimo), H<10, H<15, H<20, H≥20 (minimo).`,
       },
       firmament: {
         title: "Strato firmamento",
@@ -266,7 +268,7 @@ Per problemi di performance su hardware vecchio: prova a disattivare il firmamen
           },
           {
             q: "Quanti corpi sono inclusi?",
-            a: "Il laboratorio include ~28 corpi principali curati (Sole, pianeti, lune principali, pianeti nani, comete notevoli). Sprint 03B ha aggiunto uno snapshot SBDB con 26.132 corpi minori suddivisi in 5 livelli: NEO (10.000 su ~42.000 noti), fascia principale top-5.000, comete (~4.000), TNO (~6.000), centauri (~1.000). I livelli si attivano on-demand dalla toolbar.",
+            a: "Il laboratorio include ~28 corpi principali curati (Sole, pianeti, lune principali, pianeti nani, comete notevoli). Sprint 03B ha aggiunto uno snapshot SBDB con 26.132 corpi minori suddivisi in 5 livelli: NEO (41.780 — catalogo completo al 31/05/2026), fascia principale top-5.000, comete (~4.000), TNO (~6.000), centauri (~1.000). I livelli si attivano on-demand dalla toolbar.",
           },
           {
             q: "Da dove vengono i dati orbitali?",
@@ -394,13 +396,15 @@ What is approximated: origin is at the Sun, not the true barycentre; positions c
       },
       axialTilt: {
         title: "Axial tilt and rotation",
-        content: `Axial tilt: major planets show their real obliquity to the ecliptic (IAU 2015 data). The rotation axis is optionally visible via the "Axes" toggle in the toolbar.
+        content: `Axial tilt — Sprint 04: major planets (Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune, Moon, Pluto) now use the IAU WGCCRE 2015 pole in ecliptic frame. The pole vector is computed from ICRF J2000 RA/Dec and applied as a quaternion in the renderer. This corrects the Sprint 03A scene-X approximation: Uranus, for example, now shows its axis correctly near the ecliptic plane.
 
-Retrograde rotation: Venus (177°), Uranus (98°) and Pluto (122°) rotate retrograde. Uranus has its pole nearly in the orbital plane.
+Minor moons, asteroids and comets: still use the Sprint 03A scene-X approximation (error < 3° for bodies with low orbital inclination). Per-body correction: Sprint 05.
 
-Rings: Saturn shows rings in its equatorial plane (74,500–140,220 km). Uranus shows fainter rings (38,000–51,149 km), nearly perpendicular to the orbital plane due to its 98° tilt.
+Retrograde rotation: Venus (177°), Uranus (98°) and Pluto (120°) rotate retrograde. The inspector shows the model accuracy: "iau-pole-vector" (green) for major planets, "axial-tilt-approximate" for others.
 
-Technical note: pole azimuth is approximated — the precise IAU WGCCRE RA/Dec direction is not yet implemented. Rotation phase follows the real sidereal period from J2000.0, without precession or nutation.`,
+Rings: Saturn (74,500–140,220 km) and Uranus (38,000–51,149 km). The ring plane is aligned to the planet's equator, now computed using the correct IAU WGCCRE pole.
+
+Technical note: precession and nutation of rotation axes are not yet modelled (Sprint 05+).`,
       },
       lighting: {
         title: "Lighting",
@@ -472,7 +476,7 @@ Catalog positions: computed from SBDB Keplerian orbital elements in the HEC-J200
 
 Search: the search bar queries JPL SBDB in real time (300ms debounce). Results show body name, orbit class, and NEO/PHA tags where applicable. Selecting a result fetches a precision position from JPL Horizons for that date and displays it as a teal marker (sub-km accuracy).
 
-Dataset limit: the NEO snapshot is capped at 10,000 bodies (out of ~42,000 known). The full catalog is on the roadmap (Sprint 04+).`,
+Point size: catalog points vary in size and opacity by absolute magnitude H — larger/brighter bodies (low H) render as larger points. Five tiers: H<5 (largest), H<10, H<15, H<20, H≥20 (smallest).`,
       },
       firmament: {
         title: "Firmament layer",
@@ -536,7 +540,7 @@ If you experience performance issues on older hardware: try disabling the star f
           },
           {
             q: "How many bodies are included?",
-            a: "The lab includes ~28 curated major bodies (Sun, planets, major moons, dwarf planets, notable comets). Sprint 03B added an SBDB snapshot with 26,132 minor bodies across 5 layers: NEOs (10,000 out of ~42,000 known), top-5,000 main belt, comets (~4,000), TNOs (~6,000), centaurs (~1,000). Layers activate on demand from the toolbar.",
+            a: "The lab includes ~28 curated major bodies (Sun, planets, major moons, dwarf planets, notable comets). Sprint 03B added an SBDB snapshot with 26,132 minor bodies across 5 layers: NEOs (41,780 — complete catalog as of 2026-05-31), top-5,000 main belt, comets (~4,000), TNOs (~6,000), centaurs (~1,000). Layers activate on demand from the toolbar.",
           },
           {
             q: "Where does the orbital data come from?",
