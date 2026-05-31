@@ -58,7 +58,7 @@ export const SOLAR_UI = {
     firmamentSource:
       "Stelle: catalogo Hipparcos ESA · Costellazioni: Stellarium Sky Cultures · Oggetti profondi: OpenNGC",
     epochNote:
-      "Posizioni approssimate (elementi orbitali MVP). Precisione JPL Horizons in arrivo.",
+      "Posizioni calcolate da elementi kepleriani pubblici (Ω, ω, M₀ J2000). Non sono vettori live JPL Horizons — integrazione di precisione in roadmap.",
     moonScaleNote: "Le lune usano una scala locale aumentata per restare leggibili.",
     radiusScaleNote: "Il raggio visivo è scalato indipendentemente dalla distanza orbitale.",
   },
@@ -115,7 +115,7 @@ export const SOLAR_UI = {
     firmamentSource:
       "Stars: ESA Hipparcos catalog · Constellations: Stellarium Sky Cultures · Deep-sky: OpenNGC",
     epochNote:
-      "Approximate positions (MVP orbital elements). JPL Horizons precision coming soon.",
+      "Positions computed from public Keplerian elements (Ω, ω, M₀ at J2000). Not live JPL Horizons vectors — precision integration on the roadmap.",
     moonScaleNote: "Moons use an expanded local scale so they remain readable.",
     radiusScaleNote: "Visual radius is scaled independently from orbital distance.",
   },

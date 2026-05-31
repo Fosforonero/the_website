@@ -84,7 +84,10 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
 
   // ── State ────────────────────────────────────────────────────────────────
   const [selectedBodyId, setSelectedBodyId] = useState("earth");
-  const [epoch, setEpoch] = useState(() => Date.now());
+  // SSR-safe: initialise to a fixed reference epoch so server and client
+  // render the same markup, then snap to the real current date after mount.
+  const [epoch, setEpoch] = useState(946_728_000_000); // 2000-01-01T12:00:00Z
+  useEffect(() => { setEpoch(Date.now()); }, []);
   const [playing, setPlaying] = useState(false);
   const [speedKey, setSpeedKey] = useState<SpeedKey>("year-per-second");
   const [distanceMode, setDistanceMode] = useState<ScaleDistanceMode>("compressed");
