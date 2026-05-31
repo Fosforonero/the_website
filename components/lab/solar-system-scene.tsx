@@ -256,10 +256,22 @@ function BodyMesh({
 
   const orientation = getBodyOrientation(body, epochMs);
 
+  // Sprint 04: use IAU pole quaternion when available, else fall back to X-axis approx
+  const tiltQ = useMemo(() => {
+    const q = new THREE.Quaternion();
+    if (orientation.eclipticPoleVector) {
+      const pole = new THREE.Vector3(...orientation.eclipticPoleVector).normalize();
+      q.setFromUnitVectors(new THREE.Vector3(0, 1, 0), pole);
+    } else if (orientation.tiltAroundXRad !== 0) {
+      q.setFromEuler(new THREE.Euler(orientation.tiltAroundXRad, 0, 0, "XYZ"));
+    }
+    return q;
+  }, [orientation.eclipticPoleVector, orientation.tiltAroundXRad]);
+
   return (
     <group position={[scaledX, scaledY, scaledZ]}>
-      {/* Tilt group: rotate around scene X to apply axial inclination */}
-      <group rotation={[orientation.tiltAroundXRad, 0, 0]}>
+      {/* Tilt group: quaternion from IAU pole vector (Sprint 04) or X-axis Euler fallback */}
+      <group quaternion={tiltQ}>
 
         {/* Spin group: rotate around tilted pole for current phase */}
         <group rotation={[0, orientation.rotationPhaseRad, 0]}>

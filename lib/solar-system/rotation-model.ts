@@ -5,10 +5,13 @@
  *
  * Accuracy notes:
  * - Axial tilt magnitude: IAU 2015 values, correct.
- * - Pole azimuth direction: approximated as rotation around scene X-axis.
- *   The full IAU WGCCRE RA/Dec pole direction is NOT yet implemented
- *   (planned for Sprint 04). This means the tilt direction in the scene
- *   may be off by up to ~180° for some bodies, but the tilt angle is correct.
+ * - Pole direction: Sprint 04 — when poleRaDeg/poleDecDeg are present on a body,
+ *   equatorialToEclipticPole() converts the IAU WGCCRE ICRF J2000 pole to the
+ *   ecliptic frame and returns accuracy "iau-pole-vector". The scene then uses a
+ *   quaternion (setFromUnitVectors Y→pole) instead of the Sprint 03A X-axis
+ *   rotation approximation.
+ * - For bodies without IAU pole data, falls back to Sprint 03A approximation
+ *   (rotation around scene X-axis, accuracy "axial-tilt-approximate").
  * - Rotation phase: computed from sidereal period since J2000.0.
  *   Precession and nutation not modelled.
  * - Retrograde: correct for Venus (177°), Uranus (97.8°), Pluto (122.5°).
@@ -18,6 +21,9 @@ import type { SolarBody } from "./bodies";
 
 /** J2000.0 reference epoch in Unix milliseconds (2000-Jan-01T12:00:00Z). */
 const J2000_MS = 946_728_000_000;
+
+/** IAU 2006 obliquity of the ecliptic at J2000.0 (degrees). Matches reference-frames.ts. */
+const ECLIPTIC_OBLIQUITY_DEG = 23.43929111;
 
 /**
  * Extension of SolarBody with rotation fields added in Task 2.
@@ -37,19 +43,48 @@ export type BodyOrientation = {
   /** True if siderealRotationHours < 0 or axialTiltDeg > 90°. */
   isRetrograde: boolean;
   /** Accuracy level of this orientation computation. */
-  accuracy: "axial-tilt-approximate" | "not-modelled";
+  accuracy: "axial-tilt-approximate" | "iau-pole-vector" | "not-modelled";
+  /**
+   * Sprint 04: IAU WGCCRE pole direction in scene (ecliptic HEC-J2000) frame.
+   * Unit vector. When present, the scene uses a quaternion derived from this
+   * vector instead of the Sprint 03A X-axis rotation approximation.
+   */
+  eclipticPoleVector?: [number, number, number];
 };
+
+/**
+ * Convert an IAU WGCCRE pole (ICRF J2000 equatorial) to the ecliptic frame
+ * used by the scene (HEC-J2000). Returns a unit vector.
+ *
+ * Rotation: R_x(ε) applied to the equatorial unit vector, where ε is the
+ * obliquity of the ecliptic (IAU 2006, 23.43929111°).
+ */
+function equatorialToEclipticPole(
+  raDeg: number,
+  decDeg: number
+): [number, number, number] {
+  const ra = (raDeg * Math.PI) / 180;
+  const dec = (decDeg * Math.PI) / 180;
+  const eps = (ECLIPTIC_OBLIQUITY_DEG * Math.PI) / 180;
+
+  const xEq = Math.cos(dec) * Math.cos(ra);
+  const yEq = Math.cos(dec) * Math.sin(ra);
+  const zEq = Math.sin(dec);
+
+  return [
+    xEq,
+    Math.cos(eps) * yEq + Math.sin(eps) * zEq,
+    -Math.sin(eps) * yEq + Math.cos(eps) * zEq,
+  ];
+}
 
 /**
  * Compute the orientation of a body at the given epoch (Unix ms).
  *
  * Returns a tilt angle (for the tilt group) and a rotation phase (for the
- * spin group). Apply them as:
- *   <group rotation={[tiltAroundXRad, 0, 0]}>
- *     <group rotation={[0, rotationPhaseRad, 0]}>
- *       <mesh /> (the sphere)
- *     </group>
- *   </group>
+ * spin group). When eclipticPoleVector is present (accuracy "iau-pole-vector"),
+ * the scene should use a quaternion (setFromUnitVectors Y→pole) instead of the
+ * tiltAroundXRad Euler approximation.
  *
  * Accepts any SolarBody; rotation fields are optional until Task 2 lands.
  */
@@ -63,6 +98,27 @@ export function getBodyOrientation(
       rotationPhaseRad: 0,
       isRetrograde: false,
       accuracy: "not-modelled",
+    };
+  }
+
+  // Sprint 04: use IAU WGCCRE pole RA/Dec when available for correct ecliptic orientation
+  if (body.poleRaDeg !== undefined && body.poleDecDeg !== undefined) {
+    const eclipticPoleVector = equatorialToEclipticPole(body.poleRaDeg, body.poleDecDeg);
+
+    // Rotation phase: same as before
+    const elapsedHours = (epochMs - J2000_MS) / 3_600_000;
+    const periodHours = Math.abs(body.siderealRotationHours);
+    const phaseRaw = (elapsedHours / periodHours) * 2 * Math.PI;
+    const direction = body.siderealRotationHours < 0 ? -1 : 1;
+    const twoPi = 2 * Math.PI;
+    const rotationPhaseRad = ((direction * phaseRaw) % twoPi + twoPi) % twoPi;
+
+    return {
+      tiltAroundXRad: (body.axialTiltDeg * Math.PI) / 180, // kept for backward compat
+      rotationPhaseRad,
+      isRetrograde: isRetrogradeRotation(body),
+      accuracy: "iau-pole-vector",
+      eclipticPoleVector,
     };
   }
 
@@ -92,6 +148,10 @@ export const ROTATION_ACCURACY_NOTES = {
   "axial-tilt-approximate": {
     it: "Obliquità reale IAU 2015. Azimut del polo approssimato — RA/Dec IAU WGCCRE in Sprint 04.",
     en: "Real obliquity IAU 2015. Pole azimuth approximated — IAU WGCCRE RA/Dec in Sprint 04.",
+  },
+  "iau-pole-vector": {
+    it: "Polo IAU WGCCRE 2015 J2000 — direzione asse corretta nel frame eclittico.",
+    en: "IAU WGCCRE 2015 J2000 pole — correct axis direction in ecliptic frame.",
   },
   "not-modelled": {
     it: "Rotazione non modellata per questo corpo.",
