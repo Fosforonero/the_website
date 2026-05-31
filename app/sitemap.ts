@@ -8,14 +8,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
   // Static pages: home + blog index + legal pages + instagram, per locale
+  // Periodic table is excluded here because EN slug differs (/en/lab/periodic-table ≠ /en/lab/tavola-periodica)
   const staticPaths = [
     "/",
     "/blog",
     "/privacy",
     "/cookies",
     "/instagram",
-    "/lab/tavola-periodica",
-    "/lab/tavola-periodica/about",
   ];
   // One entry per locale per path so both IT and EN URLs appear explicitly.
   const staticEntries: MetadataRoute.Sitemap = staticPaths.flatMap((p) =>
@@ -31,6 +30,58 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       },
     }))
   );
+
+  // Periodic table: IT and EN slugs differ, so each locale is listed explicitly.
+  const periodicTableEntries: MetadataRoute.Sitemap = [
+    {
+      url: `${site.url}/lab/tavola-periodica`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+      alternates: {
+        languages: {
+          it: `${site.url}/lab/tavola-periodica`,
+          en: `${site.url}/en/lab/periodic-table`,
+        },
+      },
+    },
+    {
+      url: `${site.url}/en/lab/periodic-table`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+      alternates: {
+        languages: {
+          it: `${site.url}/lab/tavola-periodica`,
+          en: `${site.url}/en/lab/periodic-table`,
+        },
+      },
+    },
+    {
+      url: `${site.url}/lab/tavola-periodica/about`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+      alternates: {
+        languages: {
+          it: `${site.url}/lab/tavola-periodica/about`,
+          en: `${site.url}/en/lab/periodic-table/about`,
+        },
+      },
+    },
+    {
+      url: `${site.url}/en/lab/periodic-table/about`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+      alternates: {
+        languages: {
+          it: `${site.url}/lab/tavola-periodica/about`,
+          en: `${site.url}/en/lab/periodic-table/about`,
+        },
+      },
+    },
+  ];
 
   // Identity page — slug differs per locale (identita / identity), so it
   // can't use the shared staticPaths loop and is declared explicitly.
@@ -58,7 +109,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       alternates: {
         languages: {
           it: `${site.url}/lab/tavola-periodica/manuale`,
-          en: `${site.url}/en/lab/tavola-periodica/manual`,
+          en: `${site.url}/en/lab/periodic-table/manual`,
+        },
+      },
+    },
+    {
+      url: `${site.url}/en/lab/periodic-table/manual`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.7,
+      alternates: {
+        languages: {
+          it: `${site.url}/lab/tavola-periodica/manuale`,
+          en: `${site.url}/en/lab/periodic-table/manual`,
         },
       },
     },
@@ -153,5 +216,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  return [...staticEntries, ...identityEntry, ...manualEntry, ...solarSystemEntries, ...postEntries];
+  return [...staticEntries, ...periodicTableEntries, ...identityEntry, ...manualEntry, ...solarSystemEntries, ...postEntries];
 }

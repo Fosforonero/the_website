@@ -4,41 +4,41 @@ import { site } from "@/lib/site";
 import { PeriodicTableView } from "@/components/lab/periodic-table-view";
 import "@/components/lab/periodic-table.css";
 
-const PAGE_URL = `${site.url}/lab/tavola-periodica`;
-const PAGE_URL_EN = `${site.url}/en/lab/periodic-table`;
+const PAGE_URL = `${site.url}/en/lab/periodic-table`;
+const PAGE_URL_IT = `${site.url}/lab/tavola-periodica`;
 
 export const metadata: Metadata = {
-  title: "Tavola Periodica Interattiva 3D · Fosforonero Lab",
+  title: "Interactive 3D Periodic Table · Fosforonero Lab",
   description:
-    "Tavola periodica interattiva con atomo 3D WebGL. Esplora 118 elementi e 5 modelli storici da Thomson a Schrödinger. Gratis, responsive, nel browser.",
+    "Interactive periodic table with 3D WebGL atoms. Explore 118 elements and 5 historical models from Thomson to Schrödinger. Free, responsive, in your browser.",
   alternates: {
     canonical: PAGE_URL,
     languages: {
-      it: PAGE_URL,
-      en: PAGE_URL_EN,
-      "x-default": PAGE_URL,
+      it: PAGE_URL_IT,
+      en: PAGE_URL,
+      "x-default": PAGE_URL_IT,
     },
   },
   openGraph: {
     type: "website",
-    locale: "it_IT",
+    locale: "en_US",
     url: PAGE_URL,
     siteName: site.name,
-    title: "Tavola Periodica Interattiva 3D · Fosforonero Lab",
-    description: "118 elementi con atomo 3D WebGL in tempo reale. 5 modelli storici, heatmap fisiche, gratis nel browser.",
-    images: [{ url: `${site.url}/opengraph-image`, width: 1200, height: 630, alt: "Tavola Periodica Interattiva — Fosforonero Lab" }],
+    title: "Interactive 3D Periodic Table · Fosforonero Lab",
+    description: "118 elements with real-time 3D WebGL atoms. 5 historical models, physical property heatmaps, free in the browser.",
+    images: [{ url: `${site.url}/opengraph-image`, width: 1200, height: 630, alt: "Interactive Periodic Table — Fosforonero Lab" }],
   },
   twitter: { card: "summary_large_image" },
   robots: { index: true, follow: true },
 };
 
-export default function TavolaPeriodica() {
+export default function PeriodicTableEn() {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
     "@id": PAGE_URL,
-    name: "Tavola Periodica Interattiva 3D",
-    alternateName: "Interactive 3D Periodic Table",
+    name: "Interactive 3D Periodic Table",
+    alternateName: "Tavola Periodica Interattiva 3D",
     description: metadata.description,
     url: PAGE_URL,
     applicationCategory: "EducationalApplication",
@@ -50,7 +50,7 @@ export default function TavolaPeriodica() {
       name: site.author.name,
       url: site.url,
     },
-    keywords: "tavola periodica, periodic table, atomo 3D, WebGL, chimica, elementi chimici, modelli atomici, Three.js",
+    keywords: "periodic table, 3D atom, WebGL, chemistry, chemical elements, atomic models, Three.js",
   };
 
   return (
@@ -60,10 +60,10 @@ export default function TavolaPeriodica() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <h1 style={{ position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden", clip: "rect(0,0,0,0)", whiteSpace: "nowrap", borderWidth: 0 }}>
-        Tavola Periodica Interattiva 3D
+        Interactive 3D Periodic Table
       </h1>
       <Suspense fallback={<div className="atom-loading">...</div>}>
-        <PeriodicTableView locale="it" />
+        <PeriodicTableView locale="en" />
       </Suspense>
     </>
   );

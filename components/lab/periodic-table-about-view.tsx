@@ -9,9 +9,9 @@ export type AboutViewProps = {
 export function PeriodicTableAboutView({ locale }: AboutViewProps) {
   const t = ABOUT_TRANSLATIONS[locale];
 
-  const PAGE_URL = `${site.url}${locale === "en" ? "/en" : ""}/lab/tavola-periodica/about`;
-  const APP_URL  = `${site.url}${locale === "en" ? "/en" : ""}/lab/tavola-periodica`;
-  const MANUAL_URL = locale === "en" ? "/en/lab/tavola-periodica/manual" : "/lab/tavola-periodica/manuale";
+  const PAGE_URL = locale === "en" ? `${site.url}/en/lab/periodic-table/about` : `${site.url}/lab/tavola-periodica/about`;
+  const APP_URL  = locale === "en" ? `${site.url}/en/lab/periodic-table` : `${site.url}/lab/tavola-periodica`;
+  const MANUAL_URL = locale === "en" ? "/en/lab/periodic-table/manual" : "/lab/tavola-periodica/manuale";
 
   const PROJECTS = [
     {

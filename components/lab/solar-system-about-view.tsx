@@ -79,7 +79,7 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
     {
       name: isIT ? "Tavola Periodica" : "Periodic Table",
       handle: "lab/tavola-periodica",
-      url: isIT ? "/lab/tavola-periodica" : "/en/lab/tavola-periodica",
+      url: isIT ? "/lab/tavola-periodica" : "/en/lab/periodic-table",
       desc: isIT
         ? "Tavola periodica 3D interattiva: atomi, orbitali s/p/d/f, reticoli cristallini e molecole WebGL."
         : "Interactive 3D periodic table: atoms, s/p/d/f orbitals, crystal lattices and WebGL molecules.",

@@ -248,10 +248,9 @@ const MANUAL = {
 
 export function PeriodicTableManualView({ locale }: { locale: Locale }) {
   const t = MANUAL[locale];
-  const prefix = locale === "en" ? "/en" : "";
-  const appPath = `${prefix}/lab/tavola-periodica`;
-  const aboutPath = `${prefix}/lab/tavola-periodica/about`;
-  const manualPath = locale === "en" ? "/en/lab/tavola-periodica/manual" : "/lab/tavola-periodica/manuale";
+  const appPath = locale === "en" ? "/en/lab/periodic-table" : "/lab/tavola-periodica";
+  const aboutPath = locale === "en" ? "/en/lab/periodic-table/about" : "/lab/tavola-periodica/about";
+  const manualPath = locale === "en" ? "/en/lab/periodic-table/manual" : "/lab/tavola-periodica/manuale";
   const pageUrl = `${site.url}${manualPath}`;
   const appUrl = `${site.url}${appPath}`;
 

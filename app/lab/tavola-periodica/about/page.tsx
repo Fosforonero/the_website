@@ -3,7 +3,7 @@ import { site } from "@/lib/site";
 import { PeriodicTableAboutView } from "@/components/lab/periodic-table-about-view";
 
 const PAGE_URL = `${site.url}/lab/tavola-periodica/about`;
-const PAGE_URL_EN = `${site.url}/en/lab/tavola-periodica/about`;
+const PAGE_URL_EN = `${site.url}/en/lab/periodic-table/about`;
 
 export const metadata: Metadata = {
   title: "Tavola Periodica 3D: fonti e roadmap",

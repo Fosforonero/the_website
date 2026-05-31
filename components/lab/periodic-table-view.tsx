@@ -1781,10 +1781,10 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                   }
                 }}
               />
-              <Link href={locale === "en" ? "/en/lab/tavola-periodica/about" : "/lab/tavola-periodica/about"} className="pt-about-link">
+              <Link href={locale === "en" ? "/en/lab/periodic-table/about" : "/lab/tavola-periodica/about"} className="pt-about-link">
                 {t.aboutLink}
               </Link>
-              <Link href={locale === "en" ? "/en/lab/tavola-periodica/manual" : "/lab/tavola-periodica/manuale"} className="pt-about-link">
+              <Link href={locale === "en" ? "/en/lab/periodic-table/manual" : "/lab/tavola-periodica/manuale"} className="pt-about-link">
                 {t.manualLink}
               </Link>
               <DonateButton locale={locale} />
@@ -1803,7 +1803,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
             </Link>
             <span className="pt-lang-sep" aria-hidden="true">/</span>
             <Link
-              href={locale === "en" ? "#" : `/en/lab/tavola-periodica${view === "atom" && selected ? `?z=${selected.z}` : ""}`}
+              href={locale === "en" ? "#" : `/en/lab/periodic-table${view === "atom" && selected ? `?z=${selected.z}` : ""}`}
               className={`pt-lang-btn${locale === "en" ? " active" : ""}`}
               onClick={(e) => { if (locale === "en") e.preventDefault(); }}
               aria-label="English"
