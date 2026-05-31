@@ -1101,12 +1101,13 @@ const ORBITAL_COPY: Record<OrbitalKey, OrbitalCopy> = {
 };
 
 function OrbitalInfoPanel({
-  orbitalKey, locale, isOpen = true, onToggle,
+  orbitalKey, locale, isOpen = true, onToggle, onClose,
 }: {
   orbitalKey: OrbitalKey;
   locale: Locale;
   isOpen?: boolean;
   onToggle?: () => void;
+  onClose?: () => void;
 }) {
   const meta = ORBITAL_META[orbitalKey];
   const copy = ORBITAL_COPY[orbitalKey];
@@ -1135,6 +1136,13 @@ function OrbitalInfoPanel({
         <span className={`pt-orbital-family pt-orbital-family--${meta.family}`}>{meta.family}</span>
         {onToggle && (
           <span className="pt-orbital-panel__toggle" aria-hidden="true">{isOpen ? "▲" : "▼"}</span>
+        )}
+        {onClose && (
+          <button
+            className="pt-orbital-panel__close"
+            onClick={e => { e.stopPropagation(); onClose(); }}
+            aria-label={locale === "en" ? "Close orbital inspector" : "Chiudi inspector orbitali"}
+          >×</button>
         )}
       </div>
       {isOpen && (
@@ -2105,6 +2113,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                       locale={locale}
                       isOpen={orbitalInfoOpen}
                       onToggle={() => setOrbitalInfoOpen(v => !v)}
+                      onClose={() => setInspectorOrbital(null)}
                     />
                   </>
                 )}
