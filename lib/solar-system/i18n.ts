@@ -79,6 +79,7 @@ export const SOLAR_UI = {
     positionAccuracy: "Precisione posizione",
     rotationAccuracy: "Precisione orientamento",
     ringSystem: "Anelli",
+    searchPlaceholder: "Cerca corpo celeste…",
   },
   en: {
     title: "Solar System",
@@ -154,5 +155,6 @@ export const SOLAR_UI = {
     positionAccuracy: "Position accuracy",
     rotationAccuracy: "Rotation accuracy",
     ringSystem: "Rings",
+    searchPlaceholder: "Search catalog…",
   },
 } as const;

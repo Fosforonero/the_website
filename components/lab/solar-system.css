@@ -426,3 +426,16 @@ select.solar-control {
     display: none;
   }
 }
+
+/* Search component */
+.solar-search { position: relative; }
+.solar-search__input { min-width: 140px; }
+.solar-search__spinner { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; color: #4a7090; pointer-events: none; }
+.solar-search__dropdown { position: absolute; top: 100%; left: 0; min-width: 260px; background: #080e18; border: 1px solid #1a3050; border-radius: 4px; list-style: none; margin: 2px 0 0; padding: 4px 0; z-index: 200; max-height: 260px; overflow-y: auto; }
+.solar-search__option { display: flex; align-items: center; gap: 6px; padding: 6px 10px; cursor: pointer; font-size: 0.72rem; color: #c0d8f0; }
+.solar-search__option:hover { background: #1a3050; }
+.solar-search__name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.solar-search__tag { font-size: 0.60rem; padding: 1px 4px; border-radius: 2px; font-weight: 600; flex-shrink: 0; }
+.solar-search__tag--pha { background: #5a1010; color: #ffc0b0; }
+.solar-search__tag--neo { background: #0d3a0d; color: #a0f0a0; }
+.solar-search__class { font-size: 0.60rem; color: #4a7090; flex-shrink: 0; }

@@ -26,6 +26,7 @@ import {
   RADIUS_MODE_DISCLAIMERS,
 } from "@/lib/solar-system/scales";
 import { LIGHTING_DISCLOSURE } from "@/lib/solar-system/lighting-model";
+import { SolarSystemSearch, type SearchResult } from "./solar-system-search";
 
 // ---------------------------------------------------------------------------
 // Dynamic import — required so WebGL Canvas never runs on the server
@@ -213,6 +214,12 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
     ([category, entries]) => ({ category, entries, visible: visibleCatalog.has(category) })
   );
 
+  // ── Search handler ────────────────────────────────────────────────────────
+  function handleSearchSelect(result: SearchResult) {
+    // Task 7 will add Horizons fetch here
+    console.info("[03B] Selected catalog body:", result.id, result.name);
+  }
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="solar-root">
@@ -261,6 +268,13 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
             ))}
           </select>
         </label>
+
+        {/* Catalog search */}
+        <SolarSystemSearch
+          locale={locale}
+          placeholder={t.searchPlaceholder}
+          onSelect={handleSearchSelect}
+        />
 
         <div className="solar-toolbar__sep solar-toolbar__hide-sm" />
 
