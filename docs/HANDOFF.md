@@ -47,15 +47,20 @@ Stato funzionale Tavola Periodica:
 
 ### Tavola Periodica — prossimo riavvio consigliato
 
-1. **Smoke test Molecule Dataset v2** su produzione:
+1. **Fix mobile overlay Material View / temperature control** osservato su screenshot utente:
+   - Scenario: mobile portrait, elemento Mercurio (`Hg`, Z=80), Material View attiva, temperatura circa `-45 °C`.
+   - Sintomo: `MaterialLegend` ("particelle ordinate...", disclaimer modello concettuale) e `TemperatureControl` si sovrappongono; il controllo temperatura invade l'area sopra l'InfoPanel e crea collisione visiva con testo/canvas.
+   - Ipotesi root cause: MaterialLegend è ancora dockata bottom-left mentre TemperatureControl è centrato/bottom in portrait; InfoPanel inizia sotto senza riservare spazio per entrambi. Serve layout mobile esclusivo per Material View: o legenda collassata/nascosta in portrait, o temperature control dockato in sheet/pill senza overlap, o z-index/spacing dedicato.
+   - Sprint consigliato: `Mobile Material Overlay Fix`, Sonnet, CSS/JSX mirato, test 375/390/412 portrait su Hg + Fe, dark/light.
+2. **Smoke test Molecule Dataset v2** su produzione:
    - Pt -> Applications -> cisplatin locale, no badge PubChem.
    - Li -> lithium carbonate locale.
    - N -> nitrous oxide locale.
    - Zn -> zinc oxide locale.
    - Fe -> ferrous sulfate locale.
    - C -> benzene locale, ball-stick e space-filling.
-2. **Aggiornare `docs/periodic-table/governance.md`** con gli sprint completati il 2026-05-31. Il documento contiene ancora alcune righe stale: canonical EN vecchio, Applications panel v0, molecole premium non aggiornate.
-3. Dopo smoke/governance, scegliere uno sprint:
+3. **Aggiornare `docs/periodic-table/governance.md`** con gli sprint completati il 2026-05-31. Il documento contiene ancora alcune righe stale: canonical EN vecchio, Applications panel v0, molecole premium non aggiornate.
+4. Dopo smoke/governance, scegliere uno sprint:
    - Molecule Dataset v3: XeF4, PCl5, ethanol, acetic acid.
    - Crystal UX v2: site-coloring, single-cell/extended-lattice toggle, reset camera.
    - ChEMBL audit read-only.
