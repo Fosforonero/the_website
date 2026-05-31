@@ -392,7 +392,7 @@ function fmt(val: number | null, decimals = 2, suffix = ""): string {
   return `${val.toFixed(decimals)}${suffix ? " " + suffix : ""}`;
 }
 
-function InfoPanel({ el, locale, tempUnit, lightMode, onDragStart, onCrystalClick, onMoleculeClick, onStoryClick }: { el: Element; locale: Locale; tempUnit: "K" | "C" | "F"; lightMode?: boolean; onDragStart?: (e: React.MouseEvent | React.TouchEvent) => void; onCrystalClick?: () => void; onMoleculeClick?: (idx: number) => void; onStoryClick?: () => void }) {
+function InfoPanel({ el, locale, tempUnit, lightMode, onDragStart, onCrystalClick, onMoleculeClick, onAppMoleculeClick, onStoryClick }: { el: Element; locale: Locale; tempUnit: "K" | "C" | "F"; lightMode?: boolean; onDragStart?: (e: React.MouseEvent | React.TouchEvent) => void; onCrystalClick?: () => void; onMoleculeClick?: (idx: number) => void; onAppMoleculeClick?: (moleculeName: string) => void; onStoryClick?: () => void }) {
   const t = LAB_UI_TRANSLATIONS[locale];
   const [descExpanded, setDescExpanded] = useState(false);
   const color = CATEGORY_COLOR[el.category];
@@ -667,6 +667,15 @@ function InfoPanel({ el, locale, tempUnit, lightMode, onDragStart, onCrystalClic
                       >
                         {app.sourceLabel} ↗
                       </a>
+                      {onAppMoleculeClick && app.relatedMolecule && (
+                        <button
+                          className="pt-info__app-mol-btn"
+                          onClick={() => { const m = app.relatedMolecule; if (m) onAppMoleculeClick(m); }}
+                          title={locale === "en" ? `View ${app.relatedMolecule} in 3D` : `Visualizza ${app.relatedMolecule} in 3D`}
+                        >
+                          {t.appViewMolecule}
+                        </button>
+                      )}
                       {app.isMedical && (
                         <span className="pt-info__app-disclaimer">
                           {t.appDisclaimerMedical}
@@ -1591,6 +1600,30 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
     setMolSearchBusy(false);
   }, []);
 
+  const handleAppMoleculeClick = useCallback((moleculeName: string) => {
+    const localMols = selected ? (MOLECULES_BY_Z[selected.z] ?? []) : [];
+    const localIdx = localMols.findIndex(m =>
+      m.nameEN.toLowerCase() === moleculeName.toLowerCase() ||
+      m.nameIT.toLowerCase() === moleculeName.toLowerCase()
+    );
+    setMoleculeView(true);
+    setCrystalView(false);
+    setNucleusView(false);
+    setInspectorOrbital(null);
+    setMaterialView(false);
+    if (localIdx >= 0) {
+      setActiveMolIdx(localIdx);
+      setMolSearchResult(null);
+    } else {
+      setActiveMolIdx(0);
+      setMolSearchResult(null);
+      setMolSearchError(null);
+      setMolSearchHasSearched(false);
+      setMolSearchQuery(moleculeName);
+      void handleMolSearch(moleculeName);
+    }
+  }, [selected, handleMolSearch]);
+
   // Keyboard handler (Escape key)
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape" && view === "atom") handleBack(); };
@@ -2118,6 +2151,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
             onDragStart={handlePanelDragStart}
             onCrystalClick={() => { setCrystalView(true); setNucleusView(false); setMoleculeView(false); setInspectorOrbital(null); }}
             onMoleculeClick={(i) => { setMoleculeView(true); setActiveMolIdx(i); setCrystalView(false); setNucleusView(false); setInspectorOrbital(null); }}
+            onAppMoleculeClick={handleAppMoleculeClick}
             onStoryClick={() => setStoryMode(true)}
           />
           {storyMode && (

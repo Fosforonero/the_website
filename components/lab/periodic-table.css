@@ -1503,6 +1503,33 @@
   font-style: italic;
 }
 
+.pt-info__app-mol-btn {
+  background: none;
+  border: 1px solid rgba(99,160,255,0.28);
+  color: rgba(99,160,255,0.78);
+  font-size: 0.67rem;
+  padding: 3px 9px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-family: var(--font-mono, monospace);
+  transition: background 0.14s, border-color 0.14s, color 0.14s;
+  flex-shrink: 0;
+}
+.pt-info__app-mol-btn:hover {
+  background: rgba(99,160,255,0.10);
+  border-color: rgba(99,160,255,0.52);
+  color: #93c5fd;
+}
+.pt-root--light .pt-info__app-mol-btn {
+  border-color: rgba(29,78,216,0.28);
+  color: #1d4ed8;
+}
+.pt-root--light .pt-info__app-mol-btn:hover {
+  background: rgba(29,78,216,0.06);
+  border-color: rgba(29,78,216,0.52);
+  color: #1e40af;
+}
+
 /* Light mode */
 .pt-root--light .pt-info__app-card {
   background: rgba(0,0,0,0.03);

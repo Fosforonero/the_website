@@ -180,6 +180,7 @@ export const LAB_UI_TRANSLATIONS = {
     materialLegendGas: "particelle distanti · moto quasi libero",
     infoGroupApplications: "Applicazioni reali",
     appDisclaimerMedical: "Contesto educativo, non consiglio medico.",
+    appViewMolecule: "Vedi molecola",
   },
   en: {
     backToTable: "← table",
@@ -289,6 +290,7 @@ export const LAB_UI_TRANSLATIONS = {
     materialLegendGas: "distant particles · near-free motion",
     infoGroupApplications: "Real-world applications",
     appDisclaimerMedical: "Educational context, not medical advice.",
+    appViewMolecule: "View molecule",
   }
 };
 
