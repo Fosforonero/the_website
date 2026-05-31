@@ -73,12 +73,12 @@ Selettore di data: un input di tipo data/ora che permette di impostare qualsiasi
 Play / Pausa: avvia o mette in pausa l'animazione del tempo simulato. Quando è in play, le posizioni dei corpi si aggiornano ogni 100 ms.
 
 Selettore di velocità:
-— ×1 → tempo reale (1 secondo simulato = 1 secondo reale)
-— ×24 → 1 giorno simulato per ora reale
-— ×365 → 1 anno simulato per ora reale
-— ×3650 → 10 anni simulati per ora reale
+— Tempo reale → 1 secondo simulato = 1 secondo reale
+— 1 giorno/sec → 1 giorno simulato per secondo reale
+— 1 mese/sec → 30 giorni simulati per secondo reale
+— 1 anno/sec → 365 giorni simulati per secondo reale
 
-Nota: a velocità elevate (×3650), le traiettorie orbitali di corpi veloci come Mercurio possono apparire discontinue tra un aggiornamento e l'altro. Questo è normale: la posizione è comunque calcolata correttamente per ogni frame.`,
+Nota: a velocità elevate (1 anno/sec), le traiettorie orbitali di corpi veloci come Mercurio possono apparire discontinue tra un aggiornamento e l'altro. Questo è normale: la posizione è comunque calcolata correttamente per ogni frame.`,
       },
       scaleModes: {
         title: "Modalità di scala",
@@ -153,12 +153,12 @@ Mappa reale (roadmap): texture fotografica da dati NASA/USGS/JAXA applicata alla
 
 Stelle: 44 stelle nominate dal catalogo Hipparcos dell'ESA (High Precision Parallax Collecting Satellite). Ogni stella ha posizione reale (ascensione retta e declinazione J2000), magnitudine reale, e colore calcolato dalla temperatura spettrale. Le stelle vengono proiettate sulla sfera celeste a distanza fissa dalla camera.
 
-Costellazioni: linee di costellazione tratte dai metadati di Stellarium Sky Cultures (standard IAU). Le 88 costellazioni ufficiali. Possono essere attivate o disattivate con il toggle "Costellazioni" nel pannello di controllo.
+Costellazioni: linee di costellazione tratte dai metadati di Stellarium Sky Cultures. Subset curato di stelle luminose e costellazioni riconoscibili (non la copertura completa delle 88 IAU). Possono essere attivate o disattivate con il toggle "Costellazioni" nel pannello di controllo.
 
 Oggetti del cielo profondo: un sottoinsieme di oggetti Messier e NGC tratti da OpenNGC:
 — M31 (Galassia di Andromeda), M33 (Triangolo), M42 (Nebulosa di Orione), M45 (Pleiadi), M44 (Presepe), M13 (Ammasso globulare di Ercole), M81 (Galassia di Bode), M57 (Nebulosa Anello). Visualizzati come icone o marker con nome. Possono essere attivati o disattivati separatamente dalle costellazioni.
 
-In arrivo: il catalogo completo Gaia (oltre 1 miliardo di stelle) è pianificato per Sprint 02, con rendering ottimizzato tramite instanced geometry e LOD.`,
+In arrivo: il catalogo completo Gaia (oltre 1 miliardo di stelle) è pianificato per un sprint futuro, con rendering ottimizzato tramite instanced geometry e LOD.`,
       },
       sandboxRoadmap: {
         title: "Roadmap: modalità sandbox",
@@ -286,12 +286,12 @@ Date picker: a date/time input that lets you set any date between approximately 
 Play / Pause: starts or pauses the simulated time animation. When playing, body positions update every 100 ms.
 
 Speed selector:
-— ×1 → real time (1 simulated second = 1 real second)
-— ×24 → 1 simulated day per real hour
-— ×365 → 1 simulated year per real hour
-— ×3650 → 10 simulated years per real hour
+— Real time → 1 simulated second = 1 real second
+— 1 day/sec → 1 simulated day per real second
+— 1 month/sec → 30 simulated days per real second
+— 1 year/sec → 365 simulated days per real second
 
-Note: at high speeds (×3650), the orbital trajectories of fast bodies such as Mercury may appear discontinuous between updates. This is normal: the position is still correctly computed for each frame.`,
+Note: at high speeds (1 year/sec), the orbital trajectories of fast bodies such as Mercury may appear discontinuous between updates. This is normal: the position is still correctly computed for each frame.`,
       },
       scaleModes: {
         title: "Scale modes",
@@ -366,12 +366,12 @@ Real map (roadmap): photographic texture from NASA/USGS/JAXA data applied to the
 
 Stars: 44 named stars from the ESA Hipparcos catalog (High Precision Parallax Collecting Satellite). Each star has a real position (right ascension and declination J2000), real magnitude, and color computed from spectral temperature. Stars are projected onto the celestial sphere at a fixed distance from the camera.
 
-Constellations: constellation lines drawn from Stellarium Sky Cultures metadata (IAU standard). All 88 official constellations. Can be toggled on or off with the "Constellations" toggle in the control panel.
+Constellations: constellation lines drawn from Stellarium Sky Cultures metadata. Curated subset of bright stars and recognizable constellations (not full IAU 88 coverage). Can be toggled on or off with the "Constellations" toggle in the control panel.
 
 Deep-sky objects: a subset of Messier and NGC objects from OpenNGC:
 — M31 (Andromeda Galaxy), M33 (Triangulum), M42 (Orion Nebula), M45 (Pleiades), M44 (Beehive Cluster), M13 (Hercules Globular Cluster), M81 (Bode's Galaxy), M57 (Ring Nebula). Displayed as icons or markers with names. Can be toggled separately from constellations.
 
-Coming soon: the full Gaia catalog (over 1 billion stars) is planned for Sprint 02, with optimized rendering using instanced geometry and LOD.`,
+Coming soon: the full Gaia catalog (over 1 billion stars) is planned for a future sprint, with optimized rendering using instanced geometry and LOD.`,
       },
       sandboxRoadmap: {
         title: "Roadmap: sandbox mode",

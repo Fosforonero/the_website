@@ -90,9 +90,10 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
 
   const ROADMAP = [
     { done: true,  label: isIT ? "Sprint 01: Keplerian solver, catalogo corpi, firmamento Hipparcos, rendering WebGL procedural." : "Sprint 01: Keplerian solver, body catalog, Hipparcos firmament, procedural WebGL rendering." },
-    { done: false, label: isIT ? "Sprint 02: API route JPL Horizons per posizioni precise; ingestione texture reali NASA/USGS; catalogo stelle esteso da Gaia DR3." : "Sprint 02: Live JPL Horizons API route for precise positions; real NASA/USGS texture ingestion; expanded star catalog from Gaia DR3." },
-    { done: false, label: isIT ? "Sprint 03: Catalogo satelliti naturali; fascia asteroidale come punti instanziati." : "Sprint 03: Natural satellite catalog; asteroid belt as instanced points." },
-    { done: false, label: isIT ? "Sprint 04: Satelliti artificiali CelesTrak; modalità sandbox con fisica." : "Sprint 04: CelesTrak artificial satellites; sandbox physics mode." },
+    { done: true,  label: isIT ? "Sprint 02: Elementi orbitali completi (Ω, ω, M₀ J2000), percorsi orbitali ellittici campionati, scala raggi logaritmica categoriale, sistemi luna/satellite leggibili, playback giorni/sec." : "Sprint 02: Full orbital elements (Ω, ω, M₀ J2000), sampled elliptical orbit paths, category-aware log radius scaling, readable moon/satellite systems, days/sec playback." },
+    { done: false, label: isIT ? "Sprint 03: API route JPL Horizons per posizioni di precisione; catalogo completo corpi minori con caricamento progressivo; texture reali NASA/USGS." : "Sprint 03: JPL Horizons API route for precision positions; full minor-body catalog with progressive loading; real NASA/USGS textures." },
+    { done: false, label: isIT ? "Sprint 04: Catalogo satelliti naturali; fascia asteroidale come punti instanziati." : "Sprint 04: Natural satellite catalog; asteroid belt as instanced points." },
+    { done: false, label: isIT ? "Sprint 05: Satelliti artificiali CelesTrak; modalità sandbox con fisica." : "Sprint 05: CelesTrak artificial satellites; sandbox physics mode." },
   ];
 
   return (
@@ -544,13 +545,13 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
             </h2>
             <ul className="ss-about-limits">
               {(isIT ? [
-                "Le posizioni orbitali usano elementi Kepleriani semplificati (MVP sprint 01), non vettori live JPL Horizons.",
+                "Le posizioni orbitali usano elementi Kepleriani con Ω, ω, M₀ J2000 (Sprint 02), non vettori live JPL Horizons.",
                 "Le modalità di scala sono educative, non fisicamente accurate.",
                 "Il catalogo stelle è un subset curato di Hipparcos (44 stelle), non il catalogo completo.",
                 "Le linee delle costellazioni fanno riferimento ai dati Stellarium sky cultures.",
                 "Le texture sono procedurali; i dettagli superficiali non sono scientificamente rappresentativi.",
               ] : [
-                "Orbital positions use simplified Keplerian elements (sprint 01 MVP), not live JPL Horizons vectors.",
+                "Orbital positions use Keplerian elements with Ω, ω, M₀ at J2000 (Sprint 02), not live JPL Horizons vectors.",
                 "Scale modes are educational, not physically accurate.",
                 "Star catalog is a curated subset of Hipparcos (44 stars), not the full catalog.",
                 "Constellation lines reference Stellarium sky cultures data.",

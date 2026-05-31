@@ -8,7 +8,7 @@ const PAGE_URL_IT = `${site.url}/lab/sistema-solare`;
 
 export const metadata: Metadata = {
   title: "Solar System 3D · WebGL Observatory · Fosforonero Lab",
-  description: "3D solar system simulator with open NASA/JPL data. Planets, moons, comets and asteroids in real time. Real stars from the Hipparcos catalog. Free in your browser.",
+  description: "3D solar system simulator with open NASA/JPL data. Planets, moons, comets and asteroids with Keplerian orbits. Real stars from the Hipparcos catalog. Free in your browser.",
   alternates: {
     canonical: PAGE_URL,
     languages: {
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     url: PAGE_URL,
     siteName: site.name,
     title: "Solar System 3D · WebGL Observatory",
-    description: "Planets, moons, comets, asteroids and real stars in 3D WebGL. NASA/JPL Horizons data.",
+    description: "Planets, moons, comets, asteroids and real stars in 3D WebGL. NASA/JPL data, Keplerian orbits.",
     images: [{ url: `${site.url}/opengraph-image`, width: 1200, height: 630, alt: "Solar System 3D — Fosforonero Lab" }],
   },
   twitter: { card: "summary_large_image" },
