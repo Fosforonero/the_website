@@ -32,6 +32,24 @@ export type SolarBody = {
   meanAnomalyDeg?: number;
   longitudeOfAscendingNodeDeg?: number;
   argumentOfPeriapsisDeg?: number;
+  /**
+   * Obliquity (axial tilt) of the body's rotation axis to the ecliptic plane (degrees).
+   * 0° = pole aligned with ecliptic north. 90° = pole in the ecliptic plane.
+   * > 90° = retrograde rotation sense (e.g. Venus 177°, Uranus 98°, Pluto 122°).
+   * Source: IAU WGCCRE 2015 / IAU planetary fact sheets.
+   */
+  axialTiltDeg?: number;
+  /**
+   * Sidereal rotation period in hours.
+   * Positive = prograde (same direction as orbital motion).
+   * Negative = retrograde (Venus, Uranus sense, Pluto).
+   * Source: IAU WGCCRE 2015 / IAU planetary fact sheets.
+   */
+  siderealRotationHours?: number;
+  /** Inner edge of ring system (km from body centre). Saturn and Uranus only. */
+  ringInnerKm?: number;
+  /** Outer edge of ring system (km from body centre). Saturn and Uranus only. */
+  ringOuterKm?: number;
   color: string;
   sourceIds: string[];
   assetId?: string;
@@ -164,6 +182,8 @@ export const SOLAR_BODIES: SolarBody[] = [
     meanAnomalyDeg: 174.794,
     longitudeOfAscendingNodeDeg: 48.340,
     argumentOfPeriapsisDeg: 29.118,
+    axialTiltDeg: 0.034,
+    siderealRotationHours: 1407.6,
     color: "#B5B5B5",
     sourceIds: ["nasaJplHorizons"],
   },
@@ -182,6 +202,8 @@ export const SOLAR_BODIES: SolarBody[] = [
     meanAnomalyDeg: 50.212,
     longitudeOfAscendingNodeDeg: 76.673,
     argumentOfPeriapsisDeg: 55.095,
+    axialTiltDeg: 177.36,
+    siderealRotationHours: -5832.5,
     color: "#E8C46A",
     sourceIds: ["nasaJplHorizons"],
   },
@@ -200,6 +222,8 @@ export const SOLAR_BODIES: SolarBody[] = [
     meanAnomalyDeg: 357.537,
     longitudeOfAscendingNodeDeg: 0.0,
     argumentOfPeriapsisDeg: 102.930,
+    axialTiltDeg: 23.439,
+    siderealRotationHours: 23.934,
     color: "#3A9BDC",
     sourceIds: ["nasaJplHorizons"],
   },
@@ -218,6 +242,8 @@ export const SOLAR_BODIES: SolarBody[] = [
     meanAnomalyDeg: 19.349,
     longitudeOfAscendingNodeDeg: 49.713,
     argumentOfPeriapsisDeg: 286.369,
+    axialTiltDeg: 25.189,
+    siderealRotationHours: 24.623,
     color: "#C1440E",
     sourceIds: ["nasaJplHorizons"],
   },
@@ -236,6 +262,8 @@ export const SOLAR_BODIES: SolarBody[] = [
     meanAnomalyDeg: 20.060,
     longitudeOfAscendingNodeDeg: 100.293,
     argumentOfPeriapsisDeg: 273.982,
+    axialTiltDeg: 3.128,
+    siderealRotationHours: 9.925,
     color: "#C88B3A",
     sourceIds: ["nasaJplHorizons"],
   },
@@ -254,6 +282,10 @@ export const SOLAR_BODIES: SolarBody[] = [
     meanAnomalyDeg: 317.214,
     longitudeOfAscendingNodeDeg: 113.640,
     argumentOfPeriapsisDeg: 339.221,
+    axialTiltDeg: 26.732,
+    siderealRotationHours: 10.656,
+    ringInnerKm: 74_500,
+    ringOuterKm: 140_220,
     color: "#E4D191",
     sourceIds: ["nasaJplHorizons"],
   },
@@ -272,6 +304,10 @@ export const SOLAR_BODIES: SolarBody[] = [
     meanAnomalyDeg: 141.769,
     longitudeOfAscendingNodeDeg: 73.963,
     argumentOfPeriapsisDeg: 98.472,
+    axialTiltDeg: 97.774,
+    siderealRotationHours: -17.240,
+    ringInnerKm: 38_000,
+    ringOuterKm: 51_149,
     color: "#7DE8E8",
     sourceIds: ["nasaJplHorizons"],
   },
@@ -290,6 +326,8 @@ export const SOLAR_BODIES: SolarBody[] = [
     meanAnomalyDeg: 257.541,
     longitudeOfAscendingNodeDeg: 131.784,
     argumentOfPeriapsisDeg: 274.898,
+    axialTiltDeg: 28.322,
+    siderealRotationHours: 16.110,
     color: "#4B70DD",
     sourceIds: ["nasaJplHorizons"],
   },
@@ -310,6 +348,8 @@ export const SOLAR_BODIES: SolarBody[] = [
     meanAnomalyDeg: 135.270,
     longitudeOfAscendingNodeDeg: 125.045,
     argumentOfPeriapsisDeg: 318.150,
+    axialTiltDeg: 6.687,
+    siderealRotationHours: 655.720,
     color: "#C8C8C8",
     sourceIds: ["nasaJplHorizons", "jplSatellites"],
   },
@@ -434,6 +474,8 @@ export const SOLAR_BODIES: SolarBody[] = [
     meanAnomalyDeg: 238.929,
     longitudeOfAscendingNodeDeg: 110.303,
     argumentOfPeriapsisDeg: 224.067,
+    axialTiltDeg: 122.530,
+    siderealRotationHours: -153.293,
     color: "#C8B89A",
     sourceIds: ["nasaJplHorizons", "jplSbdb"],
   },
