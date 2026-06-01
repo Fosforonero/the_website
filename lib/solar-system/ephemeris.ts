@@ -10,6 +10,7 @@
 
 import { SOLAR_BODIES } from "./bodies";
 import type { BodyState } from "./bodies";
+import type { CatalogEntry } from "./catalog";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -17,6 +18,9 @@ import type { BodyState } from "./bodies";
 
 /** Julian date of J2000.0 epoch (2000-Jan-01 12:00 TT) */
 const J2000_JD = 2_451_545.0;
+
+/** 1 AU in km — local to this module; use AU_KM from scales.ts elsewhere */
+const AU_TO_KM = 149_597_870.7;
 
 /** Julian date offset from Unix epoch (1970-01-01T00:00:00Z) in days */
 const UNIX_EPOCH_JD = 2_440_587.5;
@@ -225,5 +229,25 @@ export function sampleOrbitPath(bodyId: string, samples = 256): Array<[number, n
     );
   }
 
+  return points;
+}
+
+/**
+ * Sample an orbit path for a CatalogEntry using the same Keplerian math
+ * as sampleOrbitPath. CatalogEntry uses AU for semi-major axis.
+ * Returns heliocentric ecliptic positions in km.
+ */
+export function sampleCatalogEntryOrbitPath(
+  entry: CatalogEntry,
+  samples = 256
+): Array<[number, number, number]> {
+  const a = entry.semiMajorAxisAu * AU_TO_KM;
+  const { eccentricity: e, inclinationDeg, longitudeAscNodeDeg: Omega, argPeriapsisDeg: omega } = entry;
+  const twoPi = 2 * Math.PI;
+  const points: Array<[number, number, number]> = [];
+  for (let i = 0; i < samples; i++) {
+    const M = (i / samples) * twoPi;
+    points.push(keplerToXyz(a, e, inclinationDeg, Omega, omega, M));
+  }
   return points;
 }

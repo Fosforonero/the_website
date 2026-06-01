@@ -10,7 +10,7 @@ import { CatalogLayer } from "./solar-system-catalog-layer";
 import type { CatalogCategory } from "@/lib/solar-system/catalog";
 import type { CatalogEntry } from "@/lib/solar-system/catalog";
 import { SOLAR_BODIES } from "@/lib/solar-system/bodies";
-import { getBodyStatesForDate, sampleOrbitPath } from "@/lib/solar-system/ephemeris";
+import { getBodyStatesForDate, sampleOrbitPath, sampleCatalogEntryOrbitPath } from "@/lib/solar-system/ephemeris";
 import { scaleDistance, scaleRadius, scaleSatelliteOffsetKm, AU_KM } from "@/lib/solar-system/scales";
 import { getBodyOrientation } from "@/lib/solar-system/rotation-model";
 import type { ScaleBrightnessMode } from "@/lib/solar-system/scales";
@@ -49,6 +49,7 @@ export type SolarSystemSceneProps = {
     name: string;
     positionKm: [number, number, number];
   } | null;
+  selectedCatalogEntry?: CatalogEntry | null;
 };
 
 // ---------------------------------------------------------------------------
@@ -212,6 +213,43 @@ function OrbitPath({ bodyId, isMoon, parentState, distanceMode }: OrbitPathProps
         color="#1a3050"
         transparent
         opacity={0.45}
+        depthWrite={false}
+      />
+    </lineLoop>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Sampled orbit path for a selected catalog entry (single object, not the full layer)
+// ---------------------------------------------------------------------------
+
+type CatalogOrbitPathProps = {
+  entry: CatalogEntry;
+  distanceMode: ScaleDistanceMode;
+};
+
+function CatalogOrbitPath({ entry, distanceMode }: CatalogOrbitPathProps) {
+  const points = useMemo(() => sampleCatalogEntryOrbitPath(entry, 512), [entry]);
+
+  const scaledPoints = useMemo(
+    () => points.map(([x, y, z]) => {
+      const [sx, sy, sz] = scalePositionVector([x, y, z], distanceMode);
+      return new THREE.Vector3(sx, sy, sz);
+    }),
+    [points, distanceMode]
+  );
+
+  const geometry = useMemo(
+    () => new THREE.BufferGeometry().setFromPoints(scaledPoints),
+    [scaledPoints]
+  );
+
+  return (
+    <lineLoop args={[geometry]}>
+      <lineBasicMaterial
+        color="#00ffcc"
+        transparent
+        opacity={0.6}
         depthWrite={false}
       />
     </lineLoop>
@@ -495,6 +533,7 @@ function InnerScene({
   brightnessMode,
   catalogLayers,
   horizonsMarker,
+  selectedCatalogEntry,
 }: InnerSceneProps) {
   const controlsRef = useRef<OrbitControlsHandle | null>(null);
 
@@ -629,6 +668,14 @@ function InnerScene({
           visible={layer.visible}
         />
       ))}
+
+      {/* Selected catalog object orbit path — Keplerian elements from SBDB snapshot */}
+      {selectedCatalogEntry && (
+        <CatalogOrbitPath
+          entry={selectedCatalogEntry}
+          distanceMode={distanceMode}
+        />
+      )}
 
       {/* Horizons precision marker — teal sphere + ring for selected catalog body */}
       {horizonsMarker && (() => {

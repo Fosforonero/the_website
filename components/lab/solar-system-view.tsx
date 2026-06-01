@@ -18,7 +18,7 @@ import {
   formatRotationDirection,
   getBodyOrientation,
 } from "@/lib/solar-system/rotation-model";
-import type { CatalogCategory } from "@/lib/solar-system/catalog";
+import type { CatalogCategory, CatalogEntry } from "@/lib/solar-system/catalog";
 import { catalogCategoryLabel } from "@/lib/solar-system/catalog-filter";
 import type { CatalogLayerSpec } from "./solar-system-scene";
 import { REFERENCE_FRAME, AXIAL_TILT_RENDERING_NOTE } from "@/lib/solar-system/reference-frames";
@@ -124,6 +124,27 @@ function toDateInputValue(epochMs: number): string {
 }
 
 // ---------------------------------------------------------------------------
+// Helper: look up a CatalogEntry from loaded catalog data by SBDB ID or name
+// ---------------------------------------------------------------------------
+
+function findCatalogEntry(
+  result: SearchResult,
+  catalogEntries: Map<CatalogCategory, CatalogEntry[]>
+): CatalogEntry | null {
+  for (const entries of catalogEntries.values()) {
+    // Primary: match by numeric ID (spkid)
+    const byId = entries.find((e) => e.id === result.id);
+    if (byId) return byId;
+    // Fallback: match by name (case-insensitive trim)
+    const byName = entries.find(
+      (e) => e.name.toLowerCase().trim() === result.name.toLowerCase().trim()
+    );
+    if (byName) return byName;
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
 
@@ -151,6 +172,7 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
   const [visibleCatalog, setVisibleCatalog] = useState<Set<CatalogCategory>>(new Set());
   const [horizonsMarker, setHorizonsMarker] = useState<HorizonsMarker | null>(null);
   const [horizonsLoading, setHorizonsLoading] = useState(false);
+  const [selectedCatalogEntry, setSelectedCatalogEntry] = useState<CatalogEntry | null>(null);
 
   // ── Playback ─────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -243,6 +265,9 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
     const date = new Date(epoch).toISOString().slice(0, 10);
     setHorizonsLoading(true);
     setHorizonsMarker(null);
+    // Look up catalog entry for orbit path rendering
+    const entry = findCatalogEntry(result, catalogEntries);
+    setSelectedCatalogEntry(entry);
     try {
       const res = await fetch(`/api/solar/horizons?id=${encodeURIComponent(result.id)}&date=${date}`);
       if (!res.ok) {
@@ -436,6 +461,7 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
           showAxes={showAxes}
           catalogLayers={catalogLayerSpecs}
           horizonsMarker={horizonsMarker}
+          selectedCatalogEntry={selectedCatalogEntry}
         />
       </div>
 
@@ -454,7 +480,7 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
                 ]
                   .filter(Boolean)
                   .join(" ")}
-                onClick={() => setSelectedBodyId(body.id)}
+                onClick={() => { setSelectedBodyId(body.id); setSelectedCatalogEntry(null); setHorizonsMarker(null); }}
               >
                 <span
                   className="solar-browser__dot"
@@ -689,9 +715,13 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
               </span>
             </div>
             <p style={{ fontSize: "0.60rem", color: "#4a7090", lineHeight: 1.4, margin: "4px 0 0" }}>
-              {locale === "it"
-                ? "Percorso orbitale non visualizzato per questo oggetto (Sprint 06). Dati: catalog-keplerian (punti layer) + sub-km (marcatore)."
-                : "Orbit path not displayed for this object (Sprint 06). Data: catalog-keplerian (point layer) + sub-km (marker)."}
+              {selectedCatalogEntry
+                ? (locale === "it"
+                    ? "Percorso orbitale: elementi kepleriani SBDB. Il marcatore Horizons è la posizione sub-km alla data selezionata."
+                    : "Orbit path from SBDB catalog Keplerian elements. Horizons marker is the sub-km position at selected date.")
+                : (locale === "it"
+                    ? "Percorso orbitale non disponibile: attivare il layer catalogo corrispondente per visualizzarlo."
+                    : "Orbit path unavailable: activate the relevant catalog layer to display it.")}
             </p>
             <button
               className="solar-control"
@@ -736,8 +766,8 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
         {visibleCatalog.size > 0 && (
           <p style={{ fontSize: "0.60rem", color: "#4a7090", lineHeight: 1.4, margin: 0 }}>
             {locale === "it"
-              ? `${visibleCatalog.size} ${visibleCatalog.size === 1 ? "livello catalogo attivo" : "livelli catalogo attivi"} — posizioni kepleriane da snapshot SBDB. Percorsi orbitali per oggetto singolo: Sprint 06.`
-              : `${visibleCatalog.size} catalog ${visibleCatalog.size === 1 ? "layer" : "layers"} active — Keplerian positions from SBDB snapshot. Per-object orbit paths: Sprint 06.`}
+              ? `${visibleCatalog.size} ${visibleCatalog.size === 1 ? "livello catalogo attivo" : "livelli catalogo attivi"} — posizioni kepleriane da snapshot SBDB. Selezionare un oggetto dalla ricerca per visualizzarne il percorso orbitale.`
+              : `${visibleCatalog.size} catalog ${visibleCatalog.size === 1 ? "layer" : "layers"} active — Keplerian positions from SBDB snapshot. Select an object from search to display its orbit path.`}
           </p>
         )}
 
