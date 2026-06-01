@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import { SOLAR_BODIES } from "../../lib/solar-system/bodies";
+import { SOLAR_ASSETS } from "../../lib/solar-system/assets";
 import { getBodyStatesForDate } from "../../lib/solar-system/ephemeris";
 import { scaleDistance, scaleRadius, scaleSatelliteOffsetKm, AU_KM } from "../../lib/solar-system/scales";
 import { isRetrogradeRotation } from "../../lib/solar-system/rotation-model";
@@ -373,6 +374,88 @@ for (const file of CATALOG_REQUIRED) {
       }
     }
   }
+}
+
+// --- H. Texture manifest checks [sprint 05] ---------------------------------
+
+console.log("\n--- Texture manifest checks [sprint 05] ---");
+
+for (const asset of SOLAR_ASSETS) {
+  if (asset.confidence === "real-map") {
+    // real-map requires a localPath
+    if (!asset.localPath) {
+      console.log(`  FAIL ${asset.bodyId.padEnd(10)} confidence=real-map but localPath is missing`);
+      warnings++;
+      continue;
+    }
+    // localPath must point to an existing file under public/
+    const segments = asset.localPath.split("/").filter(Boolean);
+    const filePath = join(process.cwd(), "public", ...segments);
+    if (!existsSync(filePath)) {
+      console.log(`  FAIL ${asset.bodyId.padEnd(10)} confidence=real-map localPath=${asset.localPath} — file not found on disk`);
+      warnings++;
+    } else {
+      console.log(`      OK ${asset.bodyId.padEnd(10)} confidence=real-map localPath=${asset.localPath}`);
+    }
+  } else if (asset.localPath) {
+    // procedural/symbolic with a localPath — verify the file actually exists
+    const segments = asset.localPath.split("/").filter(Boolean);
+    const filePath = join(process.cwd(), "public", ...segments);
+    if (!existsSync(filePath)) {
+      console.log(`  FAIL ${asset.bodyId.padEnd(10)} confidence=${asset.confidence} localPath=${asset.localPath} — file not found on disk`);
+      warnings++;
+    } else {
+      console.log(`      OK ${asset.bodyId.padEnd(10)} confidence=${asset.confidence} localPath=${asset.localPath}`);
+    }
+  } else {
+    console.log(`      OK ${asset.bodyId.padEnd(10)} confidence=${asset.confidence} (no localPath — expected)`);
+  }
+}
+
+// --- I. Atmosphere metadata checks [sprint 05] ------------------------------
+
+console.log("\n--- Atmosphere metadata checks [sprint 05] ---");
+
+for (const body of SOLAR_BODIES) {
+  if (body.atmosphereHeightKm === undefined) continue;
+
+  let ok = true;
+
+  if (body.atmosphereHeightKm <= 0) {
+    console.log(`  FAIL ${body.id.padEnd(10)} atmosphereHeightKm=${body.atmosphereHeightKm} — must be > 0`);
+    warnings++;
+    ok = false;
+  }
+  if (!body.atmosphereLabel?.it) {
+    console.log(`  FAIL ${body.id.padEnd(10)} atmosphereLabel.it is missing or empty`);
+    warnings++;
+    ok = false;
+  }
+  if (!body.atmosphereLabel?.en) {
+    console.log(`  FAIL ${body.id.padEnd(10)} atmosphereLabel.en is missing or empty`);
+    warnings++;
+    ok = false;
+  }
+
+  if (ok) {
+    console.log(`      OK ${body.id.padEnd(10)} atmosphereHeightKm=${body.atmosphereHeightKm} km`);
+  }
+}
+
+// --- J. Physics honesty checks [sprint 05] ----------------------------------
+
+console.log("\n--- Physics honesty checks [sprint 05] ---");
+
+// Verify that SOLAR_BODIES does not have any field implying N-body, eclipses,
+// or magnetic fields are computed (none of these exist in the current type)
+const noFakePhysics = SOLAR_BODIES.every(
+  (b) => !("nbodyEnabled" in b) && !("eclipseEnabled" in b) && !("magneticFieldEnabled" in b)
+);
+if (!noFakePhysics) {
+  warnings++;
+  console.log("  FAIL No-fake-physics guard: unexpected physics fields in SOLAR_BODIES");
+} else {
+  console.log("   OK  no-fake-physics guard — N-body/eclipse/magnetic fields not in body catalog");
 }
 
 // --- Summary ---------------------------------------------------------------
