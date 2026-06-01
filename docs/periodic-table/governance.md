@@ -2,7 +2,7 @@
 
 Documento di riferimento per decisioni di prodotto, design e architettura della Tavola Periodica Interattiva (`/lab/tavola-periodica`).
 
-**Aggiornato:** 2026-06-01 (post mobile UX, applications v1, crystal UX v1, molecule dataset v2)  
+**Aggiornato:** 2026-06-01 (post ChEMBL pharmacology layer v0, chemblId data corrections)  
 **Separato da:** `docs/solar-system/` — non usare questo doc per decisioni del simulatore solare e viceversa.
 
 ---
@@ -138,7 +138,8 @@ Due sorgenti distinte, mai mescolate silenziosamente:
 | Light mode mobile: smoke test incompleto (non verificato nel run 2026-06-01) | Qualità QA | P2 |
 | Landscape >680px: MaterialLegend e TempControl si sovrappongono (pre-existing) | Layout landscape edge-case | P3 |
 | Banner "RUOTA IL DISPOSITIVO" sempre visibile, non dismissibile | UX mobile | P3 |
-| ChEMBL audit read-only | Fonti applicazioni | P3 |
+| ChEMBL EBI latenza alta (~2-8s sulla prima richiesta) — cache 24h mitiga | UX percepito | P2 |
+| ChEMBL v0: auranofin mechanism="Unknown" (target thioredoxin reductase non nel dataset EBI) | Accuratezza dati | P2 |
 | Legami chimici tra due elementi (Bonding Lab) | Feature educativa avanzata | P3 |
 
 ---
@@ -173,6 +174,18 @@ Due sorgenti distinte, mai mescolate silenziosamente:
 - [x] Mobile InfoPanel single-column — fix scroll orizzontale (~840px scrollWidth); root cause: flex-wrap:wrap + max-height:44vh creava colonne flex; fix: nowrap + align-items:stretch + overflow-x:hidden
 - [x] Mobile Material overlay — MaterialLegend riposizionata top-right in portrait ≤680px per eliminare collisione con TemperatureControl (bottom-center); disclaimer verboso nascosto in portrait
 - [x] Mobile thematic selector discoverability — mask-image right-fade su ≤900px per segnalare pulsanti fuori schermo; touch target 44px in portrait ≤680px
+- [x] ChEMBL pharmacology layer v0 — accordion "Azione farmacologica" lazy-loaded nelle application card con `chemblId`; server proxy `/api/periodic-table/chembl`; dati: mechanism_of_action, action_type, indicazione principale (MeSH), max_phase, badge "Approvato (Fase 4)"; cache 24h; fallback 503 graceful; attribution CC BY-SA 3.0; 10 compound mappati: cisplatin (CHEMBL11359), aspirin (CHEMBL25), auranofin (CHEMBL1366), nitrous oxide (CHEMBL1234579), sodium fluoride (CHEMBL1528), lithium carbonate (CHEMBL1200826), silver sulfadiazine (CHEMBL1382627), magnesium hydroxide (CHEMBL1200718), calcium carbonate (CHEMBL1200539), zinc oxide (CHEMBL3988900)
+
+### Architettura fonti dati (invariante)
+
+| Fonte | Ruolo | Auth | Costo | Note |
+|-------|-------|------|-------|------|
+| **PubChem** | Struttura chimica: formula, SMILES, InChIKey, 3D coordinates, CID | No | $0 | CORS-OK, browser-direct |
+| **ChEMBL** | Farmacologia: mechanism of action, indicazioni terapeutiche, max_phase | No | $0 | Server proxy necessario (latenza EBI); CC BY-SA 3.0 |
+| **Locale** (`molecules-data.ts`, `element-applications-data.ts`) | Dataset curato: molecole 3D verificate, applications con source | — | $0 | Fonte primaria per tutto ciò che è curato manualmente |
+| **PharmaDive** | Similarity/recommendations editoriali tra farmaci | Sì (non-retrievable) | $15–50/mese | **Non dati primari** — solo layer opzionale similarity se e solo se partnership |
+
+**Regola invariante:** PubChem fornisce la chimica, ChEMBL fornisce la farmacologia. Non invertire i ruoli. Non usare ChEMBL come fonte per strutture molecolari (usare PubChem).
 
 ### Regole scientifiche Material View (invariante)
 - **NON è un reticolo cristallino**: solid = griglia didattica 3×3×3, NON collegata a crystalStructure
@@ -209,14 +222,18 @@ Due sorgenti distinte, mai mescolate silenziosamente:
 - [ ] Molecule Dataset v3: XeF4, PCl5, etanolo, acido acetico (4 molecole prioritarie)
 - [ ] Crystal UX v2: site-coloring per tipo atomo, toggle single-cell/extended-lattice, reset camera button
 
+### P2 — ChEMBL v1 (possibile sprint successivo)
+- [ ] ChEMBL v1: aggiungere `first_approval` + ATC class per compound approvati
+- [ ] ChEMBL v1: risolvere auranofin mechanism ("Unknown" in EBI — aggiungere nota manuale thioredoxin reductase)
+- [ ] ChEMBL v1: versione EN bilingue completa delle label farmacologiche
+
 ### P3 — Feature avanzate
 - [ ] Legami chimici (Bonding Lab) — selezione due elementi → tipo legame da ΔEN
-- [ ] ChEMBL on-demand enrichment — `lib/pharma-chembl.ts`, specchio del pattern PubChem. Solo su richiesta esplicita utente, mai on-load automatico.
 
 ### Escluso (non implementare senza decisione esplicita)
 - Vista nucleo avanzata Level 1b (quark/gluoni) — impatto didattico marginale per il target liceo/triennio
 - Vista materiale / Powers of Ten avanzata — scope troppo ampio rispetto al valore
-- **PharmaDive / Moore Metrics** — non è un database chimico/farmaceutico (vedi audit 2026-05-31)
+- **PharmaDive core data** — non è un database chimico/farmaceutico primario (niente SMILES, CID, meccanismo). Possibile layer opzionale solo per similarity/recommendations "farmaci simili a X" se partnership commerciale — non dati di chimica.
 
 ---
 
@@ -256,7 +273,7 @@ Roadmap alternativa raccomandata (ordine ROI):
 ### Backlog: Applicazioni reali elementi
 - [x] **Applications Panel v1** — `lib/element-applications-data.ts`: 23 elementi, 48 entry totali, badge categoria, link PubChem verificati, disclaimer medico su `isMedical`. Sezione collassata `<details>` nell'InfoPanel.
 - [x] **relatedMolecule links v1** — 16 entry con `relatedMolecule` attivo: click apre molecola nel 3D viewer locale senza round-trip esterno.
-- [ ] **ChEMBL on-demand enrichment (P3)** — `lib/pharma-chembl.ts`, specchio del pattern PubChem. Solo su richiesta esplicita utente, mai on-load automatico.
+- [x] **ChEMBL pharmacology layer v0** — accordion lazy-loaded in ogni app card con `chemblId`; proxy server `/api/periodic-table/chembl`; mechanism + indicazione + approval badge; 10 compound verificati; cache 24h; fallback graceful. Commit: `543e333`.
 - [x] **Disclaimer obbligatorio** — presente su tutte le entry `isMedical: true` con copia IT/EN verificata ("Contesto educativo, non consiglio medico." / "Educational context, not medical advice.").
 
 ### Regole invarianti Applications Panel

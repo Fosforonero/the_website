@@ -34,7 +34,7 @@ export const APPLICATIONS: Record<number, ElementApplication[]> = {
     sourceLabel: "PubChem CID 11125",
     sourceUrl: "https://pubchem.ncbi.nlm.nih.gov/compound/11125",
     relatedMolecule: "lithium carbonate",
-    chemblId: "CHEMBL471068",
+    chemblId: "CHEMBL1200826",
   }],
 
   // C — Z=6
@@ -115,7 +115,7 @@ export const APPLICATIONS: Record<number, ElementApplication[]> = {
     sourceLabel: "PubChem CID 14791",
     sourceUrl: "https://pubchem.ncbi.nlm.nih.gov/compound/14791",
     relatedMolecule: "magnesium hydroxide",
-    chemblId: "CHEMBL1743",
+    chemblId: "CHEMBL1200718",
   }],
 
   // Al — Z=13
@@ -179,7 +179,7 @@ export const APPLICATIONS: Record<number, ElementApplication[]> = {
     sourceLabel: "PubChem CID 10112",
     sourceUrl: "https://pubchem.ncbi.nlm.nih.gov/compound/10112",
     relatedMolecule: "calcium carbonate",
-    chemblId: "CHEMBL1200628",
+    chemblId: "CHEMBL1200539",
   }],
 
   // Ti — Z=22
@@ -231,7 +231,7 @@ export const APPLICATIONS: Record<number, ElementApplication[]> = {
     sourceLabel: "PubChem CID 14806",
     sourceUrl: "https://pubchem.ncbi.nlm.nih.gov/compound/14806",
     relatedMolecule: "zinc oxide",
-    chemblId: "CHEMBL3039497",
+    chemblId: "CHEMBL3988900",
   }],
 
   // Fe — Z=26
@@ -258,7 +258,7 @@ export const APPLICATIONS: Record<number, ElementApplication[]> = {
     sourceLabel: "PubChem CID 441244",
     sourceUrl: "https://pubchem.ncbi.nlm.nih.gov/compound/441244",
     relatedMolecule: "silver sulfadiazine",
-    chemblId: "CHEMBL1742",
+    chemblId: "CHEMBL1382627",
   }],
 
   // I — Z=53
