@@ -2,7 +2,7 @@
 
 Documento di riferimento per decisioni di prodotto, design e architettura della Tavola Periodica Interattiva (`/lab/tavola-periodica`).
 
-**Aggiornato:** 2026-05-30 (temperature slider MVP 87f52a8+)  
+**Aggiornato:** 2026-06-01 (post mobile UX, applications v1, crystal UX v1, molecule dataset v2)  
 **Separato da:** `docs/solar-system/` — non usare questo doc per decisioni del simulatore solare e viceversa.
 
 ---
@@ -101,7 +101,8 @@ Due sorgenti distinte, mai mescolate silenziosamente:
 ## SEO
 
 - Ogni page (`page.tsx`) ha `generateMetadata` con title, description, OG, canonical.
-- Canonical IT: `/lab/tavola-periodica`, EN: `/en/lab/tavola-periodica`.
+- Canonical IT: `/lab/tavola-periodica`, EN: `/en/lab/periodic-table`.
+- Il vecchio slug `/en/lab/tavola-periodica` ha redirect permanente verso `/en/lab/periodic-table`.
 - Sitemap: entrambe le route incluse in `app/sitemap.ts`.
 - JSON-LD: `EducationalApplication` o `WebApplication` — non modificare il tipo senza valutazione.
 - Deep-link `?z=26`: l'URL deve funzionare per condivisione social (l'elemento si apre sul load).
@@ -124,14 +125,20 @@ Due sorgenti distinte, mai mescolate silenziosamente:
 
 **Regola dato mancante:** se un valore non è disponibile da fonte primaria verificata, resta `null` e viene mostrato come "—" nel pannello (mai omesso silenziosamente, mai inventato).
 
+---
+
 ## Limiti attuali (da risolvere, non da ignorare)
 
 | Limite | Impatto | Tier roadmap |
 |---|---|---|
-| InfoPanel: lista piatta di 16 righe senza gerarchia | Leggibilità, percezione di strumento preciso | P1 |
 | Trend heatmap non annotati (il "perché" della variazione) | Valore educativo | P1 |
-| Story Mode: 27/118 elementi | Engagement narrativo | P2 |
-| Molecole predefinite: ~19 Z con dati locali | Copertura vista molecolare | P2 |
+| Story Mode: 31/118 elementi | Engagement narrativo | P2 |
+| Molecule Dataset v3: XeF4, PCl5, etanolo, acido acetico | Copertura vista molecolare | P2 |
+| Crystal UX v2: site-coloring, single-cell/extended-lattice toggle, reset camera | UX reticolo | P2 |
+| Light mode mobile: smoke test incompleto (non verificato nel run 2026-06-01) | Qualità QA | P2 |
+| Landscape >680px: MaterialLegend e TempControl si sovrappongono (pre-existing) | Layout landscape edge-case | P3 |
+| Banner "RUOTA IL DISPOSITIVO" sempre visibile, non dismissibile | UX mobile | P3 |
+| ChEMBL audit read-only | Fonti applicazioni | P3 |
 | Legami chimici tra due elementi (Bonding Lab) | Feature educativa avanzata | P3 |
 
 ---
@@ -152,21 +159,20 @@ Due sorgenti distinte, mai mescolate silenziosamente:
 - [x] Molecule Lab — ball-and-stick + space-filling (riempimento) + polarity mode
 - [x] PubChem search — live lookup NIH/NLM, visivamente secondario, badge + nota "dati esterni" (sprint c4fea99)
 - [x] Orbital Inspector — 8 orbitali idrogenoidi (1s, 2s, 2px/y/z, 3dz², 3dxy, 3dx²−y²), fase, nodi, marker nucleo (sprint 0915df5–d1ebfbd)
-- [x] Story Mode — espanso da 11 a 27 elementi chiave (sprint 458702f)
+- [x] Story Mode — espanso a 31 elementi chiave (Z: 1–3, 6–17, 19–20, 22, 26–27, 29–30, 47, 53–54, 78–80, 82–83, 92)
 - [x] SEO/GA hardening — hreflang EN, consent reload, sitemap IT+EN (sprint 1313)
-
-### P1 — Leggibilità e valore educativo
-- [ ] Raggruppamento InfoPanel in 4 sezioni semantiche (Identità / Proprietà periodiche / Struttura / Storia)
-- [ ] Fallback "—" per proprietà core null (no riga sparita per gas nobili e sintetici)
-- [ ] Annotazione trend sulle heatmap EN/raggio vdW/covalente/IE (il "perché" del trend)
-
-### P2 — Copertura contenuto
-- [ ] Story Mode: completare da 27 a 30 elementi chiave (mancano ~3)
-- [ ] Molecole predefinite: aggiungere benzene, etanolo, acido acetico, LiF, PCl5, XeF4 (dataset premium)
-
-### P2 già promosso e completato
-- [x] Temperature Slider MVP
-- [x] Material Level 0 — modello particellare concettuale (solid/liquid/gas) guidato da slider temperatura; scene Three.js dedicate per fase; legenda MaterialLegend; esclusività con crystal/molecule/inspector/nucleus; auto-close su unknown. Commit: feat(periodic-table): add material phase view driven by temperature
+- [x] Temperature Slider MVP — slider 0–12 000 K, badge solid/liquid/gas/unknown, marcatori fusione/ebollizione
+- [x] Material Level 0 — modello particellare concettuale (solid/liquid/gas); scene Three.js per fase; MaterialLegend; esclusività con crystal/molecule/inspector/nucleus; auto-close su unknown. Commit: feat(periodic-table): add material phase view driven by temperature
+- [x] InfoPanel restructure — 4 sezioni semantiche (Identità / Proprietà periodiche / Struttura / Scoperta), fallback "—"
+- [x] Applications Panel v1 — `lib/element-applications-data.ts`: 23 elementi, 48 entry totali; badge categoria, link esterno verificato (PubChem CID), disclaimer medico su `isMedical`; sezione collassata `<details>` nell'InfoPanel
+- [x] Applications → Molecule Viewer links — 16 entry con `relatedMolecule` attivo: click su app card apre direttamente la molecola nel 3D viewer locale (riuso puro)
+- [x] PubChem formula symbol fix — correzione simboli formula per metalli
+- [x] Crystal UX Pass v1 — `CRYSTAL_STATS` con CN (coordination number) e APF (atomic packing factor) per 5 tipi strutturali (sc/bcc/fcc/hcp/diamond); overlay canvas con nome elemento + codice struttura + CN; CrystalLegend bottom-center con APF e full name; legenda mobile compatta (hide verbose note)
+- [x] Molecule Dataset Premium v2 — 6 molecole aggiunte: Cisplatino (Pt), Carbonato di litio (Li), Protossido d'azoto (N), Ossido di zinco (Zn), Solfato ferroso (Fe), Benzene (C); coordinate 3D verificate, descrizioni bilingue
+- [x] Mobile UX portrait — bottom sheet Orbital Inspector con close button; back button ≥44px; font floor ≥12px su tutti i target touch; compact temp control portrait; view-mode row ordinato su singola riga
+- [x] Mobile InfoPanel single-column — fix scroll orizzontale (~840px scrollWidth); root cause: flex-wrap:wrap + max-height:44vh creava colonne flex; fix: nowrap + align-items:stretch + overflow-x:hidden
+- [x] Mobile Material overlay — MaterialLegend riposizionata top-right in portrait ≤680px per eliminare collisione con TemperatureControl (bottom-center); disclaimer verboso nascosto in portrait
+- [x] Mobile thematic selector discoverability — mask-image right-fade su ≤900px per segnalare pulsanti fuori schermo; touch target 44px in portrait ≤680px
 
 ### Regole scientifiche Material View (invariante)
 - **NON è un reticolo cristallino**: solid = griglia didattica 3×3×3, NON collegata a crystalStructure
@@ -174,7 +180,7 @@ Due sorgenti distinte, mai mescolate silenziosamente:
 - **Fase dalla temperatura corrente**: `inferredPhase` da `temperatureK` via `inferPhaseAtTemperature`, NON dal campo statico `state`
 - **Disclaimer obbligatorio**: "modello concettuale · non simulazione fisica quantitativa"
 - **Nessuna proprietà termica nuova**: velocità/distanze sono puramente visive, non fisiche
-- **unknown → view disabilitata**: bottone disabled + tooltip, niente MaterialScene renderizzata — slider 0–12 000 K con engine fase puro (`lib/temperature.ts`); badge solid/liquid/gas/unknown; marcatori fusione/ebollizione; crystal view gating (disabilitato se liquid/gas, warning se unknown); auto-chiusura crystalView; clamp su cambio elemento; pressione assunta 1 atm; casi edge: As (sublimazione), Z 98-103 (bp null), Z 104-118 (dati assenti); commit 87f52a8+
+- **unknown → view disabilitata**: bottone disabled + tooltip, niente MaterialScene renderizzata
 
 ### Regola visiva orbite–nucleo (invariante)
 - **Scale didattiche**: distanze nucleo–orbite NON sono in scala fisica. Scopo: leggibilità.
@@ -194,10 +200,18 @@ Due sorgenti distinte, mai mescolate silenziosamente:
 - Elementi Z 98-103: mp noto, bp null → solid sotto mp, unknown sopra
 - Elementi Z 104-118: entrambi null → always unknown/no-data
 
+### P1 — Leggibilità e valore educativo
+- [ ] Annotazione trend sulle heatmap EN/raggio vdW/covalente/IE (il "perché" del trend)
+- [ ] Fallback "—" per proprietà core null (no riga sparita per gas nobili e sintetici)
+
+### P2 — Copertura contenuto
+- [ ] Story Mode: completare da 31 a ~40 elementi chiave
+- [ ] Molecule Dataset v3: XeF4, PCl5, etanolo, acido acetico (4 molecole prioritarie)
+- [ ] Crystal UX v2: site-coloring per tipo atomo, toggle single-cell/extended-lattice, reset camera button
+
 ### P3 — Feature avanzate
 - [ ] Legami chimici (Bonding Lab) — selezione due elementi → tipo legame da ΔEN
-- [ ] Crystal UX pass — info struttura nel pannello, link da InfoPanel a vista reticolo
-- [ ] Vista materiale Level 0 — cubo + slider temperatura → cambio stato visivo (fase liquid/gas già disponibile dal temperature engine)
+- [ ] ChEMBL on-demand enrichment — `lib/pharma-chembl.ts`, specchio del pattern PubChem. Solo su richiesta esplicita utente, mai on-load automatico.
 
 ### Escluso (non implementare senza decisione esplicita)
 - Vista nucleo avanzata Level 1b (quark/gluoni) — impatto didattico marginale per il target liceo/triennio
@@ -225,8 +239,8 @@ Roadmap alternativa raccomandata (ordine ROI):
 
 | Phase | Contenuto | Effort | Fonte | Costo |
 |-------|-----------|--------|-------|-------|
-| **1** | Tabella statica curata `lib/element-pharma-data.ts` — ~20 elementi con applicazione medica nota (Pt→cisplatino, Au→auranofin, Li→carbonato di litio, Fe→emoglobina/solfato ferroso, Ag→sulfadiazina d'argento, I→ormoni tiroidei, F→fluoruro dentale…) | Basso | Manuale (WHO/ChEMBL) | $0 |
-| **2** | Link dal farmaco curato al **molecule viewer PubChem esistente** — "click cisplatino → vedi molecola 3D". Riuso puro di codice già in produzione. | Bassissimo | PubChem (già integrato) | $0 |
+| **1** | Tabella statica curata `lib/element-applications-data.ts` — 23 elementi con applicazione reale nota (v1 completato). | Basso | Manuale (PubChem/ChEMBL) | $0 |
+| **2** | Link farmaco curato → molecule viewer esistente tramite `relatedMolecule` (16 link attivi in v1). | Bassissimo | PubChem (già integrato) | $0 |
 | **3** | `lib/pharma-chembl.ts` (specchio di `molecules-pubchem.ts`) — ChEMBL REST no-key, CORS-OK, per "altri farmaci / meccanismo / indicazione" on-demand, cached per elemento. | Medio | ChEMBL (free, CC-BY-SA) | $0 |
 | **4** | RCSB PDB per strutture proteiche 3D degli elementi biologicamente centrali (Fe→emoglobina, Zn→insulina). Visivamente spettacolare e on-brand con il rendering 3D. | Alto | RCSB PDB (free) | $0 |
 
@@ -240,15 +254,15 @@ Roadmap alternativa raccomandata (ordine ROI):
 | PharmaDive | 50/mese / $15–50 | Sì (non-retrievable) | **Nessuno** | Basso | Medio |
 
 ### Backlog: Applicazioni reali elementi
-- [x] **Real-world applications panel v0 (P2)** — `lib/element-applications-data.ts`: 10 elementi (Li, F, Na, K, Ca, Fe, Ag, I, Pt, Au) con 1 entry ciascuno. Fonte: PubChem (CID verificati). Sezione collassata nell'InfoPanel con badge categoria, link esterno, disclaimer medico su entry `isMedical`. Commit: feat(periodic-table): add curated real-world applications panel.
-- [ ] **PubChem molecule link per farmaci curati (P2)** — link farmaco curato → molecola nel viewer esistente tramite `relatedMolecule` già presente nel dataset. Effort minimo, massima sinergia.
+- [x] **Applications Panel v1** — `lib/element-applications-data.ts`: 23 elementi, 48 entry totali, badge categoria, link PubChem verificati, disclaimer medico su `isMedical`. Sezione collassata `<details>` nell'InfoPanel.
+- [x] **relatedMolecule links v1** — 16 entry con `relatedMolecule` attivo: click apre molecola nel 3D viewer locale senza round-trip esterno.
 - [ ] **ChEMBL on-demand enrichment (P3)** — `lib/pharma-chembl.ts`, specchio del pattern PubChem. Solo su richiesta esplicita utente, mai on-load automatico.
 - [x] **Disclaimer obbligatorio** — presente su tutte le entry `isMedical: true` con copia IT/EN verificata ("Contesto educativo, non consiglio medico." / "Educational context, not medical advice.").
 
 ### Regole invarianti Applications Panel
 - **Fonte obbligatoria per ogni entry**: ogni `ElementApplication` deve avere `sourceUrl` verificabile (PubChem, ChEMBL, WHO, NIST). Nessun claim senza fonte.
 - **Disclaimer medico su `isMedical: true`**: obbligatorio in UI. Non rimuovere senza decisione esplicita.
-- **Max 3 entry per elemento** in v0: non superare senza revisione governance.
+- **Max 3 entry per elemento**: non superare senza revisione governance.
 - **Nessun consiglio medico**: descrizioni contestualizzano la chimica/biologia, non indicano trattamenti. Non usare frasi imperative ("usa", "prendi", "assume").
 - **PharmaDive non usato**: vedi sezione audit. Dataset sempre offline e curato manualmente.
 

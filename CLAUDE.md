@@ -23,3 +23,14 @@ contesto iniziale del progetto, non caricarlo in ogni sessione.
 ## Qualità
 Fail loud, never fake: se mancano credenziali, dati, URL o asset reali, fermati
 e dichiaralo. Non inventare metriche, screenshot, testimonial o claim.
+
+## Branch strategy — Tavola Periodica vs Solar System
+Il branch locale `init` può contenere lavoro Solar System ahead o uncommitted.
+Per sprint Tavola Periodica:
+1. Controlla sempre `git status --short --branch` prima di iniziare.
+2. Se `init` è ahead o ha modifiche Solar System → crea branch pulito:
+   `git checkout -b fix/pt-<slug> origin/init`
+3. Committa solo file Periodic Table sul branch pulito.
+4. Pubblica con `git push origin fix/pt-<slug>`, poi:
+   `git push origin origin/fix/pt-<slug>:init`
+5. NON usare il branch locale `init` per push finché contiene Solar System ahead/uncommitted.
