@@ -132,7 +132,7 @@ Cosa è approssimato: l'origine è al Sole, non al vero baricentro; le posizioni
         title: "Inclinazione assiale e rotazione",
         content: `I pianeti principali (Mercurio, Venere, Terra, Marte, Giove, Saturno, Urano, Nettuno, Luna, Plutone) usano il polo IAU WGCCRE 2015 nel frame eclittico. Il vettore del polo è calcolato dalla RA/Dec ICRF J2000 e applicato come quaternione nel renderer. Questo assicura che Urano mostri l'asse corretto quasi nel piano dell'eclittica.
 
-Orientamento superficie (Sprint 05.2): per Terra, Luna, Marte, Mercurio e Venere, la fase di rotazione usa la formula IAU WGCCRE 2015 W = W0 + Ẇ·d, dove d è il numero di giorni da J2000.0. Il meridiano primo è ancorato a J2000.0. Per gli altri corpi si usa il periodo siderale reale. Allineamento longitudine texture/superficie: non verificato empiricamente. Il modello IAU è applicato, ma l'offset tra la texture e il meridiano primo del pianeta non è stato confrontato con osservazioni reali.
+Orientamento superficie (Sprint 05.2): per Terra, Luna, Marte, Mercurio e Venere, la fase di rotazione usa la formula IAU WGCCRE 2015 W = W0 + Ẇ·d, dove d è il numero di giorni da J2000.0. Il meridiano primo è ancorato a J2000.0. Per gli altri corpi si usa il periodo siderale reale. Allineamento longitudine texture/superficie: verificato analiticamente per Terra e Luna (offset 0°). Per Marte e Mercurio: offset sistematico atteso (~69° e ~15.5° rispettivamente) — verifica empirica mancante.
 
 Lune minori, asteroidi e comete: usano un'approssimazione dell'asse (errore < 3° per corpi con inclinazione orbitale bassa).
 
@@ -200,7 +200,7 @@ Simbolico: il corpo è rappresentato solo da un indicatore puntiforme o da un ma
 
 Mappa reale (NASA/USGS): mappa di visualizzazione da dati NASA/USGS applicata alla sfera. Attualmente integrata per Terra, Luna, Marte e Mercurio. Queste sono mappe di visualizzazione, non texture fotografiche scientificamente calibrate.
 
-Allineamento longitudine texture/superficie: non verificato empiricamente (Sprint 05.2). Il modello IAU è applicato, ma l'offset tra la texture e il meridiano primo del pianeta non è stato confrontato con osservazioni reali.`,
+Allineamento longitudine texture/superficie: verificato analiticamente per Terra e Luna (offset 0°). Per Marte e Mercurio: offset sistematico atteso (~69° e ~15.5° rispettivamente) — verifica empirica mancante.`,
       },
       catalogLayers: {
         title: "Livelli catalogo",
@@ -412,7 +412,7 @@ What is approximated: origin is at the Sun, not the true barycentre; positions c
         title: "Axial tilt and rotation",
         content: `Major planets (Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune, Moon, Pluto) use the IAU WGCCRE 2015 pole in ecliptic frame. The pole vector is computed from ICRF J2000 RA/Dec and applied as a quaternion in the renderer. This ensures Uranus shows its axis correctly near the ecliptic plane.
 
-Surface orientation (Sprint 05.2): for Earth, Moon, Mars, Mercury, and Venus, rotation phase uses the IAU WGCCRE 2015 formula W = W0 + Ẇ·d, where d is days since J2000.0. The prime meridian is anchored at J2000.0. Other bodies use the real sidereal period. Texture-to-surface longitude alignment: not empirically verified. The IAU prime meridian model is applied, but the offset between the texture and the planet's prime meridian has not been compared against real observations.
+Surface orientation (Sprint 05.2): for Earth, Moon, Mars, Mercury, and Venus, rotation phase uses the IAU WGCCRE 2015 formula W = W0 + Ẇ·d, where d is days since J2000.0. The prime meridian is anchored at J2000.0. Other bodies use the real sidereal period. Texture-to-surface longitude alignment: analytically verified for Earth and Moon (offset 0°). For Mars and Mercury: systematic offset expected (~69° and ~15.5° respectively) — empirical verification pending.
 
 Minor moons, asteroids and comets: use a scene-X axis approximation (error < 3° for bodies with low orbital inclination).
 
@@ -480,7 +480,7 @@ Symbolic: the body is represented only by a point indicator or marker, without 3
 
 Real map (NASA/USGS): a visualization map from NASA/USGS data applied to the sphere. Currently integrated for Earth, Moon, Mars, and Mercury. These are visualization maps, not scientifically calibrated photographic textures.
 
-Texture-to-surface longitude alignment: not empirically verified (Sprint 05.2). The IAU prime meridian model is applied, but the offset between the texture and the planet's prime meridian has not been compared against real observations.`,
+Texture-to-surface longitude alignment: analytically verified for Earth and Moon (offset 0°). For Mars and Mercury: systematic offset expected (~69° and ~15.5° respectively) — empirical verification pending.`,
       },
       catalogLayers: {
         title: "Catalog layers",

@@ -119,9 +119,10 @@ export function getBodyOrientation(
     const twoPi = 2 * Math.PI;
 
     if (body.primeMeridianDeg !== undefined && body.rotationRateDegPerDay !== undefined) {
-      // IAU WGCCRE prime meridian model: W = W0 + Wdot * d
+      // IAU WGCCRE prime meridian model: W = W0 + Wdot * d + textureOffset
       const daysSinceJ2000 = (epochMs - J2000_MS) / 86_400_000;
-      const W_deg = body.primeMeridianDeg + body.rotationRateDegPerDay * daysSinceJ2000;
+      const textureOffset = typeof body.textureLongitudeOffsetDeg === "number" ? body.textureLongitudeOffsetDeg : 0;
+      const W_deg = body.primeMeridianDeg + body.rotationRateDegPerDay * daysSinceJ2000 + textureOffset;
       rotationPhaseRad = ((W_deg * Math.PI / 180) % twoPi + twoPi) % twoPi;
       rotationOrientationModel = "iau-prime-meridian";
     } else {
@@ -153,9 +154,10 @@ export function getBodyOrientation(
   const twoPi = 2 * Math.PI;
 
   if (body.primeMeridianDeg !== undefined && body.rotationRateDegPerDay !== undefined) {
-    // IAU WGCCRE prime meridian model: W = W0 + Wdot * d
+    // IAU WGCCRE prime meridian model: W = W0 + Wdot * d + textureOffset
     const daysSinceJ2000 = (epochMs - J2000_MS) / 86_400_000;
-    const W_deg = body.primeMeridianDeg + body.rotationRateDegPerDay * daysSinceJ2000;
+    const textureOffset = typeof body.textureLongitudeOffsetDeg === "number" ? body.textureLongitudeOffsetDeg : 0;
+    const W_deg = body.primeMeridianDeg + body.rotationRateDegPerDay * daysSinceJ2000 + textureOffset;
     rotationPhaseRad = ((W_deg * Math.PI / 180) % twoPi + twoPi) % twoPi;
     rotationOrientationModel = "iau-prime-meridian";
   } else {

@@ -271,6 +271,8 @@ export const SOLAR_BODIES: SolarBody[] = [
     primeMeridianDeg: 329.548,
     rotationRateDegPerDay: 6.1385025,
     rotationModel: "iau-wgccre",
+    // Sprint 05.3: systematic offset ~+15.5° expected (tilt-X vs IAU ascending node).
+    // Requires empirical ephemeris comparison. M1-M5 periodic corrections not modelled.
     textureLongitudeOffsetDeg: "not-verified",
     color: "#B5B5B5",
     sourceIds: ["nasaJplHorizons"],
@@ -327,7 +329,10 @@ export const SOLAR_BODIES: SolarBody[] = [
     primeMeridianDeg: 190.147,
     rotationRateDegPerDay: 360.9856235,
     rotationModel: "iau-wgccre",
-    textureLongitudeOffsetDeg: "not-verified",
+    // Sprint 05.3: analytically verified — tilt-X aligns with ecliptic +X = vernal equinox
+    // = IAU ascending node for Earth's near-ecliptic pole. NASA Blue Marble prime meridian
+    // at U=0.5 correctly aligned. No empirical correction needed.
+    textureLongitudeOffsetDeg: 0,
     atmosphereHeightKm: 100,
     atmosphereLabel: { it: "Atmosfera — guscio visivo fino alla linea di Kármán (~100 km)", en: "Atmosphere — visual shell to Kármán line (~100 km)" },
     color: "#3A9BDC",
@@ -356,6 +361,9 @@ export const SOLAR_BODIES: SolarBody[] = [
     primeMeridianDeg: 176.630,
     rotationRateDegPerDay: 350.89198226,
     rotationModel: "iau-wgccre",
+    // Sprint 05.3: systematic offset ~+69° expected (Mars pole RA=317.68°, Dec=52.89°
+    // → tilt-X ≈ [0.79, -0.45, -0.42] vs IAU ascending node ≈ [0.67, 0.68, -0.29]).
+    // Requires empirical ephemeris comparison before setting a numeric value.
     textureLongitudeOffsetDeg: "not-verified",
     atmosphereHeightKm: 60,
     atmosphereLabel: { it: "Atmosfera tenue (~60 km)", en: "Thin atmosphere (~60 km)" },
@@ -483,7 +491,10 @@ export const SOLAR_BODIES: SolarBody[] = [
     primeMeridianDeg: 38.321,
     rotationRateDegPerDay: 13.1763581,
     rotationModel: "iau-wgccre",
-    textureLongitudeOffsetDeg: "not-verified",
+    // Sprint 05.3: analytically verified — Moon pole ≈ ecliptic north → tilt-X ≈ IAU ascending
+    // node. NASA LRO WAC prime meridian at U=0.5 correctly aligned. Libration E1-E13 not
+    // modelled (max ~13° phase error in extreme cases).
+    textureLongitudeOffsetDeg: 0,
     color: "#C8C8C8",
     sourceIds: ["nasaJplHorizons", "jplSatellites"],
   },

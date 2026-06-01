@@ -17,6 +17,8 @@ The product direction is:
 - transparent citations and scientific limitations;
 - Ko-fi support link;
 - eventually all known Solar System objects through a complete, queryable catalog.
+- long-term physics laboratory mode covering Newtonian gravity, thermodynamics,
+  chemistry/material state, relativity and hypothetical/exotic body experiments.
 
 ## Current Strategic Direction
 
@@ -29,6 +31,79 @@ The project should evolve in this order:
 5. Add artificial satellites through CelesTrak/SGP4.
 6. Add real textures, meshes and progressive asset quality.
 7. Add sandbox physics after the real-data observatory is trustworthy.
+
+## Ultimate Simulator Requirement
+
+Matteo's long-term requirement is not only an orrery. The project should evolve
+into a technical Solar System simulator and physics playground where the user can
+add or discover bodies and see the consequences under clearly stated models.
+
+This requirement must be implemented in layers. The real Solar System observatory
+and the sandbox/hypothetical playground must remain separate modes so users never
+confuse catalog reality with simulation experiments.
+
+### Real Observatory Mode
+
+The real mode must prioritize source truth:
+
+- current and historical Solar System bodies from JPL Horizons, JPL SBDB, MPC,
+  CelesTrak and other public/open catalogs;
+- newly discovered comets/asteroids through scheduled catalog refresh or live
+  search, with retrieval date, source, orbit solution epoch and uncertainty;
+- all known objects as of the catalog snapshot date, loaded progressively;
+- real sky background from star, constellation, galaxy and deep-sky catalogs.
+
+### Physics Playground Mode
+
+The playground should eventually allow user-created or imported bodies:
+
+- planets, dwarf planets, moons, asteroids, comets and test particles;
+- stars, stellar remnants, black holes, neutron stars, pulsars and magnetars;
+- exotic/high-energy presets such as quasars only as explicitly hypothetical or
+  extragalactic demonstrations, not as Solar System objects;
+- editable mass, radius, density, composition, position, velocity, spin, albedo,
+  emissivity and temperature parameters;
+- collision, escape, accretion, tidal, heating and stability indicators.
+
+### Physical Domains To Model
+
+The long-term simulator target includes:
+
+- Newtonian gravity and N-body integration, with conservation diagnostics for
+  energy, angular momentum and center of mass;
+- orbital perturbations, resonances, close encounters, collisions, Roche limits
+  and tidal effects where feasible;
+- thermodynamics: solar irradiance, radiative equilibrium, albedo, emissivity,
+  thermal inertia, sublimation/coma behavior for comets and simple tidal heating;
+- chemistry/material state: rock/ice/metal/gas composition labels, volatile
+  sublimation, atmospheric/greenhouse approximations and ionized/plasma states
+  where explicitly documented;
+- relativity: Schwarzschild radius, gravitational time dilation, light bending,
+  relativistic orbital precession and optional Kerr/frame-dragging approximations
+  for rotating compact objects;
+- spacetime visualization: mass should be able to deform a visual reference grid
+  as an educational representation, clearly labeled as visualization unless a
+  real GR metric solver is implemented.
+
+### Honesty Rule For Advanced Physics
+
+Do not claim "all physical laws", "relativistically correct" or "thermodynamically
+complete" until the corresponding engine and validation tests exist. Each domain
+must show its model level in the UI:
+
+- `catalog-observatory`: source data only, no force simulation;
+- `newtonian-nbody`: classical gravity integration;
+- `thermo-approx`: simplified thermal model;
+- `relativity-approx`: analytic GR corrections/visualizations;
+- `hypothetical-playground`: user-created scenario, not real ephemeris data.
+
+See `docs/solar-system/ultimate-simulator-roadmap.md` for the staged roadmap and
+validation targets.
+
+See `docs/solar-system/micro-sprints-2026-05-31.md` for the evening stabilization
+notes: camera focus, scale honesty, catalog orbit inspection, real textures,
+atmospheres, eclipses, collisions, solar storms, magnetic fields, Oort cloud and
+Planet X / Planet Nine hypothesis exploration.
 
 ## Verified Bugs In Current Implementation
 
@@ -272,5 +347,6 @@ Next sprints, in order:
 2. Sprint 04: IAU WGCCRE pole RA/Dec, per-body orbital plane tilt, precession/nutation.
 3. Textures: Real NASA/USGS planetary maps.
 4. JPL Horizons live integration for selected bodies.
-5. Sandbox physics after the real-data observatory is trustworthy.
-
+5. Physics Engine 01: Newtonian N-body sandbox in a Web Worker, with conservation audits.
+6. Physics Engine 02: thermal/comet material models and collision/tidal indicators.
+7. Physics Engine 03: relativity approximations, spacetime visualization and compact-object presets.
