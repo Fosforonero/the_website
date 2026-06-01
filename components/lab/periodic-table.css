@@ -1749,7 +1749,7 @@
   .pt-header__right::-webkit-scrollbar { display: none; }
 }
 
-/* ── Tablet: thematic selector scrolls instead of wrapping ── */
+/* ── Tablet/mobile: thematic selector scrolls horizontally ── */
 @media (max-width: 900px) {
   .pt-thematic-selector {
     flex-wrap: nowrap;
@@ -1757,8 +1757,22 @@
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     padding: 5px 10px;
+    /* Right-fade affordance: signals hidden buttons to the right */
+    mask-image: linear-gradient(to right, black 0%, black calc(100% - 36px), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black 0%, black calc(100% - 36px), transparent 100%);
   }
   .pt-thematic-selector::-webkit-scrollbar { display: none; }
+}
+
+/* ── Mobile portrait: 44px touch targets on thematic buttons ── */
+@media (max-width: 680px) and (orientation: portrait) {
+  .pt-thematic-btn,
+  .pt-thematic-neg {
+    min-height: 44px;
+    padding: 0 12px;
+    display: inline-flex;
+    align-items: center;
+  }
 }
 
 /* ── Tablet: grid slightly tighter ── */
