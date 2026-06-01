@@ -17,6 +17,7 @@ import {
   formatRotationPeriod,
   formatRotationDirection,
   getBodyOrientation,
+  ROTATION_ORIENTATION_NOTES,
 } from "@/lib/solar-system/rotation-model";
 import type { CatalogCategory, CatalogEntry } from "@/lib/solar-system/catalog";
 import { catalogCategoryLabel } from "@/lib/solar-system/catalog-filter";
@@ -613,22 +614,40 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
         </div>
 
         {selectedBody.axialTiltDeg !== undefined && (
-          <div className="solar-inspector__row">
-            <span className="solar-inspector__label">{t.rotationAccuracy}</span>
+          <>
+            <div className="solar-inspector__row">
+              <span className="solar-inspector__label">{t.rotationAccuracy}</span>
+              {(() => {
+                const orient = getBodyOrientation(selectedBody, epoch);
+                const accuracyColor = orient.accuracy === "iau-pole-vector" ? "#70c090" : "#4a7090";
+                return (
+                  <span
+                    className="solar-inspector__value"
+                    style={{ fontSize: "0.60rem", color: accuracyColor, lineHeight: 1.3 }}
+                    title={AXIAL_TILT_RENDERING_NOTE[locale]}
+                  >
+                    {orient.accuracy}
+                  </span>
+                );
+              })()}
+            </div>
             {(() => {
               const orient = getBodyOrientation(selectedBody, epoch);
-              const accuracyColor = orient.accuracy === "iau-pole-vector" ? "#70c090" : "#4a7090";
+              const model = orient.rotationOrientationModel;
+              const noteColor = model === "iau-prime-meridian" ? "#70c090" : "#4a7090";
+              const note = ROTATION_ORIENTATION_NOTES[model][locale];
               return (
-                <span
-                  className="solar-inspector__value"
-                  style={{ fontSize: "0.60rem", color: accuracyColor, lineHeight: 1.3 }}
-                  title={AXIAL_TILT_RENDERING_NOTE[locale]}
-                >
-                  {orient.accuracy}
-                </span>
+                <div className="solar-inspector__row" style={{ flexDirection: "column", alignItems: "flex-start", gap: 2 }}>
+                  <span className="solar-inspector__label">
+                    {locale === "it" ? "Orientamento superficie" : "Surface orientation"}
+                  </span>
+                  <span className="solar-inspector__value" style={{ fontSize: "0.59rem", color: noteColor, lineHeight: 1.3 }}>
+                    {model} — {note}
+                  </span>
+                </div>
               );
             })()}
-          </div>
+          </>
         )}
 
         <div className="solar-inspector__divider" />

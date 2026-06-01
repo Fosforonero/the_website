@@ -87,6 +87,40 @@ export type SolarBody = {
   poleRaDeg?: number;
   poleDecDeg?: number;
   /**
+   * IAU WGCCRE 2015 prime meridian angle W0 at J2000.0 (degrees).
+   * W0 is the angle of the prime meridian from the ascending node of the body's
+   * equator on the standard equator at J2000.0 TDB.
+   * Source: Archinal et al. 2018 (CeMDA 130:22), Table 1.
+   *
+   * With rotationRateDegPerDay (Wdot), the prime meridian angle at epoch t is:
+   *   W(t) = primeMeridianDeg + rotationRateDegPerDay * d
+   * where d = Julian days since J2000.0 TDB.
+   *
+   * Negative Wdot means retrograde rotation (e.g. Venus).
+   */
+  primeMeridianDeg?: number;
+  /**
+   * IAU WGCCRE 2015 prime meridian rotation rate Wdot (degrees/day).
+   * Sign convention: positive = prograde, negative = retrograde.
+   * Source: Archinal et al. 2018 (CeMDA 130:22), Table 1.
+   */
+  rotationRateDegPerDay?: number;
+  /**
+   * Rotation model accuracy declaration.
+   * "iau-wgccre" — W0 + Wdot*d used; accurate surface orientation.
+   * "sidereal-only" — sidereal period only; phase unanchored to prime meridian.
+   * "not-modelled" — rotation not modelled.
+   */
+  rotationModel?: "iau-wgccre" | "sidereal-only" | "not-modelled";
+  /**
+   * Correction (degrees) to add to the rendered rotation so the texture's
+   * 0° meridian aligns with the IAU prime meridian.
+   * 0 means the texture is already aligned (ideal case for NASA standard
+   * equirectangular maps). Must be declared even if 0 once verified.
+   * "not-verified" means alignment not yet tested — treat as approximate.
+   */
+  textureLongitudeOffsetDeg?: number | "not-verified";
+  /**
    * Approximate atmosphere scale height boundary used for the visual shell (km).
    * Not a hard physical edge; atmosphere has no sharp boundary. Visualization only.
    * Source: approximate values from published atmospheric models.
@@ -234,6 +268,10 @@ export const SOLAR_BODIES: SolarBody[] = [
     siderealRotationHours: 1407.6,
     poleRaDeg: 281.0103,
     poleDecDeg: 61.4155,
+    primeMeridianDeg: 329.548,
+    rotationRateDegPerDay: 6.1385025,
+    rotationModel: "iau-wgccre",
+    textureLongitudeOffsetDeg: "not-verified",
     color: "#B5B5B5",
     sourceIds: ["nasaJplHorizons"],
   },
@@ -257,6 +295,10 @@ export const SOLAR_BODIES: SolarBody[] = [
     siderealRotationHours: -5832.5,
     poleRaDeg: 272.76,
     poleDecDeg: 67.16,
+    primeMeridianDeg: 160.20,
+    rotationRateDegPerDay: -1.4813688,
+    rotationModel: "iau-wgccre",
+    textureLongitudeOffsetDeg: "not-verified",
     atmosphereHeightKm: 100,
     atmosphereLabel: { it: "Atmosfera densa — strato di nubi (~100 km)", en: "Dense atmosphere — cloud layer (~100 km)" },
     color: "#E8C46A",
@@ -282,6 +324,10 @@ export const SOLAR_BODIES: SolarBody[] = [
     siderealRotationHours: 23.934,
     poleRaDeg: 0.00,
     poleDecDeg: 90.00,
+    primeMeridianDeg: 190.147,
+    rotationRateDegPerDay: 360.9856235,
+    rotationModel: "iau-wgccre",
+    textureLongitudeOffsetDeg: "not-verified",
     atmosphereHeightKm: 100,
     atmosphereLabel: { it: "Atmosfera — guscio visivo fino alla linea di Kármán (~100 km)", en: "Atmosphere — visual shell to Kármán line (~100 km)" },
     color: "#3A9BDC",
@@ -307,6 +353,10 @@ export const SOLAR_BODIES: SolarBody[] = [
     siderealRotationHours: 24.623,
     poleRaDeg: 317.269,
     poleDecDeg: 54.432,
+    primeMeridianDeg: 176.630,
+    rotationRateDegPerDay: 350.89198226,
+    rotationModel: "iau-wgccre",
+    textureLongitudeOffsetDeg: "not-verified",
     atmosphereHeightKm: 60,
     atmosphereLabel: { it: "Atmosfera tenue (~60 km)", en: "Thin atmosphere (~60 km)" },
     color: "#C1440E",
@@ -430,6 +480,10 @@ export const SOLAR_BODIES: SolarBody[] = [
     siderealRotationHours: 655.720,
     poleRaDeg: 269.9949,
     poleDecDeg: 66.5392,
+    primeMeridianDeg: 38.321,
+    rotationRateDegPerDay: 13.1763581,
+    rotationModel: "iau-wgccre",
+    textureLongitudeOffsetDeg: "not-verified",
     color: "#C8C8C8",
     sourceIds: ["nasaJplHorizons", "jplSatellites"],
   },

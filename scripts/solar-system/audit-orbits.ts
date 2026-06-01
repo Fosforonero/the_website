@@ -458,6 +458,62 @@ if (!noFakePhysics) {
   console.log("   OK  no-fake-physics guard — N-body/eclipse/magnetic fields not in body catalog");
 }
 
+// --- K. Rotation model checks [sprint 05.2] ---------------------------------
+
+console.log("\n--- Rotation model checks [sprint 05.2] ---");
+
+// K1: real-map bodies must declare rotationModel
+for (const asset of SOLAR_ASSETS) {
+  if (asset.confidence !== "real-map") continue;
+  const body = bodyById.get(asset.bodyId);
+  if (!body) {
+    console.log(`  FAIL  ${asset.bodyId}  real-map asset but body not found in SOLAR_BODIES`);
+    warnings++;
+    continue;
+  }
+  if (body.rotationModel === undefined) {
+    console.log(`  FAIL  ${asset.bodyId}  real-map asset but no rotationModel declared`);
+    warnings++;
+  } else {
+    console.log(`    OK  ${asset.bodyId}  rotationModel=${body.rotationModel}`);
+  }
+}
+
+// K2: real-map bodies without textureLongitudeOffsetDeg get a WARNING (not FAIL)
+for (const asset of SOLAR_ASSETS) {
+  if (asset.confidence !== "real-map") continue;
+  const body = bodyById.get(asset.bodyId);
+  if (!body) continue; // already reported in K1
+  if (body.textureLongitudeOffsetDeg === undefined) {
+    console.log(`  WARN ${asset.bodyId}  real-map but textureLongitudeOffsetDeg not declared`);
+    warnings++;
+  } else if (body.textureLongitudeOffsetDeg === "not-verified") {
+    console.log(`  WARN ${asset.bodyId}  textureLongitudeOffsetDeg=not-verified — alignment not empirically tested`);
+    // not-verified is an honest declaration — do NOT increment warnings
+  } else {
+    console.log(`    OK  ${asset.bodyId}  textureLongitudeOffsetDeg=${body.textureLongitudeOffsetDeg}°`);
+  }
+}
+
+// K3: IAU WGCCRE completeness for bodies with rotationModel = "iau-wgccre"
+for (const body of SOLAR_BODIES) {
+  if (body.rotationModel !== "iau-wgccre") continue;
+  const missingW0 = body.primeMeridianDeg === undefined;
+  const missingWdot = body.rotationRateDegPerDay === undefined;
+  if (missingW0 || missingWdot) {
+    if (missingW0) {
+      console.log(`  FAIL  ${body.id}  rotationModel=iau-wgccre but primeMeridianDeg is missing`);
+      warnings++;
+    }
+    if (missingWdot) {
+      console.log(`  FAIL  ${body.id}  rotationModel=iau-wgccre but rotationRateDegPerDay is missing`);
+      warnings++;
+    }
+  } else {
+    console.log(`    OK  ${body.id}  W0=${body.primeMeridianDeg}° Ẇ=${body.rotationRateDegPerDay}°/day`);
+  }
+}
+
 // --- Summary ---------------------------------------------------------------
 
 console.log("\n" + "=".repeat(70));

@@ -50,6 +50,13 @@ export type BodyOrientation = {
    * vector instead of the Sprint 03A X-axis rotation approximation.
    */
   eclipticPoleVector?: [number, number, number];
+  /**
+   * Surface orientation model used for this body.
+   * "iau-prime-meridian" — W = W0 + Wdot*d; prime meridian tracked.
+   * "sidereal-only" — phase from sidereal period, not anchored to W0.
+   * "not-modelled" — no rotation data.
+   */
+  rotationOrientationModel: "iau-prime-meridian" | "sidereal-only" | "not-modelled";
 };
 
 /**
@@ -98,6 +105,7 @@ export function getBodyOrientation(
       rotationPhaseRad: 0,
       isRetrograde: false,
       accuracy: "not-modelled",
+      rotationOrientationModel: "not-modelled",
     };
   }
 
@@ -105,13 +113,26 @@ export function getBodyOrientation(
   if (body.poleRaDeg !== undefined && body.poleDecDeg !== undefined) {
     const eclipticPoleVector = equatorialToEclipticPole(body.poleRaDeg, body.poleDecDeg);
 
-    // Rotation phase: same as before
-    const elapsedHours = (epochMs - J2000_MS) / 3_600_000;
-    const periodHours = Math.abs(body.siderealRotationHours);
-    const phaseRaw = (elapsedHours / periodHours) * 2 * Math.PI;
-    const direction = body.siderealRotationHours < 0 ? -1 : 1;
+    // Sprint 05.2: use IAU WGCCRE prime meridian W = W0 + Wdot*d when available
+    let rotationPhaseRad: number;
+    let rotationOrientationModel: "iau-prime-meridian" | "sidereal-only";
     const twoPi = 2 * Math.PI;
-    const rotationPhaseRad = ((direction * phaseRaw) % twoPi + twoPi) % twoPi;
+
+    if (body.primeMeridianDeg !== undefined && body.rotationRateDegPerDay !== undefined) {
+      // IAU WGCCRE prime meridian model: W = W0 + Wdot * d
+      const daysSinceJ2000 = (epochMs - J2000_MS) / 86_400_000;
+      const W_deg = body.primeMeridianDeg + body.rotationRateDegPerDay * daysSinceJ2000;
+      rotationPhaseRad = ((W_deg * Math.PI / 180) % twoPi + twoPi) % twoPi;
+      rotationOrientationModel = "iau-prime-meridian";
+    } else {
+      // Sidereal-only: no W0 anchor
+      const elapsedHours = (epochMs - J2000_MS) / 3_600_000;
+      const periodHours = Math.abs(body.siderealRotationHours);
+      const phaseRaw = (elapsedHours / periodHours) * 2 * Math.PI;
+      const direction = body.siderealRotationHours < 0 ? -1 : 1;
+      rotationPhaseRad = ((direction * phaseRaw) % twoPi + twoPi) % twoPi;
+      rotationOrientationModel = "sidereal-only";
+    }
 
     return {
       tiltAroundXRad: (body.axialTiltDeg * Math.PI) / 180, // kept for backward compat
@@ -119,30 +140,46 @@ export function getBodyOrientation(
       isRetrograde: isRetrogradeRotation(body),
       accuracy: "iau-pole-vector",
       eclipticPoleVector,
+      rotationOrientationModel,
     };
   }
 
   const tiltRad = (body.axialTiltDeg * Math.PI) / 180;
   const isRetrograde = isRetrogradeRotation(body);
 
-  const elapsedHours = (epochMs - J2000_MS) / 3_600_000;
-  const periodHours = Math.abs(body.siderealRotationHours);
-  const phaseRaw = (elapsedHours / periodHours) * 2 * Math.PI;
-  const direction = body.siderealRotationHours < 0 ? -1 : 1;
+  // Sprint 05.2: use IAU WGCCRE prime meridian W = W0 + Wdot*d when available
+  let rotationPhaseRad: number;
+  let rotationOrientationModel: "iau-prime-meridian" | "sidereal-only";
   const twoPi = 2 * Math.PI;
-  const rotationPhaseRad =
-    ((direction * phaseRaw) % twoPi + twoPi) % twoPi;
+
+  if (body.primeMeridianDeg !== undefined && body.rotationRateDegPerDay !== undefined) {
+    // IAU WGCCRE prime meridian model: W = W0 + Wdot * d
+    const daysSinceJ2000 = (epochMs - J2000_MS) / 86_400_000;
+    const W_deg = body.primeMeridianDeg + body.rotationRateDegPerDay * daysSinceJ2000;
+    rotationPhaseRad = ((W_deg * Math.PI / 180) % twoPi + twoPi) % twoPi;
+    rotationOrientationModel = "iau-prime-meridian";
+  } else {
+    // Sidereal-only: no W0 anchor
+    const elapsedHours = (epochMs - J2000_MS) / 3_600_000;
+    const periodHours = Math.abs(body.siderealRotationHours);
+    const phaseRaw = (elapsedHours / periodHours) * 2 * Math.PI;
+    const direction = body.siderealRotationHours < 0 ? -1 : 1;
+    rotationPhaseRad = ((direction * phaseRaw) % twoPi + twoPi) % twoPi;
+    rotationOrientationModel = "sidereal-only";
+  }
 
   return {
     tiltAroundXRad: tiltRad,
     rotationPhaseRad,
     isRetrograde,
     accuracy: "axial-tilt-approximate",
+    rotationOrientationModel,
   };
 }
 
 /**
  * Human-readable accuracy note for inspector display.
+ * Describes pole direction accuracy (separate from surface orientation).
  */
 export const ROTATION_ACCURACY_NOTES = {
   "axial-tilt-approximate": {
@@ -152,6 +189,25 @@ export const ROTATION_ACCURACY_NOTES = {
   "iau-pole-vector": {
     it: "Polo IAU WGCCRE 2015 J2000 — direzione asse corretta nel frame eclittico.",
     en: "IAU WGCCRE 2015 J2000 pole — correct axis direction in ecliptic frame.",
+  },
+  "not-modelled": {
+    it: "Rotazione non modellata per questo corpo.",
+    en: "Rotation not modelled for this body.",
+  },
+} as const;
+
+/**
+ * Human-readable surface orientation model note for inspector display.
+ * Describes how the rotation phase (longitude) is computed — separate from pole accuracy.
+ */
+export const ROTATION_ORIENTATION_NOTES = {
+  "iau-prime-meridian": {
+    it: "Orientamento superficie: meridiano primo IAU WGCCRE 2015. W = W0 + Ẇ·d da J2000.0.",
+    en: "Surface orientation: IAU WGCCRE 2015 prime meridian. W = W0 + Ẇ·d from J2000.0.",
+  },
+  "sidereal-only": {
+    it: "Fase siderale da J2000.0, senza ancoraggio al meridiano primo IAU. Orientamento longitudine approssimato.",
+    en: "Sidereal phase from J2000.0, not anchored to IAU prime meridian. Longitude orientation approximate.",
   },
   "not-modelled": {
     it: "Rotazione non modellata per questo corpo.",
