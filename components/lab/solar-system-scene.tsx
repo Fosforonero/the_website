@@ -63,6 +63,16 @@ const BLACK = new THREE.Color(0, 0, 0);
 
 type OrbitControlsHandle = ElementRef<typeof OrbitControls>;
 
+// Per-body atmosphere visual overrides. Bodies not listed use ATMOSPHERE_DEFAULT.
+const ATMOSPHERE_VISUALS: Record<string, { color: string; opacity: number }> = {
+  earth:  { color: "#4488cc", opacity: 0.08 },  // blue haze, Kármán line
+  venus:  { color: "#c8a050", opacity: 0.12 },  // dense golden cloud layer
+  mars:   { color: "#cc6644", opacity: 0.05 },  // thin reddish haze
+  titan:  { color: "#c87c40", opacity: 0.10 },  // brownish-orange hydrocarbon haze
+};
+
+const ATMOSPHERE_DEFAULT = { color: "#4488cc", opacity: 0.08 };
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -285,9 +295,11 @@ type AtmosphereShellProps = {
   displayBodyR: number;
   atmosphereHeightKm: number;
   bodyRadiusKm: number;
+  color: string;
+  opacity: number;
 };
 
-function AtmosphereShell({ displayBodyR, atmosphereHeightKm, bodyRadiusKm }: AtmosphereShellProps) {
+function AtmosphereShell({ displayBodyR, atmosphereHeightKm, bodyRadiusKm, color, opacity }: AtmosphereShellProps) {
   // Scale atmosphere thickness proportionally to body's visual radius.
   // Minimum shell radius = body radius * 1.06 for visual legibility when atmosphere is very thin.
   const ratio = (bodyRadiusKm + atmosphereHeightKm) / bodyRadiusKm;
@@ -297,9 +309,9 @@ function AtmosphereShell({ displayBodyR, atmosphereHeightKm, bodyRadiusKm }: Atm
     <mesh scale={atmosphereR}>
       <sphereGeometry args={[1, 32, 16]} />
       <meshBasicMaterial
-        color="#4488cc"
+        color={color}
         transparent
-        opacity={0.08}
+        opacity={opacity}
         side={THREE.BackSide}
         depthWrite={false}
       />
@@ -355,12 +367,8 @@ function RingSystem({ body, displayBodyR }: RingSystemProps) {
 
 function TexturedBodyMaterial({
   texturePath,
-  color,
-  isSelected,
 }: {
   texturePath: string;
-  color: THREE.Color;
-  isSelected: boolean;
 }) {
   const texture = useTexture(texturePath);
   return (
@@ -368,8 +376,8 @@ function TexturedBodyMaterial({
       map={texture}
       roughness={0.75}
       metalness={0.05}
-      emissive={isSelected ? color : BLACK}
-      emissiveIntensity={isSelected ? 0.18 : 0}
+      emissive="#0d0d0d"
+      emissiveIntensity={1}
     />
   );
 }
@@ -439,14 +447,14 @@ function BodyMesh({
                 roughness={0.8}
               />
             ) : localPath ? (
-              <TexturedBodyMaterial texturePath={localPath} color={color} isSelected={isSelected} />
+              <TexturedBodyMaterial texturePath={localPath} />
             ) : (
               <meshStandardMaterial
                 color={color}
                 roughness={0.75}
                 metalness={0.05}
-                emissive={isSelected ? color : BLACK}
-                emissiveIntensity={isSelected ? 0.18 : 0}
+                emissive={BLACK}
+                emissiveIntensity={0}
               />
             )}
           </mesh>
@@ -474,13 +482,18 @@ function BodyMesh({
         )}
 
         {/* Atmosphere shell — visual only, no physics */}
-        {body.atmosphereHeightKm !== undefined && (
-          <AtmosphereShell
-            displayBodyR={displayR}
-            atmosphereHeightKm={body.atmosphereHeightKm}
-            bodyRadiusKm={body.radiusKm}
-          />
-        )}
+        {body.atmosphereHeightKm !== undefined && (() => {
+          const atm = ATMOSPHERE_VISUALS[body.id] ?? ATMOSPHERE_DEFAULT;
+          return (
+            <AtmosphereShell
+              displayBodyR={displayR}
+              atmosphereHeightKm={body.atmosphereHeightKm}
+              bodyRadiusKm={body.radiusKm}
+              color={atm.color}
+              opacity={atm.opacity}
+            />
+          );
+        })()}
 
         {/* Ring system (Saturn, Uranus) — equatorial plane = perpendicular to tilted Y */}
         {body.ringInnerKm !== undefined && body.ringOuterKm !== undefined && (
