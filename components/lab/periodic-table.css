@@ -1814,6 +1814,7 @@
     gap: 8px;
     max-height: 38vh;
     overflow-y: auto;
+    overflow-x: hidden;
   }
   .pt-info__name {
     font-size: 16px;
@@ -2167,11 +2168,16 @@
     grid-template-rows: 1fr auto !important;
   }
 
-  /* Info panel: back to column layout for readability */
+  /* Info panel: single-column vertical layout — no horizontal scroll.
+     flex-wrap:nowrap prevents columns wrapping past max-height.
+     align-items:stretch restores full-width children (≤680px set center). */
   .pt-info {
     flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
     max-height: 44vh;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 10px 12px;
     gap: 8px;
     border-top: 1px solid rgba(255,255,255,0.07) !important;
@@ -2181,16 +2187,40 @@
     border-top-color: rgba(10,10,10,0.08) !important;
   }
 
-  /* Groups span full width; properties inside each group use 2-column grid */
-  .pt-info__dl { display: flex; flex-direction: column; gap: 0; }
-  .pt-info__group { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 14px; padding: 8px 0 6px; }
-  .pt-info__group-label { grid-column: 1 / -1; margin-bottom: 2px; }
+  /* Single-column stacked layout — every property takes a full row */
+  .pt-info__dl { display: flex; flex-direction: column; gap: 0; min-width: 0; }
+  .pt-info__group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 0 6px;
+    min-width: 0;
+  }
+  /* Each dt/dd pair: label above, value below */
+  .pt-info__group > div {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+  .pt-info__dl dt { font-size: 8px; }
+  .pt-info__dl dd {
+    font-size: 11px;
+    min-width: 0;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+  /* Full-width rows stay full-width */
   .pt-info__group > .pt-info__iso-row,
   .pt-info__group > .pt-info__ox-row,
   .pt-info__group > .pt-info__crystal-row,
-  .pt-info__group > .pt-info__mol-row { grid-column: 1 / -1; }
-  .pt-info__dl dt { font-size: 8px; }
-  .pt-info__dl dd { font-size: 11px; }
+  .pt-info__group > .pt-info__mol-row { width: 100%; }
+  /* App cards: prevent long text from escaping */
+  .pt-info__app-desc, .pt-info__app-source, .pt-info__app-title {
+    overflow-wrap: break-word;
+    word-break: break-word;
+    min-width: 0;
+  }
 
   /* Description hidden by default on mobile (toggle still works) */
   .pt-info__desc { display: none; }
