@@ -207,6 +207,8 @@ function OrbitPath({ bodyId, isMoon, parentState, distanceMode }: OrbitPathProps
     return geo;
   }, [scaledPoints]);
 
+  useEffect(() => () => { geometry.dispose(); }, [geometry]);
+
   return (
     <lineLoop args={[geometry]}>
       <lineBasicMaterial
@@ -243,6 +245,8 @@ function CatalogOrbitPath({ entry, distanceMode }: CatalogOrbitPathProps) {
     () => new THREE.BufferGeometry().setFromPoints(scaledPoints),
     [scaledPoints]
   );
+
+  useEffect(() => () => { geometry.dispose(); }, [geometry]);
 
   return (
     <lineLoop args={[geometry]}>
