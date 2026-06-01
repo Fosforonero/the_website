@@ -236,6 +236,36 @@ type BodyMeshProps = {
 };
 
 // ---------------------------------------------------------------------------
+// Atmosphere shell — translucent glow for bodies with documented atmospheres
+// ---------------------------------------------------------------------------
+
+type AtmosphereShellProps = {
+  displayBodyR: number;
+  atmosphereHeightKm: number;
+  bodyRadiusKm: number;
+};
+
+function AtmosphereShell({ displayBodyR, atmosphereHeightKm, bodyRadiusKm }: AtmosphereShellProps) {
+  // Scale atmosphere thickness proportionally to body's visual radius.
+  // Minimum shell radius = body radius * 1.06 for visual legibility when atmosphere is very thin.
+  const ratio = (bodyRadiusKm + atmosphereHeightKm) / bodyRadiusKm;
+  const atmosphereR = Math.max(displayBodyR * ratio, displayBodyR * 1.06);
+
+  return (
+    <mesh scale={atmosphereR}>
+      <sphereGeometry args={[1, 32, 16]} />
+      <meshBasicMaterial
+        color="#4488cc"
+        transparent
+        opacity={0.08}
+        side={THREE.BackSide}
+        depthWrite={false}
+      />
+    </mesh>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Ring system — Saturn and Uranus, in the body's equatorial plane
 // ---------------------------------------------------------------------------
 
@@ -399,6 +429,15 @@ function BodyMesh({
               <meshBasicMaterial color="#4060a0" />
             </mesh>
           </group>
+        )}
+
+        {/* Atmosphere shell — visual only, no physics */}
+        {body.atmosphereHeightKm !== undefined && (
+          <AtmosphereShell
+            displayBodyR={displayR}
+            atmosphereHeightKm={body.atmosphereHeightKm}
+            bodyRadiusKm={body.radiusKm}
+          />
         )}
 
         {/* Ring system (Saturn, Uranus) — equatorial plane = perpendicular to tilted Y */}

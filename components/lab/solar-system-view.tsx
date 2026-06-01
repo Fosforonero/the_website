@@ -550,6 +550,19 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
           </div>
         )}
 
+        {/* Atmosphere shell */}
+        {selectedBody.atmosphereHeightKm !== undefined && selectedBody.atmosphereLabel && (
+          <div className="solar-inspector__row" style={{ flexDirection: "column", alignItems: "flex-start", gap: 2 }}>
+            <span className="solar-inspector__label">
+              {locale === "it" ? "Atmosfera" : "Atmosphere"}
+            </span>
+            <span className="solar-inspector__value" style={{ fontSize: "0.60rem", color: "#4a8090", lineHeight: 1.3 }}>
+              {selectedBody.atmosphereLabel[locale]} —{" "}
+              {locale === "it" ? "guscio visivo, non simulazione fisica" : "visual shell, not physics simulation"}
+            </span>
+          </div>
+        )}
+
         <div className="solar-inspector__row">
           <span className="solar-inspector__label">{t.epoch}</span>
           <span className="solar-inspector__value">

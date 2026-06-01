@@ -86,6 +86,17 @@ export type SolarBody = {
    */
   poleRaDeg?: number;
   poleDecDeg?: number;
+  /**
+   * Approximate atmosphere scale height boundary used for the visual shell (km).
+   * Not a hard physical edge; atmosphere has no sharp boundary. Visualization only.
+   * Source: approximate values from published atmospheric models.
+   * Earth ~100 km (Kármán line), Venus ~100 km (dense cloud layer), Mars ~60 km, Titan ~600 km.
+   */
+  atmosphereHeightKm?: number;
+  /**
+   * Bilingual label for the atmosphere type, shown in the inspector.
+   */
+  atmosphereLabel?: { it: string; en: string };
   color: string;
   sourceIds: string[];
   assetId?: string;
@@ -246,6 +257,8 @@ export const SOLAR_BODIES: SolarBody[] = [
     siderealRotationHours: -5832.5,
     poleRaDeg: 272.76,
     poleDecDeg: 67.16,
+    atmosphereHeightKm: 100,
+    atmosphereLabel: { it: "Atmosfera densa — strato di nubi (~100 km)", en: "Dense atmosphere — cloud layer (~100 km)" },
     color: "#E8C46A",
     sourceIds: ["nasaJplHorizons"],
   },
@@ -269,6 +282,8 @@ export const SOLAR_BODIES: SolarBody[] = [
     siderealRotationHours: 23.934,
     poleRaDeg: 0.00,
     poleDecDeg: 90.00,
+    atmosphereHeightKm: 100,
+    atmosphereLabel: { it: "Atmosfera — guscio visivo fino alla linea di Kármán (~100 km)", en: "Atmosphere — visual shell to Kármán line (~100 km)" },
     color: "#3A9BDC",
     sourceIds: ["nasaJplHorizons"],
   },
@@ -292,6 +307,8 @@ export const SOLAR_BODIES: SolarBody[] = [
     siderealRotationHours: 24.623,
     poleRaDeg: 317.269,
     poleDecDeg: 54.432,
+    atmosphereHeightKm: 60,
+    atmosphereLabel: { it: "Atmosfera tenue (~60 km)", en: "Thin atmosphere (~60 km)" },
     color: "#C1440E",
     sourceIds: ["nasaJplHorizons"],
   },
@@ -487,6 +504,8 @@ export const SOLAR_BODIES: SolarBody[] = [
     orbitalPeriodDays: 15.945,
     eccentricity: 0.0288,
     inclinationDeg: 0.34854,
+    atmosphereHeightKm: 600,
+    atmosphereLabel: { it: "Atmosfera densa con nebbia di idrocarburi (~600 km)", en: "Dense atmosphere with hydrocarbon haze (~600 km)" },
     color: "#E8A040",
     sourceIds: ["nasaJplHorizons", "jplSatellites"],
   },
