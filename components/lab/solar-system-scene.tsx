@@ -3,7 +3,7 @@
 import { Suspense, useMemo, useEffect, useRef } from "react";
 import type { ElementRef, RefObject } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
-import { OrbitControls, Html } from "@react-three/drei";
+import { OrbitControls, Html, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import { FirmamentLayer } from "./firmament-layer";
 import { CatalogLayer } from "./solar-system-catalog-layer";
@@ -15,6 +15,7 @@ import { scaleDistance, scaleRadius, scaleSatelliteOffsetKm, AU_KM } from "@/lib
 import { getBodyOrientation } from "@/lib/solar-system/rotation-model";
 import type { ScaleBrightnessMode } from "@/lib/solar-system/scales";
 import { getLightingConfig } from "@/lib/solar-system/lighting-model";
+import { SOLAR_ASSETS } from "@/lib/solar-system/assets";
 import type {
   ScaleDistanceMode,
   ScaleRadiusMode,
@@ -273,6 +274,34 @@ function RingSystem({ body, displayBodyR }: RingSystemProps) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// TexturedBodyMaterial — separate component so useTexture is always called
+// unconditionally (React hooks rule). Only rendered when localPath exists.
+// ---------------------------------------------------------------------------
+
+function TexturedBodyMaterial({
+  texturePath,
+  color,
+  isSelected,
+}: {
+  texturePath: string;
+  color: THREE.Color;
+  isSelected: boolean;
+}) {
+  const texture = useTexture(texturePath);
+  return (
+    <meshStandardMaterial
+      map={texture}
+      roughness={0.75}
+      metalness={0.05}
+      emissive={isSelected ? color : new THREE.Color(0, 0, 0)}
+      emissiveIntensity={isSelected ? 0.18 : 0}
+    />
+  );
+}
+
+// ---------------------------------------------------------------------------
+
 function BodyMesh({
   body,
   state,
@@ -299,6 +328,8 @@ function BodyMesh({
 
   const isSun = body.category === "star";
   const color = hexToThreeColor(body.color);
+  const asset = SOLAR_ASSETS.find((a) => a.bodyId === body.id);
+  const localPath = asset?.localPath;
 
   const orientation = getBodyOrientation(body, epochMs);
 
@@ -333,6 +364,8 @@ function BodyMesh({
                 emissiveIntensity={1.2}
                 roughness={0.8}
               />
+            ) : localPath ? (
+              <TexturedBodyMaterial texturePath={localPath} color={color} isSelected={isSelected} />
             ) : (
               <meshStandardMaterial
                 color={color}

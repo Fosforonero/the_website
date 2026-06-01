@@ -77,7 +77,7 @@ export const SOLAR_ASSETS: SolarAsset[] = [
   {
     id: "asset-mercury",
     bodyId: "mercury",
-    confidence: "procedural",
+    confidence: "real-map",
     fallbackMaterial: "rocky",
     sourceUrl: "https://svs.gsfc.nasa.gov/vis/a000000/a004800/a004869/",
     credit: "NASA GSFC SVS / MESSENGER MDIS mosaic (via threex.planets)",
@@ -99,7 +99,7 @@ export const SOLAR_ASSETS: SolarAsset[] = [
   {
     id: "asset-earth",
     bodyId: "earth",
-    confidence: "procedural",
+    confidence: "real-map",
     fallbackMaterial: "rocky",
     sourceUrl: "https://eoimages.gsfc.nasa.gov/images/imagerecords/74000/74117/world.200408.3x5400x2700.jpg",
     credit: "NASA Visible Earth / Blue Marble Next Generation",
@@ -111,7 +111,7 @@ export const SOLAR_ASSETS: SolarAsset[] = [
   {
     id: "asset-moon",
     bodyId: "moon",
-    confidence: "procedural",
+    confidence: "real-map",
     fallbackMaterial: "rocky",
     sourceUrl: "https://svs.gsfc.nasa.gov/vis/a000000/a004700/a004720/lroc_color_2k.jpg",
     credit: "NASA GSFC SVS / LRO LROC WAC mosaic",
@@ -123,7 +123,7 @@ export const SOLAR_ASSETS: SolarAsset[] = [
   {
     id: "asset-mars",
     bodyId: "mars",
-    confidence: "procedural",
+    confidence: "real-map",
     fallbackMaterial: "rocky",
     sourceUrl: "https://raw.githubusercontent.com/jeromeetienne/threex.planets/master/images/marsmap1k.jpg",
     credit: "NASA / USGS Viking Orbiter — Mars surface mosaic (via threex.planets)",
