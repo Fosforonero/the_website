@@ -182,6 +182,16 @@ export const LAB_UI_TRANSLATIONS = {
     infoGroupApplications: "Applicazioni reali",
     appDisclaimerMedical: "Contesto educativo, non consiglio medico.",
     appViewMolecule: "Vedi molecola",
+    chemblToggle: "Azione farmacologica",
+    chemblMechanism: "Meccanismo",
+    chemblAction: "Tipo azione",
+    chemblIndication: "Indicazione principale",
+    chemblPhase: "Fase clinica",
+    chemblPhase4: "Approvato (Fase 4)",
+    chemblDisclaimer: "Contesto educativo. Non è un consiglio medico.",
+    chemblAttribution: "Dati ChEMBL · EMBL-EBI · CC BY-SA 3.0",
+    chemblLoading: "Caricamento dati farmacologici…",
+    chemblUnavailable: "Dati farmacologici temporaneamente non disponibili.",
   },
   en: {
     backToTable: "← table",
@@ -293,6 +303,16 @@ export const LAB_UI_TRANSLATIONS = {
     infoGroupApplications: "Real-world applications",
     appDisclaimerMedical: "Educational context, not medical advice.",
     appViewMolecule: "View molecule",
+    chemblToggle: "Pharmacological action",
+    chemblMechanism: "Mechanism",
+    chemblAction: "Action type",
+    chemblIndication: "Primary indication",
+    chemblPhase: "Clinical phase",
+    chemblPhase4: "Approved (Phase 4)",
+    chemblDisclaimer: "Educational context. Not medical advice.",
+    chemblAttribution: "Data from ChEMBL · EMBL-EBI · CC BY-SA 3.0",
+    chemblLoading: "Loading pharmacological data…",
+    chemblUnavailable: "Pharmacological data temporarily unavailable.",
   }
 };
 

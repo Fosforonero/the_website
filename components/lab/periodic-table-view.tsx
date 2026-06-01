@@ -28,6 +28,7 @@ import {
   ROOM_TEMPERATURE_K,
 } from "@/lib/temperature";
 import { APPLICATIONS } from "@/lib/element-applications-data";
+import type { ChEMBLDrugInfo } from "@/app/api/periodic-table/chembl/route";
 
 const APP_CAT_LABELS = {
   medicine:     { it: "Medicina",         en: "Medicine" },
@@ -400,6 +401,81 @@ function fmt(val: number | null, decimals = 2, suffix = ""): string {
   return `${val.toFixed(decimals)}${suffix ? " " + suffix : ""}`;
 }
 
+// ─── ChEMBL pharmacology panel ───────────────────────────────────────────────
+
+function ChEMBLPanel({ chemblId, locale }: { chemblId: string; locale: Locale }) {
+  const t = LAB_UI_TRANSLATIONS[locale];
+  const [data, setData] = useState<ChEMBLDrugInfo | null>(null);
+  const [status, setStatus] = useState<"idle" | "loading" | "ok" | "error">("idle");
+
+  const load = useCallback(() => {
+    if (status !== "idle") return;
+    setStatus("loading");
+    fetch(`/api/periodic-table/chembl?chemblId=${encodeURIComponent(chemblId)}`)
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then((d: ChEMBLDrugInfo) => { setData(d); setStatus("ok"); })
+      .catch(() => setStatus("error"));
+  }, [chemblId, status]);
+
+  const topIndication = data?.indications[0] ?? null;
+  const topMechanism = data?.mechanisms[0] ?? null;
+
+  return (
+    <details className="pt-chembl" onToggle={e => { if ((e.currentTarget as HTMLDetailsElement).open) load(); }}>
+      <summary className="pt-chembl__summary">
+        <span className="pt-chembl__label">{t.chemblToggle}</span>
+        <span className="pt-chembl__badge">ChEMBL</span>
+      </summary>
+
+      <div className="pt-chembl__body">
+        {status === "idle" || status === "loading" ? (
+          <p className="pt-chembl__loading">{t.chemblLoading}</p>
+        ) : status === "error" ? (
+          <p className="pt-chembl__unavailable">{t.chemblUnavailable}</p>
+        ) : (
+          <>
+            {topMechanism && (
+              <dl className="pt-chembl__dl">
+                <dt>{t.chemblMechanism}</dt>
+                <dd>{topMechanism.mechanismOfAction}</dd>
+                {topMechanism.actionType && (
+                  <>
+                    <dt>{t.chemblAction}</dt>
+                    <dd>{topMechanism.actionType}</dd>
+                  </>
+                )}
+              </dl>
+            )}
+            {topIndication && (
+              <dl className="pt-chembl__dl">
+                <dt>{t.chemblIndication}</dt>
+                <dd>
+                  {topIndication.efoTerm ?? topIndication.meshHeading}
+                  {topIndication.maxPhaseForInd === 4 && (
+                    <span className="pt-chembl__approved">{t.chemblPhase4}</span>
+                  )}
+                </dd>
+              </dl>
+            )}
+            <p className="pt-chembl__disclaimer">{t.chemblDisclaimer}</p>
+            <p className="pt-chembl__attribution">
+              <a
+                href={data?.chemblUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="pt-chembl__link"
+              >
+                {chemblId} ↗
+              </a>
+              {" · "}{t.chemblAttribution}
+            </p>
+          </>
+        )}
+      </div>
+    </details>
+  );
+}
+
 function InfoPanel({ el, locale, tempUnit, lightMode, onDragStart, onCrystalClick, onMoleculeClick, onAppMoleculeClick, onStoryClick }: { el: Element; locale: Locale; tempUnit: "K" | "C" | "F"; lightMode?: boolean; onDragStart?: (e: React.MouseEvent | React.TouchEvent) => void; onCrystalClick?: () => void; onMoleculeClick?: (idx: number) => void; onAppMoleculeClick?: (moleculeName: string) => void; onStoryClick?: () => void }) {
   const t = LAB_UI_TRANSLATIONS[locale];
   const [descExpanded, setDescExpanded] = useState(false);
@@ -666,6 +742,9 @@ function InfoPanel({ el, locale, tempUnit, lightMode, onDragStart, onCrystalClic
                     <p className="pt-info__app-desc">
                       {locale === "en" ? app.descEN : app.descIT}
                     </p>
+                    {app.chemblId && (
+                      <ChEMBLPanel chemblId={app.chemblId} locale={locale} />
+                    )}
                     <div className="pt-info__app-footer">
                       <a
                         href={app.sourceUrl}

@@ -17,6 +17,8 @@ export interface ElementApplication {
   sourceUrl: string;
   /** Molecule name for PubChem viewer link. */
   relatedMolecule?: string;
+  /** ChEMBL compound ID for pharmacology layer (mechanism, indications). */
+  chemblId?: string;
 }
 
 // Keyed by atomic number Z. Each element may have 1–3 entries (max 3).
@@ -32,6 +34,7 @@ export const APPLICATIONS: Record<number, ElementApplication[]> = {
     sourceLabel: "PubChem CID 11125",
     sourceUrl: "https://pubchem.ncbi.nlm.nih.gov/compound/11125",
     relatedMolecule: "lithium carbonate",
+    chemblId: "CHEMBL471068",
   }],
 
   // C — Z=6
@@ -45,6 +48,7 @@ export const APPLICATIONS: Record<number, ElementApplication[]> = {
     sourceLabel: "PubChem CID 2244",
     sourceUrl: "https://pubchem.ncbi.nlm.nih.gov/compound/2244",
     relatedMolecule: "aspirin",
+    chemblId: "CHEMBL25",
   }],
 
   // N — Z=7
@@ -58,6 +62,7 @@ export const APPLICATIONS: Record<number, ElementApplication[]> = {
     sourceLabel: "PubChem CID 948",
     sourceUrl: "https://pubchem.ncbi.nlm.nih.gov/compound/948",
     relatedMolecule: "nitrous oxide",
+    chemblId: "CHEMBL1234579",
   }],
 
   // O — Z=8
@@ -83,6 +88,7 @@ export const APPLICATIONS: Record<number, ElementApplication[]> = {
     sourceLabel: "PubChem CID 5245",
     sourceUrl: "https://pubchem.ncbi.nlm.nih.gov/compound/5245",
     relatedMolecule: "sodium fluoride",
+    chemblId: "CHEMBL1528",
   }],
 
   // Na — Z=11
@@ -109,6 +115,7 @@ export const APPLICATIONS: Record<number, ElementApplication[]> = {
     sourceLabel: "PubChem CID 14791",
     sourceUrl: "https://pubchem.ncbi.nlm.nih.gov/compound/14791",
     relatedMolecule: "magnesium hydroxide",
+    chemblId: "CHEMBL1743",
   }],
 
   // Al — Z=13
@@ -172,6 +179,7 @@ export const APPLICATIONS: Record<number, ElementApplication[]> = {
     sourceLabel: "PubChem CID 10112",
     sourceUrl: "https://pubchem.ncbi.nlm.nih.gov/compound/10112",
     relatedMolecule: "calcium carbonate",
+    chemblId: "CHEMBL1200628",
   }],
 
   // Ti — Z=22
@@ -223,6 +231,7 @@ export const APPLICATIONS: Record<number, ElementApplication[]> = {
     sourceLabel: "PubChem CID 14806",
     sourceUrl: "https://pubchem.ncbi.nlm.nih.gov/compound/14806",
     relatedMolecule: "zinc oxide",
+    chemblId: "CHEMBL3039497",
   }],
 
   // Fe — Z=26
@@ -249,6 +258,7 @@ export const APPLICATIONS: Record<number, ElementApplication[]> = {
     sourceLabel: "PubChem CID 441244",
     sourceUrl: "https://pubchem.ncbi.nlm.nih.gov/compound/441244",
     relatedMolecule: "silver sulfadiazine",
+    chemblId: "CHEMBL1742",
   }],
 
   // I — Z=53
@@ -274,6 +284,7 @@ export const APPLICATIONS: Record<number, ElementApplication[]> = {
     sourceLabel: "PubChem CID 5702198",
     sourceUrl: "https://pubchem.ncbi.nlm.nih.gov/compound/5702198",
     relatedMolecule: "cisplatin",
+    chemblId: "CHEMBL11359",
   }],
 
   // Au — Z=79
@@ -287,6 +298,7 @@ export const APPLICATIONS: Record<number, ElementApplication[]> = {
     sourceLabel: "PubChem CID 2723796",
     sourceUrl: "https://pubchem.ncbi.nlm.nih.gov/compound/2723796",
     relatedMolecule: "auranofin",
+    chemblId: "CHEMBL1366",
   }],
 
   // Hg — Z=80

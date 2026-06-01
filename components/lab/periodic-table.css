@@ -3158,3 +3158,155 @@
   }
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   ChEMBL pharmacology panel — inside .pt-info__app-card
+   ══════════════════════════════════════════════════════════════════ */
+
+.pt-chembl {
+  margin-top: 6px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.025);
+}
+
+.pt-chembl__summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  min-height: 36px;
+}
+.pt-chembl__summary::-webkit-details-marker { display: none; }
+.pt-chembl__summary::after {
+  content: "▸";
+  font-size: 9px;
+  opacity: 0.45;
+  margin-left: auto;
+  transition: transform 0.15s;
+  flex-shrink: 0;
+}
+.pt-chembl[open] .pt-chembl__summary::after { transform: rotate(90deg); }
+
+.pt-chembl__label {
+  font-size: 9px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: rgba(216,216,232,0.60);
+}
+
+.pt-chembl__badge {
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(79,195,247,0.14);
+  color: rgba(79,195,247,0.85);
+  border: 1px solid rgba(79,195,247,0.22);
+  flex-shrink: 0;
+}
+
+.pt-chembl__body {
+  padding: 6px 10px 8px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.pt-chembl__dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 8px;
+  row-gap: 2px;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.pt-chembl__dl dt {
+  font-size: 8px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: rgba(216,216,232,0.38);
+  align-self: start;
+  padding-top: 1px;
+  white-space: nowrap;
+}
+.pt-chembl__dl dd {
+  font-size: 11px;
+  color: rgba(216,216,232,0.85);
+  margin: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.pt-chembl__approved {
+  font-size: 8px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(52,211,153,0.12);
+  color: rgba(52,211,153,0.85);
+  border: 1px solid rgba(52,211,153,0.22);
+  flex-shrink: 0;
+}
+
+.pt-chembl__loading,
+.pt-chembl__unavailable {
+  font-size: 10px;
+  color: rgba(216,216,232,0.38);
+  font-style: italic;
+  margin: 0;
+}
+
+.pt-chembl__disclaimer {
+  font-size: 8.5px;
+  color: rgba(216,216,232,0.32);
+  font-style: italic;
+  margin: 2px 0 0;
+  line-height: 1.4;
+}
+
+.pt-chembl__attribution {
+  font-size: 8px;
+  color: rgba(216,216,232,0.28);
+  margin: 0;
+  letter-spacing: 0.03em;
+}
+
+.pt-chembl__link {
+  color: rgba(99,160,255,0.65);
+  text-decoration: none;
+}
+.pt-chembl__link:hover { color: rgba(99,160,255,1); text-decoration: underline; }
+
+/* Light mode */
+.pt-root--light .pt-chembl {
+  border-color: rgba(0,0,0,0.08);
+  background: rgba(0,0,0,0.02);
+}
+.pt-root--light .pt-chembl__label { color: rgba(10,10,20,0.50); }
+.pt-root--light .pt-chembl__dl dt { color: rgba(10,10,20,0.38); }
+.pt-root--light .pt-chembl__dl dd { color: rgba(10,10,20,0.80); }
+.pt-root--light .pt-chembl__disclaimer { color: rgba(10,10,20,0.30); }
+.pt-root--light .pt-chembl__attribution { color: rgba(10,10,20,0.28); }
+.pt-root--light .pt-chembl__loading,
+.pt-root--light .pt-chembl__unavailable { color: rgba(10,10,20,0.38); }
+
+/* Mobile: ensure no overflow */
+@media (max-width: 500px) {
+  .pt-chembl__dl { grid-template-columns: 1fr; row-gap: 1px; }
+  .pt-chembl__dl dt { padding-top: 4px; }
+}
+
