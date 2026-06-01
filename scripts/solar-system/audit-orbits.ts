@@ -514,6 +514,69 @@ for (const body of SOLAR_BODIES) {
   }
 }
 
+// --- L. Catalog selection checks [sprint 06] --------------------------------
+
+console.log("\n--- Catalog selection checks [sprint 06] ---");
+
+const ephemerisSource = readFileSync(
+  join(process.cwd(), "lib/solar-system/ephemeris.ts"),
+  "utf-8"
+);
+
+// L1: sampleCatalogEntryOrbitPath must be exported from ephemeris.ts
+const hasExportedSampleOrbitPath = /export\s+function\s+sampleCatalogEntryOrbitPath/.test(ephemerisSource);
+console.log(
+  `  ${hasExportedSampleOrbitPath ? "    OK" : "  FAIL"} L1: sampleCatalogEntryOrbitPath exported from ephemeris.ts`
+);
+if (!hasExportedSampleOrbitPath) warnings++;
+
+// L2: CatalogOrbitPath component must exist in solar-system-scene.tsx
+const sceneSource3 = readFileSync(
+  join(process.cwd(), "components/lab/solar-system-scene.tsx"),
+  "utf-8"
+);
+const hasCatalogOrbitPath = /function CatalogOrbitPath/.test(sceneSource3);
+console.log(
+  `  ${hasCatalogOrbitPath ? "    OK" : "  FAIL"} L2: CatalogOrbitPath component present in solar-system-scene.tsx`
+);
+if (!hasCatalogOrbitPath) warnings++;
+
+// L3: CometTail component must exist in solar-system-scene.tsx
+const hasCometTail = /function CometTail/.test(sceneSource3);
+console.log(
+  `  ${hasCometTail ? "    OK" : "  FAIL"} L3: CometTail component present in solar-system-scene.tsx`
+);
+if (!hasCometTail) warnings++;
+
+// L4: catalog layer renders as Points, not per-body paths
+// CatalogLayer must be present (the Points layer)
+const hasCatalogLayer = sceneSource3.includes("CatalogLayer");
+// Must NOT have a loop rendering all catalog orbit paths
+// Look for JSX patterns that would render CatalogOrbitPath in a loop over all entries
+const hasAllCatalogOrbitPaths =
+  /catalogLayers.*\.map.*CatalogOrbitPath/.test(sceneSource3) ||
+  /catalogEntries.*\.map.*CatalogOrbitPath/.test(sceneSource3) ||
+  /\.map\(.*entry.*\).*CatalogOrbitPath/.test(sceneSource3) ||
+  /for\s*\(.*catalog.*\)\s*\{[^}]*CatalogOrbitPath/.test(sceneSource3);
+// CatalogOrbitPath must only appear in context of selectedCatalogEntry, not a loop
+const selectedOnlyPattern = /selectedCatalogEntry[^}]+CatalogOrbitPath/.test(sceneSource3) ||
+  (/CatalogOrbitPath/.test(sceneSource3) && !hasAllCatalogOrbitPaths);
+const l4ok = hasCatalogLayer && !hasAllCatalogOrbitPaths && selectedOnlyPattern;
+console.log(
+  `  ${hasCatalogLayer ? "    OK" : "  FAIL"} L4a: CatalogLayer (Points) present in scene`
+);
+if (!hasCatalogLayer) warnings++;
+console.log(
+  `  ${!hasAllCatalogOrbitPaths ? "    OK" : "  FAIL"} L4b: No loop rendering all catalog orbit paths`
+);
+if (hasAllCatalogOrbitPaths) warnings++;
+console.log(
+  `  ${selectedOnlyPattern ? "    OK" : "  FAIL"} L4c: CatalogOrbitPath only rendered for selectedCatalogEntry (not all entries)`
+);
+if (!selectedOnlyPattern) warnings++;
+
+void l4ok;
+
 // --- Summary ---------------------------------------------------------------
 
 console.log("\n" + "=".repeat(70));

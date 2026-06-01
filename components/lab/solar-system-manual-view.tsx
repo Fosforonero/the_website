@@ -212,6 +212,8 @@ Posizioni catalogo: calcolate da elementi orbitali kepleriani SBDB nel frame HEC
 
 Ricerca: la barra di ricerca interroga JPL SBDB in tempo reale (300ms debounce). I risultati mostrano il nome del corpo, la classe orbitale e i tag NEO/PHA se applicabili. Selezionando un risultato, viene richiesta la posizione di precisione a JPL Horizons per quella data e visualizzata come marcatore teal (qualità sub-km).
 
+Ispettore oggetti catalogo (Sprint 06): gli oggetti catalogo selezionati mostrano un inspector dedicato con elementi orbitali (a, e, i, q, Q, periodo, H, diametro). Le comete selezionate mostrano una coda visuale nella direzione anti-solare (non simulazione gas/polvere). Il percorso orbitale è disponibile se il layer catalogo corrispondente è attivato prima della ricerca.
+
 Dimensione punti: i punti del catalogo variano per dimensione e opacità in base alla magnitudine assoluta H — corpi più grandi/luminosi (H basso) appaiono come punti più grandi. Cinque livelli: H<5 (massimo), H<10, H<15, H<20, H≥20 (minimo).`,
       },
       firmament: {
@@ -491,6 +493,8 @@ Rendering: catalog bodies are rendered as Three.js Points, never as individual R
 Catalog positions: computed from SBDB Keplerian orbital elements in the HEC-J2000 frame. Not live JPL Horizons vectors. The snapshot date is visible in the inspector. Data quality is "catalog-keplerian" — suitable for educational visualization, not precision navigation.
 
 Search: the search bar queries JPL SBDB in real time (300ms debounce). Results show body name, orbit class, and NEO/PHA tags where applicable. Selecting a result fetches a precision position from JPL Horizons for that date and displays it as a teal marker (sub-km accuracy).
+
+Catalog object inspector (Sprint 06): selected catalog objects show a dedicated inspector with orbital elements (a, e, i, q, Q, period, H, diameter). Selected comets show a visual tail in the anti-solar direction (not a gas/dust simulation). The orbit path is available when the relevant catalog layer is activated before searching.
 
 Point size: catalog points vary in size and opacity by absolute magnitude H — larger/brighter bodies (low H) render as larger points. Five tiers: H<5 (largest), H<10, H<15, H<20, H≥20 (smallest).`,
       },

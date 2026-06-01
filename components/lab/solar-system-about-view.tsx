@@ -105,6 +105,7 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
     { done: true,  label: isIT ? "Catalogo SBDB: Catalogo SBDB (NEO/MBA/comete/TNO/centauri), ricerca live SBDB, marcatore Horizons precisione sub-km, API routes solar/catalog/search e solar/horizons." : "SBDB catalog: SBDB catalog (NEO/MBA/comets/TNOs/centaurs), live SBDB search, sub-km Horizons precision marker, solar/catalog/search and solar/horizons API routes." },
     { done: true,  label: isIT ? "Orientamento polare IAU: Polo IAU WGCCRE 2015 J2000 per pianeti principali e Luna (quaternione corretto nel renderer); catalogo NEO completo (41.780); sizing punti per magnitudine H." : "IAU pole orientation: IAU WGCCRE 2015 J2000 pole for major planets and Moon (correct quaternion in renderer); complete NEO catalog (41,780); catalog point sizing by H magnitude." },
     { done: true,  label: isIT ? "Asset visivi: Mappe di visualizzazione reali (Terra/Luna/Marte/Mercurio); gusci atmosferici visivi (Terra/Venere/Marte/Titano); percorso orbitale per oggetti catalogo selezionati; disclosures aggiornate." : "Visual assets: Real visualization maps (Earth/Moon/Mars/Mercury); visual atmosphere shells (Earth/Venus/Mars/Titan); orbit path for selected catalog objects; updated disclosures." },
+    { done: true,  label: isIT ? "Ispezione oggetti catalogo: inspector con elementi orbitali (a, e, i, q, Q, periodo, H, diametro), badge NEO/PHA, coda cometa anti-solare, colori percorso per categoria, pulsante clear." : "Catalog object inspection: orbital element inspector (a, e, i, q, Q, period, H, diameter), NEO/PHA badges, anti-solar comet tail, category-aware orbit path colors, clear button." },
   ];
 
   return (
@@ -607,6 +608,7 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
                 "Il catalogo stelle è un subset curato di Hipparcos (44 stelle), non il catalogo completo.",
                 "Mappe di visualizzazione integrate per Terra, Luna, Marte, Mercurio; gli altri corpi usano materiali procedurali. Si tratta di mappe di visualizzazione, non texture fotografiche scientificamente calibrate. Allineamento longitudine texture: Terra e Luna verificati analiticamente (offset 0°). Marte (~69°) e Mercurio (~15.5°) richiedono confronto con effemeridi empiriche.",
                 "Atmosfera: gusci visivi per Terra, Venere, Marte, Titano. Non è una simulazione fisica — nessuna fluidodinamica, nessuna chimica, nessun modello di scattering atmosferico.",
+                "Coda cometa fisica (modello gas/polvere): non implementata. La coda visualizzata è solo direzionale (anti-solare), con lunghezza funzione della distanza eliocentrica.",
                 "Catalog SBDB: posizioni da elementi kepleriani snapshot. Non vettori live. Precisione degrada per oggetti fortemente perturbati.",
                 "Corpo selezionato (Horizons): vettore Horizons cached 1h. Accurato sub-km al momento della query. Non aggiornato in tempo reale.",
                 "Copertura catalogo: basata sullo snapshot SBDB alla data di recupero. Non si aggiorna automaticamente.",
@@ -625,6 +627,7 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
                 "Star catalog is a curated subset of Hipparcos (44 stars), not the full catalog.",
                 "Visualization maps integrated for Earth, Moon, Mars, Mercury; other bodies use procedural materials. Maps are visualization maps, not scientifically calibrated textures. Texture longitude alignment: Earth and Moon analytically verified (offset 0°). Mars (~69°) and Mercury (~15.5°) require empirical ephemeris comparison.",
                 "Atmosphere: visual shells for Earth, Venus, Mars, Titan. Not a physics simulation — no fluid dynamics, no chemistry, no atmospheric scattering model.",
+                "Physical comet tail (gas/dust model): not implemented. The rendered tail is directional only (anti-solar), with length as a function of heliocentric distance.",
                 "Catalog SBDB: positions from Keplerian element snapshots. Not live vectors. Accuracy degrades for highly perturbed objects.",
                 "Selected body (Horizons): Horizons vector cached 1h. Sub-km accurate at query time. Not updated in real time.",
                 "Catalog coverage: based on SBDB snapshot at retrieval date. Does not auto-refresh.",

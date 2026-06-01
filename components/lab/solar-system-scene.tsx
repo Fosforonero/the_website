@@ -238,9 +238,21 @@ function OrbitPath({ bodyId, isMoon, parentState, distanceMode }: OrbitPathProps
 type CatalogOrbitPathProps = {
   entry: CatalogEntry;
   distanceMode: ScaleDistanceMode;
+  category: CatalogCategory;
 };
 
-function CatalogOrbitPath({ entry, distanceMode }: CatalogOrbitPathProps) {
+function catalogOrbitColor(category: CatalogCategory): { color: string; opacity: number } {
+  switch (category) {
+    case "comet":          return { color: "#00ccff", opacity: 0.72 };
+    case "asteroid-neo":   return { color: "#ff8040", opacity: 0.65 };
+    case "tno":            return { color: "#9060c0", opacity: 0.55 };
+    case "centaur":        return { color: "#7050a0", opacity: 0.50 };
+    default:               return { color: "#c0a060", opacity: 0.50 }; // asteroid-mba, other
+  }
+}
+
+function CatalogOrbitPath({ entry, distanceMode, category }: CatalogOrbitPathProps) {
+  const { color, opacity } = catalogOrbitColor(category);
   const points = useMemo(() => sampleCatalogEntryOrbitPath(entry, 512), [entry]);
 
   const scaledPoints = useMemo(
@@ -260,12 +272,7 @@ function CatalogOrbitPath({ entry, distanceMode }: CatalogOrbitPathProps) {
 
   return (
     <lineLoop args={[geometry]}>
-      <lineBasicMaterial
-        color="#00ffcc"
-        transparent
-        opacity={0.6}
-        depthWrite={false}
-      />
+      <lineBasicMaterial color={color} transparent opacity={opacity} depthWrite={false} />
     </lineLoop>
   );
 }
@@ -532,6 +539,92 @@ function BodyMesh({
 }
 
 // ---------------------------------------------------------------------------
+// Comet tail — visual anti-solar direction, selected comet only
+// ---------------------------------------------------------------------------
+
+type CometTailProps = {
+  markerPositionKm: [number, number, number];
+  distanceMode: ScaleDistanceMode;
+};
+
+function CometTail({ markerPositionKm, distanceMode }: CometTailProps) {
+  const [mx, my, mz] = markerPositionKm;
+
+  // Anti-solar direction: comet is at markerPositionKm from Sun (which is at origin).
+  // The tail points AWAY from the Sun = direction of position vector.
+  const distKm = Math.sqrt(mx * mx + my * my + mz * mz);
+  if (distKm < 1) return null;
+
+  const nx = mx / distKm;
+  const ny = my / distKm;
+  const nz = mz / distKm;
+  const distAU = distKm / AU_KM;
+
+  // Tail length in render units — longer when closer to the Sun
+  const tailLength = Math.min(0.35, 0.12 / Math.max(Math.sqrt(distAU), 0.3));
+
+  const tailOpacity = Math.max(0.15, Math.min(0.65, 0.5 / Math.max(distAU, 0.4)));
+
+  const [rx, ry, rz] = scalePositionVector(markerPositionKm, distanceMode);
+  const start = new THREE.Vector3(rx, ry, rz);
+  const end = new THREE.Vector3(
+    rx + nx * tailLength,
+    ry + ny * tailLength,
+    rz + nz * tailLength
+  );
+
+  // Use a tapered line: two overlapping lines with different opacity for a gradient feel.
+  // <line> conflicts with SVG — use THREE.Line objects rendered via <primitive>.
+
+  // Outer (faint): full tail length
+  const outerLine = useMemo(() => {
+    const geo = new THREE.BufferGeometry().setFromPoints([start, end]);
+    const mat = new THREE.LineBasicMaterial({
+      color: "#80d8ff",
+      transparent: true,
+      opacity: tailOpacity * 0.4,
+      depthWrite: false,
+    });
+    return new THREE.Line(geo, mat);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rx, ry, rz, nx, ny, nz, tailLength, tailOpacity]);
+
+  // Inner (bright): first 40% of tail
+  const innerEnd = new THREE.Vector3(
+    rx + nx * tailLength * 0.4,
+    ry + ny * tailLength * 0.4,
+    rz + nz * tailLength * 0.4
+  );
+  const innerLine = useMemo(() => {
+    const geo = new THREE.BufferGeometry().setFromPoints([start, innerEnd]);
+    const mat = new THREE.LineBasicMaterial({
+      color: "#c0eeff",
+      transparent: true,
+      opacity: tailOpacity * 0.85,
+      depthWrite: false,
+    });
+    return new THREE.Line(geo, mat);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rx, ry, rz, nx, ny, nz, tailLength, tailOpacity]);
+
+  useEffect(() => () => {
+    outerLine.geometry.dispose();
+    (outerLine.material as THREE.Material).dispose();
+    innerLine.geometry.dispose();
+    (innerLine.material as THREE.Material).dispose();
+  }, [outerLine, innerLine]);
+
+  return (
+    <group>
+      {/* Outer tail — faint, full length */}
+      <primitive object={outerLine} />
+      {/* Inner tail — brighter near nucleus */}
+      <primitive object={innerLine} />
+    </group>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Inner scene (must be mounted inside Canvas)
 // ---------------------------------------------------------------------------
 
@@ -690,6 +783,15 @@ function InnerScene({
       {selectedCatalogEntry && (
         <CatalogOrbitPath
           entry={selectedCatalogEntry}
+          distanceMode={distanceMode}
+          category={selectedCatalogEntry.category}
+        />
+      )}
+
+      {/* Comet tail — visual anti-solar direction, only for selected comet with Horizons position */}
+      {selectedCatalogEntry?.category === "comet" && horizonsMarker && (
+        <CometTail
+          markerPositionKm={horizonsMarker.positionKm}
           distanceMode={distanceMode}
         />
       )}

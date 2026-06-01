@@ -174,6 +174,7 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
   const [horizonsMarker, setHorizonsMarker] = useState<HorizonsMarker | null>(null);
   const [horizonsLoading, setHorizonsLoading] = useState(false);
   const [selectedCatalogEntry, setSelectedCatalogEntry] = useState<CatalogEntry | null>(null);
+  const [selectedSearchResult, setSelectedSearchResult] = useState<SearchResult | null>(null);
 
   // ── Playback ─────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -263,6 +264,7 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
 
   // ── Search handler ────────────────────────────────────────────────────────
   async function handleSearchSelect(result: SearchResult) {
+    setSelectedSearchResult(result);
     const date = new Date(epoch).toISOString().slice(0, 10);
     setHorizonsLoading(true);
     setHorizonsMarker(null);
@@ -481,7 +483,7 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
                 ]
                   .filter(Boolean)
                   .join(" ")}
-                onClick={() => { setSelectedBodyId(body.id); setSelectedCatalogEntry(null); setHorizonsMarker(null); }}
+                onClick={() => { setSelectedBodyId(body.id); setSelectedSearchResult(null); setSelectedCatalogEntry(null); setHorizonsMarker(null); }}
               >
                 <span
                   className="solar-browser__dot"
@@ -701,54 +703,138 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
             {locale === "it" ? "Caricamento posizione Horizons…" : "Fetching Horizons position…"}
           </p>
         )}
-        {horizonsMarker && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-            <div className="solar-inspector__row">
-              <span className="solar-inspector__label">
-                {locale === "it" ? "Corpo selezionato (Horizons)" : "Selected body (Horizons)"}
+        {(selectedSearchResult || horizonsMarker) && (
+          <div className="solar-inspector__catalog-panel" style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+
+            {/* Header row: name + clear button */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ color: "#00ffcc", fontWeight: 600, fontSize: "0.75rem" }}>
+                {selectedSearchResult?.name ?? horizonsMarker?.name ?? ""}
               </span>
-              <span className="solar-inspector__value" style={{ color: "#00ffcc" }}>
-                {horizonsMarker.name}
-              </span>
+              <button
+                className="solar-control"
+                style={{ fontSize: "0.60rem", padding: "1px 6px" }}
+                onClick={() => {
+                  setSelectedSearchResult(null);
+                  setSelectedCatalogEntry(null);
+                  setHorizonsMarker(null);
+                }}
+              >
+                ✕
+              </button>
             </div>
-            <div className="solar-inspector__row">
-              <span className="solar-inspector__label">
-                {locale === "it" ? "Precisione" : "Accuracy"}
-              </span>
-              <span className="solar-inspector__value" style={{ fontSize: "0.65rem", color: "#00ffcc" }}>
-                sub-km (JPL Horizons)
-              </span>
-            </div>
-            <div className="solar-inspector__row">
-              <span className="solar-inspector__label">Frame</span>
-              <span className="solar-inspector__value" style={{ fontSize: "0.65rem" }}>
-                {horizonsMarker.referenceFrame}
-              </span>
-            </div>
-            <div className="solar-inspector__row">
-              <span className="solar-inspector__label">
-                {locale === "it" ? "Dati alle" : "Data at"}
-              </span>
-              <span className="solar-inspector__value" style={{ fontSize: "0.65rem" }}>
-                {horizonsMarker.epochIso.slice(0, 10)}
-              </span>
-            </div>
-            <p style={{ fontSize: "0.60rem", color: "#4a7090", lineHeight: 1.4, margin: "4px 0 0" }}>
-              {selectedCatalogEntry
-                ? (locale === "it"
-                    ? "Percorso orbitale: elementi kepleriani SBDB. Il marcatore Horizons è la posizione sub-km alla data selezionata."
-                    : "Orbit path from SBDB catalog Keplerian elements. Horizons marker is the sub-km position at selected date.")
-                : (locale === "it"
-                    ? "Percorso orbitale non disponibile: attivare il layer catalogo corrispondente per visualizzarlo."
-                    : "Orbit path unavailable: activate the relevant catalog layer to display it.")}
-            </p>
-            <button
-              className="solar-control"
-              style={{ marginTop: 2, fontSize: "0.65rem" }}
-              onClick={() => setHorizonsMarker(null)}
-            >
-              {locale === "it" ? "Rimuovi marcatore" : "Clear marker"}
-            </button>
+
+            {/* Category + source badge */}
+            {selectedCatalogEntry && (
+              <div style={{ display: "flex", gap: 4 }}>
+                <span style={{ fontSize: "0.60rem", color: "#7aa0c0", background: "#1a2a3a", padding: "1px 5px", borderRadius: 3 }}>
+                  {selectedCatalogEntry.category}
+                </span>
+                {selectedCatalogEntry.isNEO && (
+                  <span style={{ fontSize: "0.60rem", color: "#ffa040", background: "#2a1a00", padding: "1px 5px", borderRadius: 3 }}>NEO</span>
+                )}
+                {selectedCatalogEntry.isPHA && (
+                  <span style={{ fontSize: "0.60rem", color: "#ff4040", background: "#2a0000", padding: "1px 5px", borderRadius: 3 }}>PHA</span>
+                )}
+              </div>
+            )}
+
+            {/* Orbital elements table — only when entry available */}
+            {selectedCatalogEntry && (() => {
+              const e = selectedCatalogEntry;
+              const perihelionAu = e.semiMajorAxisAu * (1 - e.eccentricity);
+              const aphelionAu = e.eccentricity < 1 ? e.semiMajorAxisAu * (1 + e.eccentricity) : null;
+              const epochDate = new Date((e.epochJd - 2440587.5) * 86400000).toISOString().slice(0, 10);
+              return (
+                <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: "2px 8px", fontSize: "0.60rem" }}>
+                  <span style={{ color: "#6080a0" }}>{locale === "it" ? "SBDB id" : "SBDB id"}</span>
+                  <span style={{ color: "#a0c0d0" }}>{e.id}</span>
+
+                  <span style={{ color: "#6080a0" }}>a</span>
+                  <span style={{ color: "#a0c0d0" }}>{e.semiMajorAxisAu.toFixed(4)} AU</span>
+
+                  <span style={{ color: "#6080a0" }}>e</span>
+                  <span style={{ color: "#a0c0d0" }}>{e.eccentricity.toFixed(4)}</span>
+
+                  <span style={{ color: "#6080a0" }}>i</span>
+                  <span style={{ color: "#a0c0d0" }}>{e.inclinationDeg.toFixed(2)}°</span>
+
+                  <span style={{ color: "#6080a0" }}>q (perihelio)</span>
+                  <span style={{ color: "#a0c0d0" }}>{perihelionAu.toFixed(4)} AU</span>
+
+                  {aphelionAu !== null && (
+                    <>
+                      <span style={{ color: "#6080a0" }}>Q (afelio)</span>
+                      <span style={{ color: "#a0c0d0" }}>{aphelionAu.toFixed(4)} AU</span>
+                    </>
+                  )}
+
+                  <span style={{ color: "#6080a0" }}>{locale === "it" ? "Periodo" : "Period"}</span>
+                  <span style={{ color: "#a0c0d0" }}>{e.periodDays > 365 ? `${(e.periodDays / 365.25).toFixed(1)} a` : `${e.periodDays.toFixed(1)} d`}</span>
+
+                  <span style={{ color: "#6080a0" }}>Epoca</span>
+                  <span style={{ color: "#a0c0d0" }}>{epochDate}</span>
+
+                  {e.absoluteMagnitude !== null && (
+                    <>
+                      <span style={{ color: "#6080a0" }}>H</span>
+                      <span style={{ color: "#a0c0d0" }}>{e.absoluteMagnitude.toFixed(1)}</span>
+                    </>
+                  )}
+
+                  {e.diameterKm !== null && (
+                    <>
+                      <span style={{ color: "#6080a0" }}>{locale === "it" ? "Diametro" : "Diameter"}</span>
+                      <span style={{ color: "#a0c0d0" }}>{e.diameterKm < 1 ? `${(e.diameterKm * 1000).toFixed(0)} m` : `${e.diameterKm.toFixed(1)} km`}</span>
+                    </>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* No orbital elements available */}
+            {!selectedCatalogEntry && selectedSearchResult && (
+              <p style={{ fontSize: "0.60rem", color: "#4a7090", margin: "2px 0 0", lineHeight: 1.4 }}>
+                {locale === "it"
+                  ? "Dati orbitali: attivare il layer catalogo per visualizzare percorso e dettagli."
+                  : "Orbital data: activate the relevant catalog layer to show path and details."}
+              </p>
+            )}
+
+            {/* Horizons marker sub-section */}
+            {horizonsMarker && (
+              <div style={{ borderTop: "1px solid #1a3050", paddingTop: 4, marginTop: 2 }}>
+                <div className="solar-inspector__row">
+                  <span className="solar-inspector__label" style={{ color: "#00ffcc" }}>
+                    {locale === "it" ? "Posizione Horizons (sub-km)" : "Horizons position (sub-km)"}
+                  </span>
+                </div>
+                <div className="solar-inspector__row">
+                  <span className="solar-inspector__label">Frame</span>
+                  <span className="solar-inspector__value" style={{ fontSize: "0.65rem" }}>{horizonsMarker.referenceFrame}</span>
+                </div>
+                <div className="solar-inspector__row">
+                  <span className="solar-inspector__label">{locale === "it" ? "Data" : "Date"}</span>
+                  <span className="solar-inspector__value" style={{ fontSize: "0.65rem" }}>{horizonsMarker.epochIso.slice(0, 10)}</span>
+                </div>
+                <p style={{ fontSize: "0.60rem", color: "#4a7090", lineHeight: 1.4, margin: "2px 0 0" }}>
+                  {selectedCatalogEntry
+                    ? (locale === "it"
+                        ? "Percorso: elementi SBDB. Marcatore: posizione Horizons alla data selezionata."
+                        : "Path: SBDB elements. Marker: Horizons position at selected date.")
+                    : (locale === "it"
+                        ? "Percorso non disponibile (layer catalogo non caricato)."
+                        : "Path unavailable (catalog layer not loaded).")}
+                </p>
+                {selectedCatalogEntry?.category === "comet" && (
+                  <p style={{ fontSize: "0.60rem", color: "#4a9090", lineHeight: 1.4, margin: "2px 0 0" }}>
+                    {locale === "it"
+                      ? "Coda visuale: direzione anti-solare; non simulazione gas/polvere."
+                      : "Visual tail: anti-solar direction; not a gas/dust simulation."}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         )}
 
