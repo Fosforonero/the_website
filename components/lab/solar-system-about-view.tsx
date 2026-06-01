@@ -596,7 +596,7 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
             <ul className="ss-about-limits">
               {(isIT ? [
                 "Posizioni orbitali: elementi kepleriani J2000 nel frame HEC-J2000. Non integrazioni numeriche, non vettori live JPL Horizons. Precisione: pochi milioni di km su scale di anni.",
-                "Orientamento assi: obliquità IAU 2015 corretta; polo IAU WGCCRE RA/Dec implementato per pianeti principali e Luna. Precessione e nutazione non modellate.",
+                "Orientamento assi: obliquità IAU 2015 corretta; polo IAU WGCCRE RA/Dec implementato per pianeti principali e Luna. Precessione e nutazione non modellate. Orientamento superficie (meridiano primo IAU WGCCRE): modello W = W0 + Ẇ·d implementato per Terra, Luna, Marte, Mercurio, Venere. Allineamento texture non verificato empiricamente.",
                 "Anelli: geometria semplificata; le proporzioni anello/pianeta sono fisicamente corrette. Mancano: divisione di Cassini, ombre degli anelli sul pianeta. Gli anelli usano un materiale a colore fisso (meshBasicMaterial) e non ricevono la luce solare della PointLight.",
                 "Illuminazione: la modalità educativa aggiunge un boost ambientale non fisico per la visibilità. La modalità fisica (1/r²) è disponibile ma rende i pianeti esterni molto scuri.",
                 "Raggi visivi: scala logaritmica educativa per categoria. I corpi sono molto più grandi del reale rispetto alle distanze. Dichiarato nell'ispettore sotto \"Scale attive\".",
@@ -605,7 +605,7 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
                 "Gravità e N-body: non implementati. Non ci sono forze gravitazionali tra i corpi.",
                 "Eclissi, ombre e transiti: non implementati.",
                 "Il catalogo stelle è un subset curato di Hipparcos (44 stelle), non il catalogo completo.",
-                "Mappe di visualizzazione integrate per Terra, Luna, Marte, Mercurio; gli altri corpi usano materiali procedurali. Si tratta di mappe di visualizzazione, non texture fotografiche scientificamente calibrate.",
+                "Mappe di visualizzazione integrate per Terra, Luna, Marte, Mercurio; gli altri corpi usano materiali procedurali. Si tratta di mappe di visualizzazione, non texture fotografiche scientificamente calibrate. Allineamento longitudine texture/superficie non verificato empiricamente (Sprint 05.2).",
                 "Atmosfera: gusci visivi per Terra, Venere, Marte, Titano. Non è una simulazione fisica — nessuna fluidodinamica, nessuna chimica, nessun modello di scattering atmosferico.",
                 "Catalog SBDB: posizioni da elementi kepleriani snapshot. Non vettori live. Precisione degrada per oggetti fortemente perturbati.",
                 "Corpo selezionato (Horizons): vettore Horizons cached 1h. Accurato sub-km al momento della query. Non aggiornato in tempo reale.",
@@ -614,7 +614,7 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
                 "Esplorazione Pianeta Nove/X: non implementata (ipotesi, non dati reali).",
               ] : [
                 "Orbital positions: J2000 Keplerian elements in the HEC-J2000 frame. Not numerical integrations, not live JPL Horizons vectors. Accuracy: a few million km over multi-year timescales.",
-                "Axis orientation: IAU 2015 obliquity correct; IAU WGCCRE RA/Dec pole implemented for major planets and Moon. Precession and nutation not modelled.",
+                "Axis orientation: IAU 2015 obliquity correct; IAU WGCCRE RA/Dec pole implemented for major planets and Moon. Precession and nutation not modelled. Surface orientation (IAU WGCCRE prime meridian): W = W0 + Ẇ·d model implemented for Earth, Moon, Mars, Mercury, Venus. Texture alignment not empirically verified.",
                 "Rings: simplified geometry; ring/planet proportions are physically correct. Missing: Cassini Division, ring shadow on planet. Rings use a fixed-colour material (meshBasicMaterial) and do not receive sunlight from the PointLight.",
                 "Lighting: educational mode adds a non-physical ambient boost for visibility. Physical mode (1/r²) is available but makes outer planets very dark.",
                 "Visual radii: educational logarithmic scale by category. Bodies are much larger than real scale relative to distances. Declared in inspector under \"Active scales\".",
@@ -623,7 +623,7 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
                 "Gravity and N-body: not implemented. No gravitational forces between bodies.",
                 "Eclipses, shadows, and transits: not implemented.",
                 "Star catalog is a curated subset of Hipparcos (44 stars), not the full catalog.",
-                "Visualization maps integrated for Earth, Moon, Mars, Mercury; other bodies use procedural materials. Maps are visualization maps, not scientifically calibrated textures.",
+                "Visualization maps integrated for Earth, Moon, Mars, Mercury; other bodies use procedural materials. Maps are visualization maps, not scientifically calibrated textures. Texture-to-surface longitude alignment not empirically verified (Sprint 05.2).",
                 "Atmosphere: visual shells for Earth, Venus, Mars, Titan. Not a physics simulation — no fluid dynamics, no chemistry, no atmospheric scattering model.",
                 "Catalog SBDB: positions from Keplerian element snapshots. Not live vectors. Accuracy degrades for highly perturbed objects.",
                 "Selected body (Horizons): Horizons vector cached 1h. Sub-km accurate at query time. Not updated in real time.",
