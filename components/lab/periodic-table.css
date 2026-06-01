@@ -2977,6 +2977,23 @@
     border-color: rgba(0,0,0,0.09);
   }
 
+  /* Material legend: move to top-right to avoid collision with temp-control
+     (bottom-center) and back button (top-left, ~105px wide). Hide verbose disclaimer. */
+  .pt-context-legend--material {
+    bottom: auto;
+    top: 12px;
+    left: auto;
+    right: 12px;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    max-width: calc(100% - 125px);
+    overflow: hidden;
+  }
+  .pt-context-legend--material .pt-context-legend__item--dim {
+    display: none;
+  }
+
   /* Orbital Inspector: bottom sheet on portrait mobile */
   .pt-orbital-panel {
     position: fixed;
