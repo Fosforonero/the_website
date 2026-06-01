@@ -65,7 +65,8 @@ C — Non ancora implementato:
 — Correzioni relativistiche (inclusa precessione del perielio di Mercurio).
 — massKg mostrato nell'ispettore ma non usato nella simulazione.
 — Modalità scala reale simultanea raggi+distanze.
-— Simulazione campo magnetico, tempeste solari, nube di Oort.`,
+— Simulazione campo magnetico, tempeste solari, nube di Oort.
+— Esplorazione ipotetica di Pianeta Nove / Pianeta X (non implementata).`,
       },
       navigation: {
         title: "Navigazione nella scena",
@@ -271,7 +272,7 @@ Per problemi di performance su hardware vecchio: prova a disattivare il firmamen
           },
           {
             q: "Quanti corpi sono inclusi?",
-            a: "Il laboratorio include ~28 corpi principali curati (Sole, pianeti, lune principali, pianeti nani, comete notevoli). Sprint 03B ha aggiunto uno snapshot SBDB con 26.132 corpi minori suddivisi in 5 livelli: NEO (41.780 — catalogo completo al 31/05/2026), fascia principale top-5.000, comete (~4.000), TNO (~6.000), centauri (~1.000). I livelli si attivano on-demand dalla toolbar.",
+            a: "Il laboratorio include ~28 corpi principali curati (Sole, pianeti, lune principali, pianeti nani, comete notevoli). I dati di catalogo provengono da uno snapshot SBDB con 26.132 corpi minori suddivisi in 5 livelli: NEO (41.780 — catalogo completo al 31/05/2026), fascia principale top-5.000, comete (~4.000), TNO (~6.000), centauri (~1.000). I livelli si attivano on-demand dalla toolbar.",
           },
           {
             q: "Da dove vengono i dati orbitali?",
@@ -340,7 +341,8 @@ C — Not yet implemented:
 — Relativistic corrections (including Mercury perihelion precession).
 — massKg shown in the inspector but not used in the simulation.
 — Simultaneous real-scale mode for both radii and distances.
-— Magnetic field simulation, solar storms, Oort cloud.`,
+— Magnetic field simulation, solar storms, Oort cloud.
+— Hypothetical Planet Nine / Planet X exploration (not implemented).`,
       },
       navigation: {
         title: "Scene navigation",
@@ -546,7 +548,7 @@ If you experience performance issues on older hardware: try disabling the star f
           },
           {
             q: "How many bodies are included?",
-            a: "The lab includes ~28 curated major bodies (Sun, planets, major moons, dwarf planets, notable comets). Sprint 03B added an SBDB snapshot with 26,132 minor bodies across 5 layers: NEOs (41,780 — complete catalog as of 2026-05-31), top-5,000 main belt, comets (~4,000), TNOs (~6,000), centaurs (~1,000). Layers activate on demand from the toolbar.",
+            a: "The lab includes ~28 curated major bodies (Sun, planets, major moons, dwarf planets, notable comets). Catalog data comes from an SBDB snapshot with 26,132 minor bodies across 5 layers: NEOs (41,780 — complete catalog as of 2026-05-31), top-5,000 main belt, comets (~4,000), TNOs (~6,000), centaurs (~1,000). Layers activate on demand from the toolbar.",
           },
           {
             q: "Where does the orbital data come from?",

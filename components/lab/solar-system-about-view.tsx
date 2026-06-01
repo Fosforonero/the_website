@@ -99,12 +99,12 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
   ];
 
   const ROADMAP = [
-    { done: true,  label: isIT ? "Sprint 01: Keplerian solver, catalogo corpi, firmamento Hipparcos, rendering WebGL procedural." : "Sprint 01: Keplerian solver, body catalog, Hipparcos firmament, procedural WebGL rendering." },
-    { done: true,  label: isIT ? "Sprint 02: Elementi orbitali completi (Ω, ω, M₀ J2000), percorsi orbitali ellittici campionati, scala raggi logaritmica categoriale, sistemi luna/satellite leggibili, playback giorni/sec." : "Sprint 02: Full orbital elements (Ω, ω, M₀ J2000), sampled elliptical orbit paths, category-aware log radius scaling, readable moon/satellite systems, days/sec playback." },
-    { done: true,  label: isIT ? "Sprint 03A: Fisica reale — inclinazione assiale IAU 2015, anelli Saturno/Urano, illuminazione 1/r², sistema di riferimento HEC-J2000, frame/accuracy nell'ispettore." : "Sprint 03A: Physical realism — IAU 2015 axial tilt, Saturn/Uranus rings, 1/r² lighting, HEC-J2000 reference frame, inspector frame/accuracy." },
-    { done: true,  label: isIT ? "Sprint 03B: Catalogo SBDB (NEO/MBA/comete/TNO/centauri), ricerca live SBDB, marcatore Horizons precisione sub-km, API routes solar/catalog/search e solar/horizons." : "Sprint 03B: SBDB catalog (NEO/MBA/comets/TNOs/centaurs), live SBDB search, sub-km Horizons precision marker, solar/catalog/search and solar/horizons API routes." },
-    { done: true,  label: isIT ? "Sprint 04: Polo IAU WGCCRE 2015 J2000 per pianeti principali e Luna (quaternione corretto nel renderer); catalogo NEO completo (41.780); sizing punti per magnitudine H." : "Sprint 04: IAU WGCCRE 2015 J2000 pole for major planets and Moon (correct quaternion in renderer); complete NEO catalog (41,780); catalog point sizing by H magnitude." },
-    { done: true,  label: isIT ? "Sprint 05: Mappe di visualizzazione reali (Terra/Luna/Marte/Mercurio); gusci atmosferici visivi (Terra/Venere/Marte/Titano); percorso orbitale per oggetti catalogo selezionati; disclosures aggiornate." : "Sprint 05: Real visualization maps (Earth/Moon/Mars/Mercury); visual atmosphere shells (Earth/Venus/Mars/Titan); orbit path for selected catalog objects; updated disclosures." },
+    { done: true,  label: isIT ? "Fondamenta: Keplerian solver, catalogo corpi, firmamento Hipparcos, rendering WebGL procedural." : "Foundation: Keplerian solver, body catalog, Hipparcos firmament, procedural WebGL rendering." },
+    { done: true,  label: isIT ? "Correzioni orbitali: Elementi orbitali completi (Ω, ω, M₀ J2000), percorsi orbitali ellittici campionati, scala raggi logaritmica categoriale, sistemi luna/satellite leggibili, playback giorni/sec." : "Orbital corrections: Full orbital elements (Ω, ω, M₀ J2000), sampled elliptical orbit paths, category-aware log radius scaling, readable moon/satellite systems, days/sec playback." },
+    { done: true,  label: isIT ? "Fisica reale: Inclinazione assiale IAU 2015, anelli Saturno/Urano, illuminazione 1/r², sistema di riferimento HEC-J2000, frame/accuracy nell'ispettore." : "Real physics: IAU 2015 axial tilt, Saturn/Uranus rings, 1/r² lighting, HEC-J2000 reference frame, inspector frame/accuracy." },
+    { done: true,  label: isIT ? "Catalogo SBDB: Catalogo SBDB (NEO/MBA/comete/TNO/centauri), ricerca live SBDB, marcatore Horizons precisione sub-km, API routes solar/catalog/search e solar/horizons." : "SBDB catalog: SBDB catalog (NEO/MBA/comets/TNOs/centaurs), live SBDB search, sub-km Horizons precision marker, solar/catalog/search and solar/horizons API routes." },
+    { done: true,  label: isIT ? "Orientamento polare IAU: Polo IAU WGCCRE 2015 J2000 per pianeti principali e Luna (quaternione corretto nel renderer); catalogo NEO completo (41.780); sizing punti per magnitudine H." : "IAU pole orientation: IAU WGCCRE 2015 J2000 pole for major planets and Moon (correct quaternion in renderer); complete NEO catalog (41,780); catalog point sizing by H magnitude." },
+    { done: true,  label: isIT ? "Asset visivi: Mappe di visualizzazione reali (Terra/Luna/Marte/Mercurio); gusci atmosferici visivi (Terra/Venere/Marte/Titano); percorso orbitale per oggetti catalogo selezionati; disclosures aggiornate." : "Visual assets: Real visualization maps (Earth/Moon/Mars/Mercury); visual atmosphere shells (Earth/Venus/Mars/Titan); orbit path for selected catalog objects; updated disclosures." },
   ];
 
   return (
@@ -611,6 +611,7 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
                 "Corpo selezionato (Horizons): vettore Horizons cached 1h. Accurato sub-km al momento della query. Non aggiornato in tempo reale.",
                 "Copertura catalogo: basata sullo snapshot SBDB alla data di recupero. Non si aggiorna automaticamente.",
                 "Catalogo NEO: snapshot completo SBDB (41.780 corpi al 31/05/2026).",
+                "Esplorazione Pianeta Nove/X: non implementata (ipotesi, non dati reali).",
               ] : [
                 "Orbital positions: J2000 Keplerian elements in the HEC-J2000 frame. Not numerical integrations, not live JPL Horizons vectors. Accuracy: a few million km over multi-year timescales.",
                 "Axis orientation: IAU 2015 obliquity correct; IAU WGCCRE RA/Dec pole implemented for major planets and Moon. Precession and nutation not modelled.",
@@ -628,6 +629,7 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
                 "Selected body (Horizons): Horizons vector cached 1h. Sub-km accurate at query time. Not updated in real time.",
                 "Catalog coverage: based on SBDB snapshot at retrieval date. Does not auto-refresh.",
                 "NEO catalog: complete SBDB snapshot (41,780 bodies as of 2026-05-31).",
+                "Planet Nine / Planet X exploration: not implemented (hypothesis, not real catalog data).",
               ]).map((text) => (
                 <li key={text}>
                   <span className="ss-about-limits-bullet" aria-hidden="true">—</span>
