@@ -26,6 +26,12 @@ export type SolarAsset = {
   retrievedAt: string;
   licenseNote: string;
   /**
+   * Sprint 05+: URL path served from /public, e.g. /lab/solar-system/textures/earth-2k.webp.
+   * Only set when the file physically exists on disk.
+   * confidence stays "procedural" until Task 2 verifies render output ("real-map").
+   */
+  localPath?: string;
+  /**
    * Sprint 05 target: URL of specific NASA/USGS texture product to download
    * and process into a web-ready equirectangular WebP.
    * NOT integrated yet — confidence remains "procedural" until file exists.
@@ -73,10 +79,11 @@ export const SOLAR_ASSETS: SolarAsset[] = [
     bodyId: "mercury",
     confidence: "procedural",
     fallbackMaterial: "rocky",
-    sourceUrl: "https://astrogeology.usgs.gov/search",
-    credit: "USGS Astrogeology / NASA MESSENGER",
-    retrievedAt: "2026-05-29",
-    licenseNote: "Placeholder; real texture requires download and processing from USGS source.",
+    sourceUrl: "https://svs.gsfc.nasa.gov/vis/a000000/a004800/a004869/",
+    credit: "NASA GSFC SVS / MESSENGER MDIS mosaic (via threex.planets)",
+    retrievedAt: "2026-06-01",
+    licenseNote: "NASA imagery is public domain for educational use; original data from NASA MESSENGER mission.",
+    localPath: "/lab/solar-system/textures/mercury-2k.webp",
     plannedTextureUrl: "https://astrogeology.usgs.gov/search/map/Mercury/Messenger/MDIS/Mercury_Messenger_MDIS_Basemap_BDR_Mosaic_Global_166m",
   },
   {
@@ -94,10 +101,11 @@ export const SOLAR_ASSETS: SolarAsset[] = [
     bodyId: "earth",
     confidence: "procedural",
     fallbackMaterial: "rocky",
-    sourceUrl: "https://visibleearth.nasa.gov/",
-    credit: "NASA Visible Earth / Blue Marble",
-    retrievedAt: "2026-05-29",
-    licenseNote: "NASA imagery is generally public domain for educational use; verify at nasa.gov.",
+    sourceUrl: "https://eoimages.gsfc.nasa.gov/images/imagerecords/74000/74117/world.200408.3x5400x2700.jpg",
+    credit: "NASA Visible Earth / Blue Marble Next Generation",
+    retrievedAt: "2026-06-01",
+    licenseNote: "NASA imagery is public domain for educational use; verify attribution requirements at visibleearth.nasa.gov.",
+    localPath: "/lab/solar-system/textures/earth-2k.webp",
     plannedTextureUrl: "https://visibleearth.nasa.gov/view.php?id=74117",
   },
   {
@@ -105,10 +113,11 @@ export const SOLAR_ASSETS: SolarAsset[] = [
     bodyId: "moon",
     confidence: "procedural",
     fallbackMaterial: "rocky",
-    sourceUrl: "https://astrogeology.usgs.gov/search",
-    credit: "USGS Astrogeology / NASA LRO",
-    retrievedAt: "2026-05-29",
-    licenseNote: "Placeholder; real texture requires download and processing from USGS source.",
+    sourceUrl: "https://svs.gsfc.nasa.gov/vis/a000000/a004700/a004720/lroc_color_2k.jpg",
+    credit: "NASA GSFC SVS / LRO LROC WAC mosaic",
+    retrievedAt: "2026-06-01",
+    licenseNote: "NASA imagery is public domain for educational use; verify attribution requirements at svs.gsfc.nasa.gov.",
+    localPath: "/lab/solar-system/textures/moon-2k.webp",
     plannedTextureUrl: "https://astrogeology.usgs.gov/search/map/Moon/LRO/LROC_WAC/Lunar_LRO_LROC-WAC_Mosaic_global_100m_June2013",
   },
   {
@@ -116,10 +125,11 @@ export const SOLAR_ASSETS: SolarAsset[] = [
     bodyId: "mars",
     confidence: "procedural",
     fallbackMaterial: "rocky",
-    sourceUrl: "https://astrogeology.usgs.gov/search",
-    credit: "USGS Astrogeology / NASA Viking",
-    retrievedAt: "2026-05-29",
-    licenseNote: "Placeholder; real texture requires download and processing from USGS source.",
+    sourceUrl: "https://raw.githubusercontent.com/jeromeetienne/threex.planets/master/images/marsmap1k.jpg",
+    credit: "NASA / USGS Viking Orbiter — Mars surface mosaic (via threex.planets)",
+    retrievedAt: "2026-06-01",
+    licenseNote: "NASA imagery is public domain for educational use; original data from NASA Viking Orbiter.",
+    localPath: "/lab/solar-system/textures/mars-2k.webp",
     plannedTextureUrl: "https://astrogeology.usgs.gov/search/map/Mars/Viking/MDIM21/Mars_Viking_MDIM21_ClrMosaic_global_232m",
   },
   {
