@@ -17,19 +17,29 @@ const SPRINT01_SOURCES: Array<keyof typeof SOLAR_SOURCES> = [
 
 const TEXTURE_SOURCES = [
   {
-    label: "NASA 3D Resources",
-    url: "https://science.nasa.gov/3d-resources/",
-    usage: { it: "Modelli 3D e texture planetarie future (sprint 02+).", en: "Future planet 3D models and textures (sprint 02+)." },
+    label: "NASA Visible Earth / Blue Marble Next Generation",
+    url: "https://visibleearth.nasa.gov/collection/1484/blue-marble-next-generation",
+    usage: { it: "Mappa di visualizzazione Terra (integrata).", en: "Earth visualization map (integrated)." },
   },
   {
-    label: "JPL Planetary Texture Maps",
-    url: "https://space.jpl.nasa.gov/tmaps/",
-    usage: { it: "Mappe superficiali ad alta risoluzione per texture future.", en: "High-resolution surface maps for future textures." },
+    label: "NASA GSFC SVS / LRO LROC WAC",
+    url: "https://svs.gsfc.nasa.gov/4720",
+    usage: { it: "Mappa di visualizzazione Luna (integrata).", en: "Moon visualization map (integrated)." },
+  },
+  {
+    label: "NASA / USGS Viking Orbiter",
+    url: "https://astrogeology.usgs.gov/search/map/Mars/Viking/MDIM21/Mars_Viking_MDIM21_ClrMosaic_global_232m",
+    usage: { it: "Mappa di visualizzazione Marte (integrata, via mirror).", en: "Mars visualization map (integrated, via mirror)." },
+  },
+  {
+    label: "NASA GSFC SVS / MESSENGER MDIS",
+    url: "https://svs.gsfc.nasa.gov/4341",
+    usage: { it: "Mappa di visualizzazione Mercurio (integrata, via mirror).", en: "Mercury visualization map (integrated, via mirror)." },
   },
   {
     label: "USGS Astrogeology",
     url: "https://astrogeology.usgs.gov/search",
-    usage: { it: "Mappe planetarie e mosaici per texture future.", en: "Planetary maps and mosaics for future texture processing." },
+    usage: { it: "Mappe planetarie e mosaici per corpi futuri.", en: "Planetary maps and mosaics for future bodies." },
   },
   {
     label: "NASA Media Guidelines",
@@ -94,7 +104,7 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
     { done: true,  label: isIT ? "Sprint 03A: Fisica reale — inclinazione assiale IAU 2015, anelli Saturno/Urano, illuminazione 1/r², sistema di riferimento HEC-J2000, frame/accuracy nell'ispettore." : "Sprint 03A: Physical realism — IAU 2015 axial tilt, Saturn/Uranus rings, 1/r² lighting, HEC-J2000 reference frame, inspector frame/accuracy." },
     { done: true,  label: isIT ? "Sprint 03B: Catalogo SBDB (NEO/MBA/comete/TNO/centauri), ricerca live SBDB, marcatore Horizons precisione sub-km, API routes solar/catalog/search e solar/horizons." : "Sprint 03B: SBDB catalog (NEO/MBA/comets/TNOs/centaurs), live SBDB search, sub-km Horizons precision marker, solar/catalog/search and solar/horizons API routes." },
     { done: true,  label: isIT ? "Sprint 04: Polo IAU WGCCRE 2015 J2000 per pianeti principali e Luna (quaternione corretto nel renderer); catalogo NEO completo (41.780); sizing punti per magnitudine H." : "Sprint 04: IAU WGCCRE 2015 J2000 pole for major planets and Moon (correct quaternion in renderer); complete NEO catalog (41,780); catalog point sizing by H magnitude." },
-    { done: false, label: isIT ? "Sprint 05: Satelliti artificiali CelesTrak; modalità sandbox con fisica." : "Sprint 05: CelesTrak artificial satellites; sandbox physics mode." },
+    { done: true,  label: isIT ? "Sprint 05: Mappe di visualizzazione reali (Terra/Luna/Marte/Mercurio); gusci atmosferici visivi (Terra/Venere/Marte/Titano); percorso orbitale per oggetti catalogo selezionati; disclosures aggiornate." : "Sprint 05: Real visualization maps (Earth/Moon/Mars/Mercury); visual atmosphere shells (Earth/Venus/Mars/Titan); orbit path for selected catalog objects; updated disclosures." },
   ];
 
   return (
@@ -509,10 +519,10 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
             </ul>
           </section>
 
-          {/* Sprint 03B catalog data */}
+          {/* Minor body catalog data */}
           <section className="ss-about-section" aria-labelledby="ss-s-catalog">
             <h2 className="ss-about-section-title" id="ss-s-catalog">
-              {isIT ? "DATI CATALOGO CORPI MINORI (SPRINT 03B)" : "MINOR BODY CATALOG DATA (SPRINT 03B)"}
+              {isIT ? "DATI CATALOGO CORPI MINORI" : "MINOR BODY CATALOG DATA"}
             </h2>
             <div className="ss-about-notice">
               <strong>{isIT ? "Snapshot statico:" : "Static snapshot:"}</strong>{" "}
@@ -548,13 +558,13 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
           {/* Texture and 3D asset sources */}
           <section className="ss-about-section" aria-labelledby="ss-s-textures">
             <h2 className="ss-about-section-title" id="ss-s-textures">
-              {isIT ? "TEXTURE E ASSET 3D (SPRINT 02+)" : "TEXTURES AND 3D ASSETS (SPRINT 02+)"}
+              {isIT ? "MAPPE DI VISUALIZZAZIONE E CREDITI ASSET" : "VISUALIZATION MAPS AND ASSET CREDITS"}
             </h2>
             <div className="ss-about-notice">
               <strong>{isIT ? "Stato attuale:" : "Current status:"}</strong>{" "}
               {isIT
-                ? "Tutti i materiali sono procedurali. Nessuna texture reale è ancora stata integrata. Le seguenti fonti saranno utilizzate in sprint futuri."
-                : "All materials are procedural. No real texture maps have been integrated yet. The following sources will be used in future sprints."}
+                ? "Mappe di visualizzazione NASA/USGS integrate per Terra, Luna, Marte e Mercurio. Gli altri corpi usano materiali procedurali. Le mappe sono di visualizzazione, non texture fotografiche scientificamente calibrate. Per corpi futuri si utilizzeranno le seguenti fonti."
+                : "NASA/USGS visualization maps integrated for Earth, Moon, Mars, and Mercury. Other bodies use procedural materials. Maps are visualization maps, not scientifically calibrated photographic textures. Additional bodies will use the following sources."}
             </div>
             <ul className="ss-about-sources">
               {TEXTURE_SOURCES.map(({ label, url, usage }) => (
@@ -586,7 +596,7 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
             <ul className="ss-about-limits">
               {(isIT ? [
                 "Posizioni orbitali: elementi kepleriani J2000 nel frame HEC-J2000. Non integrazioni numeriche, non vettori live JPL Horizons. Precisione: pochi milioni di km su scale di anni.",
-                "Orientamento assi: obliquità IAU 2015 corretta; azimut del polo approssimato (RA/Dec IAU WGCCRE in Sprint 04). Precessione e nutazione non modellate.",
+                "Orientamento assi: obliquità IAU 2015 corretta; polo IAU WGCCRE RA/Dec implementato per pianeti principali e Luna. Precessione e nutazione non modellate.",
                 "Anelli: geometria semplificata; le proporzioni anello/pianeta sono fisicamente corrette. Mancano: divisione di Cassini, ombre degli anelli sul pianeta. Gli anelli usano un materiale a colore fisso (meshBasicMaterial) e non ricevono la luce solare della PointLight.",
                 "Illuminazione: la modalità educativa aggiunge un boost ambientale non fisico per la visibilità. La modalità fisica (1/r²) è disponibile ma rende i pianeti esterni molto scuri.",
                 "Raggi visivi: scala logaritmica educativa per categoria. I corpi sono molto più grandi del reale rispetto alle distanze. Dichiarato nell'ispettore sotto \"Scale attive\".",
@@ -595,14 +605,15 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
                 "Gravità e N-body: non implementati. Non ci sono forze gravitazionali tra i corpi.",
                 "Eclissi, ombre e transiti: non implementati.",
                 "Il catalogo stelle è un subset curato di Hipparcos (44 stelle), non il catalogo completo.",
-                "Le texture sono procedurali; i dettagli superficiali non sono scientificamente rappresentativi.",
+                "Mappe di visualizzazione integrate per Terra, Luna, Marte, Mercurio; gli altri corpi usano materiali procedurali. Si tratta di mappe di visualizzazione, non texture fotografiche scientificamente calibrate.",
+                "Atmosfera: gusci visivi per Terra, Venere, Marte, Titano. Non è una simulazione fisica — nessuna fluidodinamica, nessuna chimica, nessun modello di scattering atmosferico.",
                 "Catalog SBDB: posizioni da elementi kepleriani snapshot. Non vettori live. Precisione degrada per oggetti fortemente perturbati.",
                 "Corpo selezionato (Horizons): vettore Horizons cached 1h. Accurato sub-km al momento della query. Non aggiornato in tempo reale.",
                 "Copertura catalogo: basata sullo snapshot SBDB alla data di recupero. Non si aggiorna automaticamente.",
-                "Catalogo NEO: snapshot limitato a 10.000 corpi su ~42.000 noti.",
+                "Catalogo NEO: snapshot completo SBDB (41.780 corpi al 31/05/2026).",
               ] : [
                 "Orbital positions: J2000 Keplerian elements in the HEC-J2000 frame. Not numerical integrations, not live JPL Horizons vectors. Accuracy: a few million km over multi-year timescales.",
-                "Axis orientation: IAU 2015 obliquity correct; pole azimuth approximated (IAU WGCCRE RA/Dec in Sprint 04). Precession and nutation not modelled.",
+                "Axis orientation: IAU 2015 obliquity correct; IAU WGCCRE RA/Dec pole implemented for major planets and Moon. Precession and nutation not modelled.",
                 "Rings: simplified geometry; ring/planet proportions are physically correct. Missing: Cassini Division, ring shadow on planet. Rings use a fixed-colour material (meshBasicMaterial) and do not receive sunlight from the PointLight.",
                 "Lighting: educational mode adds a non-physical ambient boost for visibility. Physical mode (1/r²) is available but makes outer planets very dark.",
                 "Visual radii: educational logarithmic scale by category. Bodies are much larger than real scale relative to distances. Declared in inspector under \"Active scales\".",
@@ -611,11 +622,12 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
                 "Gravity and N-body: not implemented. No gravitational forces between bodies.",
                 "Eclipses, shadows, and transits: not implemented.",
                 "Star catalog is a curated subset of Hipparcos (44 stars), not the full catalog.",
-                "Textures are procedural; surface details are not scientifically representative.",
+                "Visualization maps integrated for Earth, Moon, Mars, Mercury; other bodies use procedural materials. Maps are visualization maps, not scientifically calibrated textures.",
+                "Atmosphere: visual shells for Earth, Venus, Mars, Titan. Not a physics simulation — no fluid dynamics, no chemistry, no atmospheric scattering model.",
                 "Catalog SBDB: positions from Keplerian element snapshots. Not live vectors. Accuracy degrades for highly perturbed objects.",
                 "Selected body (Horizons): Horizons vector cached 1h. Sub-km accurate at query time. Not updated in real time.",
                 "Catalog coverage: based on SBDB snapshot at retrieval date. Does not auto-refresh.",
-                "NEO catalog: snapshot capped at 10,000 bodies out of ~42,000 known.",
+                "NEO catalog: complete SBDB snapshot (41,780 bodies as of 2026-05-31).",
               ]).map((text) => (
                 <li key={text}>
                   <span className="ss-about-limits-bullet" aria-hidden="true">—</span>
@@ -633,14 +645,14 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
             <ul className="ss-about-limits">
               {(isIT ? [
                 "Canvas WebGL caricato via dynamic import (SSR-safe).",
-                "Nessuna texture pesante (materiali procedurali).",
+                "Mappe di visualizzazione per 4 corpi (Terra, Luna, Marte, Mercurio); gli altri corpi usano materiali procedurali leggeri.",
                 "Corpi principali curati: ~28 (pianeti, lune, pianeti nani, comete notevoli).",
-                "Sprint 03B: snapshot SBDB da 26.132 corpi minori caricati on-demand come livelli di punti. NEO limitati a 10.000 su ~42.000 noti.",
+                "Snapshot SBDB: 26.132 corpi minori caricati on-demand come livelli di punti. Catalogo NEO completo (41.780 corpi).",
               ] : [
                 "WebGL canvas loaded via dynamic import (SSR-safe).",
-                "No heavy texture maps (procedural materials).",
+                "Visualization maps for 4 bodies (Earth, Moon, Mars, Mercury); other bodies use lightweight procedural materials.",
                 "Curated major bodies: ~28 (planets, moons, dwarf planets, notable comets).",
-                "Sprint 03B: SBDB snapshot of 26,132 minor bodies loaded on-demand as point layers. NEOs capped at 10,000 out of ~42,000 known.",
+                "SBDB snapshot: 26,132 minor bodies loaded on-demand as point layers. Complete NEO catalog (41,780 bodies).",
               ]).map((text) => (
                 <li key={text}>
                   <span className="ss-about-limits-bullet" aria-hidden="true">—</span>

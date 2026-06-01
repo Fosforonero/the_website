@@ -45,14 +45,18 @@ A — Fisica rispettata:
 — Fase di rotazione siderale: calcolata dal periodo siderale reale a partire da J2000.0.
 — Proporzioni degli anelli: i rapporti anello/pianeta sono fisicamente corretti.
 — Catalogo stellare Hipparcos (44 stelle nominate, posizioni RA/Dec J2000 reali).
+— Mappe di visualizzazione NASA/USGS integrate per Terra, Luna, Marte, Mercurio.
+— Gusci atmosferici visivi per Terra, Venere, Marte, Titano.
+— Percorso orbitale disponibile per oggetti selezionati dal catalogo (elementi SBDB).
 
 B — Fisica approssimata/educativa (dichiarata nell'UI):
 — Scala raggi "Visibile" (default): logaritmica categoriale, non proporzionale. Dichiarata.
 — Distanze lune: boost ×200 per leggibilità. Dichiarato.
 — Illuminazione educativa (default): 1/r² + boost ambientale dichiarato.
-— Lato notte/giorno: shading Three.js su sfere senza texture; nessuna eclissi.
-— Direzione del polo (pianeti principali + Luna): IAU WGCCRE 2015 J2000, implementata Sprint 04. Lune minori e corpi del catalogo: approssimazione asse-X Sprint 03A.
+— Lato notte/giorno: shading Three.js; nessuna eclissi.
+— Direzione del polo (pianeti principali + Luna): IAU WGCCRE 2015 J2000 implementata. Lune minori e corpi del catalogo: approssimazione asse-X.
 — Anelli: colore fisso (non ricevono la luce solare della PointLight).
+— Atmosfera: gusci visivi, non simulazione fisica di fluidi.
 
 C — Non ancora implementato:
 — Gravità newtoniana / N-body: le orbite sono elementi kepleriani statici.
@@ -60,7 +64,8 @@ C — Non ancora implementato:
 — Eclissi, ombre, transiti.
 — Correzioni relativistiche (inclusa precessione del perielio di Mercurio).
 — massKg mostrato nell'ispettore ma non usato nella simulazione.
-— Texture superficiali reali (roadmap).`,
+— Modalità scala reale simultanea raggi+distanze.
+— Simulazione campo magnetico, tempeste solari, nube di Oort.`,
       },
       navigation: {
         title: "Navigazione nella scena",
@@ -74,7 +79,7 @@ Pan (trasla lateralmente): tieni premuto il pulsante destro del mouse (o il tast
 
 Seleziona un corpo: fai clic su qualsiasi corpo celeste visibile nella scena 3D per selezionarlo. Il corpo selezionato appare evidenziato e i suoi dati vengono caricati nell'ispettore laterale. Puoi anche selezionare un corpo dal pannello del browser dei corpi celesti.
 
-Recentra sulla selezione: dopo aver selezionato un corpo, la camera può essere riorientata verso di esso usando il pulsante "Centra" nell'ispettore (funzione in attivazione nella Sprint 01).`,
+Recentra sulla selezione: dopo aver selezionato un corpo, la camera può essere riorientata verso di esso usando i controlli orbitali integrati.`,
       },
       timeControls: {
         title: "Controlli del tempo",
@@ -120,19 +125,19 @@ Unità: chilometri.
 
 Questo sistema NON coincide con le coordinate equatoriali ICRF/J2000 (usate da SIMBAD, Gaia, ecc.). La conversione richiede una rotazione di ~23.44° attorno all'asse x (obliquità dell'eclittica, IAU 2006).
 
-Cosa è approssimato: l'origine è al Sole, non al vero baricentro; le posizioni vengono da elementi kepleriani, non da integrazione numerica; l'azimut del polo planetario è approssimato (RA/Dec IAU WGCCRE previsto per Sprint 04).`,
+Cosa è approssimato: l'origine è al Sole, non al vero baricentro; le posizioni vengono da elementi kepleriani, non da integrazione numerica. Il polo IAU WGCCRE 2015 è implementato per i pianeti principali e la Luna; lune minori e corpi del catalogo usano un'approssimazione.`,
       },
       axialTilt: {
         title: "Inclinazione assiale e rotazione",
-        content: `Inclinazione assiale — Sprint 04: i pianeti principali (Mercurio, Venere, Terra, Marte, Giove, Saturno, Urano, Nettuno, Luna, Plutone) usano il polo IAU WGCCRE 2015 nel frame eclittico. Il vettore del polo è calcolato dalla RA/Dec ICRF J2000 e applicato come quaternione nel renderer. Questo corregge l'approssimazione Sprint 03A (asse X della scena): Urano, ad esempio, mostra ora l'asse corretto quasi nel piano dell'eclittica.
+        content: `I pianeti principali (Mercurio, Venere, Terra, Marte, Giove, Saturno, Urano, Nettuno, Luna, Plutone) usano il polo IAU WGCCRE 2015 nel frame eclittico. Il vettore del polo è calcolato dalla RA/Dec ICRF J2000 e applicato come quaternione nel renderer. Questo assicura che Urano mostri l'asse corretto quasi nel piano dell'eclittica.
 
-Lune minori, asteroidi e comete: usano ancora l'approssimazione asse-X Sprint 03A (errore < 3° per corpi con inclinazione orbitale bassa). Correzione per-corpo: Sprint 05.
+Lune minori, asteroidi e comete: usano un'approssimazione dell'asse (errore < 3° per corpi con inclinazione orbitale bassa).
 
 Rotazione retrograda: Venere (177°), Urano (98°) e Plutone (120°) ruotano in senso retrogrado. L'ispettore mostra la precisione del modello: "iau-pole-vector" (verde) per i pianeti principali, "axial-tilt-approximate" per gli altri.
 
-Anelli: Saturno (74.500–140.220 km) e Urano (38.000–51.149 km). Il piano degli anelli è allineato all'equatore del pianeta, ora calcolato con il polo IAU WGCCRE corretto.
+Anelli: Saturno (74.500–140.220 km) e Urano (38.000–51.149 km). Il piano degli anelli è allineato all'equatore del pianeta, calcolato con il polo IAU WGCCRE corretto.
 
-Nota tecnica: precessione e nutazione degli assi non sono ancora modellate (Sprint 05+).`,
+Nota tecnica: precessione e nutazione degli assi non sono ancora modellate.`,
       },
       lighting: {
         title: "Illuminazione",
@@ -152,15 +157,15 @@ Pianeti (8): Mercurio, Venere, Terra, Marte, Giove, Saturno, Urano, Nettuno. Cla
 
 Pianeti nani: Plutone, Cerere, Eris, Makemake, Haumea. Classificazione IAU 2006.
 
-Lune: la Luna (Terra), Titano, Europa, Ganimede, Callisto, Io, Tritone, e altre lune principali dei pianeti giganti. Sprint 01 include un sottoinsieme curato.
+Lune: la Luna (Terra), Titano, Europa, Ganimede, Callisto, Io, Tritone, e altre lune principali dei pianeti giganti. Sottoinsieme curato manualmente.
 
-Asteroidi: corpi minori della fascia principale. Sprint 01 include un sottoinsieme rappresentativo (Vesta, Pallade, ecc.).
+Asteroidi: corpi minori della fascia principale. Include un sottoinsieme rappresentativo (Vesta, Pallade, ecc.).
 
-Comete: corpi con orbite molto eccentriche. Sprint 01 include alcune comete notevoli (es. 1P/Halley).
+Comete: corpi con orbite molto eccentriche. Include alcune comete notevoli (es. 1P/Halley).
 
-Oggetti Transnettuniani (TNO): corpi oltre l'orbita di Nettuno, inclusa la fascia di Kuiper. Sprint 01 include i TNO più noti.
+Oggetti Transnettuniani (TNO): corpi oltre l'orbita di Nettuno, inclusa la fascia di Kuiper. Include i TNO più noti.
 
-I corpi principali (pianeti, lune, pianeti nani, comete notevoli) sono dati curati manualmente. Sprint 03B ha aggiunto uno snapshot SBDB con 26.132 corpi minori (NEO, fascia principale, comete, TNO, centauri) visualizzati come livelli di punti attivabili. Un catalogo completo auto-aggiornante è in roadmap.`,
+I corpi principali (pianeti, lune, pianeti nani, comete notevoli) sono dati curati manualmente. Uno snapshot SBDB aggiunge 26.132 corpi minori (NEO, fascia principale, comete, TNO, centauri) visualizzati come livelli di punti attivabili. Un catalogo completo auto-aggiornante è in roadmap.`,
       },
       inspector: {
         title: "Campi dell'ispettore",
@@ -186,13 +191,11 @@ Confidenza asset: indica il livello di fedeltà della rappresentazione visiva de
         title: "Etichette di confidenza visiva",
         content: `Ogni corpo ha un'etichetta di confidenza che descrive quanto è fedele la sua rappresentazione visiva:
 
-Procedurale: il corpo è renderizzato con un colore approssimativo e una forma sferica generica. Non c'è una mappa superficiale reale. Questo è il livello attuale per la maggior parte dei corpi nell'MVP Sprint 01. Il colore è scelto in base alla categoria e ai dati disponibili, ma non è fotograficamente accurato.
+Procedurale: il corpo è renderizzato con un colore approssimativo e una forma sferica generica. Non c'è una mappa superficiale reale. Il colore è scelto in base alla categoria e ai dati disponibili, ma non è fotograficamente accurato. Questo è il livello attuale per la maggior parte dei corpi.
 
 Simbolico: il corpo è rappresentato solo da un indicatore puntiforme o da un marker, senza geometria 3D. Usato per corpi molto piccoli o distanti dove la geometria non ha senso alla scala corrente.
 
-Mesh reale (roadmap): una mesh 3D modellata su dati topografici reali (USGS, NASA DEM). Pianificata per Sprint 02+ per Terre, Luna, Marte e altri corpi ben documentati.
-
-Mappa reale (roadmap): texture fotografica da dati NASA/USGS/JAXA applicata alla mesh. Pianificata per Sprint 02+ insieme alle mesh reali.`,
+Mappa reale (NASA/USGS): mappa di visualizzazione da dati NASA/USGS applicata alla sfera. Attualmente integrata per Terra, Luna, Marte e Mercurio. Queste sono mappe di visualizzazione, non texture fotografiche scientificamente calibrate.`,
       },
       catalogLayers: {
         title: "Livelli catalogo",
@@ -221,7 +224,7 @@ In arrivo: il catalogo completo Gaia (oltre 1 miliardo di stelle) è pianificato
       },
       sandboxRoadmap: {
         title: "Roadmap: modalità sandbox",
-        content: `La modalità sandbox è una funzionalità pianificata per un sprint futuro. Non è disponibile nell'MVP Sprint 01.
+        content: `La modalità sandbox è una funzionalità pianificata per un futuro sprint. Non è disponibile nella versione attuale.
 
 In modalità sandbox, l'utente potrà:
 — Aggiungere corpi celesti personalizzati (nome, massa, raggio, posizione, velocità iniziale).
@@ -237,9 +240,9 @@ La modalità attuale mostra esclusivamente i dati reali del sistema solare. Non 
 
 Desktop: l'esperienza principale. Il canvas WebGL e tutti i pannelli sono progettati per schermi da 1280px in su. Testato su Chrome, Firefox e Safari.
 
-Mobile: il canvas si renderizza correttamente anche su dispositivi mobili. I controlli (pannelli laterali, toolbar) potrebbero risultare sovrapposti o ridotti su schermi piccoli. I gesti touch per la navigazione (ruota, zoom, pan) sono parzialmente supportati in Sprint 01. Sprint futuri aggiungeranno pannelli collassabili e gesture ottimizzate per touch.
+Mobile: il canvas si renderizza correttamente anche su dispositivi mobili. I controlli (pannelli laterali, toolbar) potrebbero risultare sovrapposti o ridotti su schermi piccoli. I gesti touch per la navigazione (ruota, zoom, pan) sono parzialmente supportati. Sprint futuri aggiungeranno pannelli collassabili e gesture ottimizzate per touch.
 
-Performance: il caricamento del modulo WebGL avviene tramite dynamic import (lazy loading), quindi non impatta il caricamento iniziale della pagina. Nessuna texture pesante (materiali procedurali). Il numero di corpi principali è ~28; i livelli catalogo SBDB (fino a 26.132 punti) si caricano on-demand solo quando attivati. Il rendering è ottimizzato con requestAnimationFrame e aggiornamenti posizionali ogni 100ms.
+Performance: il caricamento del modulo WebGL avviene tramite dynamic import (lazy loading), quindi non impatta il caricamento iniziale della pagina. Il numero di corpi principali è ~28; i livelli catalogo SBDB (fino a 26.132 punti) si caricano on-demand solo quando attivati. Il rendering è ottimizzato con requestAnimationFrame e aggiornamenti posizionali ogni 100ms.
 
 Per problemi di performance su hardware vecchio: prova a disattivare il firmamento stellare dal pannello impostazioni (riduce il numero di vertex da renderizzare).`,
       },
@@ -259,8 +262,8 @@ Per problemi di performance su hardware vecchio: prova a disattivare il firmamen
             a: "Non nell'MVP. La modalità sandbox, che permetterà di aggiungere corpi con massa e velocità iniziale personalizzate, è in roadmap per un futuro sprint.",
           },
           {
-            q: "Perché i pianeti sono solo sfere colorate?",
-            a: "Le texture superficiali reali richiedono elaborazione di dati NASA/USGS (mappe altimetriche, immagini multispettrali). Questo lavoro è pianificato per Sprint 02. Nell'MVP, la rappresentazione è procedurale: colore approssimativo + forma sferica.",
+            q: "Perché alcuni pianeti hanno texture e altri no?",
+            a: "Mappe di visualizzazione NASA/USGS sono integrate per Terra, Luna, Marte e Mercurio. Gli altri corpi usano una rappresentazione procedurale: colore approssimativo + forma sferica. Mappe aggiuntive sono in roadmap per sprint futuri.",
           },
           {
             q: "Che catalogo stellare viene usato?",
@@ -317,14 +320,18 @@ A — Physics genuinely respected:
 — Sidereal rotation phase: computed from the real sidereal period from J2000.0.
 — Ring proportions: ring/planet ratios are physically correct.
 — Hipparcos star catalog (44 named stars, real J2000 RA/Dec positions).
+— NASA/USGS visualization maps integrated for Earth, Moon, Mars, Mercury.
+— Visual atmosphere shells for Earth, Venus, Mars, Titan.
+— Orbit path available for catalog objects selected via search (SBDB elements).
 
 B — Approximated or educational (disclosed in the UI):
 — "Visible" radius scale (default): logarithmic category-based, not proportional. Disclosed.
 — Moon distances: ~200× boost for legibility. Disclosed.
 — Educational lighting (default): 1/r² + declared ambient boost.
-— Day/night side: Three.js shading on untextured spheres; no eclipse shadow casting.
-— Pole direction: ecliptic approximation, not per-body IAU WGCCRE RA/Dec. Planned Sprint 04.
+— Day/night side: Three.js shading; no eclipse shadow casting.
+— Pole direction (major planets + Moon): IAU WGCCRE 2015 J2000 implemented. Minor moons and catalog bodies use an approximation.
 — Rings: fixed colour (do not receive sunlight from the PointLight).
+— Atmosphere: visual shells, not a fluid dynamics simulation.
 
 C — Not yet implemented:
 — Newtonian gravity / N-body: orbits are static Keplerian elements.
@@ -332,7 +339,8 @@ C — Not yet implemented:
 — Eclipses, shadows, transits.
 — Relativistic corrections (including Mercury perihelion precession).
 — massKg shown in the inspector but not used in the simulation.
-— Real surface textures (roadmap).`,
+— Simultaneous real-scale mode for both radii and distances.
+— Magnetic field simulation, solar storms, Oort cloud.`,
       },
       navigation: {
         title: "Scene navigation",
@@ -346,7 +354,7 @@ Pan (lateral translation): hold the right mouse button (or middle button) and dr
 
 Select a body: click on any visible celestial body in the 3D scene to select it. The selected body is highlighted and its data is loaded into the side inspector panel. You can also select a body from the body browser panel.
 
-Re-center on selection: after selecting a body, the camera can be re-oriented toward it using the "Center" button in the inspector (activating in Sprint 01).`,
+Re-center on selection: after selecting a body, the camera can be re-oriented toward it using the built-in orbital controls.`,
       },
       timeControls: {
         title: "Time controls",
@@ -392,19 +400,19 @@ Units: kilometres.
 
 This is NOT the same as equatorial ICRF/J2000 (used by SIMBAD, Gaia, etc.). The conversion requires a ~23.44° rotation around x (obliquity of the ecliptic, IAU 2006).
 
-What is approximated: origin is at the Sun, not the true barycentre; positions come from Keplerian elements, not numerical integration. Pole direction: IAU WGCCRE RA/Dec implemented for major planets and Moon (Sprint 04); minor moons and catalog bodies still use the Sprint 03A X-axis approximation.`,
+What is approximated: origin is at the Sun, not the true barycentre; positions come from Keplerian elements, not numerical integration. IAU WGCCRE RA/Dec pole is implemented for major planets and Moon; minor moons and catalog bodies use an X-axis approximation.`,
       },
       axialTilt: {
         title: "Axial tilt and rotation",
-        content: `Axial tilt — Sprint 04: major planets (Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune, Moon, Pluto) now use the IAU WGCCRE 2015 pole in ecliptic frame. The pole vector is computed from ICRF J2000 RA/Dec and applied as a quaternion in the renderer. This corrects the Sprint 03A scene-X approximation: Uranus, for example, now shows its axis correctly near the ecliptic plane.
+        content: `Major planets (Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune, Moon, Pluto) use the IAU WGCCRE 2015 pole in ecliptic frame. The pole vector is computed from ICRF J2000 RA/Dec and applied as a quaternion in the renderer. This ensures Uranus shows its axis correctly near the ecliptic plane.
 
-Minor moons, asteroids and comets: still use the Sprint 03A scene-X approximation (error < 3° for bodies with low orbital inclination). Per-body correction: Sprint 05.
+Minor moons, asteroids and comets: use a scene-X axis approximation (error < 3° for bodies with low orbital inclination).
 
 Retrograde rotation: Venus (177°), Uranus (98°) and Pluto (120°) rotate retrograde. The inspector shows the model accuracy: "iau-pole-vector" (green) for major planets, "axial-tilt-approximate" for others.
 
-Rings: Saturn (74,500–140,220 km) and Uranus (38,000–51,149 km). The ring plane is aligned to the planet's equator, now computed using the correct IAU WGCCRE pole.
+Rings: Saturn (74,500–140,220 km) and Uranus (38,000–51,149 km). The ring plane is aligned to the planet's equator, computed using the correct IAU WGCCRE pole.
 
-Technical note: precession and nutation of rotation axes are not yet modelled (Sprint 05+).`,
+Technical note: precession and nutation of rotation axes are not yet modelled.`,
       },
       lighting: {
         title: "Lighting",
@@ -424,15 +432,15 @@ Planets (8): Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune. IAU 
 
 Dwarf planets: Pluto, Ceres, Eris, Makemake, Haumea. IAU 2006 classification.
 
-Moons: the Moon (Earth), Titan, Europa, Ganymede, Callisto, Io, Triton, and other major moons of the giant planets. Sprint 01 includes a curated subset.
+Moons: the Moon (Earth), Titan, Europa, Ganymede, Callisto, Io, Triton, and other major moons of the giant planets. Manually curated subset.
 
-Asteroids: minor bodies of the main belt. Sprint 01 includes a representative subset (Vesta, Pallas, etc.).
+Asteroids: minor bodies of the main belt. Includes a representative subset (Vesta, Pallas, etc.).
 
-Comets: bodies with highly eccentric orbits. Sprint 01 includes some notable comets (e.g. 1P/Halley).
+Comets: bodies with highly eccentric orbits. Includes some notable comets (e.g. 1P/Halley).
 
-Trans-Neptunian Objects (TNOs): bodies beyond Neptune's orbit, including the Kuiper Belt. Sprint 01 includes the most notable TNOs.
+Trans-Neptunian Objects (TNOs): bodies beyond Neptune's orbit, including the Kuiper Belt. Includes the most notable TNOs.
 
-Major bodies (planets, moons, dwarf planets, notable comets) are manually curated. Sprint 03B added an SBDB snapshot with 26,132 minor bodies (NEOs, main belt, comets, TNOs, centaurs) rendered as toggleable point layers. A full auto-refreshing catalog is on the roadmap.`,
+Major bodies (planets, moons, dwarf planets, notable comets) are manually curated. An SBDB snapshot adds 26,132 minor bodies (NEOs, main belt, comets, TNOs, centaurs) rendered as toggleable point layers. A full auto-refreshing catalog is on the roadmap.`,
       },
       inspector: {
         title: "Inspector fields",
@@ -458,13 +466,11 @@ Asset confidence: indicates the fidelity level of the body's visual representati
         title: "Visual confidence labels",
         content: `Each body has a confidence label describing how faithful its visual representation is:
 
-Procedural: the body is rendered with an approximate color and a generic spherical shape. There is no real surface map. This is the current level for most bodies in the MVP Sprint 01. The color is chosen based on the category and available data, but is not photographically accurate.
+Procedural: the body is rendered with an approximate color and a generic spherical shape. There is no real surface map. The color is chosen based on the category and available data, but is not photographically accurate. This is the current level for most bodies.
 
 Symbolic: the body is represented only by a point indicator or marker, without 3D geometry. Used for very small or distant bodies where geometry makes no sense at the current scale.
 
-Real mesh (roadmap): a 3D mesh modeled on real topographic data (USGS, NASA DEM). Planned for Sprint 02+ for Earth, Moon, Mars, and other well-documented bodies.
-
-Real map (roadmap): photographic texture from NASA/USGS/JAXA data applied to the mesh. Planned for Sprint 02+ alongside real meshes.`,
+Real map (NASA/USGS): a visualization map from NASA/USGS data applied to the sphere. Currently integrated for Earth, Moon, Mars, and Mercury. These are visualization maps, not scientifically calibrated photographic textures.`,
       },
       catalogLayers: {
         title: "Catalog layers",
@@ -493,7 +499,7 @@ Coming soon: the full Gaia catalog (over 1 billion stars) is planned for a futur
       },
       sandboxRoadmap: {
         title: "Roadmap: sandbox mode",
-        content: `Sandbox mode is a planned feature for a future sprint. It is not available in the MVP Sprint 01.
+        content: `Sandbox mode is a planned feature for a future sprint. It is not available in the current version.
 
 In sandbox mode, the user will be able to:
 — Add custom celestial bodies (name, mass, radius, position, initial velocity).
@@ -509,9 +515,9 @@ The current mode shows only real solar system data. It is not possible to add or
 
 Desktop: the primary experience. The WebGL canvas and all panels are designed for screens 1280px and wider. Tested on Chrome, Firefox, and Safari.
 
-Mobile: the canvas renders correctly on mobile devices. Controls (side panels, toolbar) may overlap or feel cramped on small screens. Touch gestures for navigation (rotate, zoom, pan) are partially supported in Sprint 01. Future sprints will add collapsible panels and optimized touch gestures.
+Mobile: the canvas renders correctly on mobile devices. Controls (side panels, toolbar) may overlap or feel cramped on small screens. Touch gestures for navigation (rotate, zoom, pan) are partially supported. Future sprints will add collapsible panels and optimized touch gestures.
 
-Performance: the WebGL module loads via dynamic import (lazy loading), so it does not impact the initial page load. No heavy texture maps (procedural materials). The number of major bodies is ~28; SBDB catalog layers (up to 26,132 points) load on-demand only when toggled. Rendering is optimized with requestAnimationFrame and positional updates every 100ms.
+Performance: the WebGL module loads via dynamic import (lazy loading), so it does not impact the initial page load. The number of major bodies is ~28; SBDB catalog layers (up to 26,132 points) load on-demand only when toggled. Rendering is optimized with requestAnimationFrame and positional updates every 100ms.
 
 If you experience performance issues on older hardware: try disabling the star firmament from the settings panel (this reduces the number of vertices to render).`,
       },
@@ -531,12 +537,12 @@ If you experience performance issues on older hardware: try disabling the star f
             a: "Not in the MVP. Sandbox mode, which will let you add bodies with custom mass and initial velocity, is on the roadmap for a future sprint.",
           },
           {
-            q: "Why are the planets just colored spheres?",
-            a: "Real surface textures require processing NASA/USGS data (altimetric maps, multispectral imagery). This work is planned for Sprint 02. In the MVP, representation is procedural: approximate color + spherical shape.",
+            q: "Why do some planets have textures and others don't?",
+            a: "NASA/USGS visualization maps are integrated for Earth, Moon, Mars, and Mercury. Other bodies use a procedural representation: approximate color + spherical shape. Additional maps are on the roadmap for future sprints.",
           },
           {
             q: "Which star catalog is used?",
-            a: "The ESA Hipparcos catalog (High Precision Parallax Collecting Satellite). 44 named stars with real J2000 RA/Dec positions and real magnitudes. The full Gaia catalog is planned for Sprint 02.",
+            a: "The ESA Hipparcos catalog (High Precision Parallax Collecting Satellite). 44 named stars with real J2000 RA/Dec positions and real magnitudes. The full Gaia catalog is planned for a future sprint.",
           },
           {
             q: "How many bodies are included?",
