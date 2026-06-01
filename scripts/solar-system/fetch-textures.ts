@@ -162,6 +162,16 @@ async function convertToWebP(
   width: number,
   height: number
 ): Promise<number> {
+  const meta = await sharp(buffer).metadata();
+  const srcW = meta.width ?? 0;
+  const srcH = meta.height ?? 0;
+  const srcRatio = srcH > 0 ? srcW / srcH : 0;
+  const tgtRatio = width / height;
+  if (Math.abs(srcRatio - tgtRatio) > 0.05) {
+    console.log(`  WARN: source ${srcW}x${srcH} (ratio ${srcRatio.toFixed(2)}) → target ${width}x${height} (${tgtRatio.toFixed(2)}) — fit:fill will distort`);
+  } else {
+    console.log(`  Source: ${srcW}x${srcH}`);
+  }
   await sharp(buffer)
     .resize(width, height, { fit: "fill" })
     .webp({ quality: 85, effort: 4 })
