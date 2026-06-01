@@ -58,6 +58,8 @@ export type SolarSystemSceneProps = {
 /** How much to scale up the selected body for highlight. */
 const SELECTED_SCALE = 1.4;
 
+const BLACK = new THREE.Color(0, 0, 0);
+
 type OrbitControlsHandle = ElementRef<typeof OrbitControls>;
 
 // ---------------------------------------------------------------------------
@@ -294,7 +296,7 @@ function TexturedBodyMaterial({
       map={texture}
       roughness={0.75}
       metalness={0.05}
-      emissive={isSelected ? color : new THREE.Color(0, 0, 0)}
+      emissive={isSelected ? color : BLACK}
       emissiveIntensity={isSelected ? 0.18 : 0}
     />
   );
@@ -371,7 +373,7 @@ function BodyMesh({
                 color={color}
                 roughness={0.75}
                 metalness={0.05}
-                emissive={isSelected ? color : new THREE.Color(0, 0, 0)}
+                emissive={isSelected ? color : BLACK}
                 emissiveIntensity={isSelected ? 0.18 : 0}
               />
             )}
