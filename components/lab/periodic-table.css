@@ -3310,3 +3310,242 @@
   .pt-chembl__dl dt { padding-top: 4px; }
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   Mobile atom IA (≤680px + phone landscape)
+   Render-both: mobile chrome is display:none by default (desktop),
+   revealed via media query. Desktop atom-view header hidden in MQ.
+   Token note: this file uses hardcoded rgba values — no CSS custom
+   properties are defined for colors. Fallback values match the file's
+   existing hairline/ink/chip palette exactly.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── default = desktop: mobile chrome absent from layout ─── */
+.pt-atomm-topbar,
+.pt-atomm-row,
+.pt-atomm-peek,
+.pt-atomm-tabbar,
+.pt-atomm-sheet,
+.pt-atomm-scrim { display: none; }
+
+@media (max-width: 680px), (max-height: 480px) and (orientation: landscape) {
+
+  /* ── hide desktop atom-view chrome ── */
+  .pt-header__right  { display: none; }
+  .pt-view-mode-row  { display: none !important; }
+
+  /* ── top bar ── */
+  .pt-atomm-topbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+  }
+  .pt-atomm-iconbtn {
+    background: none;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    color: rgba(216, 216, 232, 0.87);
+    font-family: inherit;
+    font-size: 12px;
+    min-height: 36px;
+    padding: 0 13px;
+    border-radius: 999px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .pt-atomm-iconbtn:hover { border-color: rgba(255, 255, 255, 0.45); color: #eeeef8; }
+  .pt-atomm-title {
+    flex: 1;
+    min-width: 0;
+  }
+  .pt-atomm-title__h1 {
+    font-size: 15px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+    color: #eeeef8;
+  }
+  .pt-atomm-title__sub {
+    font-style: normal;
+    opacity: 0.6;
+    font-size: 12px;
+    display: block;
+  }
+  .pt-atomm-title__mode {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.55;
+    margin-top: 1px;
+    display: block;
+  }
+  .pt-atomm-lang,
+  .pt-atomm-info {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    min-width: 36px;
+    min-height: 36px;
+    color: rgba(216, 216, 232, 0.87);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 999px;
+    font-size: 12px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .pt-atomm-lang:hover,
+  .pt-atomm-info:hover { border-color: rgba(255, 255, 255, 0.45); color: #eeeef8; }
+  .pt-atomm-info { border: none; }
+
+  /* ── model / orbital row ── */
+  .pt-atomm-row {
+    display: flex;
+    gap: 7px;
+    padding: 4px 14px 10px;
+  }
+  .pt-atomm-row--models {
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 7px;
+  }
+  .pt-atomm-row--orbitals {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .pt-atomm-row--orbitals::-webkit-scrollbar { display: none; }
+  .pt-atomm-chip {
+    flex-shrink: 0;
+    min-height: 44px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.11);
+    color: rgba(216, 216, 232, 0.87);
+    font-family: inherit;
+    font-size: 12px;
+    padding: 8px 13px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    transition: background 0.14s, border-color 0.14s, color 0.14s;
+  }
+  .pt-atomm-chip:hover { background: rgba(255, 255, 255, 0.09); color: #eeeef8; }
+  .pt-atomm-chip--active {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.22);
+    color: #eeeef8;
+  }
+  .pt-atomm-chip__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ── peek bar ── */
+  .pt-atomm-peek {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 11px 16px;
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    background: rgba(10, 10, 20, 0.60);
+    text-align: left;
+    min-height: 44px;
+    cursor: pointer;
+    color: inherit;
+    font-family: inherit;
+    transition: background 0.14s;
+  }
+  .pt-atomm-peek:hover { background: rgba(10, 10, 20, 0.80); }
+  .pt-atomm-peek__glyph {
+    width: 40px;
+    height: 44px;
+    flex-shrink: 0;
+    border: 1px solid rgba(255, 255, 255, 0.11);
+    border-radius: 8px;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    padding: 3px 5px;
+  }
+  .pt-atomm-peek__z  { font-size: 8px; opacity: 0.6; }
+  .pt-atomm-peek__sym { font-size: 18px; font-weight: 600; align-self: center; }
+  .pt-atomm-peek__m  { font-size: 7px; opacity: 0.6; text-align: right; }
+  .pt-atomm-peek__meta { flex: 1; min-width: 0; }
+  .pt-atomm-peek__nm  { font-size: 15px; font-weight: 500; display: block; }
+  .pt-atomm-peek__cfg { font-size: 11px; opacity: 0.7; }
+  .pt-atomm-peek__chev { opacity: 0.5; flex-shrink: 0; }
+
+  /* ── tab bar ── */
+  .pt-atomm-tabbar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+  }
+  .pt-atomm-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 9px 4px;
+    min-height: 44px;
+    background: none;
+    border: none;
+    color: rgba(216, 216, 232, 0.87);
+    font-family: inherit;
+    font-size: 10px;
+    opacity: 0.55;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .pt-atomm-tab:hover { opacity: 0.80; }
+  .pt-atomm-tab--active { opacity: 1; }
+  .pt-atomm-tab__ic svg { width: 21px; height: 21px; }
+
+  /* ── reduced motion ── */
+  @media (prefers-reduced-motion: reduce) {
+    .pt-atomm-sheet,
+    .pt-atomm-scrim { transition: none; }
+  }
+}
+
+/* ── light mode parity for mobile atom IA ── */
+.pt-root--light .pt-atomm-iconbtn {
+  border-color: rgba(10, 10, 10, 0.22);
+  color: rgba(10, 10, 10, 0.70);
+}
+.pt-root--light .pt-atomm-iconbtn:hover { border-color: rgba(10, 10, 10, 0.50); color: #0a0a0a; }
+.pt-root--light .pt-atomm-title__h1 { color: #0a0a0a; }
+.pt-root--light .pt-atomm-lang,
+.pt-root--light .pt-atomm-info {
+  border-color: rgba(10, 10, 10, 0.22);
+  color: rgba(10, 10, 10, 0.70);
+}
+.pt-root--light .pt-atomm-lang:hover,
+.pt-root--light .pt-atomm-info:hover { border-color: rgba(10, 10, 10, 0.50); color: #0a0a0a; }
+.pt-root--light .pt-atomm-info { border: none; }
+.pt-root--light .pt-atomm-chip {
+  background: rgba(10, 10, 10, 0.04);
+  border-color: rgba(10, 10, 10, 0.14);
+  color: rgba(10, 10, 10, 0.70);
+}
+.pt-root--light .pt-atomm-chip:hover { background: rgba(10, 10, 10, 0.08); color: #0a0a0a; }
+.pt-root--light .pt-atomm-chip--active {
+  background: rgba(10, 10, 10, 0.14);
+  border-color: rgba(10, 10, 10, 0.30);
+  color: #0a0a0a;
+}
+.pt-root--light .pt-atomm-peek {
+  border-top-color: rgba(10, 10, 10, 0.08);
+  background: rgba(245, 245, 250, 0.70);
+}
+.pt-root--light .pt-atomm-peek:hover { background: rgba(245, 245, 250, 0.92); }
+.pt-root--light .pt-atomm-peek__glyph { border-color: rgba(10, 10, 10, 0.14); }
+.pt-root--light .pt-atomm-tabbar { border-top-color: rgba(10, 10, 10, 0.08); }
+.pt-root--light .pt-atomm-tab { color: rgba(10, 10, 10, 0.70); }
+
