@@ -8,6 +8,29 @@
 
 ---
 
+## Sessione 2026-06-04 — Mobile Atom-View IA Redesign
+
+Branch: `fix/pt-mobile-atom-ia` (pushed, ahead di `origin/init` di 10 commit).
+
+**Sprint completato:** rifondazione chrome mobile atom view della Tavola Periodica.
+
+| Commit | Descrizione |
+|---|---|
+| `d4f8f95` | feat: SSR-safe useIsMobile hook |
+| `a9369c6` | feat: scaffold mobile chrome components |
+| `fbc2795` | feat: CSS render-both mobile atom IA |
+| `5fa85d9` | feat: sheet state + invariants |
+| `f1d4b58` | feat: bottom-sheet accessibile + sheet contents |
+| `2e04bc2` | feat: wire mobile chrome into view |
+| `a84d8c5` | feat: takeovers, landscape, CSS cleanup |
+| `8615558` | fix: InfoPanel/TempControl mobile, ref warning, :has() header |
+
+**Verifiche passate:** `tsc --noEmit` ✅ · `build` ✅ · `seo:audit 0/0` ✅ · lint no nuovi errori ✅. Browser: 390px portrait, 844×390 landscape, 1440px desktop invariato, table view no regression.
+
+**Prossimo step:** push del branch su `init` (o PR), poi ripartire da Solar System Sprint 06 (bussola in `docs/solar-system/bussola.md`, piano in `docs/superpowers/plans/2026-06-03-mobile-atom-ia.md`).
+
+---
+
 ## Sessione 2026-05-31 — stato finale
 
 ### Tavola Periodica — chiusa e pushata

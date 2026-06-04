@@ -285,6 +285,35 @@ Roadmap alternativa raccomandata (ordine ROI):
 
 ---
 
+## Mobile Atom-View IA — Sprint 2026-06-04
+
+**Status: COMPLETATO.** Branch `fix/pt-mobile-atom-ia`, commit head `8615558`.
+
+La chrome mobile dell'atom view è stata rifondasta (non rattoppata). Il vecchio header con ~13 controlli + overlay che collidono (`display:none` su mobile) è sostituito da:
+
+```
+top-bar (‹ tavola · nome · EN · (i)→manuale)
+model-row (5 modelli in wrap, sempre visibili, niente <select>)
+canvas full-bleed (≥60% altezza)
+peek elemento (tap → Info sheet)
+tab bar (Info · Viste · Orbitali · Strumenti)
++ un solo bottom-sheet per volta
+```
+
+**Architettura:** render-both (entrambi i rami sempre nel DOM, show/hide via CSS `≤680px + phone landscape`). **Nessun gating JS del markup** → zero flash header desktop, zero hydration mismatch, zero CLS. `useIsMobile()` solo per logica non-visiva.
+
+**Bug Hg risolto per costruzione:** la collisione `temp-control + material-legend` sparisce perché Material è ora un takeover a sé con chrome propria; la temperatura è nello sheet Strumenti.
+
+**File creati:** `components/lab/atom-mobile/` (6 componenti: `AtomTopBar`, `AtomModelRow`, `AtomPeek`, `AtomTabBar`, `AtomSheet`, `AtomSheetContents` + `useIsMobile` hook).
+
+**File modificati:** `components/lab/periodic-table-view.tsx` (nuovo stato `sheet`, invarianti, render-both del chrome), `components/lab/periodic-table.css` (nuova sezione `/* Mobile atom IA */`, media query desktop/mobile reciproche, rimozione media query obsolete).
+
+**Desktop ≥901px: invariato** (verificato a 1440px; `pt-header__right` e `pt-info` ripristinati).
+
+**Acceptance criteria superati:** canvas ≥60%, header nascosto, no flash/CLS, un solo sheet, 5 modelli visibili senza `<select>`, Info sheet con parità dati, lingua dalla top-bar, (i)→manuale, temperatura in Strumenti, takeover senza tab bar, landscape esplicito, a11y (focus trap + Esc + `aria-expanded`/`aria-pressed`, no `role="tablist"`), `prefers-reduced-motion`.
+
+---
+
 ## Regole di separazione da Solar System
 
 - Non usare `docs/solar-system/` per decisioni della Tavola Periodica.
