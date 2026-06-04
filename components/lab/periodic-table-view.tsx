@@ -2075,7 +2075,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
 
       {/* ── Atom view ── */}
       {view === "atom" && selected && (
-        <div className="pt-atom-view" style={{ '--pt-info-width': `${panelWidth}px` } as React.CSSProperties}>
+        <div className={`pt-atom-view${(crystalView || moleculeView || materialView || storyMode) ? " pt-atom--takeover" : ""}`} style={{ '--pt-info-width': `${panelWidth}px` } as React.CSSProperties}>
           <div className="pt-canvas-wrap">
             {/* Fullscreen toggle — always visible in atom view */}
             <button
