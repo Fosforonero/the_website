@@ -29,6 +29,17 @@ import {
 } from "@/lib/temperature";
 import { APPLICATIONS } from "@/lib/element-applications-data";
 import type { ChEMBLDrugInfo } from "@/app/api/periodic-table/chembl/route";
+import {
+  AtomTopBar,
+  AtomModelRow,
+  type Chip,
+  AtomPeek,
+  AtomTabBar,
+  type AtomTab,
+  AtomSheet,
+  AtomSheetContents,
+  type ViewItem,
+} from "./atom-mobile";
 
 const APP_CAT_LABELS = {
   medicine:     { it: "Medicina",         en: "Medicine" },
@@ -36,6 +47,21 @@ const APP_CAT_LABELS = {
   material:     { it: "Materiali",        en: "Materials" },
   "daily-life": { it: "Vita quotidiana",  en: "Daily life" },
 } as const;
+
+// ─── Mobile atom tab definitions ─────────────────────────────────────────────
+
+const ATOM_TABS_IT = [
+  { id: "info"    as const, label: "Info",       icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="21" height="21"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01" strokeLinecap="round"/></svg> },
+  { id: "views"   as const, label: "Viste",      icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="21" height="21"><circle cx="12" cy="12" r="3"/><path d="M12 4v3M12 17v3M4 12h3M17 12h3"/><ellipse cx="12" cy="12" rx="9" ry="4" transform="rotate(45 12 12)"/></svg> },
+  { id: "orbital" as const, label: "Orbitali",   icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="21" height="21"><ellipse cx="12" cy="12" rx="4" ry="9"/><ellipse cx="12" cy="12" rx="9" ry="4"/></svg> },
+  { id: "tools"   as const, label: "Strumenti",  icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="21" height="21"><path d="M5 7h9M5 12h14M5 17h6"/><circle cx="17" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg> },
+];
+const ATOM_TABS_EN = [
+  { id: "info"    as const, label: "Info",     icon: ATOM_TABS_IT[0]!.icon },
+  { id: "views"   as const, label: "Views",    icon: ATOM_TABS_IT[1]!.icon },
+  { id: "orbital" as const, label: "Orbitals", icon: ATOM_TABS_IT[2]!.icon },
+  { id: "tools"   as const, label: "Tools",    icon: ATOM_TABS_IT[3]!.icon },
+];
 
 const CRYSTAL_STATS: Record<string, { cn: number; apf: number; nameIT: string; nameEN: string }> = {
   sc:      { cn: 6,  apf: 52, nameIT: "Cubica semplice",       nameEN: "Simple cubic" },
@@ -2300,6 +2326,208 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
               />
             )}
           </div>
+
+          {/* ── MOBILE CHROME (always in DOM; shown/hidden via CSS media query) ── */}
+          {(() => {
+            const el = selected;
+            const tabs = locale === "en" ? ATOM_TABS_EN : ATOM_TABS_IT;
+            const ext = EXTENDED[el.z];
+
+            // Language href (preserves ?z= in atom view)
+            const otherLocalePath = locale === "it"
+              ? `/en/lab/periodic-table?z=${el.z}`
+              : `/lab/tavola-periodica?z=${el.z}`;
+            const manualHref = locale === "it"
+              ? "/lab/tavola-periodica/manuale"
+              : "/en/lab/periodic-table/manual";
+
+            // Model chips
+            const MODEL_LABELS: Record<string, string> = {
+              bohr: "Bohr", rutherford: "Rutherford", thomson: "Thomson",
+              sommerfeld: "Sommerfeld", quantum: locale === "it" ? "Quantistico" : "Quantum",
+            };
+            const modelChips: Chip[] = (["thomson", "rutherford", "bohr", "sommerfeld", "quantum"] as const).map(id => ({
+              id, label: MODEL_LABELS[id] ?? id, active: model === id,
+            }));
+
+            // Orbital chips (when inspector is active)
+            const ORBITAL_DOT: Record<string, string> = { s: "#f59e0b", p: "#60a5fa", d: "#34d399", f: "#c084fc" };
+            const orbitalChips: Chip[] = ORBITAL_GROUPS.flatMap(g =>
+              g.keys.map(k => ({
+                id: k,
+                label: ORBITAL_DISPLAY[k] ?? k,
+                active: inspectorOrbital === k,
+                dotColor: ORBITAL_DOT[g.family] ?? undefined,
+              }))
+            );
+
+            // Config HTML for peek
+            const configHtml = ext?.config ?? "";
+
+            // Mode subtitle for top bar
+            const modeSubtitle = inspectorOrbital !== null
+              ? (locale === "it" ? "Inspector orbitali · idrogenoide" : "Orbital inspector · hydrogenic")
+              : (() => {
+                  const modelNames: Record<string, string> = {
+                    thomson: "Thomson · 1904", rutherford: "Rutherford · 1911",
+                    bohr: "Bohr · 1913", sommerfeld: "Sommerfeld · 1916",
+                    quantum: locale === "it" ? "Quantistico · 1926" : "Quantum · 1926",
+                  };
+                  return modelNames[model] ?? model;
+                })();
+
+            // Sheet title
+            const elName = locale === "it" ? el.name : (ELEMENT_NAMES_EN[el.z] ?? el.name);
+            const sheetTitles: Record<string, string> = {
+              info: `${elName} · ${el.sym}`,
+              views: locale === "it" ? "Viste" : "Views",
+              tools: locale === "it" ? "Strumenti" : "Tools",
+            };
+            const sheetTitle = sheet !== null ? (sheetTitles[sheet] ?? sheet) : "";
+
+            // View items for "Viste" sheet
+            const viewItems: ViewItem[] = [
+              {
+                id: "nucleus",
+                title: locale === "it" ? "Vista nucleo" : "Nucleus view",
+                desc: locale === "it" ? "protoni · neutroni · nucleoni" : "protons · neutrons · nucleons",
+                active: nucleusView,
+                icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><circle cx="12" cy="12" r="4"/><circle cx="7" cy="9" r="1.4"/><circle cx="16" cy="14" r="1.4"/></svg>,
+                onSelect: () => { setNucleusView(v => !v); setCrystalView(false); setMoleculeView(false); setInspectorOrbital(null); setMaterialView(false); closeAtomSheet(); },
+              },
+              {
+                id: "crystal",
+                title: locale === "it" ? "Struttura cristallina" : "Crystal structure",
+                desc: locale === "it" ? "reticolo · APF · CN" : "lattice · APF · CN",
+                active: crystalView,
+                icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 3v18M4 7.5l8 4.5 8-4.5"/></svg>,
+                onSelect: () => { setCrystalView(v => !v); setNucleusView(false); setMoleculeView(false); setInspectorOrbital(null); setMaterialView(false); closeAtomSheet(); },
+              },
+              {
+                id: "molecule",
+                title: locale === "it" ? "Molecole" : "Molecules",
+                desc: locale === "it" ? "ball-stick · spaziale" : "ball-stick · space-fill",
+                active: moleculeView,
+                icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><circle cx="7" cy="14" r="2.5"/><circle cx="16" cy="9" r="2.5"/><path d="M9 13l5-2.5"/></svg>,
+                onSelect: () => { setMoleculeView(v => !v); setCrystalView(false); setNucleusView(false); setInspectorOrbital(null); setMaterialView(false); closeAtomSheet(); },
+              },
+              {
+                id: "material",
+                title: locale === "it" ? "Materiale" : "Material",
+                desc: locale === "it" ? "fase per temperatura" : "phase by temperature",
+                active: materialView,
+                icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M5 18h14M7 18a5 5 0 0110 0"/><path d="M9 8h6M10 5h4"/></svg>,
+                onSelect: () => { setMaterialView(v => !v); setCrystalView(false); setNucleusView(false); setInspectorOrbital(null); setMoleculeView(false); closeAtomSheet(); },
+              },
+              {
+                id: "story",
+                title: locale === "it" ? "Story mode" : "Story mode",
+                desc: locale === "it" ? "la storia dell'elemento" : "element history",
+                active: storyMode,
+                icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M5 5h11a2 2 0 012 2v12M5 5v14h13"/><path d="M8 9h7M8 12h7"/></svg>,
+                onSelect: () => { setStoryMode(v => !v); closeAtomSheet(); },
+              },
+            ];
+
+            // Info content
+            const infoContent = (
+              <div>
+                <div className="pt-atomm-props-grid">
+                  <div className="pt-atomm-prop"><span className="pt-atomm-prop__k">{locale === "it" ? "Numero atomico" : "Atomic number"}</span><span className="pt-atomm-prop__v">{el.z}</span></div>
+                  <div className="pt-atomm-prop"><span className="pt-atomm-prop__k">{locale === "it" ? "Massa" : "Mass"}</span><span className="pt-atomm-prop__v">{el.mass} u</span></div>
+                  {ext?.config && <div className="pt-atomm-prop"><span className="pt-atomm-prop__k">{locale === "it" ? "Configurazione" : "Configuration"}</span><span className="pt-atomm-prop__v" dangerouslySetInnerHTML={{ __html: ext.config }} /></div>}
+                  <div className="pt-atomm-prop"><span className="pt-atomm-prop__k">{locale === "it" ? "Gusci" : "Shells"}</span><span className="pt-atomm-prop__v">{el.shells.join(" · ")}</span></div>
+                  <div className="pt-atomm-prop"><span className="pt-atomm-prop__k">{locale === "it" ? "Gruppo · Periodo" : "Group · Period"}</span><span className="pt-atomm-prop__v">{el.group} · {el.period}</span></div>
+                  {ext?.block && <div className="pt-atomm-prop"><span className="pt-atomm-prop__k">{locale === "it" ? "Blocco" : "Block"}</span><span className="pt-atomm-prop__v">{ext.block}</span></div>}
+                </div>
+                {(locale === "en" ? (ELEMENT_DESCRIPTIONS_EN[el.z] ?? ext?.description) : ext?.description) && (
+                  <p className="pt-atomm-blurb">{locale === "en" ? (ELEMENT_DESCRIPTIONS_EN[el.z] ?? ext?.description) : ext?.description}</p>
+                )}
+              </div>
+            );
+
+            // Tools content
+            const toolsContent = (
+              <div>
+                <TemperatureControl
+                  temperatureK={temperatureK}
+                  onTemperatureK={setTemperatureK}
+                  unit={tempUnit}
+                  meltingPoint={ext?.meltingPoint ?? null}
+                  boilingPoint={ext?.boilingPoint ?? null}
+                  locale={locale}
+                />
+                <ScaleToggle on={realScale} onToggle={() => setRealScale(v => !v)} locale={locale} />
+                <SpeedSlider value={speedMultiplier} onChange={setSpeedMultiplier} locale={locale} />
+                <StarsToggle value={starsIntensity} onChange={setStarsIntensity} locale={locale} />
+                <VdWToggle style={vdwStyle} onCycle={() => setVdwStyle(VDW_CYCLE[vdwStyle])} locale={locale} />
+                <TempToggle value={tempUnit} onChange={setTempUnit} locale={locale} />
+              </div>
+            );
+
+            // Orbital content
+            const orbitalContent = inspectorOrbital !== null ? (
+              <OrbitalInfoPanel orbitalKey={inspectorOrbital} locale={locale} />
+            ) : null;
+
+            return (
+              <>
+                <AtomTopBar
+                  name={elName}
+                  symbol={el.sym}
+                  z={el.z}
+                  modeSubtitle={modeSubtitle}
+                  locale={locale}
+                  onBack={handleBack}
+                  langHref={otherLocalePath}
+                  manualHref={manualHref}
+                  t={{ back: locale === "it" ? "tavola" : "table", manual: locale === "it" ? "Manuale" : "Manual" }}
+                />
+                <AtomModelRow
+                  mode={inspectorOrbital !== null ? "orbitals" : "models"}
+                  chips={inspectorOrbital !== null ? orbitalChips : modelChips}
+                  onSelect={(id) => {
+                    if (inspectorOrbital !== null) {
+                      setInspectorOrbital(id as import("./atom-scene").OrbitalKey);
+                    } else {
+                      setModel(id as import("./atom-scene").AtomModel);
+                    }
+                  }}
+                />
+                <AtomPeek
+                  z={el.z}
+                  symbol={el.sym}
+                  mass={String(el.mass)}
+                  name={elName}
+                  configHtml={configHtml}
+                  onOpen={() => openAtomSheet("info")}
+                  openLabel={locale === "it" ? `Apri info ${el.name}` : `Open info for ${elName}`}
+                />
+                <AtomTabBar
+                  tabs={tabs}
+                  openSheet={sheet}
+                  inspectorActive={inspectorOrbital !== null}
+                  onTab={handleAtomTab}
+                />
+                <AtomSheet
+                  open={sheet !== null}
+                  title={sheetTitle}
+                  onClose={closeAtomSheet}
+                >
+                  {sheet !== null && (
+                    <AtomSheetContents
+                      kind={sheet}
+                      infoContent={infoContent}
+                      views={viewItems}
+                      toolsContent={toolsContent}
+                      orbitalContent={orbitalContent}
+                    />
+                  )}
+                </AtomSheet>
+              </>
+            );
+          })()}
+
           <InfoPanel
             el={selected}
             locale={locale}
