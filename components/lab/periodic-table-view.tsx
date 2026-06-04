@@ -1609,6 +1609,7 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
   const [showSpin,        setShowSpin]        = usePersistedState<boolean>("pt:showSpin", false);
   const [nucleusView,     setNucleusView]     = usePersistedState<boolean>("pt:nucleusView", false);
   const [inspectorOrbital, setInspectorOrbital] = usePersistedState<OrbitalKey | null>("pt:inspectorOrbital", null);
+  const [sheet, setSheet] = useState<"info" | "views" | "tools" | null>(null);
   const [crystalView,     setCrystalView]     = useState<boolean>(false);
   const [moleculeView,    setMoleculeView]    = useState<boolean>(false);
   const [activeMolIdx,    setActiveMolIdx]    = useState<number>(0);
@@ -1805,6 +1806,22 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
       }
     });
   }, []);
+
+  function openAtomSheet(which: "info" | "views" | "tools") { setSheet(which); }
+  function closeAtomSheet() { setSheet(null); }
+  function handleAtomTab(tab: "info" | "views" | "orbital" | "tools") {
+    if (tab === "orbital") {
+      // toggle orbital inspector: if off → default to first orbital of element, if on → turn off
+      setInspectorOrbital((cur) => {
+        if (cur !== null) return null;
+        // find first orbital in the element's groups
+        const firstGroup = ORBITAL_GROUPS[0];
+        return firstGroup?.keys[0] ?? "1s";
+      });
+      return;
+    }
+    setSheet((cur) => (cur === tab ? null : tab));
+  }
 
   useEffect(() => {
     const el = scrollRef.current;
