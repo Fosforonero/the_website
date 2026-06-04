@@ -21,6 +21,7 @@ export function AtomSheet({
     const panel = panelRef.current;
     if (!panel) return;
     const prevFocus = document.activeElement as HTMLElement | null;
+    const savedReturnFocus = returnFocusRef?.current ?? null;
 
     const getFocusables = () =>
       panel.querySelectorAll<HTMLElement>(
@@ -53,7 +54,7 @@ export function AtomSheet({
     document.addEventListener("keydown", onKey);
     return () => {
       document.removeEventListener("keydown", onKey);
-      (returnFocusRef?.current ?? prevFocus)?.focus?.();
+      (savedReturnFocus ?? prevFocus)?.focus?.();
     };
   }, [open, onClose, returnFocusRef]);
 

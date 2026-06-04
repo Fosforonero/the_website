@@ -3659,3 +3659,17 @@
   .pt-atom--takeover .pt-atomm-tabbar { display: none; }
 }
 
+/* ── Hide desktop-only panels on mobile atom view ── */
+/* InfoPanel is now in the Info sheet; temp-control is now in Strumenti sheet */
+@media (max-width: 680px), (max-height: 480px) and (orientation: landscape) {
+  .pt-info { display: none !important; }
+  .pt-temp-control { display: none !important; }
+}
+
+
+/* ── Hide legacy page header on mobile when atom mobile chrome is active ── */
+/* Uses :has() — supported in Chrome 105+, Firefox 121+, Safari 15.4+ */
+/* .pt-atomm-topbar is only in the DOM when in atom view (IIFE returns null in table view) */
+@media (max-width: 680px), (max-height: 480px) and (orientation: landscape) {
+  body:has(.pt-atomm-topbar) .pt-header { display: none; }
+}
