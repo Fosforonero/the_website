@@ -3507,6 +3507,60 @@
   .pt-atomm-tab--active { opacity: 1; }
   .pt-atomm-tab__ic svg { width: 21px; height: 21px; }
 
+  /* ── bottom sheet ── */
+  .pt-atomm-sheet {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    z-index: 46;
+    max-height: 76%;
+    background: #11111d;
+    border-top: 1px solid rgba(255,255,255,0.11);
+    border-radius: 22px 22px 0 0;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 -20px 50px -20px rgba(0,0,0,0.8);
+  }
+  .pt-atomm-sheet--open { transform: translateY(0); }
+  .pt-atomm-sheet__grab {
+    width: 38px; height: 4px; border-radius: 999px;
+    background: rgba(255,255,255,0.22);
+    margin: 9px auto 4px; flex-shrink: 0;
+  }
+  .pt-atomm-sheet__head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 18px 12px; flex-shrink: 0;
+  }
+  .pt-atomm-sheet__title { font-size: 15px; font-weight: 600; }
+  .pt-atomm-sheet__x {
+    background: none; border: none; font-size: 20px; line-height: 1;
+    padding: 4px 6px; opacity: 0.6; cursor: pointer;
+  }
+  .pt-atomm-sheet__body { overflow-y: auto; padding: 0 18px 26px; flex: 1; }
+
+  .pt-atomm-scrim {
+    display: block;
+    position: absolute; inset: 0; z-index: 44;
+    background: rgba(4,4,10,0.5);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s;
+  }
+  .pt-atomm-scrim--open { opacity: 1; pointer-events: auto; }
+
+  /* list rows (Viste sheet) */
+  .pt-atomm-list { display: flex; flex-direction: column; gap: 8px; }
+  .pt-atomm-listrow {
+    display: flex; align-items: center; gap: 13px;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.11);
+    border-radius: 13px; padding: 13px 15px; width: 100%; text-align: left;
+    min-height: 44px;
+  }
+  .pt-atomm-listrow--active { border-color: #60a5fa; background: rgba(96,165,250,0.08); }
+  .pt-atomm-listrow__ic { width: 26px; height: 26px; display: grid; place-items: center; color: #60a5fa; }
+  .pt-atomm-listrow__t { display: block; font-size: 14px; font-weight: 500; }
+  .pt-atomm-listrow__d { display: block; font-size: 10.5px; opacity: 0.6; margin-top: 1px; }
+
   /* ── reduced motion ── */
   @media (prefers-reduced-motion: reduce) {
     .pt-atomm-sheet,
