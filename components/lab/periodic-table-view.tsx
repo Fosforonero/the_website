@@ -1299,6 +1299,7 @@ function OrbitalInfoPanel({
 }
 
 function ModelLegend({ model, showSpin, locale }: { model: AtomModel; showSpin: boolean; locale: Locale }) {
+  const [open, setOpen] = useState(true);
   const isIT = locale === "it";
   type Item = { icon: string; it: string; en: string; dim?: boolean };
   const BASE_ITEMS: Record<AtomModel, Item[]> = {
@@ -1332,17 +1333,27 @@ function ModelLegend({ model, showSpin, locale }: { model: AtomModel; showSpin: 
     : { icon: "↑↓", it: "spin nascosto — attiva ↑↓", en: "spin hidden — enable ↑↓", dim: true };
   const items: Item[] = [...(BASE_ITEMS[model] ?? []), ...(spinSupported ? [spinItem] : [])];
   return (
-    <div className="pt-context-legend pt-context-legend--atom" aria-hidden="true">
-      {items.map((item, i) => (
+    <div className={`pt-context-legend pt-context-legend--atom${open ? "" : " pt-context-legend--atom-closed"}`} aria-hidden="true">
+      <button
+        className="pt-context-legend__toggle"
+        onClick={() => setOpen(v => !v)}
+        tabIndex={-1}
+        aria-hidden="true"
+      >
+        {open ? "×" : "≡"}
+      </button>
+      {open && items.map((item, i) => (
         <span key={i} className={`pt-context-legend__item${item.dim ? " pt-context-legend__item--dim" : ""}`}>
           <span className="pt-context-legend__icon">{item.icon}</span>
           <span>{isIT ? item.it : item.en}</span>
         </span>
       ))}
-      <span className="pt-context-legend__item pt-context-legend__item--dim">
-        <span className="pt-context-legend__icon">T</span>
-        <span>{isIT ? "atomo isolato · indipendente dallo stato macroscopico" : "isolated atom · independent of macroscopic state"}</span>
-      </span>
+      {open && (
+        <span className="pt-context-legend__item pt-context-legend__item--dim">
+          <span className="pt-context-legend__icon">T</span>
+          <span>{isIT ? "atomo isolato · indipendente dallo stato macroscopico" : "isolated atom · independent of macroscopic state"}</span>
+        </span>
+      )}
     </div>
   );
 }
@@ -2447,21 +2458,35 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
             );
 
             // Tools content
+            const isIT = locale === "it";
             const toolsContent = (
-              <div>
-                <TemperatureControl
-                  temperatureK={temperatureK}
-                  onTemperatureK={setTemperatureK}
-                  unit={tempUnit}
-                  meltingPoint={ext?.meltingPoint ?? null}
-                  boilingPoint={ext?.boilingPoint ?? null}
-                  locale={locale}
-                />
-                <ScaleToggle on={realScale} onToggle={() => setRealScale(v => !v)} locale={locale} />
-                <SpeedSlider value={speedMultiplier} onChange={setSpeedMultiplier} locale={locale} />
-                <StarsToggle value={starsIntensity} onChange={setStarsIntensity} locale={locale} />
-                <VdWToggle style={vdwStyle} onCycle={() => setVdwStyle(VDW_CYCLE[vdwStyle])} locale={locale} />
-                <TempToggle value={tempUnit} onChange={setTempUnit} locale={locale} />
+              <div className="pt-atomm-tools">
+                <div className="pt-atomm-tools-section">
+                  <span className="pt-atomm-tools-label">{isIT ? "Animazione" : "Animation"}</span>
+                  <SpeedSlider value={speedMultiplier} onChange={setSpeedMultiplier} locale={locale} />
+                </div>
+                <div className="pt-atomm-tools-section">
+                  <span className="pt-atomm-tools-label">{isIT ? "Visualizzazione" : "Display"}</span>
+                  <ScaleToggle on={realScale} onToggle={() => setRealScale(v => !v)} locale={locale} />
+                  <div className="pt-atomm-tools-row">
+                    <StarsToggle value={starsIntensity} onChange={setStarsIntensity} locale={locale} />
+                    <VdWToggle style={vdwStyle} onCycle={() => setVdwStyle(VDW_CYCLE[vdwStyle])} locale={locale} />
+                  </div>
+                </div>
+                <div className="pt-atomm-tools-section">
+                  <span className="pt-atomm-tools-label">{isIT ? "Temperatura" : "Temperature"}</span>
+                  <div className="pt-atomm-tools-row">
+                    <TempToggle value={tempUnit} onChange={setTempUnit} locale={locale} />
+                  </div>
+                  <TemperatureControl
+                    temperatureK={temperatureK}
+                    onTemperatureK={setTemperatureK}
+                    unit={tempUnit}
+                    meltingPoint={ext?.meltingPoint ?? null}
+                    boilingPoint={ext?.boilingPoint ?? null}
+                    locale={locale}
+                  />
+                </div>
               </div>
             );
 
