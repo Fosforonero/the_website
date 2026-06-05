@@ -235,9 +235,18 @@ function Simulation({
     const group = groupRef.current;
     if (!group) return;
 
-    // Speed up simulated time, then sub-step for integration stability.
-    const total = Math.min(rawDt, 0.05) * 20.0;
-    const nSub = Math.max(1, Math.ceil(total / 0.025));
+    // Speed up simulated time, then ADAPTIVELY sub-step: refine the step when
+    // any body is near the hole, where the potential is steep and a fixed step
+    // would inject energy (making bound orbits spuriously escape). With fine
+    // steps, energy is conserved — bound orbits stay bound and captures plunge.
+    const total = Math.min(rawDt, 0.05) * 16.0;
+    let minDist = 1e9;
+    for (const b of bodies.current) {
+      const d = b.pos.length() - RS;
+      if (d < minDist) minDist = d;
+    }
+    const dtTarget = Math.min(0.025, Math.max(0.003, 0.012 * minDist));
+    const nSub = Math.min(120, Math.max(1, Math.ceil(total / dtTarget)));
     const h = total / nSub;
     const a = parts.current;
 
