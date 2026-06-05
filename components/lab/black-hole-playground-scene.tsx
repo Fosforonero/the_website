@@ -42,6 +42,8 @@ const RS = 1.0;
 const GM = 0.5;
 const HORIZON = 1.02;
 const TIDAL_RADIUS = 6.0; // stars inside this radius are torn apart
+const DISK_IN = 3.0;      // accretion-disk inner radius (matches the shader)
+const DISK_OUT = 16.0;    // accretion-disk outer radius
 const MAX_PARTICLES = 2400;
 
 type Body = {
@@ -150,10 +152,13 @@ function Simulation({
     const r0 = Math.hypot(point.x, point.z);
     if (r0 < 2.5) return; // too close to the horizon to place
     const pos = new THREE.Vector3(point.x, point.y, point.z);
-    const vc = Math.sqrt(GM / r0);
-    const factor = 0.62; // < circular → eccentric, slowly winds inward
+    // Circular-orbit speed in the Paczyński–Wiita potential: v² = r·dΦ/dr.
+    // Planets/stars get a (near-)circular orbit so they actually orbit the
+    // black hole; comets keep an eccentric, plunging orbit.
+    const vCirc = Math.sqrt(GM * r0) / Math.max(r0 - RS, 0.1);
+    const factor = kind === "comet" ? 0.55 : 1.0;
     const radial = new THREE.Vector3(point.x, 0, point.z).normalize();
-    const vel = new THREE.Vector3(-radial.z, 0, radial.x).multiplyScalar(vc * factor);
+    const vel = new THREE.Vector3(-radial.z, 0, radial.x).multiplyScalar(vCirc * factor);
 
     if (kind === "planet") {
       const planet = addBody("planet", pos, vel, 0.22, new THREE.Color("#6fa8d8"), PLANET_MASS, null);
@@ -196,7 +201,9 @@ function Simulation({
       const p = b.pos.clone().addScaledVector(radial, u * 0.4);
       const v = b.vel.clone()
         .addScaledVector(radial, u * 0.07) // energy spread → stretches the stream
-        .add(new THREE.Vector3((Math.random() - 0.5) * 0.02, (Math.random() - 0.5) * 0.02, (Math.random() - 0.5) * 0.02));
+        // vertical kick → debris arcs out of the disk plane, then rains back
+        // down and is absorbed by the disk (instead of shooting straight through)
+        .add(new THREE.Vector3((Math.random() - 0.5) * 0.03, (Math.random() - 0.5) * 0.14, (Math.random() - 0.5) * 0.03));
       const c = c0.clone().lerp(c1, Math.abs(u));
       emit(p, v, c, 14);
     }
@@ -263,6 +270,13 @@ function Simulation({
         a.pos[k * 3] = tmp.x + a.vel[k * 3]! * h;
         a.pos[k * 3 + 1] = tmp.y + a.vel[k * 3 + 1]! * h;
         a.pos[k * 3 + 2] = tmp.z + a.vel[k * 3 + 2]! * h;
+        // Absorb into the disk: if this step crossed the disk plane within the
+        // disk's radial extent, the debris merges into the disk (feeds it)
+        // rather than passing through and flying out the other side.
+        if (tmp.y * a.pos[k * 3 + 1]! < 0.0) {
+          const rr = Math.hypot(a.pos[k * 3]!, a.pos[k * 3 + 2]!);
+          if (rr > DISK_IN && rr < DISK_OUT) a.life[k] = 0;
+        }
       }
     }
 

@@ -37,9 +37,11 @@ export const blackHoleFragmentShader = /* glsl */ `
 precision highp float;
 
 varying vec2 vUv;
+out vec4 fragColor;
 
 uniform vec3  uCamPos;     // camera world position
 uniform mat3  uCamBasis;   // camera world rotation (cols: right, up, backward)
+uniform mat4  uViewProj;   // projection * view, for writing gl_FragDepth
 uniform float uTanFov;     // tan(fov/2)
 uniform float uAspect;     // width / height
 uniform float uTime;       // seconds
@@ -118,6 +120,13 @@ vec3 blackbody(float kelvin) {
   return mix(c, vec3(1.0), smoothstep(1000.0, 0.0, t));
 }
 
+// Window-space depth [0,1] of a world point, for occluding composited 3D
+// objects (planets, moons, debris) behind the disk / shadow.
+float depthFromWorld(vec3 wp) {
+  vec4 c = uViewProj * vec4(wp, 1.0);
+  return (c.z / c.w) * 0.5 + 0.5;
+}
+
 void main() {
   // Reconstruct the world-space camera ray for this pixel.
   vec2 ndc = vUv * 2.0 - 1.0;
@@ -132,13 +141,14 @@ void main() {
 
   vec3 color = vec3(0.0);
   bool done = false;
+  float outDepth = 1.0; // far by default (background → no occlusion)
 
   for (int i = 0; i < MAX_STEPS; i++) {
     if (i >= uSteps) break;
     float r = length(pos);
 
     // Event horizon → absorbed.
-    if (r < RS) { color = vec3(0.0); done = true; break; }
+    if (r < RS) { color = vec3(0.0); outDepth = depthFromWorld(pos); done = true; break; }
 
     // Escaped to infinity → background.
     if (r > 60.0 && dot(pos, dir) > 0.0) {
@@ -201,7 +211,18 @@ void main() {
         float bright = uDiskBright * pow(Tobs / uDiskTemp, 4.0);
         bright *= smoothstep(uDiskOuter, uDiskOuter - 2.0, rd); // soft outer edge
 
+        // Gaseous structure: multi-octave turbulence in rotating disk-plane
+        // coordinates (seamless, differential rotation). It is a procedural
+        // stand-in for the magnetorotational (MRI) turbulence of a real plasma
+        // disk, which would require a GRMHD solution.
+        float omega = uTime * 0.35 / pow(rd, 1.5);
+        float ca = cos(omega), sa = sin(omega);
+        vec2  q  = mat2(ca, -sa, sa, ca) * hit.xz;
+        float turb = 0.5 * vnoise(q * 0.8) + 0.3 * vnoise(q * 2.1) + 0.2 * vnoise(q * 4.7);
+        bright *= 0.5 + 1.05 * turb;
+
         color = blackbody(Tobs) * bright;
+        outDepth = depthFromWorld(hit);
         done = true; break;
       }
     }
@@ -218,7 +239,8 @@ void main() {
   color = color / (1.0 + color);
   color = pow(color, vec3(1.0 / 2.2));
 
-  gl_FragColor = vec4(color, 1.0);
+  fragColor = vec4(color, 1.0);
+  gl_FragDepth = outDepth;
 }
 `;
 

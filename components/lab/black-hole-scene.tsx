@@ -36,6 +36,7 @@ export function BlackHoleQuad({ quality, diskOn, dopplerOn, spin }: BlackHoleSce
     () => ({
       uCamPos: { value: new THREE.Vector3() },
       uCamBasis: { value: new THREE.Matrix3() },
+      uViewProj: { value: new THREE.Matrix4() },
       uTanFov: { value: 0.5 },
       uAspect: { value: 1 },
       uTime: { value: 0 },
@@ -64,6 +65,7 @@ export function BlackHoleQuad({ quality, diskOn, dopplerOn, spin }: BlackHoleSce
     u.uCamPos.value.copy(camera.position);
     camBasis.current.setFromMatrix4(camera.matrixWorld);
     u.uCamBasis.value.copy(camBasis.current);
+    u.uViewProj.value.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
     u.uAspect.value = size.width / Math.max(1, size.height);
     const fov = (camera as THREE.PerspectiveCamera).fov ?? 50;
     u.uTanFov.value = Math.tan((fov * Math.PI) / 360);
@@ -82,8 +84,9 @@ export function BlackHoleQuad({ quality, diskOn, dopplerOn, spin }: BlackHoleSce
         vertexShader={blackHoleVertexShader}
         fragmentShader={blackHoleFragmentShader}
         uniforms={uniforms}
-        depthTest={false}
-        depthWrite={false}
+        glslVersion={THREE.GLSL3}
+        depthTest
+        depthWrite
       />
     </mesh>
   );

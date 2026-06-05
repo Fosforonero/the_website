@@ -108,7 +108,7 @@ const COPY: Record<Locale, Copy> = {
       {
         heading: "6. Limiti: cosa NON è (onestà scientifica)",
         body: [
-          "La base è Schwarzschild (non rotante); lo spin è approssimato (Lense–Thirring), non Kerr. Il disco è stazionario e otticamente spesso: non risolve idrodinamica MHD, autogravità, spessore verticale né polarizzazione. Le stelle di sfondo sono procedurali (il loro lensing, però, è reale). Nel playground i corpi aggiunti non sono lensati e l'integrazione è pseudo-newtoniana, non geodetica completa.",
+          "La base è Schwarzschild (non rotante); lo spin è approssimato (Lense–Thirring), non Kerr. Il disco è otticamente spesso con emissione di corpo nero: la sua struttura gassosa turbolenta è uno stand-in procedurale della turbolenza magnetorotazionale (MRI), non una soluzione GRMHD; non modella autogravità, spessore verticale né polarizzazione. Le stelle di sfondo sono procedurali (il loro lensing, però, è reale). Nel playground i corpi aggiunti sono occlusi dal disco/orizzonte ma non lensati, e l'integrazione è pseudo-newtoniana, non geodetica completa.",
         ],
       },
     ],
@@ -222,7 +222,7 @@ const COPY: Record<Locale, Copy> = {
       {
         heading: "6. Limits: what it is NOT (scientific honesty)",
         body: [
-          "The baseline is Schwarzschild (non-rotating); spin is approximate (Lense–Thirring), not Kerr. The disk is steady and optically thick: it does not solve MHD hydrodynamics, self-gravity, vertical thickness or polarization. Background stars are procedural (their lensing, however, is real). In the playground the added bodies are not lensed and the integration is pseudo-Newtonian, not full-geodesic.",
+          "The baseline is Schwarzschild (non-rotating); spin is approximate (Lense–Thirring), not Kerr. The disk is optically thick with blackbody emission: its turbulent gaseous structure is a procedural stand-in for magnetorotational (MRI) turbulence, not a GRMHD solution; it does not model self-gravity, vertical thickness or polarization. Background stars are procedural (their lensing, however, is real). In the playground the added bodies are occluded by the disk/horizon but not lensed, and the integration is pseudo-Newtonian, not full-geodesic.",
         ],
       },
     ],
