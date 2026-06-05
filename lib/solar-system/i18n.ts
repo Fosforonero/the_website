@@ -83,6 +83,9 @@ export const SOLAR_UI = {
     catalogDataQuality: "Qualità dati catalogo",
     neoCount: "Corpi NEO",
     searchPlaceholder: "Cerca corpo celeste…",
+    spacetimeGrid: "Griglia spazio-tempo",
+    spacetimeGridNote:
+      "Griglia di immersione (modello a \"telo elastico\"): la profondità delle buche segue il potenziale gravitazionale dei corpi in tempo reale. È l'analogia divulgativa 2D, non la curvatura reale dello spazio-tempo 4D; la profondità è compressa per leggibilità.",
   },
   en: {
     title: "Solar System",
@@ -162,5 +165,8 @@ export const SOLAR_UI = {
     catalogDataQuality: "Catalog data quality",
     neoCount: "NEO bodies",
     searchPlaceholder: "Search catalog…",
+    spacetimeGrid: "Spacetime grid",
+    spacetimeGridNote:
+      "Embedding grid (\"rubber-sheet\" model): well depth follows each body's gravitational potential in real time. This is the 2D popular-science analogy, not real 4D spacetime curvature; depth is compressed for legibility.",
   },
 } as const;

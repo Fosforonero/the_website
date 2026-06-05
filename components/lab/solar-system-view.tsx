@@ -142,6 +142,7 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
   const [radiusMode, setRadiusMode] = useState<ScaleRadiusMode>("visible");
   const [brightnessMode, setBrightnessMode] = useState<ScaleBrightnessMode>("educational");
   const [showAxes, setShowAxes] = useState(false);
+  const [spacetimeGridVisible, setSpacetimeGridVisible] = useState(false);
   const [labelsVisible, setLabelsVisible] = useState(true);
   const [constellationsVisible, setConstellationsVisible] = useState(true);
   const [deepSkyVisible, setDeepSkyVisible] = useState(false);
@@ -377,6 +378,14 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
           {t.axisMarkers}
         </button>
 
+        {/* Spacetime grid toggle */}
+        <button
+          className={`solar-control solar-toolbar__hide-sm${spacetimeGridVisible ? " solar-control--active" : ""}`}
+          onClick={() => setSpacetimeGridVisible((v) => !v)}
+        >
+          {t.spacetimeGrid}
+        </button>
+
         {/* Constellation toggle */}
         <button
           className={`solar-control${constellationsVisible ? " solar-control--active" : ""}`}
@@ -434,6 +443,7 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
           constellationsVisible={constellationsVisible}
           deepSkyVisible={deepSkyVisible}
           showAxes={showAxes}
+          spacetimeGridVisible={spacetimeGridVisible}
           catalogLayers={catalogLayerSpecs}
           horizonsMarker={horizonsMarker}
         />
@@ -698,6 +708,11 @@ export function SolarSystemView({ locale }: SolarSystemViewProps) {
           <p style={{ fontSize: "0.60rem", color: "#4a7090", lineHeight: 1.4, margin: 0 }}>
             {LIGHTING_DISCLOSURE[brightnessMode][locale]}
           </p>
+          {spacetimeGridVisible && (
+            <p style={{ fontSize: "0.60rem", color: "#4a7090", lineHeight: 1.4, margin: 0 }}>
+              {t.spacetimeGridNote}
+            </p>
+          )}
         </div>
 
         {/* Firmament source */}

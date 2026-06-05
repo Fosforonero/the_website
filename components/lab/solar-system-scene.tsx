@@ -5,6 +5,7 @@ import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls, Html } from "@react-three/drei";
 import * as THREE from "three";
 import { FirmamentLayer } from "./firmament-layer";
+import { SpacetimeGrid, type GravityWell } from "./spacetime-grid";
 import { CatalogLayer } from "./solar-system-catalog-layer";
 import type { CatalogCategory } from "@/lib/solar-system/catalog";
 import type { CatalogEntry } from "@/lib/solar-system/catalog";
@@ -41,6 +42,7 @@ export type SolarSystemSceneProps = {
   constellationsVisible: boolean;
   deepSkyVisible: boolean;
   showAxes?: boolean;  // show planet rotation axis markers, default false
+  spacetimeGridVisible?: boolean;  // gravity-well embedding grid, default false
   brightnessMode: ScaleBrightnessMode;
   catalogLayers?: CatalogLayerSpec[];
   horizonsMarker?: {
@@ -372,6 +374,7 @@ function InnerScene({
   constellationsVisible,
   deepSkyVisible,
   showAxes,
+  spacetimeGridVisible,
   brightnessMode,
   catalogLayers,
   horizonsMarker,
@@ -386,6 +389,28 @@ function InnerScene({
     for (const s of bodyStates) map.set(s.id, s);
     return map;
   }, [bodyStates]);
+
+  // Gravity wells for the spacetime grid — major masses (Sun, planets, dwarfs)
+  // at their live scaled positions. Recomputed when epoch/scale changes.
+  const gravityWells = useMemo<GravityWell[]>(() => {
+    if (!spacetimeGridVisible) return [];
+    const wells: GravityWell[] = [];
+    for (const body of SOLAR_BODIES) {
+      if (body.massKg === undefined) continue;
+      if (
+        body.category !== "star" &&
+        body.category !== "planet" &&
+        body.category !== "dwarf-planet"
+      ) {
+        continue;
+      }
+      const state = stateById.get(body.id);
+      if (!state) continue;
+      const [x, , z] = scalePositionVector(state.positionKm, distanceMode);
+      wells.push({ x, z, massKg: body.massKg });
+    }
+    return wells;
+  }, [spacetimeGridVisible, stateById, distanceMode]);
 
   return (
     <>
@@ -419,6 +444,15 @@ function InnerScene({
         deepSkyVisible={deepSkyVisible}
         labelsVisible={labelsVisible}
       />
+
+      {/* Spacetime-deformation grid (gravity-well embedding) */}
+      {spacetimeGridVisible && (
+        <SpacetimeGrid
+          wells={gravityWells}
+          extent={distanceMode === "compressed" ? 70 : 300}
+          spacing={distanceMode === "compressed" ? 1 : 5}
+        />
+      )}
 
       {/* Orbit paths — sampled from same solver as body positions */}
       {SOLAR_BODIES.map((body) => {
