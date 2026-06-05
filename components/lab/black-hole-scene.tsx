@@ -27,7 +27,7 @@ export type BlackHoleSceneProps = {
 // Fullscreen geodesic raymarch quad
 // ---------------------------------------------------------------------------
 
-function BlackHoleQuad({ quality, diskOn, dopplerOn, spin }: BlackHoleSceneProps) {
+export function BlackHoleQuad({ quality, diskOn, dopplerOn, spin }: BlackHoleSceneProps) {
   const matRef = useRef<THREE.ShaderMaterial>(null);
   const camBasis = useRef(new THREE.Matrix3());
 

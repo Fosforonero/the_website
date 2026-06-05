@@ -261,3 +261,29 @@
 .bh-about__credit dd { margin: 2px 0 0; font-size: 0.85rem; color: #aebbd2; }
 
 .bh-about__foot { margin-top: 32px; }
+
+.bh-disclosure__text {
+  margin: 0 18px 0 0;
+  font-size: 0.66rem;
+  line-height: 1.45;
+  color: #7e93b6;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────── */
+@media (max-width: 680px) {
+  .bh-toolbar__hide-sm { display: none !important; }
+  .bh-hint--hide-sm { display: none; }
+  .bh-toolbar { gap: 6px; padding: 6px 8px; }
+  .bh-toolbar__title { font-size: 0.78rem; }
+  .bh-control { padding: 5px 9px; font-size: 0.72rem; }
+  .bh-disclosure {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    max-width: none;
+    max-height: 34vh;
+    overflow-y: auto;
+    padding: 10px 12px;
+  }
+  .bh-disclosure li { font-size: 0.68rem; }
+}

@@ -228,6 +228,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       },
     },
     {
+      url: `${site.url}/lab/buco-nero/playground`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+      alternates: {
+        languages: {
+          it: `${site.url}/lab/buco-nero/playground`,
+          en: `${site.url}/en/lab/black-hole/playground`,
+        },
+      },
+    },
+    {
+      url: `${site.url}/en/lab/black-hole/playground`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+      alternates: {
+        languages: {
+          it: `${site.url}/lab/buco-nero/playground`,
+          en: `${site.url}/en/lab/black-hole/playground`,
+        },
+      },
+    },
+    {
       url: `${site.url}/lab/buco-nero/about`,
       lastModified: now,
       changeFrequency: "monthly" as const,

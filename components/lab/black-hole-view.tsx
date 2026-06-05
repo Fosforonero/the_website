@@ -23,6 +23,7 @@ const COPY = {
     spin: "Spin (frame-dragging ~)",
     hint: "Trascina per orbitare · scroll per zoomare. Porta la vista quasi di taglio al disco per vedere l'alone alla Gargantua.",
     about: "Equazioni e crediti",
+    playground: "Playground",
     closeInfo: "Chiudi",
     openInfo: "ⓘ Info",
     discTitle: "Cosa stai guardando (e cosa no)",
@@ -43,6 +44,7 @@ const COPY = {
     spin: "Spin (frame-dragging ~)",
     hint: "Drag to orbit · scroll to zoom. Bring the disk near edge-on to see the Gargantua-style halo.",
     about: "Equations & credits",
+    playground: "Playground",
     closeInfo: "Close",
     openInfo: "ⓘ Info",
     discTitle: "What you are seeing (and what you are not)",
@@ -64,6 +66,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
   const [spin, setSpin] = useState(0);
   const [infoOpen, setInfoOpen] = useState(true);
   const aboutHref = locale === "it" ? "/lab/buco-nero/about" : "/en/lab/black-hole/about";
+  const playgroundHref = locale === "it" ? "/lab/buco-nero/playground" : "/en/lab/black-hole/playground";
 
   return (
     <div className="bh-root">
@@ -71,7 +74,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
         <span className="bh-toolbar__title">{t.title}</span>
         <div className="bh-toolbar__sep" />
 
-        <label className="bh-control">
+        <label className="bh-control bh-toolbar__hide-sm">
           <span>{t.quality}</span>
           <select
             value={quality}
@@ -99,7 +102,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
           {t.doppler}
         </button>
 
-        <label className={`bh-control${spin > 0 ? " bh-control--active" : ""}`}>
+        <label className={`bh-control bh-toolbar__hide-sm${spin > 0 ? " bh-control--active" : ""}`}>
           <span>{t.spin}</span>
           <input
             type="range"
@@ -114,7 +117,10 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
         </label>
 
         <div className="bh-toolbar__sep" />
-        <Link href={aboutHref} className="bh-control">
+        <Link href={playgroundHref} className="bh-control">
+          {t.playground}
+        </Link>
+        <Link href={aboutHref} className="bh-control bh-toolbar__hide-sm">
           {t.about}
         </Link>
         <Link href={locale === "it" ? "/lab" : "/en/lab"} className="bh-control">
