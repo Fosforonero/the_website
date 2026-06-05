@@ -266,7 +266,14 @@ void main() {
 
         // Bolometric surface brightness ∝ T_obs⁴ (Stefan–Boltzmann).
         float bright = uDiskBright * pow(Tobs / uDiskTemp, 4.0);
-        bright *= smoothstep(uDiskOuter, uDiskOuter - 2.0, rd); // soft outer edge
+        // Outer boundary: NOT a razor edge. The surface brightness already falls
+        // ∝ r⁻³; on top we taper gradually over the outer third and let it reach
+        // zero with vanishing slope at the truncation radius, because a real
+        // disk's outer rim (set by its feeding region) is fuzzy, not sharp. The
+        // inner edge, by contrast, is genuinely sharp — the ISCO zero-stress
+        // boundary where the flux physically goes to zero.
+        float outer = 1.0 - smoothstep(uDiskOuter - 6.0, uDiskOuter, rd);
+        bright *= outer * outer;
 
         // Gaseous structure: filamentary FBM turbulence in rotating disk-plane
         // coordinates (seamless, differential rotation). The disk is optically
@@ -283,14 +290,22 @@ void main() {
         // so octaves never align into a grid, plus a domain warp that breaks up
         // the coarse base cells — otherwise, seen edge-on in the foreground, the
         // largest cell shows as flat triangular facets ("maglia" sul disco).
+        // Screen-space footprint of the disk surface under this pixel (world
+        // units per pixel). At grazing / distant views one pixel covers many
+        // noise cells, so the high octaves under-sample and shimmer — classic
+        // perspective aliasing. We fade each octave toward its mean (0.5) once
+        // its period drops below the footprint (filtered fBm / mip-style band-
+        // limiting), removing the shimmer without darkening the disk.
+        float foot = max(fwidth(hit.x), fwidth(hit.z));
         mat2 rot = mat2(0.80, -0.60, 0.60, 0.80);
         vec2 p = q * 0.6;
         vec2 warp = vec2(gnoise(p + 3.1), gnoise(p + 7.7)) - 0.5;
         p += 0.7 * warp;                          // domain warp → swirled, no facets
-        float turb = 0.50 * gnoise(p);            p = rot * p * 2.0 + 11.5;
-        turb      += 0.28 * gnoise(p);            p = rot * p * 2.0 + 4.7;
-        turb      += 0.15 * gnoise(p);            p = rot * p * 2.0 + 19.2;
-        turb      += 0.07 * gnoise(p);
+        float turb = 0.0;
+        turb += 0.50 * mix(0.5, gnoise(p), 1.0 - smoothstep(0.45, 0.9, foot * 0.6));  p = rot * p * 2.0 + 11.5;
+        turb += 0.28 * mix(0.5, gnoise(p), 1.0 - smoothstep(0.45, 0.9, foot * 1.2));  p = rot * p * 2.0 + 4.7;
+        turb += 0.15 * mix(0.5, gnoise(p), 1.0 - smoothstep(0.45, 0.9, foot * 2.4));  p = rot * p * 2.0 + 19.2;
+        turb += 0.07 * mix(0.5, gnoise(p), 1.0 - smoothstep(0.45, 0.9, foot * 4.8));
         turb = pow(clamp(turb, 0.0, 1.0), 1.25);  // contrast → visible rotating bands
         bright *= 0.34 + 1.5 * turb;
 
