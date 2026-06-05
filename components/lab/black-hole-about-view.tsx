@@ -4,10 +4,13 @@ import Link from "next/link";
 import katex from "katex";
 
 // ---------------------------------------------------------------------------
-// Black-hole lab — about / methodology page (bilingual, graduate level).
-// Documents the mathematics and physics actually used in the renderer, with
-// rigorous derivations and citations to international university sources, in
-// line with the project's "fail loud, never fake" rule. Typeset with KaTeX.
+// Black-hole lab — methodology page (bilingual, thesis level).
+// A rigorous account of the mathematics and physics implemented in the
+// renderer: metric, geodesics (null & timelike), accretion disk, invariant
+// radiative transfer, returning radiation / photon ring, frame dragging, the
+// spatial embedding, the playground dynamics and the numerical methods — with
+// citations to international university sources, per the project's
+// "fail loud, never fake" rule. Equations typeset with KaTeX.
 // ---------------------------------------------------------------------------
 
 type Locale = "it" | "en";
@@ -18,6 +21,8 @@ type Ref = { cite: string; url?: string };
 type Copy = {
   kicker: string;
   title: string;
+  abstractHeading: string;
+  abstract: string;
   intro: string[];
   sections: Section[];
   openHeading: string;
@@ -30,105 +35,149 @@ type Copy = {
   openSim: string;
 };
 
-function Tex({ tex, display = true }: { tex: string; display?: boolean }) {
-  const html = katex.renderToString(tex, { throwOnError: false, displayMode: display });
+function Tex({ tex }: { tex: string }) {
+  const html = katex.renderToString(tex, { throwOnError: false, displayMode: true });
   return <span className="bh-about__tex" dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
 const COPY: Record<Locale, Copy> = {
   it: {
-    kicker: "Metodologia · livello graduate · Fosforonero Lab",
-    title: "Buco nero: derivazione matematica e fisica",
+    kicker: "Metodologia · livello tesi · Fosforonero Lab",
+    title: "Buco nero: trattazione matematica e fisica",
+    abstractHeading: "Abstract",
+    abstract:
+      "Si descrive un renderer WebGL in tempo reale di un buco nero di Schwarzschild e del suo disco di accrescimento. Per ogni pixel si integra la geodetica nulla del fotone nello spazio-tempo curvo, ottenendo lensing gravitazionale, sfera fotonica, ombra e — tramite la returning radiation — il photon ring. Il disco è otticamente spesso con emissione di corpo nero e trasporto radiativo relativistico invariante (beaming g⁴, redshift gravitazionale). Una demo affiancata integra le geodetiche di tipo-tempo esatte (precessione del periastro, ISCO), mentre un playground usa il potenziale pseudo-newtoniano di Paczyński–Wiita per una dinamica a N-corpi con disgregazione mareale. Si dichiarano esplicitamente le approssimazioni: spin in approssimazione di Lense–Thirring (non Kerr), turbolenza del disco procedurale (non GRMHD), getti stilizzati.",
     intro: [
-      "Questa pagina ricostruisce, a livello universitario avanzato, le equazioni che governano la simulazione: dalla metrica di Schwarzschild alle geodetiche nulle, dal disco di accrescimento relativistico al trasporto radiativo invariante. Dichiariamo esplicitamente cosa è esatto, cosa è approssimato e cosa è scelta di visualizzazione.",
-      "Tutto è in unità geometrizzate G = c = 1; nel renderer fissiamo il raggio di Schwarzschild rₛ = 2M = 1.",
+      "Unità geometrizzate G = c = 1; nel renderer fissiamo il raggio di Schwarzschild rₛ = 2M = 1, da cui ISCO a r = 6M = 3 e sfera fotonica a r = 3M = 1.5.",
     ],
     sections: [
       {
         heading: "1. Metrica di Schwarzschild e geodetiche nulle",
         body: [
-          "La geometria esterna a una massa sferica non rotante è la soluzione di Schwarzschild del vuoto delle equazioni di Einstein. Nelle coordinate (t, r, θ, φ):",
-          "I vettori di Killing temporale e azimutale forniscono due integrali primi del moto — energia E e momento angolare L per unità di massa — lungo ogni geodetica affine:",
-          "Per un fotone (geodetica nulla) la condizione gᵤᵥ ẋᵘẋᵛ = 0 si riduce, nel piano equatoriale, a un'equazione radiale con potenziale efficace. Ponendo u = 1/r si ottiene l'equazione orbitale, la cui derivata è l'equazione di Binet per i fotoni:",
-          "Il parametro d'impatto è b = L/E. La sfera fotonica (orbita circolare instabile dei fotoni) è a r = 3M = 1.5 rₛ, e l'ombra osservata corrisponde al parametro d'impatto critico bᵪ = 3√3·M. Il renderer integra numericamente la forma vettoriale equivalente di questa geodetica (velocity-Verlet), riproducendo lensing, anello di Einstein, sfera fotonica e ombra. (Carroll; Kokkotas, Univ. Tübingen; Hirata, Ohio State.)",
+          "La geometria esterna a una massa sferica non rotante è la soluzione di vuoto di Schwarzschild delle equazioni di Einstein. I vettori di Killing temporale ∂ₜ e azimutale ∂_φ forniscono due integrali primi — energia E e momento angolare L per unità di massa.",
+          "Per un fotone (geodetica nulla, gᵤᵥ ẋᵘẋᵛ = 0) nel piano equatoriale si ottiene un'equazione radiale con potenziale efficace. Ponendo u = 1/r segue l'equazione orbitale, la cui derivata è l'equazione di Binet per i fotoni; il termine 3M u² è la correzione di relatività generale.",
+          "Definito il parametro d'impatto b = L/E, la sfera fotonica (orbita circolare instabile dei fotoni) è a r = 3M e l'ombra osservata corrisponde al parametro d'impatto critico b_c = 3√3·M ≈ 2.6 rₛ. Il renderer integra la forma vettoriale equivalente con velocity-Verlet. (Carroll, Caltech; Kokkotas, Univ. Tübingen; Hirata, Ohio State; MTW.)",
         ],
         eqs: [
           { label: "Elemento di linea di Schwarzschild", tex: "ds^2 = -\\left(1-\\tfrac{2M}{r}\\right)dt^2 + \\left(1-\\tfrac{2M}{r}\\right)^{-1}dr^2 + r^2\\,d\\Omega^2" },
-          { label: "Quantità conservate (vettori di Killing)", tex: "E = \\left(1-\\tfrac{2M}{r}\\right)\\dot t, \\qquad L = r^2\\,\\dot\\varphi" },
-          { label: "Equazione orbitale dei fotoni e sua derivata (Binet)", tex: "\\left(\\frac{du}{d\\varphi}\\right)^{2} = \\frac{1}{b^{2}} - (1-2Mu)\\,u^{2} \\;\\Longrightarrow\\; \\frac{d^{2}u}{d\\varphi^{2}} + u = 3M\\,u^{2}" },
-          { label: "Sfera fotonica e parametro d'impatto critico (ombra)", tex: "r_{\\mathrm{ph}} = 3M = 1.5\\,r_s, \\qquad b_c = 3\\sqrt{3}\\,M" },
+          { label: "Quantità conservate (vettori di Killing)", tex: "E = \\left(1-\\tfrac{2M}{r}\\right)\\dot t, \\qquad L = r^2\\dot\\varphi" },
+          { label: "Potenziale efficace nullo", tex: "\\left(\\frac{dr}{d\\lambda}\\right)^{2} = E^{2} - \\frac{L^{2}}{r^{2}}\\left(1-\\frac{2M}{r}\\right)" },
+          { label: "Equazione orbitale dei fotoni (Binet)", tex: "\\frac{d^{2}u}{d\\varphi^{2}} + u = 3M\\,u^{2}, \\qquad u = 1/r" },
+          { label: "Sfera fotonica e parametro d'impatto critico", tex: "r_{\\mathrm{ph}} = 3M, \\qquad b_c = 3\\sqrt{3}\\,M" },
         ],
       },
       {
-        heading: "2. Disco di accrescimento relativistico",
+        heading: "2. Geodetiche di tipo-tempo: orbite, ISCO, precessione",
         body: [
-          "Il disco sottile, otticamente spesso, segue il modello di Shakura–Sunyaev nella sua versione relativistica di Novikov–Thorne, con condizione di stress nullo all'ultima orbita circolare stabile (ISCO). Il flusso emesso localmente e la temperatura efficace (Stefan–Boltzmann) sono:",
-          "Per Schwarzschild l'ISCO è a rᵢₛ𝒸ₒ = 6M = 3 rₛ. Ogni anello irraggia come un corpo nero alla sua temperatura locale: il colore è quindi il vero colore di corpo nero T → sRGB lungo il locus planckiano, non un gradiente arbitrario. Il primo calcolo dell'immagine di un disco siffatto risale a Luminet (1979). (Shakura–Sunyaev 1973; Novikov–Thorne 1973; Luminet 1979.)",
+          "Per una particella massiva (la demo «Orbite») la normalizzazione gᵤᵥ ẋᵘẋᵛ = −1 dà un'equazione radiale con il potenziale efficace V_eff. Le orbite circolari soddisfano dV/dr = 0; sono stabili solo per r > 6M. A r = 6M = 3 rₛ si trova l'ISCO (innermost stable circular orbit): sotto di essa nessuna orbita circolare è stabile e la particella precipita.",
+          "L'equazione orbitale di tipo-tempo ha, oltre al termine newtoniano M/L², la correzione relativistica 3M u² che fa precedere il periastro. È la stessa fisica della precessione anomala del perielio di Mercurio (43″ per secolo), primo test di Einstein del 1915. Sotto L = 2√3·M non esistono orbite legate stabili.",
+        ],
+        eqs: [
+          { label: "Potenziale efficace (tipo-tempo)", tex: "\\left(\\frac{dr}{d\\tau}\\right)^{2} = E^{2} - V_{\\mathrm{eff}}^{2}, \\quad V_{\\mathrm{eff}}^{2} = \\left(1-\\frac{2M}{r}\\right)\\left(1+\\frac{L^{2}}{r^{2}}\\right)" },
+          { label: "Equazione orbitale (precessione dal termine 3Mu²)", tex: "\\frac{d^{2}u}{d\\varphi^{2}} + u = \\frac{M}{L^{2}} + 3M\\,u^{2}" },
+          { label: "ISCO e momento angolare circolare", tex: "r_{\\mathrm{ISCO}} = 6M = 3\\,r_s, \\qquad L^{2}_{\\mathrm{circ}} = \\frac{M r^{2}}{r-3M}" },
+          { label: "Precessione del periastro (campo debole)", tex: "\\Delta\\varphi_{\\mathrm{prec}} \\simeq \\frac{6\\pi M}{p} \\quad(\\text{Mercurio}:\\ 43''/\\text{secolo})" },
+        ],
+      },
+      {
+        heading: "3. Disco di accrescimento relativistico",
+        body: [
+          "Il disco sottile e otticamente spesso segue il modello di Shakura–Sunyaev nella versione relativistica di Novikov–Thorne, con condizione di stress nullo all'ISCO. Il flusso emesso e la temperatura efficace (Stefan–Boltzmann) determinano un'emissione di corpo nero locale.",
+          "Il colore è quindi il vero colore di corpo nero della temperatura locale (locus planckiano → sRGB), non un gradiente arbitrario. Il primo calcolo dell'immagine di un disco siffatto è di Luminet (1979). (Shakura–Sunyaev 1973; Novikov–Thorne 1973; Luminet 1979.)",
         ],
         eqs: [
           { label: "Flusso del disco (Novikov–Thorne / Shakura–Sunyaev)", tex: "F(r) = \\frac{3\\,G M \\dot M}{8\\pi r^{3}}\\left(1 - \\sqrt{r_{\\mathrm{in}}/r}\\,\\right)" },
-          { label: "Temperatura efficace", tex: "T_{\\mathrm{eff}}(r) = \\left(\\frac{F(r)}{\\sigma}\\right)^{1/4}" },
-          { label: "Bordo interno (ISCO, Schwarzschild)", tex: "r_{\\mathrm{in}} = r_{\\mathrm{ISCO}} = 6M = 3\\,r_s" },
+          { label: "Temperatura efficace", tex: "T_{\\mathrm{eff}}(r) = \\left(F(r)/\\sigma\\right)^{1/4} \\propto r^{-3/4}" },
+          { label: "Bordo interno (ISCO)", tex: "r_{\\mathrm{in}} = 6M = 3\\,r_s" },
         ],
       },
       {
-        heading: "3. Trasporto radiativo ed effetti relativistici",
+        heading: "4. Trasporto radiativo ed effetti relativistici",
         body: [
-          "Lungo un raggio, la quantità Iᵥ/ν³ è invariante (teorema di Liouville per i fotoni). Definito il fattore di redshift g = νₒₛₛ/νₑₘ, per un emettitore in orbita circolare g combina la dilatazione gravitazionale e temporale con il Doppler longitudinale.",
-          "Un corpo nero visto con fattore g resta un corpo nero a temperatura g·T (invarianza Doppler dello spettro di Planck), con intensità bolometrica che scala come g⁴. Lo stesso g pilota quindi luminosità e colore: il lato del disco in avvicinamento è più luminoso e più blu (beaming relativistico), quello in allontanamento più scuro e più rosso. (Luminet 1979; Vincent et al. 2011, GYOTO.)",
+          "Lungo un raggio la quantità Iᵥ/ν³ è invariante (teorema di Liouville per i fotoni). Definito il fattore di redshift g = νₒₛₛ/νₑₘ, per un emettitore in orbita circolare g combina la dilatazione gravitazionale e temporale con il Doppler longitudinale.",
+          "Un corpo nero visto con fattore g resta un corpo nero a temperatura g·T (invarianza Doppler dello spettro di Planck), con intensità bolometrica ∝ g⁴. Lo stesso g pilota luminosità e colore: il lato in avvicinamento è più luminoso e più blu, quello in allontanamento più scuro e più rosso. (Luminet 1979; Vincent et al. 2011, GYOTO.)",
         ],
         eqs: [
           { label: "Invariante di Liouville", tex: "\\frac{I_\\nu}{\\nu^{3}} = \\text{costante lungo il raggio}" },
           { label: "Velocità orbitale GR e fattore di redshift", tex: "v = \\sqrt{\\frac{M}{r-2M}}, \\qquad g = \\frac{\\sqrt{1 - 3M/r}}{1 - \\beta}, \\quad \\beta = \\mathbf v\\cdot\\hat{\\mathbf n}_{\\mathrm{oss}}" },
-          { label: "Beaming bolometrico e colore (corpo nero)", tex: "I_{\\mathrm{oss}} = g^{4}\\,I_{\\mathrm{em}}, \\qquad B_\\nu(T)\\big|_{g} = B_\\nu(g\\,T)" },
+          { label: "Beaming bolometrico e colore", tex: "I_{\\mathrm{oss}} = g^{4}\\,I_{\\mathrm{em}}, \\qquad B_\\nu(T)\\big|_{g} = B_\\nu(g\\,T)" },
         ],
       },
       {
-        heading: "4. Rotazione: Kerr e frame-dragging",
+        heading: "5. Returning radiation e photon ring",
         body: [
-          "Un buco nero realistico ruota: la metrica corretta è quella di Kerr, in cui il trascinamento dei sistemi inerziali (frame-dragging) ha velocità angolare ω = −g_{tφ}/g_{φφ}. Il renderer non integra Kerr; lo slider Spin aggiunge il frame-dragging in approssimazione di campo gravitomagnetico di dipolo (Lense–Thirring), fisicamente motivato ma NON la metrica di Kerr completa.",
-          "Il celebre Gargantua di Interstellar usa la vera metrica di Kerr ray-tracciata offline (James, von Tunzelmann, Franklin & Thorne 2015). Codici di ray-tracing GR completi e pubblici (es. GYOTO) integrano Kerr ma non in tempo reale nel browser.",
+          "I raggi che sfiorano la sfera fotonica si avvolgono attorno al buco nero prima di sfuggire o colpire il disco: è la returning radiation. Il renderer raffina il passo d'integrazione appena fuori dalla sfera fotonica, così cattura le immagini di ordine superiore del disco — la luce del disco che ha compiuto mezzi giri aggiuntivi.",
+          "Queste immagini si accalcano in sub-anelli sempre più sottili che convergono al parametro d'impatto critico b_c, con uno spaziamento che decade esponenzialmente (esponente di Lyapunov γ = π per Schwarzschild). Il limite è il photon ring: nella nostra implementazione emerge dalla luce reale del disco (stesso colore), non è disegnato analiticamente. (Luminet 1979; Gralla, Holz & Wald 2019; Johnson et al. 2020, EHT.)",
+        ],
+        eqs: [
+          { label: "Convergenza dei sub-anelli al valore critico", tex: "b_{n} - b_{c} \\;\\propto\\; e^{-\\gamma n}, \\qquad \\gamma = \\pi \\ (\\text{Schwarzschild})" },
+          { label: "Raggio del photon ring (ombra)", tex: "b_c = 3\\sqrt{3}\\,M \\approx 2.6\\,r_s" },
+        ],
+      },
+      {
+        heading: "6. Rotazione: Kerr e frame-dragging",
+        body: [
+          "Un buco nero reale ruota: la metrica corretta è quella di Kerr, in cui il trascinamento dei sistemi inerziali (frame-dragging) ha velocità angolare ω = −g_{tφ}/g_{φφ}. Il renderer non integra Kerr; lo slider Spin aggiunge il frame-dragging in approssimazione di campo gravitomagnetico di dipolo (Lense–Thirring), fisicamente motivato ma NON la metrica di Kerr completa.",
+          "Il Gargantua di Interstellar usa la vera metrica di Kerr ray-tracciata offline (James, von Tunzelmann, Franklin & Thorne 2015). I codici GR pubblici (es. GYOTO) integrano Kerr, ma non in tempo reale nel browser. (Bardeen 1973 per le geodetiche di Kerr.)",
         ],
         eqs: [
           { label: "Velocità angolare di frame-dragging (Kerr)", tex: "\\omega(r,\\theta) = -\\,\\frac{g_{t\\varphi}}{g_{\\varphi\\varphi}} \\;\\xrightarrow{\\text{campo lontano}}\\; \\frac{2GJ}{c^{2} r^{3}}" },
-          { label: "Approssimazione Lense–Thirring usata", tex: "\\mathbf a_{\\mathrm{drag}} \\propto \\mathbf v\\times\\mathbf B_g, \\qquad \\mathbf B_g = \\frac{3(\\mathbf J\\cdot\\hat{\\mathbf r})\\,\\hat{\\mathbf r} - \\mathbf J}{r^{3}}" },
+          { label: "Approssimazione Lense–Thirring usata", tex: "\\mathbf a_{\\mathrm{drag}} \\propto \\mathbf v\\times\\mathbf B_g, \\qquad \\mathbf B_g = \\frac{3(\\mathbf J\\cdot\\hat{\\mathbf r})\\hat{\\mathbf r} - \\mathbf J}{r^{3}}" },
         ],
       },
       {
-        heading: "5. Playground: dinamica dei corpi",
+        heading: "7. Geometria dello spazio: il paraboloide di Flamm",
         body: [
-          "I corpi (pianeti con lune, stelle, comete) si muovono nel potenziale pseudo-newtoniano di Paczyński–Wiita, che riproduce esattamente l'ISCO a 6M e la caduta relativistica verso l'orizzonte senza integrare le geodetiche complete. Oltre al buco nero, i corpi massivi (stelle, pianeti e lune) si attraggono anche a vicenda: è un N-corpi smorzato, quindi una stella perturba un pianeta vicino e le lune sentono pianeta ospite e perturbatori esterni.",
-          "Disgregazione mareale (TDE): una stella entro il raggio mareale viene spaghettificata. Il meccanismo è uno spread di energia orbitale specifica lungo l'orbita — metà dei detriti diventa legata (ε<0) e ricade avvolgendo il buco nero e alimentando il disco, l'altra metà è non legata (ε>0) ed è espulsa come coda mareale; il tasso di ricaduta segue la celebre legge Ṁ ∝ t⁻⁵ᐟ³ (Rees 1988). Qui è un modello a particelle, non idrodinamica.",
-          "Trasferimento di massa: un corpo che si avvicina perde materia da uno stream verso il buco nero (overflow del lobo di Roche) che alimenta il disco. (Paczyński–Wiita 1980; Rees 1988.)",
+          "La griglia spazio-tempo opzionale visualizza la curvatura spaziale reale: l'immersione isometrica della sezione equatoriale (t, θ = π/2 costanti) di Schwarzschild in uno spazio euclideo 3D è il paraboloide di Flamm (1916) — il celebre «imbuto». Non è un generico telo elastico, ma la superficie z(r) la cui geometria intrinseca riproduce la metrica spaziale di Schwarzschild.",
+        ],
+        eqs: [
+          { label: "Paraboloide di Flamm", tex: "z(r) = 2\\sqrt{r_s\\,(r - r_s)}, \\qquad \\left(\\frac{dz}{dr}\\right)^{2} = \\left(1-\\frac{r_s}{r}\\right)^{-1} - 1" },
+        ],
+      },
+      {
+        heading: "8. Playground: dinamica dei corpi",
+        body: [
+          "I corpi (pianeti con lune, stelle, comete) si muovono nel potenziale pseudo-newtoniano di Paczyński–Wiita, che riproduce esattamente l'ISCO a 6M e la caduta relativistica senza integrare le geodetiche complete — compromesso standard nei modelli N-corpi/accrescimento. Oltre al buco nero, i corpi massivi si attraggono a vicenda (N-corpi smorzato).",
+          "Disgregazione mareale (TDE): una stella entro il raggio mareale è spaghettificata; uno spread di energia orbitale specifica rende metà dei detriti legati (ricadono avvolgendo il buco nero, alimentano il disco) e metà non legati (coda mareale), con tasso di ricaduta Ṁ ∝ t⁻⁵ᐟ³ (Rees 1988). Il trasferimento di massa per overflow del lobo di Roche alimenta a sua volta il disco. (Paczyński–Wiita 1980; Rees 1988.)",
         ],
         eqs: [
           { label: "Potenziale di Paczyński–Wiita", tex: "\\Phi(r) = -\\frac{GM}{r - r_s}" },
-          { label: "Raggio mareale (disgregazione stellare)", tex: "r_t \\simeq R_\\star\\left(\\frac{M_{\\mathrm{BH}}}{M_\\star}\\right)^{1/3}" },
-          { label: "Spread di energia specifica dei detriti", tex: "\\Delta\\varepsilon \\simeq \\frac{G M_{\\mathrm{BH}} R_\\star}{r_t^{2}}" },
+          { label: "Raggio mareale e spread di energia", tex: "r_t \\simeq R_\\star\\!\\left(\\frac{M_{\\mathrm{BH}}}{M_\\star}\\right)^{1/3}, \\qquad \\Delta\\varepsilon \\simeq \\frac{G M_{\\mathrm{BH}} R_\\star}{r_t^{2}}" },
           { label: "Tasso di ricaduta (fallback) del TDE", tex: "\\dot M_{\\mathrm{fb}} \\propto t^{-5/3}" },
         ],
       },
       {
-        heading: "6. Limiti: cosa NON è (onestà scientifica)",
+        heading: "9. Metodi numerici del renderer",
         body: [
-          "La base è Schwarzschild (non rotante); lo spin è approssimato (Lense–Thirring), non Kerr. Il disco è otticamente spesso con emissione di corpo nero: la sua struttura gassosa turbolenta è uno stand-in procedurale della turbolenza magnetorotazionale (MRI), non una soluzione GRMHD; non modella autogravità, spessore verticale né polarizzazione. Il photon ring emerge dal lensing ed è enfatizzato vicino al parametro d'impatto critico b_c; i getti relativistici sono un'aggiunta stilizzata (emissione otticamente sottile lungo l'asse di spin), non una soluzione MHD. Le stelle di sfondo sono procedurali (il loro lensing, però, è reale). Nel playground i corpi aggiunti sono occlusi dal disco/orizzonte ma non lensati, l'integrazione è pseudo-newtoniana, e il disco illumina i corpi tramite una luce centrale (approssimazione).",
+          "Lensing: la geodetica nulla è integrata in forma vettoriale con un'accelerazione che curva il raggio, dove h² = |r × v|² è il momento angolare conservato del fotone; l'integratore è velocity-Verlet con passo adattivo, raffinato vicino alla sfera fotonica per la returning radiation. Il tone mapping è ACES filmico seguito da correzione gamma.",
+          "Playground: integrazione a sub-passi adattivi nel potenziale di Paczyński–Wiita più la gravità reciproca smorzata (softening ε); le velocità sono limitate a c. Le geodetiche di tipo-tempo della demo «Orbite» sono integrate nell'azimuth φ con l'equazione orbitale esatta.",
+        ],
+        eqs: [
+          { label: "Accelerazione geodetica integrata (rₛ = 1, M = ½)", tex: "\\mathbf a = -\\tfrac{3}{2}\\,h^{2}\\,\\frac{\\mathbf r}{|\\mathbf r|^{5}}, \\qquad h^{2} = |\\mathbf r\\times\\mathbf v|^{2}" },
+          { label: "Passo velocity-Verlet", tex: "\\mathbf r_{n+1} = \\mathbf r_{n} + \\mathbf v_{n}\\,\\delta + \\tfrac{1}{2}\\mathbf a_{n}\\,\\delta^{2}" },
+        ],
+      },
+      {
+        heading: "10. Limiti: cosa NON è (onestà scientifica)",
+        body: [
+          "La base è Schwarzschild (non rotante); lo spin è approssimato (Lense–Thirring), non Kerr. Il disco è otticamente spesso con emissione di corpo nero: la sua struttura gassosa turbolenta è uno stand-in procedurale della turbolenza magnetorotazionale (MRI), non una soluzione GRMHD; non modella autogravità, spessore verticale né polarizzazione. Il photon ring emerge dalla returning radiation ma le immagini di ordine molto alto non sono risolte; i getti relativistici sono un'aggiunta stilizzata (otticamente sottile), non MHD. Le stelle di sfondo sono procedurali (il loro lensing è reale). Nel playground i corpi sono occlusi dal disco/orizzonte ma non lensati, l'integrazione è pseudo-newtoniana e l'illuminazione del disco è una luce centrale (approssimazione).",
         ],
       },
     ],
     openHeading: "Soluzioni open: cosa possiamo (e non possiamo) integrare",
     open: [
       "Esistono ottimi codici di ray-tracing relativistico open source — GYOTO (Observatoire de Paris), RAPTOR, ipole, grtrans, Blacklight — e l'implementazione aperta del metodo di Luminet. Sono però codici offline (C/C++/Python) che calcolano singoli fotogrammi in minuti/ore: non sono eseguibili in tempo reale in un fragment shader WebGL nel browser.",
-      "Quello che integriamo davvero sono le loro formulazioni fisico-matematiche: la geodetica di Schwarzschild, il disco di Novikov–Thorne, il fattore g e l'invariante Iᵥ/ν³, il colore di corpo nero. Il nostro shader le reimplementa in GLSL e le cita; non incorpora il codice esterno. Dichiararlo è parte della regola \"fail loud, never fake\".",
+      "Quello che integriamo davvero sono le loro formulazioni fisico-matematiche: la geodetica di Schwarzschild, il disco di Novikov–Thorne, il fattore g e l'invariante Iᵥ/ν³, il colore di corpo nero. Il nostro shader le reimplementa in GLSL e le cita; non incorpora il codice esterno. Dichiararlo è parte della regola «fail loud, never fake».",
     ],
     faqHeading: "Domande frequenti",
     faq: [
       {
         q: "Le equazioni usate sono reali e corrette?",
-        a: "Sì per la geometria del lensing: l'integrazione delle geodetiche nulle nella metrica di Schwarzschild è esatta e riproduce sfera fotonica, anello di Einstein e ombra (parametro d'impatto critico 3√3 M). Velocità orbitale GR, redshift, invariante di Liouville e beaming bolometrico g⁴ usano le formule esatte; il colore è il vero corpo nero della temperatura locale.",
+        a: "Sì per la geometria del lensing e per le orbite: l'integrazione delle geodetiche di Schwarzschild (nulle e di tipo-tempo) è esatta e riproduce sfera fotonica, anello di Einstein, ombra, ISCO e precessione del periastro. Velocità orbitale GR, redshift, invariante di Liouville e beaming bolometrico g⁴ usano le formule esatte; il colore è il vero corpo nero della temperatura locale; il photon ring emerge dalla returning radiation.",
       },
       {
-        q: "È identica al buco nero di Interstellar?",
-        a: "No. Gargantua usa la metrica di Kerr (rotante) ray-tracciata offline. Qui la base è Schwarzschild in tempo reale; lo spin è un'approssimazione di Lense–Thirring.",
+        q: "Qual è la differenza tra la demo «Orbite» e il «Playground»?",
+        a: "La demo «Orbite» integra la geodetica di tipo-tempo esatta di Schwarzschild per un singolo corpo (precessione e ISCO esatti). Il playground usa il potenziale pseudo-newtoniano di Paczyński–Wiita, che riproduce gli effetti forti (ISCO, caduta) ma permette la gravità reciproca a N-corpi — un compromesso esattezza/interattività.",
       },
       {
         q: "Posso integrare GYOTO o un codice GR completo?",
@@ -138,16 +187,20 @@ const COPY: Record<Locale, Copy> = {
     refsHeading: "Bibliografia e fonti",
     refs: [
       { cite: "S. M. Carroll, «Lecture Notes on General Relativity» — geodetiche di Schwarzschild (Caltech).", url: "https://ned.ipac.caltech.edu/level5/March01/Carroll3/Carroll7.html" },
-      { cite: "K. Kokkotas, «Particle Trajectories & The Classical Tests», corso di Relatività Generale, Universität Tübingen.", url: "https://www.tat.physik.uni-tuebingen.de/~kokkotas/Teaching/GTR_files/GTR2018_3b.pdf" },
+      { cite: "K. Kokkotas, «Particle Trajectories & The Classical Tests», Relatività Generale, Universität Tübingen.", url: "https://www.tat.physik.uni-tuebingen.de/~kokkotas/Teaching/GTR_files/GTR2018_3b.pdf" },
       { cite: "C. Hirata, «Geodesics in the Schwarzschild geometry», ph6820, The Ohio State University.", url: "https://hirata10.github.io/ph6820/lec17_bh_trajectories.pdf" },
       { cite: "J.-P. Luminet (1979), «Image of a spherical black hole with thin accretion disk», Astronomy & Astrophysics 75, 228.", url: "https://ui.adsabs.harvard.edu/abs/1979A%26A....75..228L/abstract" },
-      { cite: "N. I. Shakura & R. A. Sunyaev (1973), «Black holes in binary systems», Astronomy & Astrophysics 24, 337." },
+      { cite: "S. E. Gralla, D. E. Holz & R. M. Wald (2019), «Black hole shadows, photon rings, and lensing rings», Physical Review D 100, 024018.", url: "https://arxiv.org/abs/1906.00873" },
+      { cite: "M. D. Johnson et al. (2020), «Universal interferometric signatures of a black hole's photon ring», Science Advances 6, eaaz1310.", url: "https://www.science.org/doi/10.1126/sciadv.aaz1310" },
+      { cite: "N. I. Shakura & R. A. Sunyaev (1973), Astronomy & Astrophysics 24, 337." },
       { cite: "I. D. Novikov & K. S. Thorne (1973), «Astrophysics of Black Holes», in Black Holes (Les Houches)." },
-      { cite: "B. Paczyński & P. J. Wiita (1980), «Thick accretion disks and supercritical luminosities», Astronomy & Astrophysics 88, 23." },
-      { cite: "M. J. Rees (1988), «Tidal disruption of stars by black holes of 10⁶–10⁸ solar masses in nearby galaxies», Nature 333, 523.", url: "https://ui.adsabs.harvard.edu/abs/1988Natur.333..523R/abstract" },
+      { cite: "B. Paczyński & P. J. Wiita (1980), Astronomy & Astrophysics 88, 23." },
+      { cite: "M. J. Rees (1988), «Tidal disruption of stars by black holes…», Nature 333, 523.", url: "https://ui.adsabs.harvard.edu/abs/1988Natur.333..523R/abstract" },
+      { cite: "J. M. Bardeen (1973), «Timelike and null geodesics in the Kerr metric», in Black Holes (Les Houches)." },
+      { cite: "L. Flamm (1916), «Beiträge zur Einsteinschen Gravitationstheorie», Physikalische Zeitschrift 17, 448 — il paraboloide." },
       { cite: "O. James, E. von Tunzelmann, P. Franklin & K. S. Thorne (2015), «Gravitational lensing by spinning black holes… Interstellar», Classical and Quantum Gravity 32, 065001.", url: "https://iopscience.iop.org/article/10.1088/0264-9381/32/6/065001" },
       { cite: "F. H. Vincent et al. (2011), «GYOTO: a new general relativistic ray-tracing code», Classical and Quantum Gravity 28, 225011.", url: "https://arxiv.org/abs/1109.4769" },
-      { cite: "C. W. Misner, K. S. Thorne & J. A. Wheeler, «Gravitation» (1973)." },
+      { cite: "C. W. Misner, K. S. Thorne & J. A. Wheeler, «Gravitation» (1973); J. B. Hartle, «Gravity» (2003)." },
       { cite: "Colore di corpo nero → sRGB: approssimazione del locus planckiano di N. Bartlett (dati di M. Charity)." },
       { cite: "Stack: Three.js, React Three Fiber, @react-three/drei, @react-three/postprocessing, KaTeX. Sviluppo: Fosforonero — Matteo Pizzi (Roma)." },
     ],
@@ -155,81 +208,125 @@ const COPY: Record<Locale, Copy> = {
     openSim: "Apri la simulazione →",
   },
   en: {
-    kicker: "Methodology · graduate level · Fosforonero Lab",
-    title: "Black hole: mathematical and physical derivation",
+    kicker: "Methodology · thesis level · Fosforonero Lab",
+    title: "Black hole: a mathematical and physical treatment",
+    abstractHeading: "Abstract",
+    abstract:
+      "We describe a real-time WebGL renderer of a Schwarzschild black hole and its accretion disk. For each pixel the photon's null geodesic is integrated through curved spacetime, yielding gravitational lensing, the photon sphere, the shadow and — through returning radiation — the photon ring. The disk is optically thick with blackbody emission and invariant relativistic radiative transfer (g⁴ beaming, gravitational redshift). A companion demo integrates the exact timelike geodesics (periastron precession, ISCO), while a playground uses the Paczyński–Wiita pseudo-Newtonian potential for N-body dynamics with tidal disruption. The approximations are stated explicitly: spin in the Lense–Thirring approximation (not Kerr), procedural disk turbulence (not GRMHD), stylized jets.",
     intro: [
-      "This page reconstructs, at advanced-university level, the equations driving the simulation: from the Schwarzschild metric to null geodesics, from the relativistic accretion disk to invariant radiative transfer. We state explicitly what is exact, what is approximated and what is a visualization choice.",
-      "Everything is in geometrized units G = c = 1; in the renderer we fix the Schwarzschild radius rₛ = 2M = 1.",
+      "Geometrized units G = c = 1; in the renderer we fix the Schwarzschild radius rₛ = 2M = 1, so the ISCO is at r = 6M = 3 and the photon sphere at r = 3M = 1.5.",
     ],
     sections: [
       {
         heading: "1. Schwarzschild metric and null geodesics",
         body: [
-          "The exterior geometry of a non-rotating spherical mass is the vacuum Schwarzschild solution of Einstein's equations. In coordinates (t, r, θ, φ):",
-          "The timelike and azimuthal Killing vectors yield two first integrals of motion — energy E and angular momentum L per unit mass — along every affine geodesic:",
-          "For a photon (null geodesic) the condition gᵤᵥ ẋᵘẋᵛ = 0 reduces, in the equatorial plane, to a radial equation with an effective potential. Setting u = 1/r gives the orbit equation, whose derivative is the photon Binet equation:",
-          "The impact parameter is b = L/E. The photon sphere (unstable circular photon orbit) is at r = 3M = 1.5 rₛ, and the observed shadow corresponds to the critical impact parameter bᵪ = 3√3·M. The renderer numerically integrates the equivalent vector form of this geodesic (velocity-Verlet), reproducing lensing, the Einstein ring, the photon sphere and the shadow. (Carroll; Kokkotas, Univ. Tübingen; Hirata, Ohio State.)",
+          "The exterior geometry of a non-rotating spherical mass is the vacuum Schwarzschild solution of Einstein's equations. The timelike ∂ₜ and azimuthal ∂_φ Killing vectors yield two first integrals — energy E and angular momentum L per unit mass.",
+          "For a photon (null geodesic, gᵤᵥ ẋᵘẋᵛ = 0) in the equatorial plane one obtains a radial equation with an effective potential. Setting u = 1/r gives the orbit equation, whose derivative is the photon Binet equation; the 3M u² term is the general-relativistic correction.",
+          "With the impact parameter b = L/E, the photon sphere (unstable circular photon orbit) is at r = 3M and the observed shadow corresponds to the critical impact parameter b_c = 3√3·M ≈ 2.6 rₛ. The renderer integrates the equivalent vector form with velocity-Verlet. (Carroll, Caltech; Kokkotas, Univ. Tübingen; Hirata, Ohio State; MTW.)",
         ],
         eqs: [
           { label: "Schwarzschild line element", tex: "ds^2 = -\\left(1-\\tfrac{2M}{r}\\right)dt^2 + \\left(1-\\tfrac{2M}{r}\\right)^{-1}dr^2 + r^2\\,d\\Omega^2" },
-          { label: "Conserved quantities (Killing vectors)", tex: "E = \\left(1-\\tfrac{2M}{r}\\right)\\dot t, \\qquad L = r^2\\,\\dot\\varphi" },
-          { label: "Photon orbit equation and its derivative (Binet)", tex: "\\left(\\frac{du}{d\\varphi}\\right)^{2} = \\frac{1}{b^{2}} - (1-2Mu)\\,u^{2} \\;\\Longrightarrow\\; \\frac{d^{2}u}{d\\varphi^{2}} + u = 3M\\,u^{2}" },
-          { label: "Photon sphere and critical impact parameter (shadow)", tex: "r_{\\mathrm{ph}} = 3M = 1.5\\,r_s, \\qquad b_c = 3\\sqrt{3}\\,M" },
+          { label: "Conserved quantities (Killing vectors)", tex: "E = \\left(1-\\tfrac{2M}{r}\\right)\\dot t, \\qquad L = r^2\\dot\\varphi" },
+          { label: "Null effective potential", tex: "\\left(\\frac{dr}{d\\lambda}\\right)^{2} = E^{2} - \\frac{L^{2}}{r^{2}}\\left(1-\\frac{2M}{r}\\right)" },
+          { label: "Photon orbit equation (Binet)", tex: "\\frac{d^{2}u}{d\\varphi^{2}} + u = 3M\\,u^{2}, \\qquad u = 1/r" },
+          { label: "Photon sphere and critical impact parameter", tex: "r_{\\mathrm{ph}} = 3M, \\qquad b_c = 3\\sqrt{3}\\,M" },
         ],
       },
       {
-        heading: "2. Relativistic accretion disk",
+        heading: "2. Timelike geodesics: orbits, ISCO, precession",
         body: [
-          "The thin, optically-thick disk follows the Shakura–Sunyaev model in its relativistic Novikov–Thorne version, with a zero-stress boundary condition at the innermost stable circular orbit (ISCO). The locally emitted flux and the effective (Stefan–Boltzmann) temperature are:",
-          "For Schwarzschild the ISCO is at rᵢₛ𝒸ₒ = 6M = 3 rₛ. Each annulus radiates as a blackbody at its local temperature: the color is therefore the true blackbody color T → sRGB along the Planckian locus, not an arbitrary gradient. The first computed image of such a disk is due to Luminet (1979). (Shakura–Sunyaev 1973; Novikov–Thorne 1973; Luminet 1979.)",
+          "For a massive particle (the «Orbits» demo) the normalization gᵤᵥ ẋᵘẋᵛ = −1 gives a radial equation with effective potential V_eff. Circular orbits satisfy dV/dr = 0; they are stable only for r > 6M. At r = 6M = 3 rₛ lies the ISCO (innermost stable circular orbit): below it no circular orbit is stable and the particle plunges.",
+          "Besides the Newtonian term M/L², the timelike orbit equation carries the relativistic correction 3M u², which makes the periastron precess — the same physics as Mercury's anomalous perihelion precession (43″ per century), Einstein's first test in 1915. Below L = 2√3·M there are no stable bound orbits.",
+        ],
+        eqs: [
+          { label: "Effective potential (timelike)", tex: "\\left(\\frac{dr}{d\\tau}\\right)^{2} = E^{2} - V_{\\mathrm{eff}}^{2}, \\quad V_{\\mathrm{eff}}^{2} = \\left(1-\\frac{2M}{r}\\right)\\left(1+\\frac{L^{2}}{r^{2}}\\right)" },
+          { label: "Orbit equation (precession from the 3Mu² term)", tex: "\\frac{d^{2}u}{d\\varphi^{2}} + u = \\frac{M}{L^{2}} + 3M\\,u^{2}" },
+          { label: "ISCO and circular angular momentum", tex: "r_{\\mathrm{ISCO}} = 6M = 3\\,r_s, \\qquad L^{2}_{\\mathrm{circ}} = \\frac{M r^{2}}{r-3M}" },
+          { label: "Periastron precession (weak field)", tex: "\\Delta\\varphi_{\\mathrm{prec}} \\simeq \\frac{6\\pi M}{p} \\quad(\\text{Mercury}:\\ 43''/\\text{century})" },
+        ],
+      },
+      {
+        heading: "3. Relativistic accretion disk",
+        body: [
+          "The thin, optically-thick disk follows the Shakura–Sunyaev model in its relativistic Novikov–Thorne version, with a zero-stress boundary condition at the ISCO. The emitted flux and the effective (Stefan–Boltzmann) temperature set a local blackbody emission.",
+          "The color is therefore the true blackbody color of the local temperature (Planckian locus → sRGB), not an arbitrary gradient. The first computed image of such a disk is Luminet's (1979). (Shakura–Sunyaev 1973; Novikov–Thorne 1973; Luminet 1979.)",
         ],
         eqs: [
           { label: "Disk flux (Novikov–Thorne / Shakura–Sunyaev)", tex: "F(r) = \\frac{3\\,G M \\dot M}{8\\pi r^{3}}\\left(1 - \\sqrt{r_{\\mathrm{in}}/r}\\,\\right)" },
-          { label: "Effective temperature", tex: "T_{\\mathrm{eff}}(r) = \\left(\\frac{F(r)}{\\sigma}\\right)^{1/4}" },
-          { label: "Inner edge (ISCO, Schwarzschild)", tex: "r_{\\mathrm{in}} = r_{\\mathrm{ISCO}} = 6M = 3\\,r_s" },
+          { label: "Effective temperature", tex: "T_{\\mathrm{eff}}(r) = \\left(F(r)/\\sigma\\right)^{1/4} \\propto r^{-3/4}" },
+          { label: "Inner edge (ISCO)", tex: "r_{\\mathrm{in}} = 6M = 3\\,r_s" },
         ],
       },
       {
-        heading: "3. Radiative transfer and relativistic effects",
+        heading: "4. Radiative transfer and relativistic effects",
         body: [
-          "Along a ray, the quantity Iᵥ/ν³ is invariant (Liouville's theorem for photons). With the redshift factor g = νₒᵦₛ/νₑₘ, for an emitter on a circular orbit g combines gravitational and time dilation with the longitudinal Doppler.",
-          "A blackbody seen with factor g remains a blackbody at temperature g·T (Doppler invariance of the Planck spectrum), with bolometric intensity scaling as g⁴. The same g thus drives brightness and color: the approaching side of the disk is brighter and bluer (relativistic beaming), the receding side darker and redder. (Luminet 1979; Vincent et al. 2011, GYOTO.)",
+          "Along a ray the quantity Iᵥ/ν³ is invariant (Liouville's theorem for photons). With the redshift factor g = νₒᵦₛ/νₑₘ, for an emitter on a circular orbit g combines gravitational and time dilation with the longitudinal Doppler.",
+          "A blackbody seen with factor g remains a blackbody at temperature g·T (Doppler invariance of the Planck spectrum), with bolometric intensity ∝ g⁴. The same g drives brightness and color: the approaching side is brighter and bluer, the receding side darker and redder. (Luminet 1979; Vincent et al. 2011, GYOTO.)",
         ],
         eqs: [
           { label: "Liouville invariant", tex: "\\frac{I_\\nu}{\\nu^{3}} = \\text{constant along the ray}" },
           { label: "GR orbital velocity and redshift factor", tex: "v = \\sqrt{\\frac{M}{r-2M}}, \\qquad g = \\frac{\\sqrt{1 - 3M/r}}{1 - \\beta}, \\quad \\beta = \\mathbf v\\cdot\\hat{\\mathbf n}_{\\mathrm{obs}}" },
-          { label: "Bolometric beaming and color (blackbody)", tex: "I_{\\mathrm{obs}} = g^{4}\\,I_{\\mathrm{em}}, \\qquad B_\\nu(T)\\big|_{g} = B_\\nu(g\\,T)" },
+          { label: "Bolometric beaming and color", tex: "I_{\\mathrm{obs}} = g^{4}\\,I_{\\mathrm{em}}, \\qquad B_\\nu(T)\\big|_{g} = B_\\nu(g\\,T)" },
         ],
       },
       {
-        heading: "4. Rotation: Kerr and frame dragging",
+        heading: "5. Returning radiation and the photon ring",
         body: [
-          "A realistic black hole rotates: the correct metric is Kerr, where the dragging of inertial frames (frame dragging) has angular velocity ω = −g_{tφ}/g_{φφ}. The renderer does not integrate Kerr; the Spin slider adds frame dragging in a gravitomagnetic dipole (Lense–Thirring) approximation — physically motivated but NOT the full Kerr metric.",
-          "Interstellar's Gargantua uses the true Kerr metric ray-traced offline (James, von Tunzelmann, Franklin & Thorne 2015). Full public GR ray-tracing codes (e.g. GYOTO) integrate Kerr, but not in real time in the browser.",
+          "Rays grazing the photon sphere wind around the black hole before escaping or hitting the disk: this is returning radiation. The renderer refines the integration step just outside the photon sphere, capturing the higher-order images of the disk — disk light that completed extra half-orbits.",
+          "These images pile up into ever-thinner sub-rings converging to the critical impact parameter b_c, with an exponentially decaying spacing (Lyapunov exponent γ = π for Schwarzschild). The limit is the photon ring: in our implementation it emerges from the real disk light (same color), not drawn analytically. (Luminet 1979; Gralla, Holz & Wald 2019; Johnson et al. 2020, EHT.)",
+        ],
+        eqs: [
+          { label: "Sub-rings converge to the critical value", tex: "b_{n} - b_{c} \\;\\propto\\; e^{-\\gamma n}, \\qquad \\gamma = \\pi \\ (\\text{Schwarzschild})" },
+          { label: "Photon-ring radius (shadow)", tex: "b_c = 3\\sqrt{3}\\,M \\approx 2.6\\,r_s" },
+        ],
+      },
+      {
+        heading: "6. Rotation: Kerr and frame dragging",
+        body: [
+          "A real black hole rotates: the correct metric is Kerr, where the dragging of inertial frames has angular velocity ω = −g_{tφ}/g_{φφ}. The renderer does not integrate Kerr; the Spin slider adds frame dragging in a gravitomagnetic dipole (Lense–Thirring) approximation — physically motivated but NOT the full Kerr metric.",
+          "Interstellar's Gargantua uses the true Kerr metric ray-traced offline (James, von Tunzelmann, Franklin & Thorne 2015). Public GR codes (e.g. GYOTO) integrate Kerr, but not in real time in the browser. (Bardeen 1973 for Kerr geodesics.)",
         ],
         eqs: [
           { label: "Frame-dragging angular velocity (Kerr)", tex: "\\omega(r,\\theta) = -\\,\\frac{g_{t\\varphi}}{g_{\\varphi\\varphi}} \\;\\xrightarrow{\\text{far field}}\\; \\frac{2GJ}{c^{2} r^{3}}" },
-          { label: "Lense–Thirring approximation used", tex: "\\mathbf a_{\\mathrm{drag}} \\propto \\mathbf v\\times\\mathbf B_g, \\qquad \\mathbf B_g = \\frac{3(\\mathbf J\\cdot\\hat{\\mathbf r})\\,\\hat{\\mathbf r} - \\mathbf J}{r^{3}}" },
+          { label: "Lense–Thirring approximation used", tex: "\\mathbf a_{\\mathrm{drag}} \\propto \\mathbf v\\times\\mathbf B_g, \\qquad \\mathbf B_g = \\frac{3(\\mathbf J\\cdot\\hat{\\mathbf r})\\hat{\\mathbf r} - \\mathbf J}{r^{3}}" },
         ],
       },
       {
-        heading: "5. Playground: body dynamics",
+        heading: "7. Spatial geometry: Flamm's paraboloid",
         body: [
-          "The bodies (planets with moons, stars, comets) move in the Paczyński–Wiita pseudo-Newtonian potential, which exactly reproduces the ISCO at 6M and the relativistic plunge without integrating the full geodesics. Beyond the black hole, the massive bodies (stars, planets and moons) also attract each other: it is a softened N-body, so a star perturbs a nearby planet and moons feel both their host planet and external perturbers.",
-          "Tidal disruption (TDE): a star within the tidal radius is spaghettified. The mechanism is a spread in specific orbital energy along the orbit — half the debris becomes bound (ε<0) and falls back, wrapping around the hole and feeding the disk, while the other half is unbound (ε>0) and ejected as a tidal tail; the fallback rate follows the famous Ṁ ∝ t⁻⁵ᐟ³ law (Rees 1988). It is a particle model, not hydrodynamics.",
-          "Mass transfer: a body that approaches the hole sheds matter in a stream toward it (Roche-lobe overflow) that feeds the disk. (Paczyński–Wiita 1980; Rees 1988.)",
+          "The optional spacetime grid visualizes the real spatial curvature: the isometric embedding of the equatorial (t, θ = π/2 const) slice of Schwarzschild into 3D Euclidean space is Flamm's paraboloid (1916) — the famous «funnel». It is not a generic rubber sheet but the surface z(r) whose intrinsic geometry reproduces the Schwarzschild spatial metric.",
+        ],
+        eqs: [
+          { label: "Flamm's paraboloid", tex: "z(r) = 2\\sqrt{r_s\\,(r - r_s)}, \\qquad \\left(\\frac{dz}{dr}\\right)^{2} = \\left(1-\\frac{r_s}{r}\\right)^{-1} - 1" },
+        ],
+      },
+      {
+        heading: "8. Playground: body dynamics",
+        body: [
+          "The bodies (planets with moons, stars, comets) move in the Paczyński–Wiita pseudo-Newtonian potential, which exactly reproduces the ISCO at 6M and the relativistic plunge without integrating the full geodesics — a standard N-body/accretion compromise. Beyond the black hole, the massive bodies attract each other (softened N-body).",
+          "Tidal disruption (TDE): a star within the tidal radius is spaghettified; a spread in specific orbital energy makes half the debris bound (it falls back, wrapping the hole, feeding the disk) and half unbound (tidal tail), with fallback rate Ṁ ∝ t⁻⁵ᐟ³ (Rees 1988). Roche-lobe overflow mass transfer also feeds the disk. (Paczyński–Wiita 1980; Rees 1988.)",
         ],
         eqs: [
           { label: "Paczyński–Wiita potential", tex: "\\Phi(r) = -\\frac{GM}{r - r_s}" },
-          { label: "Tidal radius (stellar disruption)", tex: "r_t \\simeq R_\\star\\left(\\frac{M_{\\mathrm{BH}}}{M_\\star}\\right)^{1/3}" },
-          { label: "Specific-energy spread of the debris", tex: "\\Delta\\varepsilon \\simeq \\frac{G M_{\\mathrm{BH}} R_\\star}{r_t^{2}}" },
+          { label: "Tidal radius and energy spread", tex: "r_t \\simeq R_\\star\\!\\left(\\frac{M_{\\mathrm{BH}}}{M_\\star}\\right)^{1/3}, \\qquad \\Delta\\varepsilon \\simeq \\frac{G M_{\\mathrm{BH}} R_\\star}{r_t^{2}}" },
           { label: "TDE fallback rate", tex: "\\dot M_{\\mathrm{fb}} \\propto t^{-5/3}" },
         ],
       },
       {
-        heading: "6. Limits: what it is NOT (scientific honesty)",
+        heading: "9. Numerical methods of the renderer",
         body: [
-          "The baseline is Schwarzschild (non-rotating); spin is approximate (Lense–Thirring), not Kerr. The disk is optically thick with blackbody emission: its turbulent gaseous structure is a procedural stand-in for magnetorotational (MRI) turbulence, not a GRMHD solution; it does not model self-gravity, vertical thickness or polarization. The photon ring emerges from the lensing and is emphasised near the critical impact parameter b_c; the relativistic jets are a stylized addition (optically-thin emission along the spin axis), not an MHD solution. Background stars are procedural (their lensing, however, is real). In the playground the added bodies are occluded by the disk/horizon but not lensed, the integration is pseudo-Newtonian, and the disk lights the bodies through a central light (an approximation).",
+          "Lensing: the null geodesic is integrated in vector form with an acceleration that bends the ray, where h² = |r × v|² is the photon's conserved angular momentum; the integrator is velocity-Verlet with an adaptive step, refined near the photon sphere for the returning radiation. Tone mapping is ACES filmic followed by gamma correction.",
+          "Playground: adaptive sub-stepping in the Paczyński–Wiita potential plus softened mutual gravity (softening ε); speeds are capped at c. The «Orbits» demo integrates the exact timelike orbit equation in the azimuth φ.",
+        ],
+        eqs: [
+          { label: "Integrated geodesic acceleration (rₛ = 1, M = ½)", tex: "\\mathbf a = -\\tfrac{3}{2}\\,h^{2}\\,\\frac{\\mathbf r}{|\\mathbf r|^{5}}, \\qquad h^{2} = |\\mathbf r\\times\\mathbf v|^{2}" },
+          { label: "Velocity-Verlet step", tex: "\\mathbf r_{n+1} = \\mathbf r_{n} + \\mathbf v_{n}\\,\\delta + \\tfrac{1}{2}\\mathbf a_{n}\\,\\delta^{2}" },
+        ],
+      },
+      {
+        heading: "10. Limits: what it is NOT (scientific honesty)",
+        body: [
+          "The baseline is Schwarzschild (non-rotating); spin is approximate (Lense–Thirring), not Kerr. The disk is optically thick with blackbody emission: its turbulent gaseous structure is a procedural stand-in for magnetorotational (MRI) turbulence, not a GRMHD solution; it does not model self-gravity, vertical thickness or polarization. The photon ring emerges from returning radiation but the very high-order images are not resolved; the relativistic jets are a stylized (optically-thin) addition, not MHD. Background stars are procedural (their lensing is real). In the playground the bodies are occluded by the disk/horizon but not lensed, the integration is pseudo-Newtonian and the disk lighting is a central light (an approximation).",
         ],
       },
     ],
@@ -242,11 +339,11 @@ const COPY: Record<Locale, Copy> = {
     faq: [
       {
         q: "Are the equations used real and correct?",
-        a: "Yes for the lensing geometry: integrating null geodesics in the Schwarzschild metric is exact and reproduces the photon sphere, Einstein ring and shadow (critical impact parameter 3√3 M). GR orbital velocity, redshift, the Liouville invariant and bolometric g⁴ beaming use the exact formulas; the color is the true blackbody color of the local temperature.",
+        a: "Yes for the lensing geometry and the orbits: integrating Schwarzschild geodesics (null and timelike) is exact and reproduces the photon sphere, Einstein ring, shadow, ISCO and periastron precession. GR orbital velocity, redshift, the Liouville invariant and bolometric g⁴ beaming use the exact formulas; the color is the true blackbody color of the local temperature; the photon ring emerges from returning radiation.",
       },
       {
-        q: "Is it identical to Interstellar's black hole?",
-        a: "No. Gargantua uses the Kerr (rotating) metric ray-traced offline. Here the baseline is Schwarzschild in real time; spin is a Lense–Thirring approximation.",
+        q: "What is the difference between the «Orbits» demo and the «Playground»?",
+        a: "The «Orbits» demo integrates the exact Schwarzschild timelike geodesic for a single body (exact precession and ISCO). The playground uses the Paczyński–Wiita pseudo-Newtonian potential, which reproduces the strong-field effects (ISCO, plunge) but allows mutual N-body gravity — an exactness/interactivity trade-off.",
       },
       {
         q: "Can I integrate GYOTO or a full GR code?",
@@ -256,16 +353,20 @@ const COPY: Record<Locale, Copy> = {
     refsHeading: "References & sources",
     refs: [
       { cite: "S. M. Carroll, “Lecture Notes on General Relativity” — Schwarzschild geodesics (Caltech).", url: "https://ned.ipac.caltech.edu/level5/March01/Carroll3/Carroll7.html" },
-      { cite: "K. Kokkotas, “Particle Trajectories & The Classical Tests”, General Relativity course, Universität Tübingen.", url: "https://www.tat.physik.uni-tuebingen.de/~kokkotas/Teaching/GTR_files/GTR2018_3b.pdf" },
+      { cite: "K. Kokkotas, “Particle Trajectories & The Classical Tests”, General Relativity, Universität Tübingen.", url: "https://www.tat.physik.uni-tuebingen.de/~kokkotas/Teaching/GTR_files/GTR2018_3b.pdf" },
       { cite: "C. Hirata, “Geodesics in the Schwarzschild geometry”, ph6820, The Ohio State University.", url: "https://hirata10.github.io/ph6820/lec17_bh_trajectories.pdf" },
       { cite: "J.-P. Luminet (1979), “Image of a spherical black hole with thin accretion disk”, Astronomy & Astrophysics 75, 228.", url: "https://ui.adsabs.harvard.edu/abs/1979A%26A....75..228L/abstract" },
-      { cite: "N. I. Shakura & R. A. Sunyaev (1973), “Black holes in binary systems”, Astronomy & Astrophysics 24, 337." },
+      { cite: "S. E. Gralla, D. E. Holz & R. M. Wald (2019), “Black hole shadows, photon rings, and lensing rings”, Physical Review D 100, 024018.", url: "https://arxiv.org/abs/1906.00873" },
+      { cite: "M. D. Johnson et al. (2020), “Universal interferometric signatures of a black hole's photon ring”, Science Advances 6, eaaz1310.", url: "https://www.science.org/doi/10.1126/sciadv.aaz1310" },
+      { cite: "N. I. Shakura & R. A. Sunyaev (1973), Astronomy & Astrophysics 24, 337." },
       { cite: "I. D. Novikov & K. S. Thorne (1973), “Astrophysics of Black Holes”, in Black Holes (Les Houches)." },
-      { cite: "B. Paczyński & P. J. Wiita (1980), “Thick accretion disks and supercritical luminosities”, Astronomy & Astrophysics 88, 23." },
-      { cite: "M. J. Rees (1988), “Tidal disruption of stars by black holes of 10⁶–10⁸ solar masses in nearby galaxies”, Nature 333, 523.", url: "https://ui.adsabs.harvard.edu/abs/1988Natur.333..523R/abstract" },
+      { cite: "B. Paczyński & P. J. Wiita (1980), Astronomy & Astrophysics 88, 23." },
+      { cite: "M. J. Rees (1988), “Tidal disruption of stars by black holes…”, Nature 333, 523.", url: "https://ui.adsabs.harvard.edu/abs/1988Natur.333..523R/abstract" },
+      { cite: "J. M. Bardeen (1973), “Timelike and null geodesics in the Kerr metric”, in Black Holes (Les Houches)." },
+      { cite: "L. Flamm (1916), “Beiträge zur Einsteinschen Gravitationstheorie”, Physikalische Zeitschrift 17, 448 — the paraboloid." },
       { cite: "O. James, E. von Tunzelmann, P. Franklin & K. S. Thorne (2015), “Gravitational lensing by spinning black holes… Interstellar”, Classical and Quantum Gravity 32, 065001.", url: "https://iopscience.iop.org/article/10.1088/0264-9381/32/6/065001" },
       { cite: "F. H. Vincent et al. (2011), “GYOTO: a new general relativistic ray-tracing code”, Classical and Quantum Gravity 28, 225011.", url: "https://arxiv.org/abs/1109.4769" },
-      { cite: "C. W. Misner, K. S. Thorne & J. A. Wheeler, “Gravitation” (1973)." },
+      { cite: "C. W. Misner, K. S. Thorne & J. A. Wheeler, “Gravitation” (1973); J. B. Hartle, “Gravity” (2003)." },
       { cite: "Blackbody color → sRGB: N. Bartlett's Planckian-locus approximation (data by M. Charity)." },
       { cite: "Stack: Three.js, React Three Fiber, @react-three/drei, @react-three/postprocessing, KaTeX. Development: Fosforonero — Matteo Pizzi (Rome, Italy)." },
     ],
@@ -293,6 +394,11 @@ export function BlackHoleAboutView({ locale = "it" }: { locale?: Locale }) {
             <Link href={labHref} className="bh-about__link">{t.backToLab}</Link>
           </div>
         </header>
+
+        <section className="bh-about__section">
+          <h2>{t.abstractHeading}</h2>
+          <p style={{ fontStyle: "italic", color: "#aebbd2" }}>{t.abstract}</p>
+        </section>
 
         {t.sections.map((s, i) => (
           <section key={i} className="bh-about__section">
