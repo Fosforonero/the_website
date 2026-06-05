@@ -51,8 +51,12 @@ type Body = {
   vel: THREE.Vector3;
   radius: number;
   color: THREE.Color;
+  mass: number;          // for hosting moons (planets); ~0 for test bodies
+  parentId: number | null; // moon → host planet
   mesh: THREE.Mesh | null;
 };
+
+const PLANET_MASS = 0.012; // host mass so moons stay bound inside the Hill sphere
 
 // Pseudo-Newtonian (Paczyński–Wiita) acceleration toward the BH at origin.
 function pwAccel(pos: THREE.Vector3, out: THREE.Vector3): THREE.Vector3 {
@@ -118,41 +122,67 @@ function Simulation({
     a.life[i] = life;
   }
 
+  function addBody(
+    kind: BodyKind,
+    pos: THREE.Vector3,
+    vel: THREE.Vector3,
+    radius: number,
+    color: THREE.Color,
+    mass: number,
+    parentId: number | null
+  ): Body {
+    const mesh = new THREE.Mesh(
+      new THREE.SphereGeometry(radius, 16, 12),
+      new THREE.MeshBasicMaterial({ color })
+    );
+    mesh.position.copy(pos);
+    groupRef.current?.add(mesh);
+    const b: Body = { id: nextId.current++, kind, pos, vel, radius, color, mass, parentId, mesh };
+    bodies.current.push(b);
+    return b;
+  }
+
   // Spawn a body at a user-chosen position (raycast point on the disk plane),
   // with a tangential prograde velocity tuned for an eccentric infalling orbit.
+  // Planets are spawned as little systems: a planet with a couple of moons,
+  // so the black hole stands in for the central star.
   function spawnBodyAt(kind: BodyKind, point: THREE.Vector3) {
     const r0 = Math.hypot(point.x, point.z);
     if (r0 < 2.5) return; // too close to the horizon to place
     const pos = new THREE.Vector3(point.x, point.y, point.z);
     const vc = Math.sqrt(GM / r0);
-    const factor = 0.55; // < circular → eccentric, dives toward the hole
+    const factor = 0.62; // < circular → eccentric, slowly winds inward
     const radial = new THREE.Vector3(point.x, 0, point.z).normalize();
-    const tang = new THREE.Vector3(-radial.z, 0, radial.x).multiplyScalar(vc * factor);
-    const vel = tang;
+    const vel = new THREE.Vector3(-radial.z, 0, radial.x).multiplyScalar(vc * factor);
+
+    if (kind === "planet") {
+      const planet = addBody("planet", pos, vel, 0.22, new THREE.Color("#6fa8d8"), PLANET_MASS, null);
+      // Moons on small local orbits inside the Hill sphere.
+      const nMoons = 2 + (Math.random() < 0.5 ? 1 : 0);
+      for (let m = 0; m < nMoons; m++) {
+        const rl = 0.5 + m * 0.32 + Math.random() * 0.1;          // local orbital radius
+        const phi = Math.random() * Math.PI * 2;
+        const off = new THREE.Vector3(Math.cos(phi) * rl, (Math.random() - 0.5) * 0.12, Math.sin(phi) * rl);
+        const vLocal = Math.sqrt(PLANET_MASS / rl);                // local circular speed
+        const vMoon = new THREE.Vector3(-Math.sin(phi), 0, Math.cos(phi)).multiplyScalar(vLocal);
+        addBody(
+          "planet",
+          pos.clone().add(off),
+          vel.clone().add(vMoon),
+          0.07,
+          new THREE.Color("#b9c4d4"),
+          0,
+          planet.id
+        );
+      }
+      return;
+    }
 
     const cfg =
       kind === "star"
         ? { radius: 0.30, color: new THREE.Color("#fff0c0") }
-        : kind === "comet"
-        ? { radius: 0.10, color: new THREE.Color("#cfe8ff") }
-        : { radius: 0.20, color: new THREE.Color("#6fa8d8") };
-
-    const mesh = new THREE.Mesh(
-      new THREE.SphereGeometry(cfg.radius, 16, 12),
-      new THREE.MeshBasicMaterial({ color: cfg.color })
-    );
-    mesh.position.copy(pos);
-    groupRef.current?.add(mesh);
-
-    bodies.current.push({
-      id: nextId.current++,
-      kind,
-      pos,
-      vel,
-      radius: cfg.radius,
-      color: cfg.color,
-      mesh,
-    });
+        : { radius: 0.10, color: new THREE.Color("#cfe8ff") };
+    addBody(kind, pos, vel, cfg.radius, cfg.color, 0, null);
   }
 
   function disruptStar(b: Body) {
@@ -204,9 +234,22 @@ function Simulation({
     const h = total / nSub;
     const a = parts.current;
 
+    // id → body, so moons can find their host planet (if it still exists;
+    // once a host is swallowed it drops out and its moons orbit the BH freely).
+    const idMap = new Map<number, Body>();
+    for (const b of bodies.current) idMap.set(b.id, b);
+
     for (let s = 0; s < nSub; s++) {
       for (const b of bodies.current) {
-        pwAccel(b.pos, tmp);
+        pwAccel(b.pos, tmp); // black-hole acceleration
+        if (b.parentId !== null) {
+          const par = idMap.get(b.parentId);
+          if (par) {
+            tmp2.copy(par.pos).sub(b.pos);
+            const d2 = tmp2.lengthSq() + 0.02;
+            tmp.addScaledVector(tmp2, par.mass / (d2 * Math.sqrt(d2))); // +G·m_par·(par−b)/d³
+          }
+        }
         b.vel.addScaledVector(tmp, h);
         b.pos.addScaledVector(b.vel, h);
       }
