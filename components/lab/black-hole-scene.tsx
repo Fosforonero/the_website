@@ -11,6 +11,7 @@ import {
   QUALITY_PRESETS,
   type BlackHoleQuality,
 } from "./black-hole/black-hole-shader";
+import { BlackHoleGrid } from "./black-hole-grid";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -22,6 +23,7 @@ export type BlackHoleSceneProps = {
   dopplerOn: boolean;
   spin: number; // 0..1 — approximate frame dragging
   jetsOn: boolean; // relativistic jets along the spin axis
+  gridOn?: boolean; // spacetime-fabric grid (Flamm's paraboloid)
 };
 
 // ---------------------------------------------------------------------------
@@ -48,7 +50,7 @@ export function BlackHoleQuad({ quality, diskOn, dopplerOn, spin, jetsOn }: Blac
       uDoppler: { value: dopplerOn ? 1 : 0 },
       uSpin: { value: spin },
       uDiskTemp: { value: 10500 }, // emitted colour-temperature scale (Kelvin)
-      uDiskBright: { value: 34.0 }, // bright, white-hot inner disk (ACES rolls highlights)
+      uDiskBright: { value: 24.0 }, // bright, white-hot inner disk (ACES rolls highlights)
       uJets: { value: jetsOn ? 1 : 0 },
       uJetStr: { value: 0.7 },
       uExposure: { value: 1.15 },
@@ -106,6 +108,7 @@ export default function BlackHoleScene({
   dopplerOn,
   spin,
   jetsOn,
+  gridOn = false,
 }: BlackHoleSceneProps) {
   const dprCap = QUALITY_PRESETS[quality].dprCap;
 
@@ -117,6 +120,7 @@ export default function BlackHoleScene({
       style={{ background: "#000003" }}
     >
       <BlackHoleQuad quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn} />
+      <BlackHoleGrid visible={gridOn} />
 
       <OrbitControls
         makeDefault

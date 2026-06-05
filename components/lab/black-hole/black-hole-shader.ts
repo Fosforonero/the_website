@@ -247,18 +247,18 @@ void main() {
         // textures the opaque surface; it is a procedural stand-in for the real
         // magnetorotational (MRI) turbulence, which would require GRMHD. Cheap:
         // a single sample at the first disk crossing per ray.
-        float omega = uTime * 0.32 / pow(rd, 1.5);
+        // Differential (Keplerian-like) rotation — inner gas orbits faster.
+        // Fast enough that the motion reads clearly even on the bright disk.
+        float omega = uTime * 1.4 / pow(rd, 1.5);
         float ca = cos(omega), sa = sin(omega);
         vec2  q  = mat2(ca, -sa, sa, ca) * hit.xz;
         // anisotropic stretch → sheared, gas-like streaks along the flow.
-        // Top frequencies are kept low and the contrast mild, otherwise the
-        // fine detail aliases (looks pixelated) without supersampling.
         vec2  qs = vec2(q.x, q.y * 1.8);
         float turb = 0.50 * vnoise(qs * 0.45)
                    + 0.30 * vnoise(qs * 1.05)
                    + 0.20 * vnoise(qs * 2.30);
-        turb = pow(clamp(turb, 0.0, 1.0), 1.25); // gentle contrast → soft filaments
-        bright *= 0.42 + 1.25 * turb;
+        turb = pow(clamp(turb, 0.0, 1.0), 1.35); // contrast → visible rotating bands
+        bright *= 0.30 + 1.6 * turb;
 
         color = blackbody(Tobs) * bright;
         outDepth = depthFromWorld(hit);

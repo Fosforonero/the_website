@@ -43,6 +43,7 @@ const COPY: Record<Locale, { kicker: string; title: string; intro: string; exps:
         links: [
           { label: "Apri", href: "/lab/buco-nero" },
           { label: "Playground", href: "/lab/buco-nero/playground" },
+          { label: "Orbite", href: "/lab/buco-nero/orbite" },
           { label: "Equazioni", href: "/lab/buco-nero/about" },
         ],
         accent: "#ff8a3c",
@@ -75,6 +76,7 @@ const COPY: Record<Locale, { kicker: string; title: string; intro: string; exps:
         links: [
           { label: "Open", href: "/en/lab/black-hole" },
           { label: "Playground", href: "/en/lab/black-hole/playground" },
+          { label: "Orbits", href: "/en/lab/black-hole/orbit" },
           { label: "Equations", href: "/en/lab/black-hole/about" },
         ],
         accent: "#ff8a3c",

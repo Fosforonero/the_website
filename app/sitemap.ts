@@ -253,6 +253,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       },
     },
     {
+      url: `${site.url}/lab/buco-nero/orbite`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+      alternates: {
+        languages: {
+          it: `${site.url}/lab/buco-nero/orbite`,
+          en: `${site.url}/en/lab/black-hole/orbit`,
+        },
+      },
+    },
+    {
+      url: `${site.url}/en/lab/black-hole/orbit`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+      alternates: {
+        languages: {
+          it: `${site.url}/lab/buco-nero/orbite`,
+          en: `${site.url}/en/lab/black-hole/orbit`,
+        },
+      },
+    },
+    {
       url: `${site.url}/lab/buco-nero/about`,
       lastModified: now,
       changeFrequency: "monthly" as const,

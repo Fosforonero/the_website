@@ -21,10 +21,12 @@ const COPY = {
     disk: "Disco di accrescimento",
     doppler: "Doppler relativistico",
     jets: "Getti relativistici",
+    grid: "Griglia spazio-tempo",
     spin: "Spin (frame-dragging ~)",
     hint: "Trascina per orbitare · scroll per zoomare. Porta la vista quasi di taglio al disco per vedere l'alone alla Gargantua.",
     about: "Equazioni e crediti",
     playground: "Playground",
+    orbits: "Orbite",
     closeInfo: "Chiudi",
     openInfo: "ⓘ Info",
     discTitle: "Cosa stai guardando (e cosa no)",
@@ -43,10 +45,12 @@ const COPY = {
     disk: "Accretion disk",
     doppler: "Relativistic Doppler",
     jets: "Relativistic jets",
+    grid: "Spacetime grid",
     spin: "Spin (frame-dragging ~)",
     hint: "Drag to orbit · scroll to zoom. Bring the disk near edge-on to see the Gargantua-style halo.",
     about: "Equations & credits",
     playground: "Playground",
+    orbits: "Orbits",
     closeInfo: "Close",
     openInfo: "ⓘ Info",
     discTitle: "What you are seeing (and what you are not)",
@@ -66,6 +70,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
   const [diskOn, setDiskOn] = useState(true);
   const [dopplerOn, setDopplerOn] = useState(true);
   const [jetsOn, setJetsOn] = useState(false);
+  const [gridOn, setGridOn] = useState(false);
   const [spin, setSpin] = useState(0);
   const [infoOpen, setInfoOpen] = useState(false);
   useEffect(() => {
@@ -116,6 +121,13 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
           {t.jets}
         </button>
 
+        <button
+          className={`bh-control bh-toolbar__hide-sm${gridOn ? " bh-control--active" : ""}`}
+          onClick={() => setGridOn((v) => !v)}
+        >
+          {t.grid}
+        </button>
+
         <label className={`bh-control bh-toolbar__hide-sm${spin > 0 ? " bh-control--active" : ""}`}>
           <span>{t.spin}</span>
           <input
@@ -134,6 +146,9 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
         <Link href={playgroundHref} className="bh-control">
           {t.playground}
         </Link>
+        <Link href={locale === "it" ? "/lab/buco-nero/orbite" : "/en/lab/black-hole/orbit"} className="bh-control bh-toolbar__hide-sm">
+          {t.orbits}
+        </Link>
         <Link href={aboutHref} className="bh-control bh-toolbar__hide-sm">
           {t.about}
         </Link>
@@ -143,7 +158,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
       </div>
 
       <div className="bh-canvas-wrap">
-        <BlackHoleScene quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn} />
+        <BlackHoleScene quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn} gridOn={gridOn} />
         <p className="bh-hint">{t.hint}</p>
 
         {infoOpen ? (

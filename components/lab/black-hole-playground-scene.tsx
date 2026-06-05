@@ -6,6 +6,7 @@ import { OrbitControls } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
 import { BlackHoleQuad } from "./black-hole-scene";
+import { BlackHoleGrid } from "./black-hole-grid";
 import { QUALITY_PRESETS, type BlackHoleQuality } from "./black-hole/black-hole-shader";
 
 // ---------------------------------------------------------------------------
@@ -36,6 +37,7 @@ export type PlaygroundSceneProps = {
   spin: number;
   diskOn: boolean;
   jetsOn: boolean;
+  gridOn: boolean;
   activeKind: BodyKind;
   apiRef: MutableRefObject<PlaygroundHandle | null>;
 };
@@ -474,7 +476,7 @@ function Simulation({
 // Public scene
 // ---------------------------------------------------------------------------
 
-export default function BlackHolePlaygroundScene({ quality, spin, diskOn, jetsOn, activeKind, apiRef }: PlaygroundSceneProps) {
+export default function BlackHolePlaygroundScene({ quality, spin, diskOn, jetsOn, gridOn, activeKind, apiRef }: PlaygroundSceneProps) {
   const dprCap = QUALITY_PRESETS[quality].dprCap;
   return (
     <Canvas
@@ -484,6 +486,7 @@ export default function BlackHolePlaygroundScene({ quality, spin, diskOn, jetsOn
       style={{ background: "#000003" }}
     >
       <BlackHoleQuad quality={quality} diskOn={diskOn} spin={spin} dopplerOn jetsOn={jetsOn} />
+      <BlackHoleGrid visible={gridOn} />
       <Simulation apiRef={apiRef} activeKind={activeKind} />
       <OrbitControls
         makeDefault
