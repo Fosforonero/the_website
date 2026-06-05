@@ -20,7 +20,7 @@ const COPY = {
     about: "Equazioni", back: "← Lab", sim: "Vista classica", presets: "Preset",
     pPrec: "Precessione", pIsco: "ISCO", pPlunge: "Caduta",
     hint: "Geodetica di tipo-tempo esatta di Schwarzschild (non l'approssimazione del playground). L'orbita precede formando una rosetta — la stessa fisica della precessione del perielio di Mercurio. Sotto L = √3 non esistono orbite stabili → caduta. Clicca nella scena per rilasciare la particella nel punto scelto. Anello arancio = ISCO (r = 6M), anello chiaro = sfera fotonica.",
-    rLbl: "r (raggio)", vLbl: "v (velocità)", eLbl: "E (energia)", precLbl: "Precessione / orbita", status: "Stato",
+    rLbl: "r", vLbl: "v", eLbl: "E", precLbl: "Δφ", status: "stato",
     orbiting: "in orbita", plunged: "caduto", info: "Come funziona",
   },
   en: {
@@ -29,7 +29,7 @@ const COPY = {
     about: "Equations", back: "← Lab", sim: "Classic view", presets: "Presets",
     pPrec: "Precession", pIsco: "ISCO", pPlunge: "Plunge",
     hint: "Exact Schwarzschild timelike geodesic (not the playground's approximation). The orbit precesses into a rosette — the same physics as Mercury's perihelion precession. Below L = √3 there are no stable orbits → plunge. Click in the scene to release the particle at the chosen point. Orange ring = ISCO (r = 6M), light ring = photon sphere.",
-    rLbl: "r (radius)", vLbl: "v (speed)", eLbl: "E (energy)", precLbl: "Precession / orbit", status: "Status",
+    rLbl: "r", vLbl: "v", eLbl: "E", precLbl: "Δφ", status: "status",
     orbiting: "orbiting", plunged: "plunged", info: "How it works",
   },
 } as const;

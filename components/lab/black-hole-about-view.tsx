@@ -54,9 +54,9 @@ const COPY: Record<Locale, Copy> = {
       {
         heading: "1. Metrica di Schwarzschild e geodetiche nulle",
         body: [
-          "La geometria esterna a una massa sferica non rotante è la soluzione di vuoto di Schwarzschild delle equazioni di Einstein. I vettori di Killing temporale ∂ₜ e azimutale ∂_φ forniscono due integrali primi — energia E e momento angolare L per unità di massa.",
-          "Per un fotone (geodetica nulla, gᵤᵥ ẋᵘẋᵛ = 0) nel piano equatoriale si ottiene un'equazione radiale con potenziale efficace. Ponendo u = 1/r segue l'equazione orbitale, la cui derivata è l'equazione di Binet per i fotoni; il termine 3M u² è la correzione di relatività generale.",
-          "Definito il parametro d'impatto b = L/E, la sfera fotonica (orbita circolare instabile dei fotoni) è a r = 3M e l'ombra osservata corrisponde al parametro d'impatto critico b_c = 3√3·M ≈ 2.6 rₛ. Il renderer integra la forma vettoriale equivalente con velocity-Verlet. (Carroll, Caltech; Kokkotas, Univ. Tübingen; Hirata, Ohio State; MTW.)",
+          "Cominciamo dal teatro. Attorno a una massa sferica che non ruota lo spazio-tempo vuoto può avere una sola forma — la soluzione di Schwarzschild, trovata nel 1916. È il modo in cui la massa dice allo spazio e al tempo come incurvarsi. Due simmetrie ci regalano due regali: poiché la geometria non cambia né nel tempo né ruotando attorno all'asse, ci sono due quantità che un fotone conserva lungo tutto il viaggio — un'energia E e un momento angolare L. Sono i nostri punti fermi in un mondo che si piega.",
+          "Ora mettiamoci la luce. Un fotone non ha massa e viaggia su una geodetica nulla: la sua «lunghezza» spazio-temporale è esattamente zero. Confiniamolo nel piano equatoriale e l'intero problema collassa in qualcosa di sorprendentemente familiare — una pallina che rotola in una valle, con un potenziale efficace. Il trucco classico è cambiare variabile, u = 1/r: l'orbita diventa l'equazione di Binet. Rispetto a Newton c'è un solo termine in più, quel 3M u², ed è tutta la relatività generale racchiusa in tre simboli: trascurabile lontano, padrone vicino.",
+          "Quel termine fa una cosa spettacolare: a r = 3M la luce può addirittura mettersi in orbita circolare. È la sfera fotonica, un'orbita così instabile che il minimo soffio butta il fotone dentro o lo libera — ed è il bordo dell'ombra. Tradotto in ciò che vede l'occhio lontano: ogni raggio con parametro d'impatto b = L/E sotto il valore critico b_c = 3√3·M ≈ 2.6 rₛ è condannato a cadere, quelli appena sopra si avvolgono e tornano. Il renderer non fa che integrare questa traiettoria, raggio per raggio, con velocity-Verlet. (Carroll, Caltech; Kokkotas, Univ. Tübingen; Hirata, Ohio State; MTW.)",
         ],
         eqs: [
           { label: "Elemento di linea di Schwarzschild", tex: "ds^2 = -\\left(1-\\tfrac{2M}{r}\\right)dt^2 + \\left(1-\\tfrac{2M}{r}\\right)^{-1}dr^2 + r^2\\,d\\Omega^2" },
@@ -69,8 +69,8 @@ const COPY: Record<Locale, Copy> = {
       {
         heading: "2. Geodetiche di tipo-tempo: orbite, ISCO, precessione",
         body: [
-          "Per una particella massiva (la demo «Orbite») la normalizzazione gᵤᵥ ẋᵘẋᵛ = −1 dà un'equazione radiale con il potenziale efficace V_eff. Le orbite circolari soddisfano dV/dr = 0; sono stabili solo per r > 6M. A r = 6M = 3 rₛ si trova l'ISCO (innermost stable circular orbit): sotto di essa nessuna orbita circolare è stabile e la particella precipita.",
-          "L'equazione orbitale di tipo-tempo ha, oltre al termine newtoniano M/L², la correzione relativistica 3M u² che fa precedere il periastro. È la stessa fisica della precessione anomala del perielio di Mercurio (43″ per secolo), primo test di Einstein del 1915. Sotto L = 2√3·M non esistono orbite legate stabili.",
+          "Sostituiamo il fotone con un sasso. Ora la «lunghezza» della traiettoria non è zero ma −1 — è il battito del suo orologio proprio — e ricompare lo stesso schema: una pallina in un potenziale efficace V_eff. Ma la valle ha una forma nuova. In Newton c'è sempre una conca dove sistemare un'orbita stabile, per quanto stretta; in Schwarzschild quella conca scompare se ci si avvicina troppo. Il punto di non ritorno è r = 6M = 3 rₛ, l'ISCO, l'ultima orbita circolare stabile: un passo più dentro e nessuna orbita regge più, il sasso scivola dentro senza appello. Questo non ha analogo newtoniano — è la firma del campo forte.",
+          "E le orbite che non precipitano? Non si chiudono. Lo stesso 3M u² che governava la luce qui fa ruotare lentamente l'ellisse a ogni giro: il periastro avanza e l'orbita disegna una rosetta. È, alla lettera, la matematica dei famosi 43 secondi d'arco per secolo «di troppo» nella precessione di Mercurio — l'anomalia che nel 1915 diede a Einstein la prima conferma osservativa. Nella demo «Orbite» basta spingere L sotto la soglia 2√3·M per vedere la rosetta trasformarsi in tuffo.",
         ],
         eqs: [
           { label: "Potenziale efficace (tipo-tempo)", tex: "\\left(\\frac{dr}{d\\tau}\\right)^{2} = E^{2} - V_{\\mathrm{eff}}^{2}, \\quad V_{\\mathrm{eff}}^{2} = \\left(1-\\frac{2M}{r}\\right)\\left(1+\\frac{L^{2}}{r^{2}}\\right)" },
@@ -82,9 +82,9 @@ const COPY: Record<Locale, Copy> = {
       {
         heading: "3. Disco di accrescimento relativistico",
         body: [
-          "Il disco sottile e otticamente spesso segue il modello di Shakura–Sunyaev nella versione relativistica di Novikov–Thorne, con condizione di stress nullo all'ISCO. Il flusso emesso e la temperatura efficace (Stefan–Boltzmann) determinano un'emissione di corpo nero locale.",
-          "Il colore è quindi il vero colore di corpo nero della temperatura locale (locus planckiano → sRGB), non un gradiente arbitrario. Il primo calcolo dell'immagine di un disco siffatto è di Luminet (1979). (Shakura–Sunyaev 1973; Novikov–Thorne 1973; Luminet 1979.)",
-          "Sui bordi: quello interno (all'ISCO) è genuinamente netto — la condizione di stress nullo fa annullare il flusso al raggio interno. Quello esterno, invece, è un troncamento numerico a un raggio finito: lo rendiamo sfumato (la brillanza cala già ∝ r⁻³ e aggiungiamo una caduta graduale a pendenza nulla al bordo), perché il confine esterno di un disco reale — fissato dalla sua regione di alimentazione — è sfocato, non a rasoio.",
+          "Il disco è gas che spiraleggia verso il buco, e mentre cade attrito e turbolenza lo scaldano finché non splende. Il modello classico è quello di Shakura e Sunyaev (1973), qui nella veste relativistica di Novikov e Thorne, con una condizione al contorno elegante: all'ISCO lo sforzo si annulla, perché lì il gas perde la presa e precipita. Da quanta energia ogni anello irraggia segue — via Stefan–Boltzmann — la sua temperatura, che cresce verso il centro come r⁻³ᐟ⁴.",
+          "E qui c'è la parte che ci piace di più: il colore non lo scegliamo noi. Ogni punto del disco ha una temperatura, e a quella temperatura corrisponde un vero colore di corpo nero — lo stesso di un ferro arroventato che passa dal rosso all'arancio al bianco-azzurro man mano che scalda. Convertiamo quella temperatura nel suo colore lungo il locus planckiano e lo mostriamo, niente gradiente arbitrario. Il primo a calcolare l'immagine di un disco così, a mano, nel 1979, fu Jean-Pierre Luminet — e somigliava già a Interstellar. (Shakura–Sunyaev 1973; Novikov–Thorne 1973; Luminet 1979.)",
+          "Una parola sui bordi, perché raccontano due fisiche opposte. Quello interno è tagliente sul serio: all'ISCO il gas se ne va e la luce semplicemente finisce lì. Quello esterno no — dipende da dove il disco viene alimentato, ed è sfumato. Nella realtà la brillanza scende già da sola come r⁻³; noi aggiungiamo una dissolvenza morbida e larga che si spegne con pendenza nulla, così l'orlo non sembra tagliato col coltello.",
         ],
         eqs: [
           { label: "Flusso del disco (Novikov–Thorne / Shakura–Sunyaev)", tex: "F(r) = \\frac{3\\,G M \\dot M}{8\\pi r^{3}}\\left(1 - \\sqrt{r_{\\mathrm{in}}/r}\\,\\right)" },
@@ -95,8 +95,8 @@ const COPY: Record<Locale, Copy> = {
       {
         heading: "4. Trasporto radiativo ed effetti relativistici",
         body: [
-          "Lungo un raggio la quantità Iᵥ/ν³ è invariante (teorema di Liouville per i fotoni). Definito il fattore di redshift g = νₒₛₛ/νₑₘ, per un emettitore in orbita circolare g combina la dilatazione gravitazionale e temporale con il Doppler longitudinale.",
-          "Un corpo nero visto con fattore g resta un corpo nero a temperatura g·T (invarianza Doppler dello spettro di Planck), con intensità bolometrica ∝ g⁴. Lo stesso g pilota luminosità e colore: il lato in avvicinamento è più luminoso e più blu, quello in allontanamento più scuro e più rosso. (Luminet 1979; Vincent et al. 2011, GYOTO.)",
+          "Come cambia la luce lungo il tragitto? C'è una quantità quasi magica che resta costante: l'intensità divisa per la frequenza al cubo, Iᵥ/ν³. È il teorema di Liouville travestito — dice che i fotoni, nel loro spazio delle fasi, non si accalcano né si diradano. Se la conosciamo dove la luce nasce, la conosciamo anche qui all'occhio. Tutto il lavoro si riduce allora a un solo numero: il fattore g, il rapporto tra la frequenza che riceviamo e quella emessa.",
+          "Quel g mette insieme tre effetti in un colpo solo: il tempo che scorre più lento vicino alla massa (redshift gravitazionale), la dilatazione del tempo del gas che sfreccia, e il Doppler di chi viene verso di noi o se ne va. Un corpo nero visto con fattore g resta un corpo nero, ma a temperatura g·T — quindi g sposta insieme colore e luminosità. Il risultato è una firma inconfondibile: il lato del disco che ci viene incontro è abbagliante e bluastro, quello che fugge è cupo e rosso. E poiché la luminosità va come g⁴, basta poco perché un lato domini l'altro. (Luminet 1979; Vincent et al. 2011, GYOTO.)",
         ],
         eqs: [
           { label: "Invariante di Liouville", tex: "\\frac{I_\\nu}{\\nu^{3}} = \\text{costante lungo il raggio}" },
@@ -107,8 +107,8 @@ const COPY: Record<Locale, Copy> = {
       {
         heading: "5. Returning radiation e photon ring",
         body: [
-          "I raggi che sfiorano la sfera fotonica si avvolgono attorno al buco nero prima di sfuggire o colpire il disco: è la returning radiation. Il renderer raffina il passo d'integrazione appena fuori dalla sfera fotonica, così cattura le immagini di ordine superiore del disco — la luce del disco che ha compiuto mezzi giri aggiuntivi.",
-          "Queste immagini si accalcano in sub-anelli sempre più sottili che convergono al parametro d'impatto critico b_c, con uno spaziamento che decade esponenzialmente (esponente di Lyapunov γ = π per Schwarzschild). Il limite è il photon ring: nella nostra implementazione emerge dalla luce reale del disco (stesso colore), non è disegnato analiticamente. (Luminet 1979; Gralla, Holz & Wald 2019; Johnson et al. 2020, EHT.)",
+          "Ecco la parte che rende un buco nero così luminoso. Alcuni raggi non vanno dritti e non cadono: sfiorano la sfera fotonica, fanno mezzo giro, un giro, due giri attorno al buco, e poi ripartono. È la returning radiation — la luce del disco che torna a mostrarsi dopo essere passata dietro l'orizzonte. Per coglierla il renderer infittisce i passi proprio dove la traiettoria si avvolge, là dove un passo grossolano perderebbe il giro.",
+          "Il risultato è una scala di immagini del disco sempre più sottili, impilate una accanto all'altra, che si stringono verso il bordo dell'ombra. Ogni giro in più rimpicciolisce l'immagine di un fattore fisso — esponenzialmente, con esponente di Lyapunov γ = π per Schwarzschild — finché si fondono nel filo luminoso del photon ring. La cosa di cui andiamo fieri: non lo disegniamo. Emerge da solo dalla vera luce del disco che ritorna, con lo stesso colore, senza nessun anello finto sovrapposto. (Luminet 1979; Gralla, Holz & Wald 2019; Johnson et al. 2020, EHT.)",
         ],
         eqs: [
           { label: "Convergenza dei sub-anelli al valore critico", tex: "b_{n} - b_{c} \\;\\propto\\; e^{-\\gamma n}, \\qquad \\gamma = \\pi \\ (\\text{Schwarzschild})" },
@@ -118,8 +118,8 @@ const COPY: Record<Locale, Copy> = {
       {
         heading: "6. Rotazione: Kerr e frame-dragging",
         body: [
-          "Un buco nero reale ruota: la metrica corretta è quella di Kerr, in cui il trascinamento dei sistemi inerziali (frame-dragging) ha velocità angolare ω = −g_{tφ}/g_{φφ}. Il renderer non integra Kerr; lo slider Spin aggiunge il frame-dragging in approssimazione di campo gravitomagnetico di dipolo (Lense–Thirring), fisicamente motivato ma NON la metrica di Kerr completa.",
-          "Il Gargantua di Interstellar usa la vera metrica di Kerr ray-tracciata offline (James, von Tunzelmann, Franklin & Thorne 2015). I codici GR pubblici (es. GYOTO) integrano Kerr, ma non in tempo reale nel browser. (Bardeen 1973 per le geodetiche di Kerr.)",
+          "I buchi neri veri ruotano, e un buco nero che ruota fa qualcosa di stupefacente: trascina lo spazio stesso con sé, come un vortice trascina l'acqua. Abbastanza vicino non puoi stare fermo nemmeno accendendo i motori al massimo — lo spazio ti porta in giro. La metrica esatta è quella di Kerr e quel trascinamento (frame-dragging) ha una velocità angolare ω = −g_{tφ}/g_{φφ} ben precisa. Onestà piena: noi non integriamo Kerr.",
+          "Lo slider Spin aggiunge il vortice in approssimazione di campo lontano — il «gravitomagnetismo» di Lense–Thirring, l'analogo gravitazionale del campo di un dipolo magnetico — che torce le orbite e la griglia nel verso giusto, ma non è la metrica di Kerr completa. Il Gargantua di Interstellar quella la usa per davvero, ray-tracciata però offline, fotogramma per fotogramma (James, von Tunzelmann, Franklin & Thorne 2015). I codici GR pubblici integrano Kerr, ma non a 60 fotogrammi al secondo dentro un browser. (Bardeen 1973 per le geodetiche di Kerr.)",
         ],
         eqs: [
           { label: "Velocità angolare di frame-dragging (Kerr)", tex: "\\omega(r,\\theta) = -\\,\\frac{g_{t\\varphi}}{g_{\\varphi\\varphi}} \\;\\xrightarrow{\\text{campo lontano}}\\; \\frac{2GJ}{c^{2} r^{3}}" },
@@ -129,7 +129,7 @@ const COPY: Record<Locale, Copy> = {
       {
         heading: "7. Geometria dello spazio: il paraboloide di Flamm",
         body: [
-          "La griglia spazio-tempo opzionale visualizza la curvatura spaziale reale: l'immersione isometrica della sezione equatoriale (t, θ = π/2 costanti) di Schwarzschild in uno spazio euclideo 3D è il paraboloide di Flamm (1916) — il celebre «imbuto». Non è un generico telo elastico, ma la superficie z(r) la cui geometria intrinseca riproduce la metrica spaziale di Schwarzschild.",
+          "Il telo elastico con la palla da bowling è un'immagine bellissima e quasi sempre sbagliata. La griglia che potete accendere, invece, è quella giusta: il paraboloide di Flamm (1916). Se prendete la fetta equatoriale dello spazio attorno al buco (t, θ = π/2 costanti) e la immergete, senza stiracchiarla, in uno spazio euclideo a tre dimensioni, ottenete esattamente quell'imbuto. Le distanze misurate sulla superficie sono le vere distanze dello spazio curvo di Schwarzschild — non una metafora, ma la sua geometria intrinseca disegnata fedelmente. Quando il buco ruota, l'imbuto si attorciglia: è il frame-dragging che si fa vedere.",
         ],
         eqs: [
           { label: "Paraboloide di Flamm", tex: "z(r) = 2\\sqrt{r_s\\,(r - r_s)}, \\qquad \\left(\\frac{dz}{dr}\\right)^{2} = \\left(1-\\frac{r_s}{r}\\right)^{-1} - 1" },
@@ -138,8 +138,8 @@ const COPY: Record<Locale, Copy> = {
       {
         heading: "8. Playground: dinamica dei corpi",
         body: [
-          "I corpi (pianeti con lune, stelle, comete) si muovono nel potenziale pseudo-newtoniano di Paczyński–Wiita, che riproduce esattamente l'ISCO a 6M e la caduta relativistica senza integrare le geodetiche complete — compromesso standard nei modelli N-corpi/accrescimento. Oltre al buco nero, i corpi massivi si attraggono a vicenda (N-corpi smorzato). Il comando «Sistema» genera un intero sistema di pianeti con lune su orbite circolari inclinate attorno al buco nero, che fa da stella centrale (alla Gargantua).",
-          "Disgregazione mareale (TDE): una stella entro il raggio mareale è spaghettificata; uno spread di energia orbitale specifica rende metà dei detriti legati (ricadono avvolgendo il buco nero, alimentano il disco) e metà non legati (coda mareale), con tasso di ricaduta Ṁ ∝ t⁻⁵ᐟ³ (Rees 1988). Prima della disruzione completa, lo stripping mareale solleva gas dalla superficie esposta della stella (la calotta rivolta al buco, che si allarga man mano che affonda) in un flusso continuo che alimenta il disco. (Paczyński–Wiita 1980; Rees 1988.)",
+          "Il playground baratta un po' di esattezza per il gusto di lanciare le cose e vedere che succede. Invece delle geodetiche complete usa un trucco famoso: il potenziale di Paczyński–Wiita, Φ = −GM/(r − rₛ). Sembra Newton, ma quel −rₛ al denominatore fa la magia — riproduce esattamente l'ISCO a 6M e il tuffo finale, gli effetti di campo forte che a Newton mancano. In cambio possiamo permetterci la vera gravità reciproca tra tutti i corpi (un N-corpi smorzato). Il tasto «Sistema» costruisce d'un colpo un piccolo sistema planetario inclinato, con il buco nero al posto della stella centrale, come Gargantua.",
+          "E quando un corpo si avvicina troppo? Viene fatto a spaghetti. La marea — la differenza di gravità tra la faccia vicina e quella lontana del corpo — vince la sua presa e lo stira. La fisica chiave (Rees 1988) è uno spread di energia: metà dei detriti rallenta e ricade, avvolgendosi attorno al buco e alimentando il disco; l'altra metà accelera e viene scagliata via in una lunga coda. La ricaduta segue la legge famosa Ṁ ∝ t⁻⁵ᐟ³. Ancora prima della disgregazione completa la stella perde gas dalla calotta rivolta al buco — un velo che si allarga via via che affonda. (Paczyński–Wiita 1980; Rees 1988.)",
         ],
         eqs: [
           { label: "Potenziale di Paczyński–Wiita", tex: "\\Phi(r) = -\\frac{GM}{r - r_s}" },
@@ -236,9 +236,9 @@ const COPY: Record<Locale, Copy> = {
       {
         heading: "1. Schwarzschild metric and null geodesics",
         body: [
-          "The exterior geometry of a non-rotating spherical mass is the vacuum Schwarzschild solution of Einstein's equations. The timelike ∂ₜ and azimuthal ∂_φ Killing vectors yield two first integrals — energy E and angular momentum L per unit mass.",
-          "For a photon (null geodesic, gᵤᵥ ẋᵘẋᵛ = 0) in the equatorial plane one obtains a radial equation with an effective potential. Setting u = 1/r gives the orbit equation, whose derivative is the photon Binet equation; the 3M u² term is the general-relativistic correction.",
-          "With the impact parameter b = L/E, the photon sphere (unstable circular photon orbit) is at r = 3M and the observed shadow corresponds to the critical impact parameter b_c = 3√3·M ≈ 2.6 rₛ. The renderer integrates the equivalent vector form with velocity-Verlet. (Carroll, Caltech; Kokkotas, Univ. Tübingen; Hirata, Ohio State; MTW.)",
+          "Start with the stage. Around a non-rotating spherical mass, empty spacetime can take only one shape — the Schwarzschild solution, found in 1916. It is how the mass tells space and time to curve. Two symmetries hand us two gifts: because the geometry changes neither in time nor under rotation about the axis, there are two quantities a photon keeps for its entire journey — an energy E and an angular momentum L. They are our fixed points in a world that bends.",
+          "Now add light. A photon is massless and travels on a null geodesic: its spacetime «length» is exactly zero. Confine it to the equatorial plane and the whole problem collapses into something surprisingly familiar — a ball rolling in a valley, with an effective potential. The classic trick is to change variable, u = 1/r: the orbit becomes the Binet equation. Compared with Newton there is just one extra term, that 3M u² — all of general relativity packed into three symbols: negligible far away, the master up close.",
+          "That term does something spectacular: at r = 3M light itself can settle into a circular orbit. This is the photon sphere, an orbit so unstable that the faintest nudge throws the photon in or sets it free — and it is the edge of the shadow. Translated into what a distant eye sees: every ray with impact parameter b = L/E below the critical value b_c = 3√3·M ≈ 2.6 rₛ is doomed to fall, while those just above wind around and come back. The renderer does nothing but integrate this trajectory, ray by ray, with velocity-Verlet. (Carroll, Caltech; Kokkotas, Univ. Tübingen; Hirata, Ohio State; MTW.)",
         ],
         eqs: [
           { label: "Schwarzschild line element", tex: "ds^2 = -\\left(1-\\tfrac{2M}{r}\\right)dt^2 + \\left(1-\\tfrac{2M}{r}\\right)^{-1}dr^2 + r^2\\,d\\Omega^2" },
@@ -251,8 +251,8 @@ const COPY: Record<Locale, Copy> = {
       {
         heading: "2. Timelike geodesics: orbits, ISCO, precession",
         body: [
-          "For a massive particle (the «Orbits» demo) the normalization gᵤᵥ ẋᵘẋᵛ = −1 gives a radial equation with effective potential V_eff. Circular orbits satisfy dV/dr = 0; they are stable only for r > 6M. At r = 6M = 3 rₛ lies the ISCO (innermost stable circular orbit): below it no circular orbit is stable and the particle plunges.",
-          "Besides the Newtonian term M/L², the timelike orbit equation carries the relativistic correction 3M u², which makes the periastron precess — the same physics as Mercury's anomalous perihelion precession (43″ per century), Einstein's first test in 1915. Below L = 2√3·M there are no stable bound orbits.",
+          "Swap the photon for a stone. Now the «length» of the path is not zero but −1 — it is the ticking of its own clock — and the same pattern returns: a ball in an effective potential V_eff. But the valley has a new shape. In Newton there is always a dip where a stable orbit can sit, however tight; in Schwarzschild that dip vanishes if you get too close. The point of no return is r = 6M = 3 rₛ, the ISCO, the innermost stable circular orbit: one step further in and no orbit holds — the stone slides in with no appeal. This has no Newtonian analogue; it is the signature of the strong field.",
+          "And the orbits that do not plunge? They do not close. The very 3M u² that ruled the light here slowly rotates the ellipse on every turn: the periastron advances and the orbit traces a rosette. It is, literally, the mathematics of the famous 43 arc-seconds per century «too many» in Mercury's precession — the anomaly that in 1915 gave Einstein his first observational confirmation. In the «Orbits» demo, just push L below the 2√3·M threshold to watch the rosette turn into a plunge.",
         ],
         eqs: [
           { label: "Effective potential (timelike)", tex: "\\left(\\frac{dr}{d\\tau}\\right)^{2} = E^{2} - V_{\\mathrm{eff}}^{2}, \\quad V_{\\mathrm{eff}}^{2} = \\left(1-\\frac{2M}{r}\\right)\\left(1+\\frac{L^{2}}{r^{2}}\\right)" },
@@ -300,8 +300,8 @@ const COPY: Record<Locale, Copy> = {
       {
         heading: "6. Rotation: Kerr and frame dragging",
         body: [
-          "A real black hole rotates: the correct metric is Kerr, where the dragging of inertial frames has angular velocity ω = −g_{tφ}/g_{φφ}. The renderer does not integrate Kerr; the Spin slider adds frame dragging in a gravitomagnetic dipole (Lense–Thirring) approximation — physically motivated but NOT the full Kerr metric.",
-          "Interstellar's Gargantua uses the true Kerr metric ray-traced offline (James, von Tunzelmann, Franklin & Thorne 2015). Public GR codes (e.g. GYOTO) integrate Kerr, but not in real time in the browser. (Bardeen 1973 for Kerr geodesics.)",
+          "Real black holes spin, and a spinning black hole does something astonishing: it drags space itself around with it, the way a whirlpool drags water. Close enough you cannot stay still even at full thrust — space carries you along. The exact metric is Kerr's, and that dragging (frame-dragging) has a precise angular velocity ω = −g_{tφ}/g_{φφ}. Full honesty: we do not integrate Kerr.",
+          "The Spin slider adds the whirl in a far-field approximation — Lense–Thirring «gravitomagnetism», the gravitational analogue of a magnetic dipole field — which twists the orbits and the grid the right way, but is not the full Kerr metric. Interstellar's Gargantua does use the real thing, ray-traced offline, frame by frame (James, von Tunzelmann, Franklin & Thorne 2015). Public GR codes integrate Kerr, but not at 60 frames per second inside a browser. (Bardeen 1973 for Kerr geodesics.)",
         ],
         eqs: [
           { label: "Frame-dragging angular velocity (Kerr)", tex: "\\omega(r,\\theta) = -\\,\\frac{g_{t\\varphi}}{g_{\\varphi\\varphi}} \\;\\xrightarrow{\\text{far field}}\\; \\frac{2GJ}{c^{2} r^{3}}" },
@@ -311,7 +311,7 @@ const COPY: Record<Locale, Copy> = {
       {
         heading: "7. Spatial geometry: Flamm's paraboloid",
         body: [
-          "The optional spacetime grid visualizes the real spatial curvature: the isometric embedding of the equatorial (t, θ = π/2 const) slice of Schwarzschild into 3D Euclidean space is Flamm's paraboloid (1916) — the famous «funnel». It is not a generic rubber sheet but the surface z(r) whose intrinsic geometry reproduces the Schwarzschild spatial metric.",
+          "The rubber sheet with the bowling ball is a beautiful image and almost always wrong. The grid you can switch on, instead, is the right one: Flamm's paraboloid (1916). Take the equatorial slice of the space around the hole (t, θ = π/2 const) and embed it, without stretching, into ordinary 3D Euclidean space, and you get exactly that funnel. Distances measured on the surface are the true distances of Schwarzschild's curved space — not a metaphor but its intrinsic geometry drawn faithfully. When the hole spins, the funnel twists: that is frame-dragging made visible.",
         ],
         eqs: [
           { label: "Flamm's paraboloid", tex: "z(r) = 2\\sqrt{r_s\\,(r - r_s)}, \\qquad \\left(\\frac{dz}{dr}\\right)^{2} = \\left(1-\\frac{r_s}{r}\\right)^{-1} - 1" },
@@ -320,8 +320,8 @@ const COPY: Record<Locale, Copy> = {
       {
         heading: "8. Playground: body dynamics",
         body: [
-          "The bodies (planets with moons, stars, comets) move in the Paczyński–Wiita pseudo-Newtonian potential, which exactly reproduces the ISCO at 6M and the relativistic plunge without integrating the full geodesics — a standard N-body/accretion compromise. Beyond the black hole, the massive bodies attract each other (softened N-body). The «System» command generates a whole system of planets with moons on inclined circular orbits around the black hole, which plays the role of the central star (à la Gargantua).",
-          "Tidal disruption (TDE): a star within the tidal radius is spaghettified; a spread in specific orbital energy makes half the debris bound (it falls back, wrapping the hole, feeding the disk) and half unbound (tidal tail), with fallback rate Ṁ ∝ t⁻⁵ᐟ³ (Rees 1988). Before full disruption, tidal stripping lifts gas from the star's exposed surface (the BH-facing cap, widening as it sinks) in a continuous stream that feeds the disk. (Paczyński–Wiita 1980; Rees 1988.)",
+          "The playground trades a little exactness for the fun of throwing things in and watching. Instead of the full geodesics it uses a famous trick: the Paczyński–Wiita potential, Φ = −GM/(r − rₛ). It looks like Newton, but that −rₛ in the denominator works the magic — it reproduces the ISCO at 6M and the final plunge exactly, the strong-field effects Newton lacks. In return we can afford real mutual gravity between all the bodies (a softened N-body). The «System» button builds, in one go, a small inclined planetary system with the black hole standing in for the central star, like Gargantua.",
+          "And when a body comes too close? It gets spaghettified. The tide — the difference in gravity between the body's near and far sides — overcomes its self-grip and stretches it. The key physics (Rees 1988) is a spread in energy: half the debris slows and falls back, wrapping around the hole and feeding the disk; the other half speeds up and is flung out in a long tail. The fallback follows the famous Ṁ ∝ t⁻⁵ᐟ³ law. Even before full disruption the star sheds gas from the cap facing the hole — a veil that widens as it sinks. (Paczyński–Wiita 1980; Rees 1988.)",
         ],
         eqs: [
           { label: "Paczyński–Wiita potential", tex: "\\Phi(r) = -\\frac{GM}{r - r_s}" },
