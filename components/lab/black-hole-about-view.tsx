@@ -139,7 +139,7 @@ const COPY: Record<Locale, Copy> = {
         heading: "8. Playground: dinamica dei corpi",
         body: [
           "I corpi (pianeti con lune, stelle, comete) si muovono nel potenziale pseudo-newtoniano di Paczyński–Wiita, che riproduce esattamente l'ISCO a 6M e la caduta relativistica senza integrare le geodetiche complete — compromesso standard nei modelli N-corpi/accrescimento. Oltre al buco nero, i corpi massivi si attraggono a vicenda (N-corpi smorzato). Il comando «Sistema» genera un intero sistema di pianeti con lune su orbite circolari inclinate attorno al buco nero, che fa da stella centrale (alla Gargantua).",
-          "Disgregazione mareale (TDE): una stella entro il raggio mareale è spaghettificata; uno spread di energia orbitale specifica rende metà dei detriti legati (ricadono avvolgendo il buco nero, alimentano il disco) e metà non legati (coda mareale), con tasso di ricaduta Ṁ ∝ t⁻⁵ᐟ³ (Rees 1988). Il trasferimento di massa per overflow del lobo di Roche alimenta a sua volta il disco. (Paczyński–Wiita 1980; Rees 1988.)",
+          "Disgregazione mareale (TDE): una stella entro il raggio mareale è spaghettificata; uno spread di energia orbitale specifica rende metà dei detriti legati (ricadono avvolgendo il buco nero, alimentano il disco) e metà non legati (coda mareale), con tasso di ricaduta Ṁ ∝ t⁻⁵ᐟ³ (Rees 1988). Prima della disruzione completa, lo stripping mareale solleva gas dalla superficie esposta della stella (la calotta rivolta al buco, che si allarga man mano che affonda) in un flusso continuo che alimenta il disco. (Paczyński–Wiita 1980; Rees 1988.)",
         ],
         eqs: [
           { label: "Potenziale di Paczyński–Wiita", tex: "\\Phi(r) = -\\frac{GM}{r - r_s}" },
@@ -321,7 +321,7 @@ const COPY: Record<Locale, Copy> = {
         heading: "8. Playground: body dynamics",
         body: [
           "The bodies (planets with moons, stars, comets) move in the Paczyński–Wiita pseudo-Newtonian potential, which exactly reproduces the ISCO at 6M and the relativistic plunge without integrating the full geodesics — a standard N-body/accretion compromise. Beyond the black hole, the massive bodies attract each other (softened N-body). The «System» command generates a whole system of planets with moons on inclined circular orbits around the black hole, which plays the role of the central star (à la Gargantua).",
-          "Tidal disruption (TDE): a star within the tidal radius is spaghettified; a spread in specific orbital energy makes half the debris bound (it falls back, wrapping the hole, feeding the disk) and half unbound (tidal tail), with fallback rate Ṁ ∝ t⁻⁵ᐟ³ (Rees 1988). Roche-lobe overflow mass transfer also feeds the disk. (Paczyński–Wiita 1980; Rees 1988.)",
+          "Tidal disruption (TDE): a star within the tidal radius is spaghettified; a spread in specific orbital energy makes half the debris bound (it falls back, wrapping the hole, feeding the disk) and half unbound (tidal tail), with fallback rate Ṁ ∝ t⁻⁵ᐟ³ (Rees 1988). Before full disruption, tidal stripping lifts gas from the star's exposed surface (the BH-facing cap, widening as it sinks) in a continuous stream that feeds the disk. (Paczyński–Wiita 1980; Rees 1988.)",
         ],
         eqs: [
           { label: "Paczyński–Wiita potential", tex: "\\Phi(r) = -\\frac{GM}{r - r_s}" },

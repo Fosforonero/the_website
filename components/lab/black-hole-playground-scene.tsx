@@ -73,6 +73,7 @@ type Body = {
   mesh: THREE.Mesh | null;
 };
 
+const STREAM_COLOR = new THREE.Color("#ffc89c"); // tidally-stripped gas (reused)
 const PLANET_MASS = 0.005; // host mass so moons stay bound (≪ a star's mass)
 const PLANET_COLORS = [
   "#6fa8d8", "#d8a76f", "#9fd86f", "#c98fd0",
@@ -397,16 +398,34 @@ function Simulation({
         emit(b.pos, tmp2, new THREE.Color("#bfe0ff"), 2.2);
       }
       const rt = tidalRadiusFor(b.kind);
-      // Mass transfer: a primary body close to the hole (but not yet captured
-      // or fully disrupted) sheds matter from its inner side toward the BH —
-      // a toy Roche-lobe-overflow stream that feeds the accretion disk.
+      // Tidal stripping: a primary body close to the hole (but not yet fully
+      // disrupted) is stripped from its EXPOSED, BH-facing surface — a widening
+      // sheet of gas, not a single thread — and the lifted material streams
+      // toward the hole, feeding the disk. Emission is CONTINUOUS (a deterministic
+      // number of parcels per frame, ≥1) so the stream never stutters, and it
+      // broadens as the star sinks deeper into the tidal field.
       if (b.parentId === null && r > rt && r < MASS_TRANSFER_RADIUS) {
-        const frac = 1.0 - (r - rt) / (MASS_TRANSFER_RADIUS - rt);
-        if (Math.random() < frac * 0.9) {
-          tmp.copy(b.pos).normalize();                           // radial unit (outward)
-          tmp2.copy(b.pos).addScaledVector(tmp, -b.radius);      // inner, BH-facing point
-          const vv = b.vel.clone().addScaledVector(tmp, -0.04 * (0.5 + frac)); // inward kick
-          emit(tmp2, vv, new THREE.Color("#ffc89c"), 8.0);
+        const frac = 1.0 - (r - rt) / (MASS_TRANSFER_RADIUS - rt); // 0 (far) .. 1 (near rt)
+        const nShed = 1 + Math.round(frac * 6);
+        const radial = b.pos.clone().multiplyScalar(1 / Math.max(r, 1e-4)); // outward unit
+        // tangent basis on the star's BH-facing cap
+        const up = Math.abs(radial.y) < 0.9 ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(1, 0, 0);
+        const tA = new THREE.Vector3().crossVectors(radial, up).normalize();
+        const tB = new THREE.Vector3().crossVectors(radial, tA).normalize();
+        const capR = b.radius * (0.5 + 0.5 * frac); // exposed cap widens as it sinks
+        for (let sIdx = 0; sIdx < nShed; sIdx++) {
+          const ang = Math.random() * Math.PI * 2;
+          const rad = Math.sqrt(Math.random()) * capR;        // uniform over the cap disk
+          const depth = Math.sqrt(Math.max(b.radius * b.radius - rad * rad, 0));
+          const p = b.pos.clone()
+            .addScaledVector(radial, -depth)                  // onto the BH-facing surface
+            .addScaledVector(tA, Math.cos(ang) * rad)
+            .addScaledVector(tB, Math.sin(ang) * rad);
+          const vv = b.vel.clone()
+            .addScaledVector(radial, -0.05 * (0.4 + frac))    // pulled toward the hole
+            .addScaledVector(tA, (Math.random() - 0.5) * 0.012)
+            .addScaledVector(tB, (Math.random() - 0.5) * 0.012);
+          emit(p, vv, STREAM_COLOR, 8.0);
         }
       }
       // Tidal disruption at the body's density-dependent radius (planets are
