@@ -42,7 +42,15 @@ export type PlaygroundSceneProps = {
 const RS = 1.0;
 const GM = 0.5;
 const HORIZON = 1.02;
-const TIDAL_RADIUS = 6.0; // stars inside this radius are torn apart
+// Tidal-disruption radius by composition. Disruption scales as density^(−1/3),
+// so denser bodies survive closer to the hole: a low-density star is torn far
+// out, a dense rocky planet only very close (it is "more resistant"), and a
+// loosely-bound comet disrupts easily.
+function tidalRadiusFor(kind: BodyKind): number {
+  if (kind === "star") return 6.5;
+  if (kind === "comet") return 5.0;
+  return 3.4; // planet (dense → resistant)
+}
 const DISK_IN = 3.0;      // accretion-disk inner radius (matches the shader)
 const DISK_OUT = 16.0;    // accretion-disk outer radius
 const MASS_TRANSFER_RADIUS = 11.0; // bodies inside this shed matter toward the BH
@@ -60,7 +68,7 @@ type Body = {
   mesh: THREE.Mesh | null;
 };
 
-const PLANET_MASS = 0.012; // host mass so moons stay bound inside the Hill sphere
+const PLANET_MASS = 0.005; // host mass so moons stay bound (≪ a star's mass)
 const PLANET_COLORS = [
   "#6fa8d8", "#d8a76f", "#9fd86f", "#c98fd0",
   "#d0b070", "#7fd0c0", "#d07f7f", "#8f9fd0",
@@ -172,21 +180,22 @@ function Simulation({
     const vel = new THREE.Vector3(-radial.z, 0, radial.x).multiplyScalar(vCirc * factor);
 
     if (kind === "planet") {
-      // Vary each planet: colour, size, mass (∝ size) and its moon system.
+      // A planet is far smaller and lighter than a star (orders of magnitude in
+      // reality; compressed here so it stays visible). Vary colour/size/moons.
       const pal = PLANET_COLORS[Math.floor(Math.random() * PLANET_COLORS.length)]!;
-      const pr = 0.15 + Math.random() * 0.16;                 // radius 0.15–0.31
-      const pmass = PLANET_MASS * (pr / 0.22);                // mass scales with size
+      const pr = 0.11 + Math.random() * 0.07;                  // radius 0.11–0.18
+      const pmass = PLANET_MASS * (pr / 0.14);                 // mass scales with size
       const planet = addBody("planet", pos, vel, pr, new THREE.Color(pal), pmass, null);
       // 0–3 moons on small local orbits inside the Hill sphere.
       const nMoons = Math.floor(Math.random() * 4);
       for (let m = 0; m < nMoons; m++) {
-        const rl = pr + 0.3 + m * (0.25 + Math.random() * 0.18); // local orbital radius
+        const rl = pr + 0.22 + m * (0.18 + Math.random() * 0.12); // local orbital radius
         const phi = Math.random() * Math.PI * 2;
         const inc = (Math.random() - 0.5) * 0.4;                 // orbital inclination
         const off = new THREE.Vector3(Math.cos(phi) * rl, Math.sin(inc) * rl * 0.4, Math.sin(phi) * rl);
         const vLocal = Math.sqrt(pmass / rl);                    // local circular speed
         const vMoon = new THREE.Vector3(-Math.sin(phi), 0, Math.cos(phi)).multiplyScalar(vLocal);
-        const mr = 0.04 + Math.random() * 0.05;
+        const mr = 0.025 + Math.random() * 0.03;
         const shade = 0.6 + Math.random() * 0.4;
         addBody(
           "planet",
@@ -194,22 +203,23 @@ function Simulation({
           vel.clone().add(vMoon),
           mr,
           new THREE.Color(0.72 * shade, 0.77 * shade, 0.83 * shade),
-          0.0006, // small but non-zero → moons take part in the N-body too
+          0.00008, // tiny → moons barely perturb, but take part in the N-body
           planet.id
         );
       }
       return;
     }
 
+    // A star is the most massive and largest body by far; a comet is tiny.
     const cfg =
       kind === "star"
-        ? { radius: 0.30, color: new THREE.Color("#fff0c0"), mass: 0.035 }
-        : { radius: 0.10, color: new THREE.Color("#cfe8ff"), mass: 0.0006 };
+        ? { radius: 0.42, color: new THREE.Color("#fff0c0"), mass: 0.06 }
+        : { radius: 0.05, color: new THREE.Color("#cfe8ff"), mass: 0.0003 };
     addBody(kind, pos, vel, cfg.radius, cfg.color, cfg.mass, null);
   }
 
-  function disruptStar(b: Body) {
-    // Tidal disruption event (TDE): the star is spaghettified into a thin
+  function disrupt(b: Body) {
+    // Tidal disruption event (TDE): the body is spaghettified into a thin
     // stream. The key physics is a spread in *specific orbital energy* imparted
     // along the orbital direction: half the debris becomes bound (ε<0) and
     // spirals back in, wrapping around the hole and feeding the disk, while the
@@ -218,9 +228,16 @@ function Simulation({
     const speed  = Math.max(b.vel.length(), 1e-3);
     const vdir   = b.vel.clone().multiplyScalar(1 / speed);   // orbital direction
     const radial = b.pos.clone().normalize();
-    const bound = new THREE.Color("#ff6a30");   // bound, infalling debris (redder)
-    const tail  = new THREE.Color("#ffd9a0");   // unbound tail (warmer/brighter)
-    const N = 120;
+    // Debris colour by composition: stars warm, planets rocky, comets icy.
+    const bound =
+      b.kind === "comet" ? new THREE.Color("#8fc4dc")
+      : b.kind === "planet" ? new THREE.Color("#9c7a5c")
+      : new THREE.Color("#ff6a30");
+    const tail =
+      b.kind === "comet" ? new THREE.Color("#d6eef8")
+      : b.kind === "planet" ? new THREE.Color("#cdb79c")
+      : new THREE.Color("#ffd9a0");
+    const N = Math.round(55 + 220 * b.radius); // bigger body → more debris
     for (let k = 0; k < N; k++) {
       const u = (k / (N - 1)) * 2 - 1;          // -1 (bound) .. +1 (unbound)
       // initial slight elongation along the orbit + tiny radial/vertical width
@@ -325,11 +342,12 @@ function Simulation({
         tmp2.copy(b.pos).normalize().multiplyScalar(0.05);
         emit(b.pos, tmp2, new THREE.Color("#bfe0ff"), 2.2);
       }
+      const rt = tidalRadiusFor(b.kind);
       // Mass transfer: a primary body close to the hole (but not yet captured
       // or fully disrupted) sheds matter from its inner side toward the BH —
       // a toy Roche-lobe-overflow stream that feeds the accretion disk.
-      if (b.parentId === null && r > TIDAL_RADIUS && r < MASS_TRANSFER_RADIUS) {
-        const frac = 1.0 - (r - TIDAL_RADIUS) / (MASS_TRANSFER_RADIUS - TIDAL_RADIUS);
+      if (b.parentId === null && r > rt && r < MASS_TRANSFER_RADIUS) {
+        const frac = 1.0 - (r - rt) / (MASS_TRANSFER_RADIUS - rt);
         if (Math.random() < frac * 0.9) {
           tmp.copy(b.pos).normalize();                           // radial unit (outward)
           tmp2.copy(b.pos).addScaledVector(tmp, -b.radius);      // inner, BH-facing point
@@ -337,10 +355,12 @@ function Simulation({
           emit(tmp2, vv, new THREE.Color("#ffc89c"), 8.0);
         }
       }
-      if (b.kind === "star" && r < TIDAL_RADIUS) {
-        disruptStar(b);
+      // Tidal disruption at the body's density-dependent radius (planets are
+      // denser → smaller radius → more resistant). Moons (parented) just plunge.
+      if (b.parentId === null && r < rt) {
+        disrupt(b);
         if (b.mesh) group.remove(b.mesh);
-        continue; // star becomes a stream
+        continue; // body becomes a debris stream
       }
       if (r < HORIZON) {
         burst(b);
