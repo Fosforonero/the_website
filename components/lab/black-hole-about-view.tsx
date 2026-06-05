@@ -4,7 +4,7 @@ import Link from "next/link";
 import katex from "katex";
 
 // ---------------------------------------------------------------------------
-// Black-hole lab — methodology page (bilingual, thesis level).
+// Black-hole lab — methodology page (bilingual, in depth).
 // A rigorous account of the mathematics and physics implemented in the
 // renderer: metric, geodesics (null & timelike), accretion disk, invariant
 // radiative transfer, returning radiation / photon ring, frame dragging, the
@@ -42,13 +42,13 @@ function Tex({ tex }: { tex: string }) {
 
 const COPY: Record<Locale, Copy> = {
   it: {
-    kicker: "Metodologia · livello tesi · Fosforonero Lab",
+    kicker: "Fosforonero Lab",
     title: "Buco nero: trattazione matematica e fisica",
     abstractHeading: "Abstract",
     abstract:
-      "Si descrive un renderer WebGL in tempo reale di un buco nero di Schwarzschild e del suo disco di accrescimento. Per ogni pixel si integra la geodetica nulla del fotone nello spazio-tempo curvo, ottenendo lensing gravitazionale, sfera fotonica, ombra e — tramite la returning radiation — il photon ring. Il disco è otticamente spesso con emissione di corpo nero e trasporto radiativo relativistico invariante (beaming g⁴, redshift gravitazionale). Una demo affiancata integra le geodetiche di tipo-tempo esatte (precessione del periastro, ISCO), mentre un playground usa il potenziale pseudo-newtoniano di Paczyński–Wiita per una dinamica a N-corpi con disgregazione mareale. Si dichiarano esplicitamente le approssimazioni: spin in approssimazione di Lense–Thirring (non Kerr), turbolenza del disco procedurale (non GRMHD), getti stilizzati.",
+      "Questa pagina racconta, con tutta la matematica in chiaro, come abbiamo costruito un buco nero di Schwarzschild che vive davvero dentro il browser, in tempo reale. L'idea di fondo è semplice e radicale: non disegniamo un buco nero, lo calcoliamo. Per ogni singolo pixel dello schermo lanciamo un raggio di luce all'indietro e lo lasciamo cadere nello spazio-tempo curvo, lungo la stessa geodetica nulla che seguirebbe un fotone vero. Da questo unico gesto nascono da sole tutte le cose che vedete: la luce piegata, la sfera fotonica, l'ombra e — grazie alla luce che torna dopo aver girato attorno al buco — il sottile photon ring. Il disco di accrescimento non ha un colore inventato: brilla del vero colore di corpo nero della sua temperatura, spostato dal redshift e dal beaming relativistico. Accanto ci sono due esperimenti: una demo che integra le orbite esatte di una particella (precessione, ISCO) e un playground in cui lanciare pianeti, stelle e comete e guardarle disgregarsi. Tutto ciò che è approssimato è dichiarato apertamente — spin alla Lense–Thirring (non Kerr), turbolenza del disco procedurale (non GRMHD), getti stilizzati. Niente trucchi nascosti.",
     intro: [
-      "Unità geometrizzate G = c = 1; nel renderer fissiamo il raggio di Schwarzschild rₛ = 2M = 1, da cui ISCO a r = 6M = 3 e sfera fotonica a r = 3M = 1.5.",
+      "Lavoriamo in unità geometrizzate, G = c = 1 — il modo dei fisici di dire «misuriamo tutto con lo stesso righello». Fissiamo il raggio di Schwarzschild rₛ = 2M = 1, che diventa la nostra unità naturale di lunghezza. Con questa scelta l'ultima orbita circolare stabile (ISCO) cade a r = 3 e la sfera fotonica a r = 1.5. Tenete a mente questi due numeri: sono i due cerchi invisibili attorno a cui ruota tutta la storia.",
     ],
     sections: [
       {
@@ -224,7 +224,7 @@ const COPY: Record<Locale, Copy> = {
     openSim: "Apri la simulazione →",
   },
   en: {
-    kicker: "Methodology · thesis level · Fosforonero Lab",
+    kicker: "Fosforonero Lab",
     title: "Black hole: a mathematical and physical treatment",
     abstractHeading: "Abstract",
     abstract:

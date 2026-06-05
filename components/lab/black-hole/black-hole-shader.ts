@@ -266,13 +266,15 @@ void main() {
 
         // Bolometric surface brightness ∝ T_obs⁴ (Stefan–Boltzmann).
         float bright = uDiskBright * pow(Tobs / uDiskTemp, 4.0);
-        // Outer boundary: NOT a razor edge. The surface brightness already falls
-        // ∝ r⁻³; on top we taper gradually over the outer third and let it reach
-        // zero with vanishing slope at the truncation radius, because a real
-        // disk's outer rim (set by its feeding region) is fuzzy, not sharp. The
-        // inner edge, by contrast, is genuinely sharp — the ISCO zero-stress
+        // Outer boundary: NOT a razor edge. The disk is heavily over-bright
+        // (clipped to white by the tone map), so a narrow taper would still read
+        // as a hard rim — the fade has to span a WIDE radial band to be visible
+        // through the saturated range. We roll the brightness off from roughly
+        // mid-disk out to the truncation radius (so the over-exposed plate dims
+        // gradually into the background, like Interstellar's fading arms). The
+        // inner edge, by contrast, stays genuinely sharp — the ISCO zero-stress
         // boundary where the flux physically goes to zero.
-        float outer = 1.0 - smoothstep(uDiskOuter - 6.0, uDiskOuter, rd);
+        float outer = 1.0 - smoothstep(uDiskOuter * 0.45, uDiskOuter, rd);
         bright *= outer * outer;
 
         // Gaseous structure: filamentary FBM turbulence in rotating disk-plane

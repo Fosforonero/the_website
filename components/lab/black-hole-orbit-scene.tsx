@@ -140,13 +140,14 @@ function OrbitBody({ params, apiRef, readoutRef }: Omit<OrbitSceneProps, "qualit
       pa[s.count * 3] = x; pa[s.count * 3 + 1] = 0; pa[s.count * 3 + 2] = z;
       ca[s.count * 3] = 0.45; ca[s.count * 3 + 1] = 0.85; ca[s.count * 3 + 2] = 1.0;
       s.count++;
-      // fade the tail (older points dimmer) for a comet-like trail
+      // fade the tail (older points dimmer) for a comet-like trail — kept bright
+      // enough that the rosette reads clearly against the star field
       const n = s.count;
       for (let k = 0; k < n; k++) {
         const f = k / n; // 0 oldest → 1 newest
-        ca[k * 3] = 0.10 + 0.45 * f;
-        ca[k * 3 + 1] = 0.30 + 0.65 * f;
-        ca[k * 3 + 2] = 0.40 + 0.60 * f;
+        ca[k * 3] = 0.22 + 0.65 * f;
+        ca[k * 3 + 1] = 0.52 + 0.90 * f;
+        ca[k * 3 + 2] = 0.66 + 0.80 * f;
       }
       pos.needsUpdate = true; col.needsUpdate = true;
       geo.setDrawRange(0, s.count);
@@ -165,12 +166,12 @@ function OrbitBody({ params, apiRef, readoutRef }: Omit<OrbitSceneProps, "qualit
     <>
       {/* glowing test particle + soft halo */}
       <mesh ref={meshRef}>
-        <sphereGeometry args={[0.14, 20, 16]} />
-        <meshBasicMaterial color="#dff6ff" />
+        <sphereGeometry args={[0.18, 20, 16]} />
+        <meshBasicMaterial color="#eaf8ff" />
       </mesh>
       <mesh ref={haloRef}>
-        <sphereGeometry args={[0.30, 16, 12]} />
-        <meshBasicMaterial color="#7fd8ff" transparent opacity={0.25} depthWrite={false} blending={THREE.AdditiveBlending} />
+        <sphereGeometry args={[0.46, 16, 12]} />
+        <meshBasicMaterial color="#7fd8ff" transparent opacity={0.35} depthWrite={false} blending={THREE.AdditiveBlending} />
       </mesh>
       <primitive object={lineObj} />
       <Ring r={ISCO} color="#ff7a3c" opacity={0.55} />
