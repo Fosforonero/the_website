@@ -34,6 +34,7 @@ export type PlaygroundHandle = {
 export type PlaygroundSceneProps = {
   quality: BlackHoleQuality;
   spin: number;
+  diskOn: boolean;
   activeKind: BodyKind;
   apiRef: MutableRefObject<PlaygroundHandle | null>;
 };
@@ -44,6 +45,7 @@ const HORIZON = 1.02;
 const TIDAL_RADIUS = 6.0; // stars inside this radius are torn apart
 const DISK_IN = 3.0;      // accretion-disk inner radius (matches the shader)
 const DISK_OUT = 16.0;    // accretion-disk outer radius
+const MASS_TRANSFER_RADIUS = 11.0; // bodies inside this shed matter toward the BH
 const MAX_PARTICLES = 2400;
 
 type Body = {
@@ -59,6 +61,10 @@ type Body = {
 };
 
 const PLANET_MASS = 0.012; // host mass so moons stay bound inside the Hill sphere
+const PLANET_COLORS = [
+  "#6fa8d8", "#d8a76f", "#9fd86f", "#c98fd0",
+  "#d0b070", "#7fd0c0", "#d07f7f", "#8f9fd0",
+];
 
 // Pseudo-Newtonian (Paczyński–Wiita) acceleration toward the BH at origin.
 function pwAccel(pos: THREE.Vector3, out: THREE.Vector3): THREE.Vector3 {
@@ -77,6 +83,7 @@ type ParticleArrays = {
   col: Float32Array;
   vel: Float32Array;
   life: Float32Array; // remaining life (s); <=0 = dead
+  absorb: Float32Array; // 1 = absorbed by the disk on crossing; 0 = wraps freely
   count: number;
 };
 
@@ -86,6 +93,7 @@ function makeParticles(): ParticleArrays {
     col: new Float32Array(MAX_PARTICLES * 3),
     vel: new Float32Array(MAX_PARTICLES * 3),
     life: new Float32Array(MAX_PARTICLES),
+    absorb: new Float32Array(MAX_PARTICLES),
     count: 0,
   };
 }
@@ -109,8 +117,10 @@ function Simulation({
   const tmp = useMemo(() => new THREE.Vector3(), []);
   const tmp2 = useMemo(() => new THREE.Vector3(), []);
 
-  // Spawn a particle into the pool (reuses dead slots).
-  function emit(p: THREE.Vector3, v: THREE.Vector3, c: THREE.Color, life: number) {
+  // Spawn a particle into the pool (reuses dead slots). absorb=true means the
+  // disk swallows it on a plane crossing; tidal-stream debris uses absorb=false
+  // so it can wrap around the hole before circularizing.
+  function emit(p: THREE.Vector3, v: THREE.Vector3, c: THREE.Color, life: number, absorb = true) {
     const a = parts.current;
     let i = -1;
     for (let k = 0; k < a.count; k++) if (a.life[k]! <= 0) { i = k; break; }
@@ -121,6 +131,7 @@ function Simulation({
     a.pos[i * 3] = p.x; a.pos[i * 3 + 1] = p.y; a.pos[i * 3 + 2] = p.z;
     a.vel[i * 3] = v.x; a.vel[i * 3 + 1] = v.y; a.vel[i * 3 + 2] = v.z;
     a.col[i * 3] = c.r; a.col[i * 3 + 1] = c.g; a.col[i * 3 + 2] = c.b;
+    a.absorb[i] = absorb ? 1 : 0;
     a.life[i] = life;
   }
 
@@ -161,22 +172,29 @@ function Simulation({
     const vel = new THREE.Vector3(-radial.z, 0, radial.x).multiplyScalar(vCirc * factor);
 
     if (kind === "planet") {
-      const planet = addBody("planet", pos, vel, 0.22, new THREE.Color("#6fa8d8"), PLANET_MASS, null);
-      // Moons on small local orbits inside the Hill sphere.
-      const nMoons = 2 + (Math.random() < 0.5 ? 1 : 0);
+      // Vary each planet: colour, size, mass (∝ size) and its moon system.
+      const pal = PLANET_COLORS[Math.floor(Math.random() * PLANET_COLORS.length)]!;
+      const pr = 0.15 + Math.random() * 0.16;                 // radius 0.15–0.31
+      const pmass = PLANET_MASS * (pr / 0.22);                // mass scales with size
+      const planet = addBody("planet", pos, vel, pr, new THREE.Color(pal), pmass, null);
+      // 0–3 moons on small local orbits inside the Hill sphere.
+      const nMoons = Math.floor(Math.random() * 4);
       for (let m = 0; m < nMoons; m++) {
-        const rl = 0.5 + m * 0.32 + Math.random() * 0.1;          // local orbital radius
+        const rl = pr + 0.3 + m * (0.25 + Math.random() * 0.18); // local orbital radius
         const phi = Math.random() * Math.PI * 2;
-        const off = new THREE.Vector3(Math.cos(phi) * rl, (Math.random() - 0.5) * 0.12, Math.sin(phi) * rl);
-        const vLocal = Math.sqrt(PLANET_MASS / rl);                // local circular speed
+        const inc = (Math.random() - 0.5) * 0.4;                 // orbital inclination
+        const off = new THREE.Vector3(Math.cos(phi) * rl, Math.sin(inc) * rl * 0.4, Math.sin(phi) * rl);
+        const vLocal = Math.sqrt(pmass / rl);                    // local circular speed
         const vMoon = new THREE.Vector3(-Math.sin(phi), 0, Math.cos(phi)).multiplyScalar(vLocal);
+        const mr = 0.04 + Math.random() * 0.05;
+        const shade = 0.6 + Math.random() * 0.4;
         addBody(
           "planet",
           pos.clone().add(off),
           vel.clone().add(vMoon),
-          0.07,
-          new THREE.Color("#b9c4d4"),
-          0.0008, // small but non-zero → moons take part in the N-body too
+          mr,
+          new THREE.Color(0.72 * shade, 0.77 * shade, 0.83 * shade),
+          0.0006, // small but non-zero → moons take part in the N-body too
           planet.id
         );
       }
@@ -191,21 +209,34 @@ function Simulation({
   }
 
   function disruptStar(b: Body) {
-    // Tidal stretching: spread debris along the radial direction with a range
-    // of specific energies, forming an elongated stream.
+    // Tidal disruption event (TDE): the star is spaghettified into a thin
+    // stream. The key physics is a spread in *specific orbital energy* imparted
+    // along the orbital direction: half the debris becomes bound (ε<0) and
+    // spirals back in, wrapping around the hole and feeding the disk, while the
+    // other half is unbound (ε>0) and flies out as a tidal tail. The spread in
+    // orbital period makes the debris stretch into a long stream over time.
+    const speed  = Math.max(b.vel.length(), 1e-3);
+    const vdir   = b.vel.clone().multiplyScalar(1 / speed);   // orbital direction
     const radial = b.pos.clone().normalize();
-    const c0 = new THREE.Color("#ffd28a");
-    const c1 = new THREE.Color("#ff7a3c");
-    for (let k = 0; k < 70; k++) {
-      const u = (k / 69) * 2 - 1; // -1..1 along the stream
-      const p = b.pos.clone().addScaledVector(radial, u * 0.4);
+    const bound = new THREE.Color("#ff6a30");   // bound, infalling debris (redder)
+    const tail  = new THREE.Color("#ffd9a0");   // unbound tail (warmer/brighter)
+    const N = 120;
+    for (let k = 0; k < N; k++) {
+      const u = (k / (N - 1)) * 2 - 1;          // -1 (bound) .. +1 (unbound)
+      // initial slight elongation along the orbit + tiny radial/vertical width
+      const p = b.pos.clone()
+        .addScaledVector(vdir, u * 0.18)
+        .addScaledVector(radial, (Math.random() - 0.5) * 0.06);
+      // energy spread along the orbit: negative u slows debris (bound), positive
+      // u speeds it up (unbound). ~±15% of the orbital speed.
       const v = b.vel.clone()
-        .addScaledVector(radial, u * 0.07) // energy spread → stretches the stream
-        // vertical kick → debris arcs out of the disk plane, then rains back
-        // down and is absorbed by the disk (instead of shooting straight through)
-        .add(new THREE.Vector3((Math.random() - 0.5) * 0.03, (Math.random() - 0.5) * 0.14, (Math.random() - 0.5) * 0.03));
-      const c = c0.clone().lerp(c1, Math.abs(u));
-      emit(p, v, c, 14);
+        .addScaledVector(vdir, u * 0.15 * speed)
+        .add(new THREE.Vector3(
+          (Math.random() - 0.5) * 0.02,
+          (Math.random() - 0.5) * 0.05,   // thin vertical width
+          (Math.random() - 0.5) * 0.02));
+      const c = (u < 0.0) ? bound : bound.clone().lerp(tail, u);
+      emit(p, v, c, 22, false);           // not absorbed → wraps around the hole
     }
   }
 
@@ -279,7 +310,7 @@ function Simulation({
         // Absorb into the disk: if this step crossed the disk plane within the
         // disk's radial extent, the debris merges into the disk (feeds it)
         // rather than passing through and flying out the other side.
-        if (tmp.y * a.pos[k * 3 + 1]! < 0.0) {
+        if (a.absorb[k]! > 0.5 && tmp.y * a.pos[k * 3 + 1]! < 0.0) {
           const rr = Math.hypot(a.pos[k * 3]!, a.pos[k * 3 + 2]!);
           if (rr > DISK_IN && rr < DISK_OUT) a.life[k] = 0;
         }
@@ -293,6 +324,18 @@ function Simulation({
       if (b.kind === "comet" && r < 18) {
         tmp2.copy(b.pos).normalize().multiplyScalar(0.05);
         emit(b.pos, tmp2, new THREE.Color("#bfe0ff"), 2.2);
+      }
+      // Mass transfer: a primary body close to the hole (but not yet captured
+      // or fully disrupted) sheds matter from its inner side toward the BH —
+      // a toy Roche-lobe-overflow stream that feeds the accretion disk.
+      if (b.parentId === null && r > TIDAL_RADIUS && r < MASS_TRANSFER_RADIUS) {
+        const frac = 1.0 - (r - TIDAL_RADIUS) / (MASS_TRANSFER_RADIUS - TIDAL_RADIUS);
+        if (Math.random() < frac * 0.9) {
+          tmp.copy(b.pos).normalize();                           // radial unit (outward)
+          tmp2.copy(b.pos).addScaledVector(tmp, -b.radius);      // inner, BH-facing point
+          const vv = b.vel.clone().addScaledVector(tmp, -0.04 * (0.5 + frac)); // inward kick
+          emit(tmp2, vv, new THREE.Color("#ffc89c"), 8.0);
+        }
       }
       if (b.kind === "star" && r < TIDAL_RADIUS) {
         disruptStar(b);
@@ -388,7 +431,7 @@ function Simulation({
 // Public scene
 // ---------------------------------------------------------------------------
 
-export default function BlackHolePlaygroundScene({ quality, spin, activeKind, apiRef }: PlaygroundSceneProps) {
+export default function BlackHolePlaygroundScene({ quality, spin, diskOn, activeKind, apiRef }: PlaygroundSceneProps) {
   const dprCap = QUALITY_PRESETS[quality].dprCap;
   return (
     <Canvas
@@ -397,7 +440,7 @@ export default function BlackHolePlaygroundScene({ quality, spin, activeKind, ap
       gl={{ antialias: false, alpha: false }}
       style={{ background: "#000003" }}
     >
-      <BlackHoleQuad quality={quality} diskOn spin={spin} dopplerOn />
+      <BlackHoleQuad quality={quality} diskOn={diskOn} spin={spin} dopplerOn />
       <Simulation apiRef={apiRef} activeKind={activeKind} />
       <OrbitControls
         makeDefault

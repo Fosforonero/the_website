@@ -105,21 +105,26 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
   z-index: 4;
 }
+.bh-disclosure__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
 .bh-disclosure__close {
-  position: absolute;
-  top: 4px;
-  right: 6px;
-  width: 22px;
-  height: 22px;
+  flex: none;
+  width: 26px;
+  height: 26px;
   display: grid;
   place-items: center;
   background: transparent;
   border: none;
-  color: #6f86ad;
-  font-size: 1.1rem;
+  color: #8298bb;
+  font-size: 1.2rem;
   line-height: 1;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 .bh-disclosure__close:hover { color: #e6ecf7; background: #131c33; }
 .bh-disclosure__title {
@@ -128,8 +133,6 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: #5f7bb0;
-  margin-bottom: 5px;
-  padding-right: 18px;
 }
 .bh-disclosure ul {
   margin: 0;
@@ -290,14 +293,35 @@
   .bh-toolbar { gap: 6px; padding: 6px 8px; }
   .bh-toolbar__title { font-size: 0.78rem; }
   .bh-control { padding: 5px 9px; font-size: 0.72rem; }
+  /* Disclosure becomes a clean bottom sheet on phones. */
   .bh-disclosure {
-    left: 8px;
-    right: 8px;
-    bottom: 8px;
+    left: 0;
+    right: 0;
+    bottom: 0;
     max-width: none;
-    max-height: 34vh;
+    max-height: 42vh;
     overflow-y: auto;
-    padding: 10px 12px;
+    padding: 14px 16px calc(16px + env(safe-area-inset-bottom));
+    border: none;
+    border-top: 1px solid #1c2742;
+    border-radius: 14px 14px 0 0;
+    background: rgba(6, 8, 18, 0.97);
   }
-  .bh-disclosure li { font-size: 0.68rem; }
+  .bh-disclosure__title { font-size: 0.7rem; }
+  .bh-disclosure__close { width: 32px; height: 32px; font-size: 1.4rem; }
+  .bh-disclosure li { font-size: 0.74rem; line-height: 1.5; }
+  .bh-disclosure__text { font-size: 0.74rem; line-height: 1.5; }
+  .bh-disclosure__more { font-size: 0.74rem; margin-top: 10px; }
+  .bh-disclosure__reopen {
+    left: auto;
+    right: 10px;
+    bottom: 10px;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    font-size: 1.1rem;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+  }
 }

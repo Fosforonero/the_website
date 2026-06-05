@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import Link from "next/link";
 import type { BlackHoleQuality } from "./black-hole/black-hole-shader";
 import type { PlaygroundHandle, BodyKind } from "./black-hole-playground-scene";
@@ -26,8 +26,10 @@ const COPY = {
     about: "Equazioni",
     back: "← Lab",
     sim: "Vista classica",
+    disk: "Disco",
     hint: "Scegli un tipo e clicca nella scena per posizionare il corpo · trascina per ruotare. Le stelle entro il raggio mareale vengono disgregate in uno stream.",
     discShort: "Dinamica con potenziale pseudo-newtoniano di Paczyński–Wiita (riproduce l'ISCO e la caduta). I corpi non sono lensati; lo stream mareale è un modello a particelle.",
+    infoTitle: "Come funziona",
   },
   en: {
     title: "Black Hole · Playground",
@@ -41,8 +43,10 @@ const COPY = {
     about: "Equations",
     back: "← Lab",
     sim: "Classic view",
+    disk: "Disk",
     hint: "Pick a type and click in the scene to place the body · drag to rotate. Stars within the tidal radius are torn into a debris stream.",
     discShort: "Dynamics use the Paczyński–Wiita pseudo-Newtonian potential (reproduces the ISCO and the plunge). Bodies are not lensed; the tidal stream is a particle model.",
+    infoTitle: "How it works",
   },
 } as const;
 
@@ -51,8 +55,14 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
   const api = useRef<PlaygroundHandle | null>(null);
   const [quality, setQuality] = useState<BlackHoleQuality>("medium");
   const [spin, setSpin] = useState(0);
+  const [diskOn, setDiskOn] = useState(true);
   const [activeKind, setActiveKind] = useState<BodyKind>("star");
-  const [infoOpen, setInfoOpen] = useState(true);
+  // Start collapsed; open the panel only on wider (non-mobile) screens.
+  const [infoOpen, setInfoOpen] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (typeof window !== "undefined" && window.innerWidth >= 680) setInfoOpen(true);
+  }, []);
 
   const aboutHref = locale === "it" ? "/lab/buco-nero/about" : "/en/lab/black-hole/about";
   const simHref = locale === "it" ? "/lab/buco-nero" : "/en/lab/black-hole";
@@ -67,6 +77,13 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
         <button className={`bh-control${activeKind === "star" ? " bh-control--active" : ""}`} onClick={() => setActiveKind("star")}>{t.addStar}</button>
         <button className={`bh-control${activeKind === "comet" ? " bh-control--active" : ""}`} onClick={() => setActiveKind("comet")}>{t.addComet}</button>
         <button className="bh-control" onClick={() => api.current?.reset()}>{t.reset}</button>
+
+        <button
+          className={`bh-control${diskOn ? " bh-control--active" : ""}`}
+          onClick={() => setDiskOn((v) => !v)}
+        >
+          {t.disk}
+        </button>
 
         <div className="bh-toolbar__sep bh-toolbar__hide-sm" />
 
@@ -95,12 +112,15 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
       </div>
 
       <div className="bh-canvas-wrap">
-        <PlaygroundScene quality={quality} spin={spin} activeKind={activeKind} apiRef={api} />
-        <p className="bh-hint">{t.hint}</p>
+        <PlaygroundScene quality={quality} spin={spin} diskOn={diskOn} activeKind={activeKind} apiRef={api} />
+        <p className="bh-hint bh-hint--hide-sm">{t.hint}</p>
 
         {infoOpen ? (
           <div className="bh-disclosure" role="note">
-            <button className="bh-disclosure__close" onClick={() => setInfoOpen(false)} aria-label="×">×</button>
+            <div className="bh-disclosure__head">
+              <span className="bh-disclosure__title">{t.infoTitle}</span>
+              <button className="bh-disclosure__close" onClick={() => setInfoOpen(false)} aria-label="×">×</button>
+            </div>
             <p className="bh-disclosure__text">{t.discShort}</p>
             <Link href={aboutHref} className="bh-disclosure__more">{t.about} →</Link>
           </div>

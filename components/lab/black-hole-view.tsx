@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import type { BlackHoleQuality } from "./black-hole/black-hole-shader";
 
@@ -64,7 +64,11 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
   const [diskOn, setDiskOn] = useState(true);
   const [dopplerOn, setDopplerOn] = useState(true);
   const [spin, setSpin] = useState(0);
-  const [infoOpen, setInfoOpen] = useState(true);
+  const [infoOpen, setInfoOpen] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (typeof window !== "undefined" && window.innerWidth >= 680) setInfoOpen(true);
+  }, []);
   const aboutHref = locale === "it" ? "/lab/buco-nero/about" : "/en/lab/black-hole/about";
   const playgroundHref = locale === "it" ? "/lab/buco-nero/playground" : "/en/lab/black-hole/playground";
 
@@ -134,15 +138,17 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
 
         {infoOpen ? (
           <div className="bh-disclosure" role="note">
-            <button
-              className="bh-disclosure__close"
-              onClick={() => setInfoOpen(false)}
-              aria-label={t.closeInfo}
-              title={t.closeInfo}
-            >
-              ×
-            </button>
-            <div className="bh-disclosure__title">{t.discTitle}</div>
+            <div className="bh-disclosure__head">
+              <span className="bh-disclosure__title">{t.discTitle}</span>
+              <button
+                className="bh-disclosure__close"
+                onClick={() => setInfoOpen(false)}
+                aria-label={t.closeInfo}
+                title={t.closeInfo}
+              >
+                ×
+              </button>
+            </div>
             <ul>
               {t.disc.map((line, i) => (
                 <li key={i}>{line}</li>

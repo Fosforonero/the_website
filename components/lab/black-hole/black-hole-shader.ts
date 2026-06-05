@@ -220,14 +220,15 @@ void main() {
         float omega = uTime * 0.32 / pow(rd, 1.5);
         float ca = cos(omega), sa = sin(omega);
         vec2  q  = mat2(ca, -sa, sa, ca) * hit.xz;
-        // anisotropic stretch → sheared, gas-like streaks along the flow
-        vec2  qs = vec2(q.x, q.y * 2.4);
-        float turb = 0.45 * vnoise(qs * 0.55)
-                   + 0.27 * vnoise(qs * 1.30)
-                   + 0.16 * vnoise(qs * 3.10)
-                   + 0.12 * vnoise(qs * 6.80);
-        turb = pow(clamp(turb, 0.0, 1.0), 1.7); // contrast → filaments & voids
-        bright *= 0.32 + 1.5 * turb;
+        // anisotropic stretch → sheared, gas-like streaks along the flow.
+        // Top frequencies are kept low and the contrast mild, otherwise the
+        // fine detail aliases (looks pixelated) without supersampling.
+        vec2  qs = vec2(q.x, q.y * 1.8);
+        float turb = 0.50 * vnoise(qs * 0.45)
+                   + 0.30 * vnoise(qs * 1.05)
+                   + 0.20 * vnoise(qs * 2.30);
+        turb = pow(clamp(turb, 0.0, 1.0), 1.25); // gentle contrast → soft filaments
+        bright *= 0.42 + 1.25 * turb;
 
         color = blackbody(Tobs) * bright;
         outDepth = depthFromWorld(hit);
