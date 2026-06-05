@@ -11,6 +11,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Periodic table is excluded here because EN slug differs (/en/lab/periodic-table ≠ /en/lab/tavola-periodica)
   const staticPaths = [
     "/",
+    "/lab",
     "/blog",
     "/privacy",
     "/cookies",
