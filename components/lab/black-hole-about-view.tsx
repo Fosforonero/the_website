@@ -97,12 +97,15 @@ const COPY: Record<Locale, Copy> = {
       {
         heading: "5. Playground: dinamica dei corpi",
         body: [
-          "Nel playground i corpi (pianeti con lune, stelle, comete) si muovono nel potenziale pseudo-newtoniano di Paczyński–Wiita, che riproduce esattamente l'ISCO a 6M e la caduta relativistica verso l'orizzonte senza dover integrare le geodetiche complete — un compromesso standard nei modelli N-corpi/accrescimento.",
-          "Le lune sono integrate come problema ristretto: sentono sia il buco nero sia il pianeta ospite (entro la sfera di Hill). Le stelle che attraversano il raggio mareale vengono disgregate in uno stream di detriti (modello a particelle, non idrodinamica). (Paczyński–Wiita 1980.)",
+          "I corpi (pianeti con lune, stelle, comete) si muovono nel potenziale pseudo-newtoniano di Paczyński–Wiita, che riproduce esattamente l'ISCO a 6M e la caduta relativistica verso l'orizzonte senza integrare le geodetiche complete. Oltre al buco nero, i corpi massivi (stelle, pianeti e lune) si attraggono anche a vicenda: è un N-corpi smorzato, quindi una stella perturba un pianeta vicino e le lune sentono pianeta ospite e perturbatori esterni.",
+          "Disgregazione mareale (TDE): una stella entro il raggio mareale viene spaghettificata. Il meccanismo è uno spread di energia orbitale specifica lungo l'orbita — metà dei detriti diventa legata (ε<0) e ricade avvolgendo il buco nero e alimentando il disco, l'altra metà è non legata (ε>0) ed è espulsa come coda mareale; il tasso di ricaduta segue la celebre legge Ṁ ∝ t⁻⁵ᐟ³ (Rees 1988). Qui è un modello a particelle, non idrodinamica.",
+          "Trasferimento di massa: un corpo che si avvicina perde materia da uno stream verso il buco nero (overflow del lobo di Roche) che alimenta il disco. (Paczyński–Wiita 1980; Rees 1988.)",
         ],
         eqs: [
           { label: "Potenziale di Paczyński–Wiita", tex: "\\Phi(r) = -\\frac{GM}{r - r_s}" },
           { label: "Raggio mareale (disgregazione stellare)", tex: "r_t \\simeq R_\\star\\left(\\frac{M_{\\mathrm{BH}}}{M_\\star}\\right)^{1/3}" },
+          { label: "Spread di energia specifica dei detriti", tex: "\\Delta\\varepsilon \\simeq \\frac{G M_{\\mathrm{BH}} R_\\star}{r_t^{2}}" },
+          { label: "Tasso di ricaduta (fallback) del TDE", tex: "\\dot M_{\\mathrm{fb}} \\propto t^{-5/3}" },
         ],
       },
       {
@@ -141,6 +144,7 @@ const COPY: Record<Locale, Copy> = {
       { cite: "N. I. Shakura & R. A. Sunyaev (1973), «Black holes in binary systems», Astronomy & Astrophysics 24, 337." },
       { cite: "I. D. Novikov & K. S. Thorne (1973), «Astrophysics of Black Holes», in Black Holes (Les Houches)." },
       { cite: "B. Paczyński & P. J. Wiita (1980), «Thick accretion disks and supercritical luminosities», Astronomy & Astrophysics 88, 23." },
+      { cite: "M. J. Rees (1988), «Tidal disruption of stars by black holes of 10⁶–10⁸ solar masses in nearby galaxies», Nature 333, 523.", url: "https://ui.adsabs.harvard.edu/abs/1988Natur.333..523R/abstract" },
       { cite: "O. James, E. von Tunzelmann, P. Franklin & K. S. Thorne (2015), «Gravitational lensing by spinning black holes… Interstellar», Classical and Quantum Gravity 32, 065001.", url: "https://iopscience.iop.org/article/10.1088/0264-9381/32/6/065001" },
       { cite: "F. H. Vincent et al. (2011), «GYOTO: a new general relativistic ray-tracing code», Classical and Quantum Gravity 28, 225011.", url: "https://arxiv.org/abs/1109.4769" },
       { cite: "C. W. Misner, K. S. Thorne & J. A. Wheeler, «Gravitation» (1973)." },
@@ -211,12 +215,15 @@ const COPY: Record<Locale, Copy> = {
       {
         heading: "5. Playground: body dynamics",
         body: [
-          "In the playground the bodies (planets with moons, stars, comets) move in the Paczyński–Wiita pseudo-Newtonian potential, which exactly reproduces the ISCO at 6M and the relativistic plunge without integrating the full geodesics — a standard compromise in N-body / accretion models.",
-          "Moons are integrated as a restricted problem: they feel both the black hole and the host planet (within its Hill sphere). Stars crossing the tidal radius are torn into a debris stream (a particle model, not hydrodynamics). (Paczyński–Wiita 1980.)",
+          "The bodies (planets with moons, stars, comets) move in the Paczyński–Wiita pseudo-Newtonian potential, which exactly reproduces the ISCO at 6M and the relativistic plunge without integrating the full geodesics. Beyond the black hole, the massive bodies (stars, planets and moons) also attract each other: it is a softened N-body, so a star perturbs a nearby planet and moons feel both their host planet and external perturbers.",
+          "Tidal disruption (TDE): a star within the tidal radius is spaghettified. The mechanism is a spread in specific orbital energy along the orbit — half the debris becomes bound (ε<0) and falls back, wrapping around the hole and feeding the disk, while the other half is unbound (ε>0) and ejected as a tidal tail; the fallback rate follows the famous Ṁ ∝ t⁻⁵ᐟ³ law (Rees 1988). It is a particle model, not hydrodynamics.",
+          "Mass transfer: a body that approaches the hole sheds matter in a stream toward it (Roche-lobe overflow) that feeds the disk. (Paczyński–Wiita 1980; Rees 1988.)",
         ],
         eqs: [
           { label: "Paczyński–Wiita potential", tex: "\\Phi(r) = -\\frac{GM}{r - r_s}" },
           { label: "Tidal radius (stellar disruption)", tex: "r_t \\simeq R_\\star\\left(\\frac{M_{\\mathrm{BH}}}{M_\\star}\\right)^{1/3}" },
+          { label: "Specific-energy spread of the debris", tex: "\\Delta\\varepsilon \\simeq \\frac{G M_{\\mathrm{BH}} R_\\star}{r_t^{2}}" },
+          { label: "TDE fallback rate", tex: "\\dot M_{\\mathrm{fb}} \\propto t^{-5/3}" },
         ],
       },
       {
@@ -255,6 +262,7 @@ const COPY: Record<Locale, Copy> = {
       { cite: "N. I. Shakura & R. A. Sunyaev (1973), “Black holes in binary systems”, Astronomy & Astrophysics 24, 337." },
       { cite: "I. D. Novikov & K. S. Thorne (1973), “Astrophysics of Black Holes”, in Black Holes (Les Houches)." },
       { cite: "B. Paczyński & P. J. Wiita (1980), “Thick accretion disks and supercritical luminosities”, Astronomy & Astrophysics 88, 23." },
+      { cite: "M. J. Rees (1988), “Tidal disruption of stars by black holes of 10⁶–10⁸ solar masses in nearby galaxies”, Nature 333, 523.", url: "https://ui.adsabs.harvard.edu/abs/1988Natur.333..523R/abstract" },
       { cite: "O. James, E. von Tunzelmann, P. Franklin & K. S. Thorne (2015), “Gravitational lensing by spinning black holes… Interstellar”, Classical and Quantum Gravity 32, 065001.", url: "https://iopscience.iop.org/article/10.1088/0264-9381/32/6/065001" },
       { cite: "F. H. Vincent et al. (2011), “GYOTO: a new general relativistic ray-tracing code”, Classical and Quantum Gravity 28, 225011.", url: "https://arxiv.org/abs/1109.4769" },
       { cite: "C. W. Misner, K. S. Thorne & J. A. Wheeler, “Gravitation” (1973)." },
