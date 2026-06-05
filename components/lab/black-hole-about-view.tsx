@@ -137,7 +137,7 @@ const COPY: Record<Locale, Copy> = {
       {
         heading: "8. Playground: dinamica dei corpi",
         body: [
-          "I corpi (pianeti con lune, stelle, comete) si muovono nel potenziale pseudo-newtoniano di Paczyński–Wiita, che riproduce esattamente l'ISCO a 6M e la caduta relativistica senza integrare le geodetiche complete — compromesso standard nei modelli N-corpi/accrescimento. Oltre al buco nero, i corpi massivi si attraggono a vicenda (N-corpi smorzato).",
+          "I corpi (pianeti con lune, stelle, comete) si muovono nel potenziale pseudo-newtoniano di Paczyński–Wiita, che riproduce esattamente l'ISCO a 6M e la caduta relativistica senza integrare le geodetiche complete — compromesso standard nei modelli N-corpi/accrescimento. Oltre al buco nero, i corpi massivi si attraggono a vicenda (N-corpi smorzato). Il comando «Sistema» genera un intero sistema di pianeti con lune su orbite circolari inclinate attorno al buco nero, che fa da stella centrale (alla Gargantua).",
           "Disgregazione mareale (TDE): una stella entro il raggio mareale è spaghettificata; uno spread di energia orbitale specifica rende metà dei detriti legati (ricadono avvolgendo il buco nero, alimentano il disco) e metà non legati (coda mareale), con tasso di ricaduta Ṁ ∝ t⁻⁵ᐟ³ (Rees 1988). Il trasferimento di massa per overflow del lobo di Roche alimenta a sua volta il disco. (Paczyński–Wiita 1980; Rees 1988.)",
         ],
         eqs: [
@@ -150,11 +150,13 @@ const COPY: Record<Locale, Copy> = {
         heading: "9. Metodi numerici del renderer",
         body: [
           "Lensing: la geodetica nulla è integrata in forma vettoriale con un'accelerazione che curva il raggio, dove h² = |r × v|² è il momento angolare conservato del fotone; l'integratore è velocity-Verlet con passo adattivo, raffinato vicino alla sfera fotonica per la returning radiation. Il tone mapping è ACES filmico seguito da correzione gamma.",
-          "Playground: integrazione a sub-passi adattivi nel potenziale di Paczyński–Wiita più la gravità reciproca smorzata (softening ε); le velocità sono limitate a c. Le geodetiche di tipo-tempo della demo «Orbite» sono integrate nell'azimuth φ con l'equazione orbitale esatta.",
+          "Playground: la dinamica nel potenziale di Paczyński–Wiita usa sub-passi adattivi con gravità reciproca smorzata (softening ε) e velocità limitate a c. Il passo è però vincolato alla stabilità: non supera mai una frazione del tempo dinamico locale vicino al buco (criterio di tipo CFL, h ≤ min(h_max, C·(r−rₛ))). Se il budget di sub-passi non basta in prossimità dell'orizzonte, la simulazione avanza meno tempo simulato — rallenta dolcemente — invece di allungare il passo e iniettare energia: così il sistema a N-corpi resta stabile anche con molti corpi. L'aggiornamento semi-implicito (simplettico) conserva l'energia, quindi le orbite legate restano legate e le lune orbitano con la velocità circolare della stessa forza addolcita usata dall'integratore (non si sganciano). I detriti mareali vivono in un pool a dimensione fissa (ring buffer). Le geodetiche di tipo-tempo della demo «Orbite» sono integrate nell'azimuth φ con l'equazione orbitale esatta.",
         ],
         eqs: [
           { label: "Accelerazione geodetica integrata (rₛ = 1, M = ½)", tex: "\\mathbf a = -\\tfrac{3}{2}\\,h^{2}\\,\\frac{\\mathbf r}{|\\mathbf r|^{5}}, \\qquad h^{2} = |\\mathbf r\\times\\mathbf v|^{2}" },
           { label: "Passo velocity-Verlet", tex: "\\mathbf r_{n+1} = \\mathbf r_{n} + \\mathbf v_{n}\\,\\delta + \\tfrac{1}{2}\\mathbf a_{n}\\,\\delta^{2}" },
+          { label: "Passo a stabilità garantita (vicino all'orizzonte)", tex: "h \\le \\min\\!\\left(h_{\\max},\\; C\\,(r-r_s)\\right)" },
+          { label: "Velocità circolare addolcita (lune, softening ε)", tex: "v_{\\mathrm{circ}}^{2} = \\frac{G M_p\\, r^{2}}{(r^{2}+\\varepsilon^{2})^{3/2}}" },
         ],
       },
       {
@@ -303,7 +305,7 @@ const COPY: Record<Locale, Copy> = {
       {
         heading: "8. Playground: body dynamics",
         body: [
-          "The bodies (planets with moons, stars, comets) move in the Paczyński–Wiita pseudo-Newtonian potential, which exactly reproduces the ISCO at 6M and the relativistic plunge without integrating the full geodesics — a standard N-body/accretion compromise. Beyond the black hole, the massive bodies attract each other (softened N-body).",
+          "The bodies (planets with moons, stars, comets) move in the Paczyński–Wiita pseudo-Newtonian potential, which exactly reproduces the ISCO at 6M and the relativistic plunge without integrating the full geodesics — a standard N-body/accretion compromise. Beyond the black hole, the massive bodies attract each other (softened N-body). The «System» command generates a whole system of planets with moons on inclined circular orbits around the black hole, which plays the role of the central star (à la Gargantua).",
           "Tidal disruption (TDE): a star within the tidal radius is spaghettified; a spread in specific orbital energy makes half the debris bound (it falls back, wrapping the hole, feeding the disk) and half unbound (tidal tail), with fallback rate Ṁ ∝ t⁻⁵ᐟ³ (Rees 1988). Roche-lobe overflow mass transfer also feeds the disk. (Paczyński–Wiita 1980; Rees 1988.)",
         ],
         eqs: [
@@ -316,11 +318,13 @@ const COPY: Record<Locale, Copy> = {
         heading: "9. Numerical methods of the renderer",
         body: [
           "Lensing: the null geodesic is integrated in vector form with an acceleration that bends the ray, where h² = |r × v|² is the photon's conserved angular momentum; the integrator is velocity-Verlet with an adaptive step, refined near the photon sphere for the returning radiation. Tone mapping is ACES filmic followed by gamma correction.",
-          "Playground: adaptive sub-stepping in the Paczyński–Wiita potential plus softened mutual gravity (softening ε); speeds are capped at c. The «Orbits» demo integrates the exact timelike orbit equation in the azimuth φ.",
+          "Playground: dynamics in the Paczyński–Wiita potential use adaptive sub-stepping with softened mutual gravity (softening ε) and speeds capped at c. The step, however, is stability-limited: it never exceeds a fraction of the local dynamical time near the hole (a CFL-like criterion, h ≤ min(h_max, C·(r−rₛ))). If the sub-step budget is not enough close to the horizon, the simulation advances less simulated time — it gently slows down — instead of stretching the step and injecting energy, so the N-body system stays stable even with many bodies. The semi-implicit (symplectic) update conserves energy, so bound orbits stay bound and moons orbit with the circular speed of the same softened force the integrator uses (they do not unbind). Tidal debris lives in a fixed-size pool (ring buffer). The «Orbits» demo integrates the exact timelike orbit equation in the azimuth φ.",
         ],
         eqs: [
           { label: "Integrated geodesic acceleration (rₛ = 1, M = ½)", tex: "\\mathbf a = -\\tfrac{3}{2}\\,h^{2}\\,\\frac{\\mathbf r}{|\\mathbf r|^{5}}, \\qquad h^{2} = |\\mathbf r\\times\\mathbf v|^{2}" },
           { label: "Velocity-Verlet step", tex: "\\mathbf r_{n+1} = \\mathbf r_{n} + \\mathbf v_{n}\\,\\delta + \\tfrac{1}{2}\\mathbf a_{n}\\,\\delta^{2}" },
+          { label: "Stability-limited step (near the horizon)", tex: "h \\le \\min\\!\\left(h_{\\max},\\; C\\,(r-r_s)\\right)" },
+          { label: "Softened circular speed (moons, softening ε)", tex: "v_{\\mathrm{circ}}^{2} = \\frac{G M_p\\, r^{2}}{(r^{2}+\\varepsilon^{2})^{3/2}}" },
         ],
       },
       {
