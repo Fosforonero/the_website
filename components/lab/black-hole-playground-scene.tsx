@@ -59,7 +59,7 @@ const DISK_IN = 3.0;      // accretion-disk inner radius (matches the shader)
 const DISK_OUT = 16.0;    // accretion-disk outer radius
 const MASS_TRANSFER_RADIUS = 11.0; // bodies inside this shed matter toward the BH
 const C_CAP = 0.985;     // speed-of-light cap (c = 1 in geometric units)
-const MAX_PARTICLES = 2400;
+const MAX_PARTICLES = 4000;
 
 type Body = {
   id: number;
@@ -97,7 +97,8 @@ type ParticleArrays = {
   vel: Float32Array;
   life: Float32Array; // remaining life (s); <=0 = dead
   absorb: Float32Array; // 1 = absorbed by the disk on crossing; 0 = wraps freely
-  count: number;
+  count: number;  // high-water mark of slots ever written (for the draw range)
+  cursor: number; // ring-buffer write head — emit is O(1), never starves
 };
 
 function makeParticles(): ParticleArrays {
@@ -108,6 +109,7 @@ function makeParticles(): ParticleArrays {
     life: new Float32Array(MAX_PARTICLES),
     absorb: new Float32Array(MAX_PARTICLES),
     count: 0,
+    cursor: 0,
   };
 }
 
@@ -130,17 +132,16 @@ function Simulation({
   const tmp = useMemo(() => new THREE.Vector3(), []);
   const tmp2 = useMemo(() => new THREE.Vector3(), []);
 
-  // Spawn a particle into the pool (reuses dead slots). absorb=true means the
-  // disk swallows it on a plane crossing; tidal-stream debris uses absorb=false
-  // so it can wrap around the hole before circularizing.
+  // Spawn a particle into the pool. The pool is a ring buffer: writing is O(1)
+  // and a fresh particle always lands (overwriting the oldest slot once full),
+  // so a heavy tidal burst is never silently dropped and never hitches the
+  // frame scanning for a free slot. absorb=true means the disk swallows it on a
+  // plane crossing; the unbound tidal tail uses absorb=false so it wraps freely.
   function emit(p: THREE.Vector3, v: THREE.Vector3, c: THREE.Color, life: number, absorb = true) {
     const a = parts.current;
-    let i = -1;
-    for (let k = 0; k < a.count; k++) if (a.life[k]! <= 0) { i = k; break; }
-    if (i < 0) {
-      if (a.count >= MAX_PARTICLES) return;
-      i = a.count++;
-    }
+    const i = a.cursor;
+    a.cursor = (a.cursor + 1) % MAX_PARTICLES;
+    if (a.count < MAX_PARTICLES) a.count++;
     a.pos[i * 3] = p.x; a.pos[i * 3 + 1] = p.y; a.pos[i * 3 + 2] = p.z;
     a.vel[i * 3] = v.x; a.vel[i * 3 + 1] = v.y; a.vel[i * 3 + 2] = v.z;
     a.col[i * 3] = c.r; a.col[i * 3 + 1] = c.g; a.col[i * 3 + 2] = c.b;
@@ -185,7 +186,10 @@ function Simulation({
       const phi = Math.random() * Math.PI * 2;
       const inc = (Math.random() - 0.5) * 0.4;
       const off = new THREE.Vector3(Math.cos(phi) * rl, Math.sin(inc) * rl * 0.4, Math.sin(phi) * rl);
-      const vLocal = Math.sqrt(pmass / rl);
+      // Circular speed for the SAME softened force the integrator uses
+      // (ε² = 0.0144): v² = pmass·rl² / (rl² + ε²)^{3/2}. Using the unsoftened
+      // √(pmass/rl) over-speeds the moon → it drifts off and unbinds.
+      const vLocal = Math.sqrt((pmass * rl * rl) / Math.pow(rl * rl + 0.0144, 1.5));
       const vMoon = new THREE.Vector3(-Math.sin(phi), 0, Math.cos(phi)).multiplyScalar(vLocal);
       const mr = 0.025 + Math.random() * 0.03;
       const shade = 0.6 + Math.random() * 0.4;
@@ -252,23 +256,27 @@ function Simulation({
       b.kind === "comet" ? new THREE.Color("#d6eef8")
       : b.kind === "planet" ? new THREE.Color("#cdb79c")
       : new THREE.Color("#ffd9a0");
-    const N = Math.round(55 + 220 * b.radius); // bigger body → more debris
+    const N = Math.round(70 + 280 * b.radius); // bigger body → more debris
     for (let k = 0; k < N; k++) {
       const u = (k / (N - 1)) * 2 - 1;          // -1 (bound) .. +1 (unbound)
-      // initial slight elongation along the orbit + tiny radial/vertical width
+      const isBound = u < 0.0;
+      // Stretch the body into a long thin noodle along the orbit right away
+      // (the classic spaghetti), with a tiny radial/vertical width.
       const p = b.pos.clone()
-        .addScaledVector(vdir, u * 0.18)
-        .addScaledVector(radial, (Math.random() - 0.5) * 0.06);
+        .addScaledVector(vdir, u * 0.5)
+        .addScaledVector(radial, (Math.random() - 0.5) * 0.05);
       // energy spread along the orbit: negative u slows debris (bound), positive
-      // u speeds it up (unbound). ~±15% of the orbital speed.
+      // u speeds it up (unbound). ~±16% of the orbital speed → the two arms.
       const v = b.vel.clone()
-        .addScaledVector(vdir, u * 0.15 * speed)
+        .addScaledVector(vdir, u * 0.16 * speed)
         .add(new THREE.Vector3(
           (Math.random() - 0.5) * 0.02,
           (Math.random() - 0.5) * 0.05,   // thin vertical width
           (Math.random() - 0.5) * 0.02));
-      const c = (u < 0.0) ? bound : bound.clone().lerp(tail, u);
-      emit(p, v, c, 22, false);           // not absorbed → wraps around the hole
+      const c = isBound ? bound : bound.clone().lerp(tail, u);
+      // Bound half spirals back and CIRCULARISES into the disk (absorb=true);
+      // the unbound half flies out as the tidal tail and is not absorbed.
+      emit(p, v, c, isBound ? 16 : 24, isBound);
     }
   }
 
@@ -287,6 +295,7 @@ function Simulation({
         const a = parts.current;
         a.life.fill(0);
         a.count = 0;
+        a.cursor = 0;
         if (groupRef.current) groupRef.current.clear();
       },
       // Generate a whole planetary system orbiting the black hole — the hole
@@ -314,19 +323,22 @@ function Simulation({
     const group = groupRef.current;
     if (!group) return;
 
-    // Speed up simulated time, then ADAPTIVELY sub-step: refine the step when
-    // any body is near the hole, where the potential is steep and a fixed step
-    // would inject energy (making bound orbits spuriously escape). With fine
-    // steps, energy is conserved — bound orbits stay bound and captures plunge.
-    const total = Math.min(rawDt, 0.05) * 16.0;
+    // Speed up simulated time, then ADAPTIVELY sub-step. Near the hole the
+    // potential is steep, so the step must stay below the local dynamical time
+    // or it injects energy and the whole system blows up ("va in palla") — much
+    // more likely with many bodies, since only one needs to be close. We cap the
+    // substep COUNT for performance, but crucially we NEVER stretch h past the
+    // stability limit dtMax: if that many steps isn't enough we advance LESS
+    // simulated time (graceful slow-motion) instead of going unstable.
+    const wanted = Math.min(rawDt, 0.05) * 16.0;
     let minDist = 1e9;
     for (const b of bodies.current) {
       const d = b.pos.length() - RS;
       if (d < minDist) minDist = d;
     }
-    const dtTarget = Math.min(0.025, Math.max(0.003, 0.012 * minDist));
-    const nSub = Math.min(120, Math.max(1, Math.ceil(total / dtTarget)));
-    const h = total / nSub;
+    const dtMax = Math.min(0.02, Math.max(0.0025, 0.010 * minDist));
+    const nSub = Math.min(96, Math.max(1, Math.ceil(wanted / dtMax)));
+    const h = Math.min(dtMax, wanted / nSub); // h ≤ dtMax always → stable
     const a = parts.current;
 
     for (let s = 0; s < nSub; s++) {
