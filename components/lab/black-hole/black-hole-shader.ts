@@ -155,7 +155,26 @@ void main() {
   float outDepth = 1.0; // far by default (background → no occlusion)
   vec3 jetAccum = vec3(0.0); // optically-thin jet emission accumulated along the ray
 
-  for (int i = 0; i < MAX_STEPS; i++) {
+  // Far from the hole spacetime is essentially flat, so a distant camera ray
+  // travels in a straight line. Analytically advance it to the hole's
+  // neighbourhood (sphere of radius R_far) before the geodesic march, so the
+  // limited step budget is spent where curvature matters — otherwise zooming
+  // far out exhausts the steps just reaching the hole (the disk/shadow glitch).
+  const float R_far = 34.0;
+  float b1 = dot(pos, dir);
+  if (length(pos) > R_far) {
+    if (b1 >= 0.0 || h2 > R_far * R_far) {
+      // heading away, or impact parameter outside the influence sphere → pure
+      // background (deflection negligible at this distance).
+      color = starField(normalize(dir));
+      done = true;
+    } else {
+      float disc = b1 * b1 - (dot(pos, pos) - R_far * R_far);
+      pos += dir * (-b1 - sqrt(disc)); // advance to the sphere entry point
+    }
+  }
+
+  for (int i = 0; i < MAX_STEPS && !done; i++) {
     if (i >= uSteps) break;
     float r = length(pos);
 
