@@ -102,7 +102,7 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
         </button>
 
         <button
-          className={`bh-control bh-toolbar__hide-sm${gridOn ? " bh-control--active" : ""}`}
+          className={`bh-control${gridOn ? " bh-control--active" : ""}`}
           onClick={() => setGridOn((v) => !v)}
         >
           {t.grid}

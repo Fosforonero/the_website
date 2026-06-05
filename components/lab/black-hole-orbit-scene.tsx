@@ -29,7 +29,7 @@ const TRAIL = 5000;
 
 export type OrbitParams = { L: number; r0: number; phi0?: number };
 export type OrbitReadout = {
-  r: number; E: number; L: number; precessionDeg: number;
+  r: number; E: number; L: number; v: number; precessionDeg: number;
   status: "orbiting" | "plunged";
 };
 export type OrbitHandle = { reset: (p: OrbitParams) => void };
@@ -152,10 +152,12 @@ function OrbitBody({ params, apiRef, readoutRef }: Omit<OrbitSceneProps, "qualit
       geo.setDrawRange(0, s.count);
     }
 
+    // Speed measured by a local static observer: v = √(1 − (1−2M/r)/E²), in c.
+    const v = Math.min(0.9999, Math.sqrt(Math.max(0, 1 - (1 - 2 * M / r) / (s.E * s.E))));
     const ro = readoutRef.current;
     const status: "orbiting" | "plunged" = s.plunged ? "plunged" : "orbiting";
-    const next = { r, E: s.E, L: s.L, precessionDeg: s.precDeg, status };
-    if (ro) { ro.r = next.r; ro.E = next.E; ro.L = next.L; ro.precessionDeg = next.precessionDeg; ro.status = next.status; }
+    const next = { r, E: s.E, L: s.L, v, precessionDeg: s.precDeg, status };
+    if (ro) { ro.r = next.r; ro.E = next.E; ro.L = next.L; ro.v = next.v; ro.precessionDeg = next.precessionDeg; ro.status = next.status; }
     else readoutRef.current = next;
   });
 
