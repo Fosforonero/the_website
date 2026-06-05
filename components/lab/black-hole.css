@@ -170,6 +170,38 @@
 }
 .bh-disclosure__reopen:hover { border-color: #2e63b0; color: #e6ecf7; }
 
+/* Live numeric readout (orbit demo): r, velocity, E, L, precession, status */
+.bh-readout {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 148px;
+  padding: 9px 11px;
+  background: rgba(6, 8, 18, 0.82);
+  border: 1px solid #16203a;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  z-index: 4;
+}
+.bh-readout > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  font-size: 0.66rem;
+}
+.bh-readout > div > span {
+  color: #6f86ad;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.bh-readout > div > b { color: #dfe8f5; font-weight: 600; }
+
 /* ── About / methodology page ─────────────────────────────────────────── */
 .bh-about-page {
   min-height: 100vh;
