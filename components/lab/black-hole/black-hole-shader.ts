@@ -144,6 +144,7 @@ void main() {
 
   vec3 color = vec3(0.0);
   bool done = false;
+  bool hitDisk = false; // the opaque disk occludes the photon ring behind it
   float outDepth = 1.0; // far by default (background → no occlusion)
   vec3 jetAccum = vec3(0.0); // optically-thin jet emission accumulated along the ray
 
@@ -250,7 +251,7 @@ void main() {
 
         color = blackbody(Tobs) * bright;
         outDepth = depthFromWorld(hit);
-        done = true; break;
+        hitDisk = true; done = true; break;
       }
     }
 
@@ -268,11 +269,15 @@ void main() {
   // the critical value b_c = 3√3·M = 1.5√3·r_s ≈ 2.598, piling up into a thin
   // bright ring outlining the shadow (the "most striking feature" of real
   // black-hole images). Emphasise it as a sharp glow in b = √h².
-  float b  = sqrt(h2);
-  float bc = 2.598076;
-  float ring = exp(-pow((b - bc) / 0.045, 2.0))        // sharp primary ring
-             + 0.35 * exp(-pow((b - bc) / 0.16, 2.0)); // soft surrounding halo
-  color += vec3(1.0, 0.97, 0.92) * ring * 0.85;
+  // ...but only where the opaque disk is not in front of it (otherwise the ring
+  // would incorrectly bleed over the disk surface).
+  if (!hitDisk) {
+    float b  = sqrt(h2);
+    float bc = 2.598076;
+    float ring = exp(-pow((b - bc) / 0.045, 2.0))        // sharp primary ring
+               + 0.35 * exp(-pow((b - bc) / 0.16, 2.0)); // soft surrounding halo
+    color += vec3(1.0, 0.97, 0.92) * ring * 0.85;
+  }
 
   // Exposure + Reinhard tone map + gamma.
   color *= uExposure;
