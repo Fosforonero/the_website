@@ -150,9 +150,9 @@ export default function BlackHoleScene({
 
       <EffectComposer>
         <Bloom
-          intensity={1.3}
-          luminanceThreshold={0.5}
-          luminanceSmoothing={0.8}
+          intensity={1.0}
+          luminanceThreshold={0.62}
+          luminanceSmoothing={0.75}
           mipmapBlur
         />
       </EffectComposer>

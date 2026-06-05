@@ -20,6 +20,7 @@ const COPY = {
     addStar: "Stella",
     addComet: "Cometa",
     reset: "Azzera",
+    systemBtn: "✦ Sistema",
     quality: "Qualità",
     qualities: { high: "Alta", medium: "Media", low: "Bassa" },
     spin: "Spin ~",
@@ -39,6 +40,7 @@ const COPY = {
     addStar: "Star",
     addComet: "Comet",
     reset: "Reset",
+    systemBtn: "✦ System",
     quality: "Quality",
     qualities: { high: "High", medium: "Medium", low: "Low" },
     spin: "Spin ~",
@@ -82,6 +84,7 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
         <button className={`bh-control${activeKind === "planet" ? " bh-control--active" : ""}`} onClick={() => setActiveKind("planet")}>{t.addPlanet}</button>
         <button className={`bh-control${activeKind === "star" ? " bh-control--active" : ""}`} onClick={() => setActiveKind("star")}>{t.addStar}</button>
         <button className={`bh-control${activeKind === "comet" ? " bh-control--active" : ""}`} onClick={() => setActiveKind("comet")}>{t.addComet}</button>
+        <button className="bh-control bh-control--active" onClick={() => api.current?.system()}>{t.systemBtn}</button>
         <button className="bh-control" onClick={() => api.current?.reset()}>{t.reset}</button>
 
         <button

@@ -32,15 +32,15 @@ export const metadata: Metadata = {
 const FAQ = [
   {
     q: "Are the equations used real and correct?",
-    a: "Yes for the lensing geometry: integrating null geodesics in the Schwarzschild metric is real physics and correctly reproduces the photon sphere, Einstein ring and shadow. Gravitational redshift, GR orbital velocity and relativistic beaming use the exact formulas. The disk color is the true blackbody color of the local temperature.",
+    a: "Yes for the lensing geometry and the orbits: integrating Schwarzschild geodesics (null and timelike) is exact and reproduces the photon sphere, Einstein ring, shadow, ISCO and periastron precession. GR orbital velocity, redshift, the Liouville invariant and bolometric g⁴ beaming use the exact formulas; the color is the true blackbody color of the local temperature; the photon ring emerges from returning radiation.",
+  },
+  {
+    q: "What is the difference between the Orbits demo and the Playground?",
+    a: "The Orbits demo integrates the exact Schwarzschild timelike geodesic for a single body (exact precession and ISCO). The playground uses the Paczyński–Wiita pseudo-Newtonian potential, which reproduces the strong-field effects (ISCO, plunge) but allows mutual N-body gravity — an exactness/interactivity trade-off.",
   },
   {
     q: "Is it identical to Interstellar's black hole?",
-    a: "No. Interstellar (Gargantua) uses the Kerr metric of a rotating black hole, computed offline. This simulation is Schwarzschild (non-rotating) and runs in real time in the browser.",
-  },
-  {
-    q: "What is artistic rather than physical?",
-    a: "The disk turbulence, the background stars and the absolute brightness/temperature scales are visual parameters. The radial profile, the blackbody color and the relativistic effects are physically grounded.",
+    a: "No. Interstellar (Gargantua) uses the Kerr metric of a rotating black hole, computed offline. This simulation is Schwarzschild (non-rotating) and runs in real time in the browser; spin is a Lense–Thirring approximation.",
   },
 ];
 

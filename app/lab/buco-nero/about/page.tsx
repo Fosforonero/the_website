@@ -32,15 +32,15 @@ export const metadata: Metadata = {
 const FAQ = [
   {
     q: "Le equazioni usate sono reali e corrette?",
-    a: "Sì per la geometria del lensing: l'integrazione delle geodetiche nulle nella metrica di Schwarzschild è fisica vera e riproduce correttamente sfera fotonica, anello di Einstein e ombra. Redshift gravitazionale, velocità orbitale GR e beaming relativistico usano le formule esatte. Il colore del disco è il vero corpo nero della temperatura locale.",
+    a: "Sì per la geometria del lensing e per le orbite: l'integrazione delle geodetiche di Schwarzschild (nulle e di tipo-tempo) è esatta e riproduce sfera fotonica, anello di Einstein, ombra, ISCO e precessione del periastro. Velocità orbitale GR, redshift, invariante di Liouville e beaming bolometrico g⁴ usano le formule esatte; il colore è il vero corpo nero della temperatura locale; il photon ring emerge dalla returning radiation.",
+  },
+  {
+    q: "Qual è la differenza tra la demo «Orbite» e il «Playground»?",
+    a: "La demo «Orbite» integra la geodetica di tipo-tempo esatta di Schwarzschild per un singolo corpo (precessione e ISCO esatti). Il playground usa il potenziale pseudo-newtoniano di Paczyński–Wiita, che riproduce gli effetti forti (ISCO, caduta) ma permette la gravità reciproca a N-corpi — un compromesso esattezza/interattività.",
   },
   {
     q: "È identica al buco nero di Interstellar?",
-    a: "No. Interstellar (Gargantua) usa la metrica di Kerr di un buco nero rotante, calcolata offline. Questa simulazione è di Schwarzschild (non rotante) e gira in tempo reale nel browser.",
-  },
-  {
-    q: "Cosa è artistico e non fisico?",
-    a: "La turbolenza del disco, le stelle di sfondo e le scale assolute di luminosità e temperatura sono parametri visivi. Il profilo radiale, il colore di corpo nero e gli effetti relativistici sono invece fisicamente fondati.",
+    a: "No. Interstellar (Gargantua) usa la metrica di Kerr di un buco nero rotante, calcolata offline. Questa simulazione è di Schwarzschild (non rotante) e gira in tempo reale nel browser; lo spin è un'approssimazione di Lense–Thirring.",
   },
 ];
 

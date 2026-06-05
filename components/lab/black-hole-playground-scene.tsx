@@ -30,6 +30,7 @@ export type BodyKind = "planet" | "star" | "comet";
 
 export type PlaygroundHandle = {
   reset: () => void;
+  system: () => void;
 };
 
 export type PlaygroundSceneProps = {
@@ -281,6 +282,18 @@ function Simulation({
         a.count = 0;
         if (groupRef.current) groupRef.current.clear();
       },
+      // Generate a whole planetary system orbiting the black hole — the hole
+      // stands in for the central star (à la Gargantua in Interstellar): several
+      // planets at increasing radii on stable circular orbits, most with moons.
+      system: () => {
+        const n = 4 + Math.floor(Math.random() * 3); // 4–6 planets
+        let r = 7 + Math.random() * 2;
+        for (let i = 0; i < n; i++) {
+          const th = Math.random() * Math.PI * 2;
+          spawnBodyAt("planet", new THREE.Vector3(Math.cos(th) * r, 0, Math.sin(th) * r));
+          r += 4 + Math.random() * 4; // spread the orbits outward
+        }
+      },
     };
     return () => { apiRef.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -499,7 +512,7 @@ export default function BlackHolePlaygroundScene({ quality, spin, diskOn, jetsOn
         maxDistance={220}
       />
       <EffectComposer>
-        <Bloom intensity={1.3} luminanceThreshold={0.5} luminanceSmoothing={0.8} mipmapBlur />
+        <Bloom intensity={1.0} luminanceThreshold={0.62} luminanceSmoothing={0.75} mipmapBlur />
       </EffectComposer>
     </Canvas>
   );

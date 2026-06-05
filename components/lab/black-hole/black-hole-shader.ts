@@ -84,9 +84,9 @@ float vnoise(vec2 p) {
 // ── background star field (sampled with the final, lensed ray direction) ────
 vec3 starField(vec3 d) {
   // Space is essentially black (Olbers' paradox): only discrete stars glow.
-  vec3 col = vec3(0.0006, 0.0007, 0.0011);           // near-black sky floor
-  float band = exp(-pow(d.y * 4.5, 2.0));            // very faint Milky-Way band
-  col += vec3(0.008, 0.009, 0.016) * band;
+  vec3 col = vec3(0.00012, 0.00014, 0.00022);        // ~black sky floor
+  float band = exp(-pow(d.y * 5.5, 2.0));            // extremely faint Milky-Way band
+  col += vec3(0.0035, 0.004, 0.007) * band;
 
   for (int k = 0; k < 2; k++) {
     float scale = (k == 0) ? 230.0 : 95.0;
