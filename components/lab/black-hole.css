@@ -263,6 +263,17 @@
 .bh-about__credit dt { font-size: 0.78rem; color: #7e93b6; font-weight: 600; }
 .bh-about__credit dd { margin: 2px 0 0; font-size: 0.85rem; color: #aebbd2; }
 
+.bh-about__refs {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.bh-about__refs li { font-size: 0.82rem; color: #aebbd2; line-height: 1.45; }
+.bh-about__refs a { color: #8ab4f0; text-decoration: none; }
+.bh-about__refs a:hover { text-decoration: underline; }
+
 .bh-about__foot { margin-top: 32px; }
 
 .bh-disclosure__text {
