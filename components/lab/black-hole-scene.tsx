@@ -24,13 +24,19 @@ export type BlackHoleSceneProps = {
   spin: number; // 0..1 — approximate frame dragging
   jetsOn: boolean; // relativistic jets along the spin axis
   gridOn?: boolean; // spacetime-fabric grid (Flamm's paraboloid)
+  diskTemp?: number;   // disk colour-temperature scale (K)
+  diskBright?: number; // accretion-rate / brightness scale
+  diskOuter?: number;  // disk outer radius (r_s)
 };
 
 // ---------------------------------------------------------------------------
 // Fullscreen geodesic raymarch quad
 // ---------------------------------------------------------------------------
 
-export function BlackHoleQuad({ quality, diskOn, dopplerOn, spin, jetsOn }: BlackHoleSceneProps) {
+export function BlackHoleQuad({
+  quality, diskOn, dopplerOn, spin, jetsOn,
+  diskTemp = 10500, diskBright = 24, diskOuter = 16,
+}: BlackHoleSceneProps) {
   const matRef = useRef<THREE.ShaderMaterial>(null);
   const camBasis = useRef(new THREE.Matrix3());
 
@@ -45,12 +51,12 @@ export function BlackHoleQuad({ quality, diskOn, dopplerOn, spin, jetsOn }: Blac
       uTime: { value: 0 },
       uSteps: { value: QUALITY_PRESETS[quality].steps },
       uDiskInner: { value: 3.0 }, // ISCO for a non-rotating (Schwarzschild) BH
-      uDiskOuter: { value: 16.0 },
+      uDiskOuter: { value: diskOuter },
       uDiskOn: { value: diskOn ? 1 : 0 },
       uDoppler: { value: dopplerOn ? 1 : 0 },
       uSpin: { value: spin },
-      uDiskTemp: { value: 10500 }, // emitted colour-temperature scale (Kelvin)
-      uDiskBright: { value: 24.0 }, // bright, white-hot inner disk (ACES rolls highlights)
+      uDiskTemp: { value: diskTemp }, // emitted colour-temperature scale (Kelvin)
+      uDiskBright: { value: diskBright }, // bright, white-hot inner disk (ACES rolls highlights)
       uJets: { value: jetsOn ? 1 : 0 },
       uJetStr: { value: 0.7 },
       uExposure: { value: 1.15 },
@@ -80,6 +86,9 @@ export function BlackHoleQuad({ quality, diskOn, dopplerOn, spin, jetsOn }: Blac
     u.uDoppler.value = dopplerOn ? 1 : 0;
     u.uSpin.value = spin;
     u.uJets.value = jetsOn ? 1 : 0;
+    u.uDiskTemp.value = diskTemp;
+    u.uDiskBright.value = diskBright;
+    u.uDiskOuter.value = diskOuter;
   });
 
   return (
@@ -109,6 +118,9 @@ export default function BlackHoleScene({
   spin,
   jetsOn,
   gridOn = false,
+  diskTemp,
+  diskBright,
+  diskOuter,
 }: BlackHoleSceneProps) {
   const dprCap = QUALITY_PRESETS[quality].dprCap;
 
@@ -119,7 +131,10 @@ export default function BlackHoleScene({
       gl={{ antialias: false, alpha: false }}
       style={{ background: "#000003" }}
     >
-      <BlackHoleQuad quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn} />
+      <BlackHoleQuad
+        quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn}
+        diskTemp={diskTemp} diskBright={diskBright} diskOuter={diskOuter}
+      />
       <BlackHoleGrid visible={gridOn} />
 
       <OrbitControls

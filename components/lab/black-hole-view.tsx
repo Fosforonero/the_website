@@ -22,6 +22,9 @@ const COPY = {
     doppler: "Doppler relativistico",
     jets: "Getti relativistici",
     grid: "Griglia spazio-tempo",
+    temp: "Temperatura",
+    accretion: "Accrescimento",
+    diskRadius: "Raggio disco",
     spin: "Spin (frame-dragging ~)",
     hint: "Trascina per orbitare · scroll per zoomare. Porta la vista quasi di taglio al disco per vedere l'alone alla Gargantua.",
     about: "Equazioni e crediti",
@@ -46,6 +49,9 @@ const COPY = {
     doppler: "Relativistic Doppler",
     jets: "Relativistic jets",
     grid: "Spacetime grid",
+    temp: "Temperature",
+    accretion: "Accretion",
+    diskRadius: "Disk radius",
     spin: "Spin (frame-dragging ~)",
     hint: "Drag to orbit · scroll to zoom. Bring the disk near edge-on to see the Gargantua-style halo.",
     about: "Equations & credits",
@@ -72,6 +78,9 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
   const [jetsOn, setJetsOn] = useState(false);
   const [gridOn, setGridOn] = useState(false);
   const [spin, setSpin] = useState(0);
+  const [diskTemp, setDiskTemp] = useState(10500);
+  const [diskBright, setDiskBright] = useState(24);
+  const [diskOuter, setDiskOuter] = useState(16);
   const [infoOpen, setInfoOpen] = useState(false);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -142,6 +151,23 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
           <span style={{ width: 28, textAlign: "right" }}>{spin.toFixed(2)}</span>
         </label>
 
+        <label className="bh-control bh-toolbar__hide-sm">
+          <span>{t.temp}</span>
+          <input type="range" min={3000} max={20000} step={250} value={diskTemp}
+            onChange={(e) => setDiskTemp(parseFloat(e.target.value))} style={{ width: 80 }} />
+          <span style={{ width: 42, textAlign: "right" }}>{(diskTemp / 1000).toFixed(1)}kK</span>
+        </label>
+        <label className="bh-control bh-toolbar__hide-sm">
+          <span>{t.accretion}</span>
+          <input type="range" min={5} max={60} step={1} value={diskBright}
+            onChange={(e) => setDiskBright(parseFloat(e.target.value))} style={{ width: 80 }} />
+        </label>
+        <label className="bh-control bh-toolbar__hide-sm">
+          <span>{t.diskRadius}</span>
+          <input type="range" min={8} max={26} step={0.5} value={diskOuter}
+            onChange={(e) => setDiskOuter(parseFloat(e.target.value))} style={{ width: 80 }} />
+        </label>
+
         <div className="bh-toolbar__sep" />
         <Link href={playgroundHref} className="bh-control">
           {t.playground}
@@ -158,7 +184,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
       </div>
 
       <div className="bh-canvas-wrap">
-        <BlackHoleScene quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn} gridOn={gridOn} />
+        <BlackHoleScene quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn} gridOn={gridOn} diskTemp={diskTemp} diskBright={diskBright} diskOuter={diskOuter} />
         <p className="bh-hint">{t.hint}</p>
 
         {infoOpen ? (
