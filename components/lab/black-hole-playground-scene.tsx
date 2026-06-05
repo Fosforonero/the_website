@@ -176,7 +176,7 @@ function Simulation({
           vel.clone().add(vMoon),
           0.07,
           new THREE.Color("#b9c4d4"),
-          0,
+          0.0008, // small but non-zero → moons take part in the N-body too
           planet.id
         );
       }
@@ -185,9 +185,9 @@ function Simulation({
 
     const cfg =
       kind === "star"
-        ? { radius: 0.30, color: new THREE.Color("#fff0c0") }
-        : { radius: 0.10, color: new THREE.Color("#cfe8ff") };
-    addBody(kind, pos, vel, cfg.radius, cfg.color, 0, null);
+        ? { radius: 0.30, color: new THREE.Color("#fff0c0"), mass: 0.035 }
+        : { radius: 0.10, color: new THREE.Color("#cfe8ff"), mass: 0.0006 };
+    addBody(kind, pos, vel, cfg.radius, cfg.color, cfg.mass, null);
   }
 
   function disruptStar(b: Body) {
@@ -241,21 +241,18 @@ function Simulation({
     const h = total / nSub;
     const a = parts.current;
 
-    // id → body, so moons can find their host planet (if it still exists;
-    // once a host is swallowed it drops out and its moons orbit the BH freely).
-    const idMap = new Map<number, Body>();
-    for (const b of bodies.current) idMap.set(b.id, b);
-
     for (let s = 0; s < nSub; s++) {
+      // Bodies: black-hole pull (Paczyński–Wiita) + mutual N-body gravity among
+      // all massive bodies (stars, planets). Softened to avoid singular close
+      // encounters. Moons (mass 0) feel the others but do not perturb them; if
+      // a host planet is swallowed it drops out and its moons orbit the BH.
       for (const b of bodies.current) {
-        pwAccel(b.pos, tmp); // black-hole acceleration
-        if (b.parentId !== null) {
-          const par = idMap.get(b.parentId);
-          if (par) {
-            tmp2.copy(par.pos).sub(b.pos);
-            const d2 = tmp2.lengthSq() + 0.02;
-            tmp.addScaledVector(tmp2, par.mass / (d2 * Math.sqrt(d2))); // +G·m_par·(par−b)/d³
-          }
+        pwAccel(b.pos, tmp);
+        for (const o of bodies.current) {
+          if (o === b || o.mass <= 0.0) continue;
+          tmp2.copy(o.pos).sub(b.pos);
+          const d2 = tmp2.lengthSq() + 0.0144; // ε² = (0.12)² softening
+          tmp.addScaledVector(tmp2, o.mass / (d2 * Math.sqrt(d2)));
         }
         b.vel.addScaledVector(tmp, h);
         b.pos.addScaledVector(b.vel, h);
