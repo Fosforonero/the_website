@@ -202,6 +202,57 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
+  const blackHoleEntries: MetadataRoute.Sitemap = [
+    {
+      url: `${site.url}/lab/buco-nero`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+      alternates: {
+        languages: {
+          it: `${site.url}/lab/buco-nero`,
+          en: `${site.url}/en/lab/black-hole`,
+        },
+      },
+    },
+    {
+      url: `${site.url}/en/lab/black-hole`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+      alternates: {
+        languages: {
+          it: `${site.url}/lab/buco-nero`,
+          en: `${site.url}/en/lab/black-hole`,
+        },
+      },
+    },
+    {
+      url: `${site.url}/lab/buco-nero/about`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+      alternates: {
+        languages: {
+          it: `${site.url}/lab/buco-nero/about`,
+          en: `${site.url}/en/lab/black-hole/about`,
+        },
+      },
+    },
+    {
+      url: `${site.url}/en/lab/black-hole/about`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+      alternates: {
+        languages: {
+          it: `${site.url}/lab/buco-nero/about`,
+          en: `${site.url}/en/lab/black-hole/about`,
+        },
+      },
+    },
+  ];
+
   // Blog posts — separate per locale (slugs may differ across languages)
   const postEntries: MetadataRoute.Sitemap = [];
   for (const locale of locales) {
@@ -216,5 +267,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  return [...staticEntries, ...periodicTableEntries, ...identityEntry, ...manualEntry, ...solarSystemEntries, ...postEntries];
+  return [...staticEntries, ...periodicTableEntries, ...identityEntry, ...manualEntry, ...solarSystemEntries, ...blackHoleEntries, ...postEntries];
 }

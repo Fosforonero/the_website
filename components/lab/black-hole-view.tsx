@@ -21,6 +21,9 @@ const COPY = {
     disk: "Disco di accrescimento",
     doppler: "Doppler relativistico",
     hint: "Trascina per orbitare · scroll per zoomare. Porta la vista quasi di taglio al disco per vedere l'alone alla Gargantua.",
+    about: "Equazioni e crediti",
+    closeInfo: "Chiudi",
+    openInfo: "ⓘ Info",
     discTitle: "Cosa stai guardando (e cosa no)",
     disc: [
       "Lensing gravitazionale reale di un buco nero di Schwarzschild (non rotante): per ogni pixel si integra la geodetica del fotone nello spazio-tempo curvo.",
@@ -36,6 +39,9 @@ const COPY = {
     disk: "Accretion disk",
     doppler: "Relativistic Doppler",
     hint: "Drag to orbit · scroll to zoom. Bring the disk near edge-on to see the Gargantua-style halo.",
+    about: "Equations & credits",
+    closeInfo: "Close",
+    openInfo: "ⓘ Info",
     discTitle: "What you are seeing (and what you are not)",
     disc: [
       "Real gravitational lensing of a Schwarzschild (non-rotating) black hole: each pixel integrates the photon geodesic through curved spacetime.",
@@ -51,6 +57,8 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
   const [quality, setQuality] = useState<BlackHoleQuality>("medium");
   const [diskOn, setDiskOn] = useState(true);
   const [dopplerOn, setDopplerOn] = useState(true);
+  const [infoOpen, setInfoOpen] = useState(true);
+  const aboutHref = locale === "it" ? "/lab/buco-nero/about" : "/en/lab/black-hole/about";
 
   return (
     <div className="bh-root">
@@ -87,6 +95,9 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
         </button>
 
         <div className="bh-toolbar__sep" />
+        <Link href={aboutHref} className="bh-control">
+          {t.about}
+        </Link>
         <Link href={locale === "it" ? "/lab" : "/en/lab"} className="bh-control">
           {t.back}
         </Link>
@@ -95,15 +106,36 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
       <div className="bh-canvas-wrap">
         <BlackHoleScene quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} />
         <p className="bh-hint">{t.hint}</p>
-      </div>
 
-      <div className="bh-disclosure">
-        <div className="bh-disclosure__title">{t.discTitle}</div>
-        <ul>
-          {t.disc.map((line, i) => (
-            <li key={i}>{line}</li>
-          ))}
-        </ul>
+        {infoOpen ? (
+          <div className="bh-disclosure" role="note">
+            <button
+              className="bh-disclosure__close"
+              onClick={() => setInfoOpen(false)}
+              aria-label={t.closeInfo}
+              title={t.closeInfo}
+            >
+              ×
+            </button>
+            <div className="bh-disclosure__title">{t.discTitle}</div>
+            <ul>
+              {t.disc.map((line, i) => (
+                <li key={i}>{line}</li>
+              ))}
+            </ul>
+            <Link href={aboutHref} className="bh-disclosure__more">
+              {t.about} →
+            </Link>
+          </div>
+        ) : (
+          <button
+            className="bh-disclosure__reopen"
+            onClick={() => setInfoOpen(true)}
+            title={t.discTitle}
+          >
+            {t.openInfo}
+          </button>
+        )}
       </div>
     </div>
   );

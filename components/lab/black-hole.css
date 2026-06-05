@@ -4,7 +4,7 @@
   position: fixed;
   inset: 0;
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto 1fr;
   background: #000003;
   color: #cdd6e6;
   font-family: ui-sans-serif, system-ui, sans-serif;
@@ -92,29 +92,172 @@
   font-size: 0.8rem;
 }
 
+/* Floating, closable disclosure card */
 .bh-disclosure {
-  padding: 8px 14px 10px;
-  background: rgba(6, 8, 18, 0.9);
-  border-top: 1px solid #16203a;
-  z-index: 3;
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  max-width: 360px;
+  padding: 10px 12px 12px;
+  background: rgba(6, 8, 18, 0.92);
+  border: 1px solid #16203a;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  z-index: 4;
 }
+.bh-disclosure__close {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: none;
+  color: #6f86ad;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.bh-disclosure__close:hover { color: #e6ecf7; background: #131c33; }
 .bh-disclosure__title {
   font-size: 0.66rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: #5f7bb0;
-  margin-bottom: 4px;
+  margin-bottom: 5px;
+  padding-right: 18px;
 }
 .bh-disclosure ul {
   margin: 0;
   padding-left: 16px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 .bh-disclosure li {
   font-size: 0.64rem;
   line-height: 1.45;
   color: #7e93b6;
 }
+.bh-disclosure__more {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 0.66rem;
+  color: #6fa8ff;
+  text-decoration: none;
+}
+.bh-disclosure__more:hover { text-decoration: underline; }
+
+.bh-disclosure__reopen {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  padding: 6px 11px;
+  font-size: 0.7rem;
+  color: #aebbd2;
+  background: rgba(6, 8, 18, 0.85);
+  border: 1px solid #1c2742;
+  border-radius: 6px;
+  cursor: pointer;
+  z-index: 4;
+}
+.bh-disclosure__reopen:hover { border-color: #2e63b0; color: #e6ecf7; }
+
+/* ── About / methodology page ─────────────────────────────────────────── */
+.bh-about-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(1200px 600px at 50% -10%, #0b1426 0%, #05060d 60%, #04050a 100%);
+}
+.bh-about {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 48px 22px 80px;
+  color: #c4cfe2;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  line-height: 1.6;
+}
+.bh-about__head { margin-bottom: 28px; }
+.bh-about__kicker {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #5f7bb0;
+}
+.bh-about__title {
+  font-size: 1.9rem;
+  line-height: 1.2;
+  margin: 8px 0 14px;
+  color: #eef2fb;
+}
+.bh-about__intro { color: #aebbd2; margin: 0 0 10px; }
+.bh-about__actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+.bh-about__cta {
+  display: inline-block;
+  padding: 8px 14px;
+  background: #16233f;
+  border: 1px solid #2e63b0;
+  border-radius: 7px;
+  color: #cfe0ff;
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+.bh-about__cta:hover { background: #1d2e52; }
+.bh-about__link {
+  display: inline-block;
+  padding: 8px 14px;
+  color: #8aa0c6;
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+.bh-about__link:hover { color: #e6ecf7; }
+
+.bh-about__section { margin: 30px 0; }
+.bh-about__section h2 {
+  font-size: 1.15rem;
+  color: #e6ecf7;
+  margin: 0 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #16203a;
+}
+.bh-about__section p { margin: 0 0 10px; }
+
+.bh-about__eqs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 14px 0;
+}
+.bh-about__eq {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  background: #0a1122;
+  border: 1px solid #16203a;
+  border-radius: 7px;
+}
+.bh-about__eq-label { font-size: 0.7rem; color: #6f86ad; }
+.bh-about__eq-formula {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.92rem;
+  color: #ffd6a8;
+}
+
+.bh-about__faq h3 {
+  font-size: 0.92rem;
+  color: #cfe0ff;
+  margin: 16px 0 4px;
+}
+.bh-about__faq p { color: #9fb1cd; margin: 0; font-size: 0.9rem; }
+
+.bh-about__credits { margin: 0; }
+.bh-about__credit { margin: 0 0 12px; }
+.bh-about__credit dt { font-size: 0.78rem; color: #7e93b6; font-weight: 600; }
+.bh-about__credit dd { margin: 2px 0 0; font-size: 0.85rem; color: #aebbd2; }
+
+.bh-about__foot { margin-top: 32px; }
