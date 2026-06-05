@@ -135,7 +135,7 @@ export default function BlackHoleScene({
         quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn}
         diskTemp={diskTemp} diskBright={diskBright} diskOuter={diskOuter}
       />
-      <BlackHoleGrid visible={gridOn} />
+      <BlackHoleGrid visible={gridOn} spin={spin} />
 
       <OrbitControls
         makeDefault

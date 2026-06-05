@@ -171,6 +171,39 @@ function Simulation({
     return b;
   }
 
+  // A planet (smaller/lighter than a star by orders of magnitude, compressed
+  // here for visibility) with 0–3 moons on bound local orbits inside its Hill
+  // sphere. Works for any orbital position/velocity (in- or out-of-plane).
+  function createPlanet(pos: THREE.Vector3, vel: THREE.Vector3) {
+    const pal = PLANET_COLORS[Math.floor(Math.random() * PLANET_COLORS.length)]!;
+    const pr = 0.11 + Math.random() * 0.07;
+    const pmass = PLANET_MASS * (pr / 0.14);
+    const planet = addBody("planet", pos, vel, pr, new THREE.Color(pal), pmass, null);
+    const nMoons = Math.floor(Math.random() * 4);
+    for (let m = 0; m < nMoons; m++) {
+      const rl = pr + 0.22 + m * (0.18 + Math.random() * 0.12);
+      const phi = Math.random() * Math.PI * 2;
+      const inc = (Math.random() - 0.5) * 0.4;
+      const off = new THREE.Vector3(Math.cos(phi) * rl, Math.sin(inc) * rl * 0.4, Math.sin(phi) * rl);
+      const vLocal = Math.sqrt(pmass / rl);
+      const vMoon = new THREE.Vector3(-Math.sin(phi), 0, Math.cos(phi)).multiplyScalar(vLocal);
+      const mr = 0.025 + Math.random() * 0.03;
+      const shade = 0.6 + Math.random() * 0.4;
+      addBody("planet", pos.clone().add(off), vel.clone().add(vMoon), mr,
+        new THREE.Color(0.72 * shade, 0.77 * shade, 0.83 * shade), 0.00008, planet.id);
+    }
+  }
+
+  // Place a planet system on an inclined circular orbit at radius r.
+  function spawnPlanetSystem(r: number, theta: number, incl: number) {
+    const vCirc = Math.sqrt(GM * r) / Math.max(r - RS, 0.1);
+    const ct = Math.cos(theta), st = Math.sin(theta);
+    const si = Math.sin(incl), ci = Math.cos(incl);
+    const pos = new THREE.Vector3(ct * r, st * si * r, st * ci * r);
+    const vel = new THREE.Vector3(-st, ct * si, ct * ci).multiplyScalar(vCirc);
+    createPlanet(pos, vel);
+  }
+
   // Spawn a body at a user-chosen position (raycast point on the disk plane),
   // with a tangential prograde velocity tuned for an eccentric infalling orbit.
   // Planets are spawned as little systems: a planet with a couple of moons,
@@ -188,33 +221,7 @@ function Simulation({
     const vel = new THREE.Vector3(-radial.z, 0, radial.x).multiplyScalar(vCirc * factor);
 
     if (kind === "planet") {
-      // A planet is far smaller and lighter than a star (orders of magnitude in
-      // reality; compressed here so it stays visible). Vary colour/size/moons.
-      const pal = PLANET_COLORS[Math.floor(Math.random() * PLANET_COLORS.length)]!;
-      const pr = 0.11 + Math.random() * 0.07;                  // radius 0.11–0.18
-      const pmass = PLANET_MASS * (pr / 0.14);                 // mass scales with size
-      const planet = addBody("planet", pos, vel, pr, new THREE.Color(pal), pmass, null);
-      // 0–3 moons on small local orbits inside the Hill sphere.
-      const nMoons = Math.floor(Math.random() * 4);
-      for (let m = 0; m < nMoons; m++) {
-        const rl = pr + 0.22 + m * (0.18 + Math.random() * 0.12); // local orbital radius
-        const phi = Math.random() * Math.PI * 2;
-        const inc = (Math.random() - 0.5) * 0.4;                 // orbital inclination
-        const off = new THREE.Vector3(Math.cos(phi) * rl, Math.sin(inc) * rl * 0.4, Math.sin(phi) * rl);
-        const vLocal = Math.sqrt(pmass / rl);                    // local circular speed
-        const vMoon = new THREE.Vector3(-Math.sin(phi), 0, Math.cos(phi)).multiplyScalar(vLocal);
-        const mr = 0.025 + Math.random() * 0.03;
-        const shade = 0.6 + Math.random() * 0.4;
-        addBody(
-          "planet",
-          pos.clone().add(off),
-          vel.clone().add(vMoon),
-          mr,
-          new THREE.Color(0.72 * shade, 0.77 * shade, 0.83 * shade),
-          0.00008, // tiny → moons barely perturb, but take part in the N-body
-          planet.id
-        );
-      }
+      createPlanet(pos, vel);
       return;
     }
 
@@ -286,12 +293,16 @@ function Simulation({
       // stands in for the central star (à la Gargantua in Interstellar): several
       // planets at increasing radii on stable circular orbits, most with moons.
       system: () => {
+        // Place the planets OUTSIDE the accretion disk (r_out = 16) on stable
+        // circular orbits, with a small per-orbit inclination, so they form a
+        // visible 3D system around the hole instead of vanishing into the disk.
         const n = 4 + Math.floor(Math.random() * 3); // 4–6 planets
-        let r = 7 + Math.random() * 2;
+        let r = 19 + Math.random() * 3;
         for (let i = 0; i < n; i++) {
           const th = Math.random() * Math.PI * 2;
-          spawnBodyAt("planet", new THREE.Vector3(Math.cos(th) * r, 0, Math.sin(th) * r));
-          r += 4 + Math.random() * 4; // spread the orbits outward
+          const incl = (Math.random() - 0.5) * 0.5; // tilt the orbital plane
+          spawnPlanetSystem(r, th, incl);
+          r += 7 + Math.random() * 8; // spread the orbits outward
         }
       },
     };
@@ -499,7 +510,7 @@ export default function BlackHolePlaygroundScene({ quality, spin, diskOn, jetsOn
       style={{ background: "#000003" }}
     >
       <BlackHoleQuad quality={quality} diskOn={diskOn} spin={spin} dopplerOn jetsOn={jetsOn} />
-      <BlackHoleGrid visible={gridOn} />
+      <BlackHoleGrid visible={gridOn} spin={spin} />
       <Simulation apiRef={apiRef} activeKind={activeKind} />
       <OrbitControls
         makeDefault

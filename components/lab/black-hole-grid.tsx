@@ -15,40 +15,46 @@ import * as THREE from "three";
 
 const RS = 1.0;
 
-function buildFlammGrid(rOut: number, rings: number, spokes: number, depth: number): THREE.BufferGeometry {
+function buildFlammGrid(rOut: number, rings: number, spokes: number, depth: number, spin: number): THREE.BufferGeometry {
   // Embedding height, scaled and flipped so the surface is flat far out and
   // dips into a funnel toward the throat.
   const zEdge = Math.sqrt(rOut - RS);
   const y = (r: number) => -depth * (zEdge - Math.sqrt(Math.max(r - RS, 0.0)));
+  // Frame-dragging swirl (Lense-Thirring): inertial frames are dragged ∝ 1/r³,
+  // so the spokes spiral ever tighter toward the throat when the hole spins.
+  const twist = (r: number) => spin * 6.0 / (r * r);
 
-  // Ring radii: denser near the hole (where curvature is strong).
+  // Ring radii: much denser near the hole (cubic spacing) so the throat is
+  // detailed, plus a few extra rings right at the bottom of the funnel.
   const radii: number[] = [];
   for (let i = 0; i <= rings; i++) {
     const tt = i / rings;
-    radii.push(RS + 0.06 + (rOut - RS - 0.06) * tt * tt); // quadratic spacing
+    radii.push(RS + 0.02 + (rOut - RS - 0.02) * tt * tt * tt); // cubic → dense centre
   }
 
-  const seg = 96; // points per circle (smooth rings)
+  const seg = 120; // points per circle (smooth rings)
   const verts: number[] = [];
 
   // concentric rings
   for (const r of radii) {
     const yr = y(r);
+    const tw = twist(r);
     for (let s = 0; s < seg; s++) {
-      const a0 = (s / seg) * Math.PI * 2;
-      const a1 = ((s + 1) / seg) * Math.PI * 2;
+      const a0 = (s / seg) * Math.PI * 2 + tw;
+      const a1 = ((s + 1) / seg) * Math.PI * 2 + tw;
       verts.push(Math.cos(a0) * r, yr, Math.sin(a0) * r);
       verts.push(Math.cos(a1) * r, yr, Math.sin(a1) * r);
     }
   }
-  // radial spokes
+  // radial spokes — each radius twisted by its own frame-dragging angle, so the
+  // spoke spirals inward when spin > 0.
   for (let s = 0; s < spokes; s++) {
     const a = (s / spokes) * Math.PI * 2;
-    const ca = Math.cos(a), sa = Math.sin(a);
     for (let i = 0; i < radii.length - 1; i++) {
       const ra = radii[i]!, rb = radii[i + 1]!;
-      verts.push(ca * ra, y(ra), sa * ra);
-      verts.push(ca * rb, y(rb), sa * rb);
+      const aa = a + twist(ra), ab = a + twist(rb);
+      verts.push(Math.cos(aa) * ra, y(ra), Math.sin(aa) * ra);
+      verts.push(Math.cos(ab) * rb, y(rb), Math.sin(ab) * rb);
     }
   }
 
@@ -63,14 +69,16 @@ export function BlackHoleGrid({
   rings = 24,
   spokes = 64,
   depth = 1.7,
+  spin = 0,
 }: {
   visible: boolean;
   rOut?: number;
   rings?: number;
   spokes?: number;
   depth?: number;
+  spin?: number;
 }) {
-  const geo = useMemo(() => buildFlammGrid(rOut, rings, spokes, depth), [rOut, rings, spokes, depth]);
+  const geo = useMemo(() => buildFlammGrid(rOut, rings, spokes, depth, spin), [rOut, rings, spokes, depth, spin]);
   if (!visible) return null;
   return (
     <lineSegments geometry={geo} frustumCulled={false}>
