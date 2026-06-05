@@ -160,9 +160,22 @@ const COPY: Record<Locale, Copy> = {
         ],
       },
       {
-        heading: "10. Limiti: cosa NON è (onestà scientifica)",
+        heading: "10. Robustezza del ray-marching e artefatti risolti",
+        body: [
+          "Il budget di passi per raggio è finito: per non esaurirlo nel solo tragitto fino al buco — cosa che, zoomando lontano, faceva glitchare disco e ombra — i raggi che partono oltre la sfera d'influenza R_far vengono avanzati analiticamente in linea retta (lo spazio-tempo lì è praticamente piatto) e il march geodetico parte solo dove la curvatura conta. Per questo l'inquadratura regge anche a grande distanza. Vicino alla sfera fotonica il passo è invece raffinato, per risolvere la returning radiation e i sub-anelli.",
+          "Composizione di profondità: il buco lensato scrive la profondità (gl_FragDepth) dal punto d'impatto in coordinate mondo, così i corpi 3D, le particelle e i detriti del playground vengono occlusi correttamente da disco e orizzonte invece di disegnarsi sopra. Il tone mapping è ACES filmico con bloom a soglia alta e il fondo cielo ha un floor prossimo allo zero: lo spazio profondo resta nero (paradosso di Olbers), come dev'essere.",
+          "Aliasing del disco: la turbolenza non è una texture ripetuta (che lasciava una «quadrettatura» e una linea di giunzione) ma un FBM a più ottave con reticolo ruotato a ogni ottava; la rotazione decorrela le ottave ed elimina il pattern a griglia e la cucitura. Il photon ring non è disegnato analiticamente (niente «doppio anello»): emerge dalla luce reale del disco tramite la returning radiation.",
+        ],
+        eqs: [
+          { label: "Avanzamento analitico al guscio d'influenza (raggi lontani)", tex: "\\mathbf p \\to \\mathbf p + \\Big(\\!-b - \\sqrt{b^{2} - (|\\mathbf p|^{2} - R_{\\mathrm{far}}^{2})}\\,\\Big)\\,\\hat{\\mathbf d}, \\quad b = \\mathbf p\\cdot\\hat{\\mathbf d}" },
+          { label: "FBM con reticolo ruotato (anti-aliasing del disco)", tex: "\\mathrm{turb}(\\mathbf q) = \\sum_{k} a_k\\,\\mathrm{noise}\\!\\left(2^{k} R^{k}\\,\\mathbf q\\right), \\qquad R = \\text{rotazione fissa}" },
+        ],
+      },
+      {
+        heading: "11. Limiti: cosa NON è (onestà scientifica)",
         body: [
           "La base è Schwarzschild (non rotante); lo spin è approssimato (Lense–Thirring), non Kerr. Il disco è otticamente spesso con emissione di corpo nero: la sua struttura gassosa turbolenta è uno stand-in procedurale della turbolenza magnetorotazionale (MRI), non una soluzione GRMHD; non modella autogravità, spessore verticale né polarizzazione. Il photon ring emerge dalla returning radiation ma le immagini di ordine molto alto non sono risolte; i getti relativistici sono un'aggiunta stilizzata (otticamente sottile), non MHD. Le stelle di sfondo sono procedurali (il loro lensing è reale). Nel playground i corpi sono occlusi dal disco/orizzonte ma non lensati, l'integrazione è pseudo-newtoniana e l'illuminazione del disco è una luce centrale (approssimazione).",
+          "In sintesi, ciò che NON è possibile in questo mezzo — e perché. (i) Il ray-tracing completo della metrica di Kerr e una soluzione GRMHD del disco richiedono minuti–ore per fotogramma su cluster di calcolo: incompatibili con i ~16 ms a fotogramma di un fragment shader WebGL in tempo reale. (ii) Le immagini del photon ring di ordine molto alto (n ≳ 2) richiedono una precisione numerica e un numero di passi per pixel che il budget real-time non concede. (iii) Il trasporto radiativo completo (scattering multiplo, polarizzazione, opacità dipendente dalla frequenza), lo spessore verticale, l'autogravità e l'idrodinamica del disco e degli stream mareali sono problemi 3D tempo-dipendenti, fuori portata per un singolo passaggio di shading. (iv) Lensare e integrare in GR ogni corpo del playground moltiplicherebbe il costo per il numero di corpi, perdendo l'interattività. Tutto questo si fa — ma offline, con i codici GR citati (GYOTO, RAPTOR, ipole…): è esattamente la ragione per cui esistono.",
         ],
       },
     ],
@@ -328,9 +341,22 @@ const COPY: Record<Locale, Copy> = {
         ],
       },
       {
-        heading: "10. Limits: what it is NOT (scientific honesty)",
+        heading: "10. Ray-marching robustness and artifacts resolved",
+        body: [
+          "The per-ray step budget is finite: to avoid spending it just reaching the hole — which made the disk and shadow glitch when zooming far out — rays starting beyond the influence sphere R_far are advanced analytically in a straight line (spacetime there is essentially flat) and the geodesic march only begins where curvature matters. That is why the view holds even at large distance. Near the photon sphere, by contrast, the step is refined to resolve returning radiation and the sub-rings.",
+          "Depth compositing: the lensed hole writes depth (gl_FragDepth) from the world-space hit point, so the 3D bodies, particles and playground debris are correctly occluded by the disk and horizon instead of drawing on top. Tone mapping is ACES filmic with a high-threshold bloom, and the sky background has a near-zero floor: deep space stays black (Olbers' paradox), as it should.",
+          "Disk aliasing: the turbulence is not a tiled texture (which left a grid-like «checkering» and a seam line) but a multi-octave FBM with a lattice rotated at each octave; the rotation decorrelates the octaves and removes the grid pattern and the seam. The photon ring is not drawn analytically (no «double ring»): it emerges from the real disk light via returning radiation.",
+        ],
+        eqs: [
+          { label: "Analytic advance to the influence shell (distant rays)", tex: "\\mathbf p \\to \\mathbf p + \\Big(\\!-b - \\sqrt{b^{2} - (|\\mathbf p|^{2} - R_{\\mathrm{far}}^{2})}\\,\\Big)\\,\\hat{\\mathbf d}, \\quad b = \\mathbf p\\cdot\\hat{\\mathbf d}" },
+          { label: "Rotated-lattice FBM (disk anti-aliasing)", tex: "\\mathrm{turb}(\\mathbf q) = \\sum_{k} a_k\\,\\mathrm{noise}\\!\\left(2^{k} R^{k}\\,\\mathbf q\\right), \\qquad R = \\text{fixed rotation}" },
+        ],
+      },
+      {
+        heading: "11. Limits: what it is NOT (scientific honesty)",
         body: [
           "The baseline is Schwarzschild (non-rotating); spin is approximate (Lense–Thirring), not Kerr. The disk is optically thick with blackbody emission: its turbulent gaseous structure is a procedural stand-in for magnetorotational (MRI) turbulence, not a GRMHD solution; it does not model self-gravity, vertical thickness or polarization. The photon ring emerges from returning radiation but the very high-order images are not resolved; the relativistic jets are a stylized (optically-thin) addition, not MHD. Background stars are procedural (their lensing is real). In the playground the bodies are occluded by the disk/horizon but not lensed, the integration is pseudo-Newtonian and the disk lighting is a central light (an approximation).",
+          "In short, what is NOT possible in this medium — and why. (i) Full Kerr-metric ray-tracing and a GRMHD disk solution take minutes-to-hours per frame on compute clusters: incompatible with the ~16 ms per frame of a real-time WebGL fragment shader. (ii) Very high-order photon-ring images (n ≳ 2) demand a numerical precision and a per-pixel step count the real-time budget cannot afford. (iii) Full radiative transfer (multiple scattering, polarization, frequency-dependent opacity), vertical thickness, self-gravity and the hydrodynamics of the disk and tidal streams are time-dependent 3D problems, out of reach for a single shading pass. (iv) Lensing and GR-integrating every playground body would multiply the cost by the number of bodies, killing interactivity. All of this is done — but offline, with the cited GR codes (GYOTO, RAPTOR, ipole…): which is exactly why they exist.",
         ],
       },
     ],

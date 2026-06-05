@@ -145,7 +145,7 @@ export default function BlackHoleScene({
         rotateSpeed={0.5}
         zoomSpeed={0.8}
         minDistance={2}
-        maxDistance={220}
+        maxDistance={600}
       />
 
       <EffectComposer>
