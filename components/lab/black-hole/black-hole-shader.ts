@@ -1,0 +1,221 @@
+// ---------------------------------------------------------------------------
+// Schwarzschild black-hole renderer — GLSL shader source
+// ---------------------------------------------------------------------------
+//
+// Physically-based (non-rotating, Schwarzschild) gravitational lensing.
+// For every screen pixel we shoot a camera ray and integrate the null
+// geodesic (photon path) in the curved spacetime around a point mass at the
+// origin, then shade:
+//   - event horizon  → absorbed (black)
+//   - accretion disk → blackbody-ish emission + relativistic Doppler beaming
+//                       + gravitational redshift
+//   - escape         → background star field (already lensed by the bent ray)
+//
+// Units: Schwarzschild radius RS = 1. Photon-sphere at 1.5, ISCO at 3.
+// The geodesic uses the Binet-equation acceleration
+//     a = -1.5 · h² · r / |r|⁵      with  h² = |r × v|²  (conserved)
+// which reproduces the exact light-bending of the Schwarzschild metric
+// (Einstein ring, photon sphere) via velocity-Verlet integration.
+//
+// DISCLOSURE: this is a real GR-lensing approximation for a *non-rotating*
+// black hole. It is NOT the Kerr (rotating) ray-traced render used for
+// Interstellar's Gargantua, which was computed offline. The accretion-disk
+// emission model is artistic (Shakura–Sunyaev-inspired), not a radiative
+// transfer solution.
+// ---------------------------------------------------------------------------
+
+export const blackHoleVertexShader = /* glsl */ `
+varying vec2 vUv;
+void main() {
+  vUv = uv;
+  // Fullscreen quad: ignore camera/model matrices, fill clip space directly.
+  gl_Position = vec4(position.xy, 0.0, 1.0);
+}
+`;
+
+export const blackHoleFragmentShader = /* glsl */ `
+precision highp float;
+
+varying vec2 vUv;
+
+uniform vec3  uCamPos;     // camera world position
+uniform mat3  uCamBasis;   // camera world rotation (cols: right, up, backward)
+uniform float uTanFov;     // tan(fov/2)
+uniform float uAspect;     // width / height
+uniform float uTime;       // seconds
+uniform int   uSteps;      // geodesic integration steps (quality)
+uniform float uDiskInner;  // disk inner radius (RS units)
+uniform float uDiskOuter;  // disk outer radius (RS units)
+uniform float uDiskOn;     // 0 / 1
+uniform float uDoppler;    // 0 / 1 — relativistic beaming + redshift
+uniform float uExposure;
+
+const float RS = 1.0;
+const int   MAX_STEPS = 400;
+
+// ── hashes / noise ─────────────────────────────────────────────────────────
+float hash21(vec2 p) {
+  p = fract(p * vec2(123.34, 456.21));
+  p += dot(p, p + 45.32);
+  return fract(p.x * p.y);
+}
+float hash31(vec3 p) {
+  p = fract(p * 0.3183099 + 0.1);
+  p *= 17.0;
+  return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+}
+float vnoise(vec2 p) {
+  vec2 i = floor(p), f = fract(p);
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  float a = hash21(i + vec2(0.0, 0.0));
+  float b = hash21(i + vec2(1.0, 0.0));
+  float c = hash21(i + vec2(0.0, 1.0));
+  float d = hash21(i + vec2(1.0, 1.0));
+  return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+}
+
+// ── background star field (sampled with the final, lensed ray direction) ────
+vec3 starField(vec3 d) {
+  vec3 col = vec3(0.012, 0.014, 0.022);              // faint sky
+  float band = exp(-pow(d.y * 3.5, 2.0));            // milky-way-ish band
+  col += vec3(0.05, 0.055, 0.085) * band * 0.5;
+
+  for (int k = 0; k < 2; k++) {
+    float scale = (k == 0) ? 230.0 : 95.0;
+    vec3 g  = d * scale;
+    vec3 id = floor(g);
+    float h = hash31(id);
+    if (h > 0.985) {
+      vec3 f = fract(g) - 0.5;
+      float star = smoothstep(0.5, 0.0, length(f));
+      float tw   = 0.7 + 0.3 * sin(uTime * 2.0 + h * 40.0);
+      float mag  = pow((h - 0.985) / 0.015, 2.0);
+      vec3 sc    = mix(vec3(1.0, 0.9, 0.8), vec3(0.8, 0.9, 1.0), hash31(id + 7.0));
+      col += sc * star * mag * tw * 1.4;
+    }
+  }
+  return col;
+}
+
+// ── disk base colour from normalised temperature (1 = inner/hot) ────────────
+vec3 diskBaseColor(float t) {
+  vec3 cool = vec3(0.95, 0.35, 0.10);
+  vec3 mid  = vec3(1.00, 0.75, 0.40);
+  vec3 hot  = vec3(0.85, 0.92, 1.00);
+  vec3 c = mix(cool, mid, smoothstep(0.0, 0.5, t));
+  c = mix(c, hot, smoothstep(0.5, 1.0, t));
+  return c;
+}
+
+void main() {
+  // Reconstruct the world-space camera ray for this pixel.
+  vec2 ndc = vUv * 2.0 - 1.0;
+  float px = ndc.x * uAspect * uTanFov;
+  float py = ndc.y * uTanFov;
+  vec3 dir = normalize(uCamBasis * vec3(px, py, -1.0));
+  vec3 pos = uCamPos;
+
+  // Conserved squared angular momentum of the photon about the BH.
+  vec3 L = cross(pos, dir);
+  float h2 = dot(L, L);
+
+  vec3 color = vec3(0.0);
+  bool done = false;
+
+  for (int i = 0; i < MAX_STEPS; i++) {
+    if (i >= uSteps) break;
+    float r = length(pos);
+
+    // Event horizon → absorbed.
+    if (r < RS) { color = vec3(0.0); done = true; break; }
+
+    // Escaped to infinity → background.
+    if (r > 60.0 && dot(pos, dir) > 0.0) {
+      color = starField(normalize(dir));
+      done = true; break;
+    }
+
+    // Adaptive step: fine near the hole, coarse far away.
+    float dt = clamp(r * 0.10, 0.02, 0.6);
+
+    // Geodesic (Binet) acceleration — bends the ray toward the mass.
+    vec3 acc     = -1.5 * h2 * pos / pow(dot(pos, pos), 2.5);
+    vec3 posNext = pos + dir * dt + 0.5 * acc * dt * dt;
+    vec3 dirNext = dir + acc * dt;
+
+    // Accretion-disk crossing in the equatorial (y = 0) plane.
+    if (uDiskOn > 0.5 && pos.y * posNext.y < 0.0) {
+      float tt  = pos.y / (pos.y - posNext.y);          // crossing fraction
+      vec3  hit = mix(pos, posNext, tt);
+      float rd  = length(hit.xz);                       // in-plane radius
+
+      if (rd > uDiskInner && rd < uDiskOuter) {
+        float tnorm = clamp((uDiskOuter - rd) / (uDiskOuter - uDiskInner), 0.0, 1.0);
+        vec3  base  = diskBaseColor(tnorm);
+
+        // Radial emission profile + soft edges.
+        float bright = pow(uDiskInner / rd, 2.0);
+        bright *= smoothstep(uDiskInner, uDiskInner + 0.4, rd);
+        bright *= smoothstep(uDiskOuter, uDiskOuter - 2.0, rd);
+
+        // Turbulent swirl, animated, sheared by radius (differential rotation).
+        float ang   = atan(hit.z, hit.x);
+        float swirl = vnoise(vec2(ang * 3.0 + uTime * 0.6 - rd * 1.5, rd * 1.2));
+        bright *= 0.55 + 0.85 * swirl;
+
+        if (uDoppler > 0.5) {
+          // Keplerian orbital speed (geometric units, M = RS/2 = 0.5).
+          float v    = sqrt(0.5 / rd);
+          vec3  tang = normalize(vec3(-hit.z, 0.0, hit.x)); // prograde about +y
+          vec3  velo = tang * v;
+          vec3  toCam = normalize(uCamPos - hit);
+          float beta  = dot(velo, toCam);                   // >0 approaching
+          float gamma = 1.0 / sqrt(max(1.0 - v * v, 1e-3));
+          float doppler = 1.0 / (gamma * (1.0 - beta));     // relativistic factor
+          float grav    = sqrt(max(1.0 - RS / rd, 0.0));    // gravitational redshift
+          float shift   = doppler * grav;
+
+          bright *= pow(shift, 3.0);                        // relativistic beaming
+          // Colour shift: blue where boosted, red where receding/redshifted.
+          vec3 tint = (shift > 1.0)
+            ? mix(vec3(1.0), vec3(0.70, 0.82, 1.00), clamp(shift - 1.0, 0.0, 1.0))
+            : mix(vec3(1.0), vec3(1.00, 0.50, 0.28), clamp(1.0 - shift, 0.0, 1.0));
+          base *= tint;
+        }
+
+        color = base * bright;
+        done = true; break;
+      }
+    }
+
+    pos = posNext;
+    dir = dirNext;
+  }
+
+  // Ray still in flight when steps ran out → fall back to background.
+  if (!done) color = starField(normalize(dir));
+
+  // Exposure + Reinhard tone map + gamma.
+  color *= uExposure;
+  color = color / (1.0 + color);
+  color = pow(color, vec3(1.0 / 2.2));
+
+  gl_FragColor = vec4(color, 1.0);
+}
+`;
+
+// ---------------------------------------------------------------------------
+// Quality presets — geodesic step count + device-pixel-ratio cap.
+// Higher steps = more accurate bending but heavier per-pixel cost.
+// ---------------------------------------------------------------------------
+
+export type BlackHoleQuality = "high" | "medium" | "low";
+
+export const QUALITY_PRESETS: Record<
+  BlackHoleQuality,
+  { steps: number; dprCap: number }
+> = {
+  high:   { steps: 400, dprCap: 1.75 },
+  medium: { steps: 240, dprCap: 1.25 },
+  low:    { steps: 140, dprCap: 1.0 },
+};

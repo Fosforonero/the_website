@@ -1,0 +1,120 @@
+/* Black-hole lab — dark, minimal chrome over a fullscreen WebGL canvas. */
+
+.bh-root {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  background: #000003;
+  color: #cdd6e6;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+.bh-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(6, 8, 18, 0.85);
+  border-bottom: 1px solid #16203a;
+  flex-wrap: wrap;
+  z-index: 3;
+}
+
+.bh-toolbar__title {
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+  color: #e6ecf7;
+}
+
+.bh-toolbar__sep {
+  width: 1px;
+  align-self: stretch;
+  background: #1d2842;
+  margin: 0 2px;
+}
+
+.bh-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  font-size: 0.72rem;
+  color: #aebbd2;
+  background: #0c1326;
+  border: 1px solid #1c2742;
+  border-radius: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: border-color 0.15s, color 0.15s;
+}
+.bh-control:hover { border-color: #2e63b0; color: #e6ecf7; }
+.bh-control--active {
+  border-color: #ff8a3c;
+  color: #ffd6b0;
+  background: #1a1208;
+}
+.bh-control select {
+  background: transparent;
+  color: inherit;
+  border: none;
+  outline: none;
+  font-size: 0.72rem;
+}
+.bh-control select option { background: #0c1326; }
+
+.bh-canvas-wrap { position: relative; min-height: 0; }
+.bh-canvas-wrap > div { width: 100%; height: 100%; }
+
+.bh-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 4px 10px;
+  font-size: 0.64rem;
+  color: #6f86ad;
+  background: rgba(6, 8, 18, 0.55);
+  border-radius: 6px;
+  pointer-events: none;
+  text-align: center;
+  max-width: 90%;
+}
+
+.bh-loading {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: #5b6f93;
+  font-size: 0.8rem;
+}
+
+.bh-disclosure {
+  padding: 8px 14px 10px;
+  background: rgba(6, 8, 18, 0.9);
+  border-top: 1px solid #16203a;
+  z-index: 3;
+}
+.bh-disclosure__title {
+  font-size: 0.66rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #5f7bb0;
+  margin-bottom: 4px;
+}
+.bh-disclosure ul {
+  margin: 0;
+  padding-left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.bh-disclosure li {
+  font-size: 0.64rem;
+  line-height: 1.45;
+  color: #7e93b6;
+}
