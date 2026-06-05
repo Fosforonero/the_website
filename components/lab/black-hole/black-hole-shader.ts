@@ -211,15 +211,23 @@ void main() {
         float bright = uDiskBright * pow(Tobs / uDiskTemp, 4.0);
         bright *= smoothstep(uDiskOuter, uDiskOuter - 2.0, rd); // soft outer edge
 
-        // Gaseous structure: multi-octave turbulence in rotating disk-plane
-        // coordinates (seamless, differential rotation). It is a procedural
-        // stand-in for the magnetorotational (MRI) turbulence of a real plasma
-        // disk, which would require a GRMHD solution.
-        float omega = uTime * 0.35 / pow(rd, 1.5);
+        // Gaseous structure: filamentary FBM turbulence in rotating disk-plane
+        // coordinates (seamless, differential rotation). The disk is optically
+        // thick (we see its photosphere — like Luminet/Interstellar), so this
+        // textures the opaque surface; it is a procedural stand-in for the real
+        // magnetorotational (MRI) turbulence, which would require GRMHD. Cheap:
+        // a single sample at the first disk crossing per ray.
+        float omega = uTime * 0.32 / pow(rd, 1.5);
         float ca = cos(omega), sa = sin(omega);
         vec2  q  = mat2(ca, -sa, sa, ca) * hit.xz;
-        float turb = 0.5 * vnoise(q * 0.8) + 0.3 * vnoise(q * 2.1) + 0.2 * vnoise(q * 4.7);
-        bright *= 0.5 + 1.05 * turb;
+        // anisotropic stretch → sheared, gas-like streaks along the flow
+        vec2  qs = vec2(q.x, q.y * 2.4);
+        float turb = 0.45 * vnoise(qs * 0.55)
+                   + 0.27 * vnoise(qs * 1.30)
+                   + 0.16 * vnoise(qs * 3.10)
+                   + 0.12 * vnoise(qs * 6.80);
+        turb = pow(clamp(turb, 0.0, 1.0), 1.7); // contrast → filaments & voids
+        bright *= 0.32 + 1.5 * turb;
 
         color = blackbody(Tobs) * bright;
         outDepth = depthFromWorld(hit);
