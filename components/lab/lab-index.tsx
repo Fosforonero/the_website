@@ -36,18 +36,6 @@ const COPY: Record<Locale, { kicker: string; title: string; intro: string; exps:
         accent: "#7fd0c0",
       },
       {
-        title: "Sistema Solare",
-        tag: "Astronomia",
-        desc: "Osservatorio 3D WebGL: pianeti, lune, comete e asteroidi con orbite kepleriane e stelle reali dal catalogo Hipparcos.",
-        href: "/lab/sistema-solare",
-        links: [
-          { label: "Apri", href: "/lab/sistema-solare" },
-          { label: "Manuale", href: "/lab/sistema-solare/manuale" },
-          { label: "Fonti", href: "/lab/sistema-solare/about" },
-        ],
-        accent: "#7aa0c0",
-      },
-      {
         title: "Buco Nero",
         tag: "Relatività",
         desc: "Lensing gravitazionale di Schwarzschild in tempo reale: geodetiche dei fotoni, disco di accrescimento, photon ring. Più un playground gravitazionale.",
@@ -78,18 +66,6 @@ const COPY: Record<Locale, { kicker: string; title: string; intro: string; exps:
           { label: "Sources", href: "/en/lab/periodic-table/about" },
         ],
         accent: "#7fd0c0",
-      },
-      {
-        title: "Solar System",
-        tag: "Astronomy",
-        desc: "3D WebGL observatory: planets, moons, comets and asteroids with Keplerian orbits and real stars from the Hipparcos catalog.",
-        href: "/en/lab/solar-system",
-        links: [
-          { label: "Open", href: "/en/lab/solar-system" },
-          { label: "Manual", href: "/en/lab/solar-system/manual" },
-          { label: "Sources", href: "/en/lab/solar-system/about" },
-        ],
-        accent: "#7aa0c0",
       },
       {
         title: "Black Hole",
