@@ -44,10 +44,12 @@ uniform float uTanFov;     // tan(fov/2)
 uniform float uAspect;     // width / height
 uniform float uTime;       // seconds
 uniform int   uSteps;      // geodesic integration steps (quality)
-uniform float uDiskInner;  // disk inner radius (RS units)
+uniform float uDiskInner;  // disk inner radius (RS units) — ISCO = 3 for Schwarzschild
 uniform float uDiskOuter;  // disk outer radius (RS units)
 uniform float uDiskOn;     // 0 / 1
 uniform float uDoppler;    // 0 / 1 — relativistic beaming + redshift
+uniform float uDiskTemp;   // emitted colour-temperature scale (Kelvin)
+uniform float uDiskBright; // disk brightness scale
 uniform float uExposure;
 
 const float RS = 1.0;
@@ -97,14 +99,22 @@ vec3 starField(vec3 d) {
   return col;
 }
 
-// ── disk base colour from normalised temperature (1 = inner/hot) ────────────
-vec3 diskBaseColor(float t) {
-  vec3 cool = vec3(0.95, 0.35, 0.10);
-  vec3 mid  = vec3(1.00, 0.75, 0.40);
-  vec3 hot  = vec3(0.85, 0.92, 1.00);
-  vec3 c = mix(cool, mid, smoothstep(0.0, 0.5, t));
-  c = mix(c, hot, smoothstep(0.5, 1.0, t));
-  return c;
+// ── physical blackbody colour: temperature (Kelvin) → linear sRGB ───────────
+// Planckian-locus approximation (after Neil Bartlett), valid ~1000–40000 K.
+vec3 blackbody(float kelvin) {
+  float t = clamp(kelvin, 1000.0, 40000.0);
+  // Columns are the (a, b, c) coefficient vectors; channel = a/(t+b)+c.
+  mat3 m = (t <= 6500.0)
+    ? mat3(
+        vec3(0.0, -2902.1955373783176, -8257.7997278925690),
+        vec3(0.0,  1669.5803561666639,  2575.2827530017594),
+        vec3(1.0,  1.3302673723350029,  1.8993753891711275))
+    : mat3(
+        vec3(1745.0425298314172,  1216.6168361476490, -8257.7997278925690),
+        vec3(-2666.3474220535695, -2173.1012343082230,  2575.2827530017594),
+        vec3(0.55995389139931482, 0.70381203140554553,  1.8993753891711275));
+  vec3 c = clamp(m[0] / (vec3(t) + m[1]) + m[2], 0.0, 1.0);
+  return mix(c, vec3(1.0), smoothstep(1000.0, 0.0, t));
 }
 
 void main() {
@@ -150,40 +160,35 @@ void main() {
       float rd  = length(hit.xz);                       // in-plane radius
 
       if (rd > uDiskInner && rd < uDiskOuter) {
-        float tnorm = clamp((uDiskOuter - rd) / (uDiskOuter - uDiskInner), 0.0, 1.0);
-        vec3  base  = diskBaseColor(tnorm);
-
-        // Radial emission profile + soft edges.
-        float bright = pow(uDiskInner / rd, 2.0);
-        bright *= smoothstep(uDiskInner, uDiskInner + 0.4, rd);
-        bright *= smoothstep(uDiskOuter, uDiskOuter - 2.0, rd);
+        // Shakura–Sunyaev thin-disk: flux ∝ r⁻³·(1 − √(r_in/r)), T ∝ flux^¼.
+        float edge  = max(1.0 - sqrt(uDiskInner / rd), 0.0); // →0 at inner edge
+        float flux  = pow(uDiskInner / rd, 3.0) * edge;
+        float T     = uDiskTemp * pow(flux, 0.25);           // emitted temperature (K)
+        float bright = uDiskBright * flux;
+        bright *= smoothstep(uDiskOuter, uDiskOuter - 2.0, rd); // soft outer edge
 
         // Turbulent swirl, animated, sheared by radius (differential rotation).
         float ang   = atan(hit.z, hit.x);
         float swirl = vnoise(vec2(ang * 3.0 + uTime * 0.6 - rd * 1.5, rd * 1.2));
         bright *= 0.55 + 0.85 * swirl;
 
+        float Tobs = T;
         if (uDoppler > 0.5) {
-          // Keplerian orbital speed (geometric units, M = RS/2 = 0.5).
-          float v    = sqrt(0.5 / rd);
+          // Exact Schwarzschild circular-orbit speed (locally measured):
+          //   v = √(M / (r − 2M)),  M = RS/2 = 0.5  →  0.5c at the ISCO.
+          float v    = min(sqrt(0.5 / max(rd - 1.0, 0.05)), 0.99);
           vec3  tang = normalize(vec3(-hit.z, 0.0, hit.x)); // prograde about +y
-          vec3  velo = tang * v;
           vec3  toCam = normalize(uCamPos - hit);
-          float beta  = dot(velo, toCam);                   // >0 approaching
-          float gamma = 1.0 / sqrt(max(1.0 - v * v, 1e-3));
-          float doppler = 1.0 / (gamma * (1.0 - beta));     // relativistic factor
-          float grav    = sqrt(max(1.0 - RS / rd, 0.0));    // gravitational redshift
-          float shift   = doppler * grav;
-
-          bright *= pow(shift, 3.0);                        // relativistic beaming
-          // Colour shift: blue where boosted, red where receding/redshifted.
-          vec3 tint = (shift > 1.0)
-            ? mix(vec3(1.0), vec3(0.70, 0.82, 1.00), clamp(shift - 1.0, 0.0, 1.0))
-            : mix(vec3(1.0), vec3(1.00, 0.50, 0.28), clamp(1.0 - shift, 0.0, 1.0));
-          base *= tint;
+          float beta  = dot(tang, toCam) * v;                // line-of-sight, >0 approaching
+          // Total frequency ratio g = (orbiting-clock rate) / (longitudinal Doppler):
+          //   √(1 − 3M/r) already folds gravitational + transverse time dilation.
+          float timeDil = sqrt(max(1.0 - 1.5 / rd, 0.0));
+          float g       = timeDil / max(1.0 - beta, 1e-3);
+          bright *= pow(g, 3.0);                              // relativistic beaming (I ∝ g³)
+          Tobs   *= g;                                        // observed colour shift (Wien)
         }
 
-        color = base * bright;
+        color = blackbody(Tobs) * bright;
         done = true; break;
       }
     }

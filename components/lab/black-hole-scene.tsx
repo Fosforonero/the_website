@@ -39,11 +39,13 @@ function BlackHoleQuad({ quality, diskOn, dopplerOn }: BlackHoleSceneProps) {
       uAspect: { value: 1 },
       uTime: { value: 0 },
       uSteps: { value: QUALITY_PRESETS[quality].steps },
-      uDiskInner: { value: 2.2 },
-      uDiskOuter: { value: 14.0 },
+      uDiskInner: { value: 3.0 }, // ISCO for a non-rotating (Schwarzschild) BH
+      uDiskOuter: { value: 16.0 },
       uDiskOn: { value: diskOn ? 1 : 0 },
       uDoppler: { value: dopplerOn ? 1 : 0 },
-      uExposure: { value: 1.15 },
+      uDiskTemp: { value: 16000 }, // emitted colour-temperature scale (Kelvin)
+      uDiskBright: { value: 22.0 },
+      uExposure: { value: 1.1 },
     }),
     // Intentionally created once — toggle changes are applied in useFrame.
     // eslint-disable-next-line react-hooks/exhaustive-deps
