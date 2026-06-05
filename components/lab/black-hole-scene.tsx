@@ -21,13 +21,14 @@ export type BlackHoleSceneProps = {
   diskOn: boolean;
   dopplerOn: boolean;
   spin: number; // 0..1 — approximate frame dragging
+  jetsOn: boolean; // relativistic jets along the spin axis
 };
 
 // ---------------------------------------------------------------------------
 // Fullscreen geodesic raymarch quad
 // ---------------------------------------------------------------------------
 
-export function BlackHoleQuad({ quality, diskOn, dopplerOn, spin }: BlackHoleSceneProps) {
+export function BlackHoleQuad({ quality, diskOn, dopplerOn, spin, jetsOn }: BlackHoleSceneProps) {
   const matRef = useRef<THREE.ShaderMaterial>(null);
   const camBasis = useRef(new THREE.Matrix3());
 
@@ -48,6 +49,8 @@ export function BlackHoleQuad({ quality, diskOn, dopplerOn, spin }: BlackHoleSce
       uSpin: { value: spin },
       uDiskTemp: { value: 9500 }, // emitted colour-temperature scale (Kelvin)
       uDiskBright: { value: 12.0 },
+      uJets: { value: jetsOn ? 1 : 0 },
+      uJetStr: { value: 0.7 },
       uExposure: { value: 0.9 },
     }),
     // Intentionally created once — toggle changes are applied in useFrame.
@@ -74,6 +77,7 @@ export function BlackHoleQuad({ quality, diskOn, dopplerOn, spin }: BlackHoleSce
     u.uDiskOn.value = diskOn ? 1 : 0;
     u.uDoppler.value = dopplerOn ? 1 : 0;
     u.uSpin.value = spin;
+    u.uJets.value = jetsOn ? 1 : 0;
   });
 
   return (
@@ -101,6 +105,7 @@ export default function BlackHoleScene({
   diskOn,
   dopplerOn,
   spin,
+  jetsOn,
 }: BlackHoleSceneProps) {
   const dprCap = QUALITY_PRESETS[quality].dprCap;
 
@@ -111,7 +116,7 @@ export default function BlackHoleScene({
       gl={{ antialias: false, alpha: false }}
       style={{ background: "#000003" }}
     >
-      <BlackHoleQuad quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} />
+      <BlackHoleQuad quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn} />
 
       <OrbitControls
         makeDefault

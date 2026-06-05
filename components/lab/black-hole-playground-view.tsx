@@ -27,6 +27,7 @@ const COPY = {
     back: "← Lab",
     sim: "Vista classica",
     disk: "Disco",
+    jets: "Getti",
     hint: "Scegli un tipo e clicca nella scena per posizionare il corpo · trascina per ruotare. Le stelle entro il raggio mareale vengono disgregate in uno stream.",
     discShort: "Dinamica con potenziale pseudo-newtoniano di Paczyński–Wiita (riproduce l'ISCO e la caduta). I corpi non sono lensati; lo stream mareale è un modello a particelle.",
     infoTitle: "Come funziona",
@@ -44,6 +45,7 @@ const COPY = {
     back: "← Lab",
     sim: "Classic view",
     disk: "Disk",
+    jets: "Jets",
     hint: "Pick a type and click in the scene to place the body · drag to rotate. Stars within the tidal radius are torn into a debris stream.",
     discShort: "Dynamics use the Paczyński–Wiita pseudo-Newtonian potential (reproduces the ISCO and the plunge). Bodies are not lensed; the tidal stream is a particle model.",
     infoTitle: "How it works",
@@ -56,6 +58,7 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
   const [quality, setQuality] = useState<BlackHoleQuality>("medium");
   const [spin, setSpin] = useState(0);
   const [diskOn, setDiskOn] = useState(true);
+  const [jetsOn, setJetsOn] = useState(false);
   const [activeKind, setActiveKind] = useState<BodyKind>("star");
   // Start collapsed; open the panel only on wider (non-mobile) screens.
   const [infoOpen, setInfoOpen] = useState(false);
@@ -85,6 +88,13 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
           {t.disk}
         </button>
 
+        <button
+          className={`bh-control bh-toolbar__hide-sm${jetsOn ? " bh-control--active" : ""}`}
+          onClick={() => setJetsOn((v) => !v)}
+        >
+          {t.jets}
+        </button>
+
         <div className="bh-toolbar__sep bh-toolbar__hide-sm" />
 
         <label className={`bh-control bh-toolbar__hide-sm${spin > 0 ? " bh-control--active" : ""}`}>
@@ -112,7 +122,7 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
       </div>
 
       <div className="bh-canvas-wrap">
-        <PlaygroundScene quality={quality} spin={spin} diskOn={diskOn} activeKind={activeKind} apiRef={api} />
+        <PlaygroundScene quality={quality} spin={spin} diskOn={diskOn} jetsOn={jetsOn} activeKind={activeKind} apiRef={api} />
         <p className="bh-hint bh-hint--hide-sm">{t.hint}</p>
 
         {infoOpen ? (

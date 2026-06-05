@@ -53,6 +53,8 @@ uniform float uDoppler;    // 0 / 1 — relativistic beaming + redshift
 uniform float uSpin;       // spin a ∈ [0,1] — APPROXIMATE Lense-Thirring frame dragging
 uniform float uDiskTemp;   // emitted colour-temperature scale (Kelvin)
 uniform float uDiskBright; // disk brightness scale
+uniform float uJets;       // 0 / 1 — relativistic jets along the spin axis
+uniform float uJetStr;     // jet emission strength
 uniform float uExposure;
 
 const float RS = 1.0;
@@ -143,6 +145,7 @@ void main() {
   vec3 color = vec3(0.0);
   bool done = false;
   float outDepth = 1.0; // far by default (background → no occlusion)
+  vec3 jetAccum = vec3(0.0); // optically-thin jet emission accumulated along the ray
 
   for (int i = 0; i < MAX_STEPS; i++) {
     if (i >= uSteps) break;
@@ -159,6 +162,20 @@ void main() {
 
     // Adaptive step: fine near the hole, coarse far away.
     float dt = clamp(r * 0.10, 0.02, 0.6);
+
+    // Relativistic jets: optically-thin, collimated emission along the spin
+    // axis (±Y). Accumulated along the (lensed) ray, so the beams bend near
+    // the hole. Bluish synchrotron-like glow, fading with height.
+    if (uJets > 0.5) {
+      float rho = length(pos.xz);        // cylindrical radius from the spin axis
+      float ay  = abs(pos.y);
+      if (ay > 1.4 && ay < 26.0) {
+        float coneR = 0.18 + 0.13 * ay;  // jet widens with height
+        float prof  = exp(-(rho * rho) / (coneR * coneR));
+        float fade  = exp(-ay * 0.085) * (1.0 - exp(-(ay - 1.4) * 1.5));
+        jetAccum += vec3(0.45, 0.65, 1.0) * (prof * fade * uJetStr * dt);
+      }
+    }
 
     // Geodesic (Binet) acceleration — bends the ray toward the mass.
     vec3 acc     = -1.5 * h2 * pos / pow(dot(pos, pos), 2.5);
@@ -243,6 +260,19 @@ void main() {
 
   // Ray still in flight when steps ran out → fall back to background.
   if (!done) color = starField(normalize(dir));
+
+  // Jet emission accumulated along the (lensed) ray.
+  color += jetAccum;
+
+  // Photon ring: light that skims the photon sphere has impact parameter near
+  // the critical value b_c = 3√3·M = 1.5√3·r_s ≈ 2.598, piling up into a thin
+  // bright ring outlining the shadow (the "most striking feature" of real
+  // black-hole images). Emphasise it as a sharp glow in b = √h².
+  float b  = sqrt(h2);
+  float bc = 2.598076;
+  float ring = exp(-pow((b - bc) / 0.045, 2.0))        // sharp primary ring
+             + 0.35 * exp(-pow((b - bc) / 0.16, 2.0)); // soft surrounding halo
+  color += vec3(1.0, 0.97, 0.92) * ring * 0.85;
 
   // Exposure + Reinhard tone map + gamma.
   color *= uExposure;

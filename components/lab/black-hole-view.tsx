@@ -20,6 +20,7 @@ const COPY = {
     qualities: { high: "Alta", medium: "Media", low: "Bassa" },
     disk: "Disco di accrescimento",
     doppler: "Doppler relativistico",
+    jets: "Getti relativistici",
     spin: "Spin (frame-dragging ~)",
     hint: "Trascina per orbitare · scroll per zoomare. Porta la vista quasi di taglio al disco per vedere l'alone alla Gargantua.",
     about: "Equazioni e crediti",
@@ -41,6 +42,7 @@ const COPY = {
     qualities: { high: "High", medium: "Medium", low: "Low" },
     disk: "Accretion disk",
     doppler: "Relativistic Doppler",
+    jets: "Relativistic jets",
     spin: "Spin (frame-dragging ~)",
     hint: "Drag to orbit · scroll to zoom. Bring the disk near edge-on to see the Gargantua-style halo.",
     about: "Equations & credits",
@@ -63,6 +65,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
   const [quality, setQuality] = useState<BlackHoleQuality>("medium");
   const [diskOn, setDiskOn] = useState(true);
   const [dopplerOn, setDopplerOn] = useState(true);
+  const [jetsOn, setJetsOn] = useState(false);
   const [spin, setSpin] = useState(0);
   const [infoOpen, setInfoOpen] = useState(false);
   useEffect(() => {
@@ -106,6 +109,13 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
           {t.doppler}
         </button>
 
+        <button
+          className={`bh-control bh-toolbar__hide-sm${jetsOn ? " bh-control--active" : ""}`}
+          onClick={() => setJetsOn((v) => !v)}
+        >
+          {t.jets}
+        </button>
+
         <label className={`bh-control bh-toolbar__hide-sm${spin > 0 ? " bh-control--active" : ""}`}>
           <span>{t.spin}</span>
           <input
@@ -133,7 +143,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
       </div>
 
       <div className="bh-canvas-wrap">
-        <BlackHoleScene quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} />
+        <BlackHoleScene quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn} />
         <p className="bh-hint">{t.hint}</p>
 
         {infoOpen ? (

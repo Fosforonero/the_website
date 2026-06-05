@@ -35,6 +35,7 @@ export type PlaygroundSceneProps = {
   quality: BlackHoleQuality;
   spin: number;
   diskOn: boolean;
+  jetsOn: boolean;
   activeKind: BodyKind;
   apiRef: MutableRefObject<PlaygroundHandle | null>;
 };
@@ -152,10 +153,13 @@ function Simulation({
     mass: number,
     parentId: number | null
   ): Body {
-    const mesh = new THREE.Mesh(
-      new THREE.SphereGeometry(radius, 16, 12),
-      new THREE.MeshBasicMaterial({ color })
-    );
+    // Planets and moons are lit by the disk/star (Standard material → shading &
+    // phases); stars and comets are self-luminous (Basic material → they glow).
+    const mat =
+      kind === "planet"
+        ? new THREE.MeshStandardMaterial({ color, roughness: 0.85, metalness: 0.0 })
+        : new THREE.MeshBasicMaterial({ color });
+    const mesh = new THREE.Mesh(new THREE.SphereGeometry(radius, 20, 14), mat);
     mesh.position.copy(pos);
     groupRef.current?.add(mesh);
     const b: Body = { id: nextId.current++, kind, pos, vel, radius, color, mass, parentId, mesh };
@@ -414,6 +418,13 @@ function Simulation({
 
   return (
     <>
+      {/* The accretion disk is the system's light source: a warm point light at
+          the centre (the bright inner disk) lights the planets/moons → phases,
+          like a star would. A faint ambient keeps the dark side from going pure
+          black. */}
+      <pointLight position={[0, 0, 0]} color="#ffd2a0" intensity={18} distance={120} decay={1.5} />
+      <ambientLight intensity={0.07} />
+
       {/* Invisible, raycastable plane on the disk plane: a click places the
           currently-selected body at the chosen position. A drag (handled by
           OrbitControls) rotates the camera and does not fire onClick. */}
@@ -451,7 +462,7 @@ function Simulation({
 // Public scene
 // ---------------------------------------------------------------------------
 
-export default function BlackHolePlaygroundScene({ quality, spin, diskOn, activeKind, apiRef }: PlaygroundSceneProps) {
+export default function BlackHolePlaygroundScene({ quality, spin, diskOn, jetsOn, activeKind, apiRef }: PlaygroundSceneProps) {
   const dprCap = QUALITY_PRESETS[quality].dprCap;
   return (
     <Canvas
@@ -460,7 +471,7 @@ export default function BlackHolePlaygroundScene({ quality, spin, diskOn, active
       gl={{ antialias: false, alpha: false }}
       style={{ background: "#000003" }}
     >
-      <BlackHoleQuad quality={quality} diskOn={diskOn} spin={spin} dopplerOn />
+      <BlackHoleQuad quality={quality} diskOn={diskOn} spin={spin} dopplerOn jetsOn={jetsOn} />
       <Simulation apiRef={apiRef} activeKind={activeKind} />
       <OrbitControls
         makeDefault
