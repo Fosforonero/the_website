@@ -76,7 +76,7 @@ const COPY: Record<Locale, Copy> = {
       {
         heading: "4. Limiti: cosa NON è (onestà scientifica)",
         body: [
-          "È un buco nero di Schwarzschild, cioè NON rotante. Il celebre Gargantua di Interstellar usa la metrica di Kerr (rotante) con frame-dragging, ray-tracciata offline (ore per fotogramma): qui è un'approssimazione in tempo reale.",
+          "La base è un buco nero di Schwarzschild (non rotante). Lo slider Spin aggiunge il frame-dragging in approssimazione di Lense-Thirring (campo gravitomagnetico di dipolo che trascina i fotoni attorno all'asse di spin), che è fisicamente motivato ma NON è la metrica di Kerr completa. Il celebre Gargantua di Interstellar usa la vera metrica di Kerr ray-tracciata offline (ore per fotogramma): qui è un'approssimazione in tempo reale.",
           "Il modello di emissione del disco è ispirato a Shakura–Sunyaev ma non è un trasporto radiativo: turbolenza e dettaglio sono procedurali. Le stelle di sfondo sono procedurali (il loro lensing, però, è reale). Non sono modellati spessore del disco, opacità, getti o immagini di ordine superiore oltre il primo impatto.",
         ],
       },
@@ -159,7 +159,7 @@ const COPY: Record<Locale, Copy> = {
       {
         heading: "4. Limits: what it is NOT (scientific honesty)",
         body: [
-          "It is a Schwarzschild black hole, i.e. NON-rotating. The famous Gargantua from Interstellar uses the Kerr (rotating) metric with frame-dragging, ray-traced offline (hours per frame): this is a real-time approximation.",
+          "The baseline is a Schwarzschild (non-rotating) black hole. The Spin slider adds frame dragging in the Lense-Thirring approximation (a gravitomagnetic dipole field that drags photons around the spin axis), which is physically motivated but is NOT the full Kerr metric. The famous Gargantua from Interstellar uses the true Kerr metric ray-traced offline (hours per frame): this is a real-time approximation.",
           "The disk emission model is Shakura–Sunyaev-inspired but is not radiative transfer: turbulence and detail are procedural. Background stars are procedural (their lensing, however, is real). Disk thickness, opacity, jets and higher-order images beyond the first intersection are not modeled.",
         ],
       },

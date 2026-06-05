@@ -20,6 +20,7 @@ const COPY = {
     qualities: { high: "Alta", medium: "Media", low: "Bassa" },
     disk: "Disco di accrescimento",
     doppler: "Doppler relativistico",
+    spin: "Spin (frame-dragging ~)",
     hint: "Trascina per orbitare · scroll per zoomare. Porta la vista quasi di taglio al disco per vedere l'alone alla Gargantua.",
     about: "Equazioni e crediti",
     closeInfo: "Chiudi",
@@ -28,6 +29,7 @@ const COPY = {
     disc: [
       "Lensing gravitazionale reale di un buco nero di Schwarzschild (non rotante): per ogni pixel si integra la geodetica del fotone nello spazio-tempo curvo.",
       "Il disco di accrescimento include beaming Doppler relativistico e redshift gravitazionale, ma il modello di emissione è artistico (ispirato a Shakura–Sunyaev), non un trasporto radiativo.",
+      "Lo slider Spin aggiunge il frame-dragging in approssimazione di Lense-Thirring (gravitomagnetismo), non la metrica di Kerr completa.",
       "NON è il render di Gargantua di Interstellar: quello usava la metrica di Kerr (rotante) con ray-tracing calcolato offline, fotogrammi da ore ciascuno. Qui è un'approssimazione in tempo reale.",
     ],
     back: "← Torna al Lab",
@@ -38,6 +40,7 @@ const COPY = {
     qualities: { high: "High", medium: "Medium", low: "Low" },
     disk: "Accretion disk",
     doppler: "Relativistic Doppler",
+    spin: "Spin (frame-dragging ~)",
     hint: "Drag to orbit · scroll to zoom. Bring the disk near edge-on to see the Gargantua-style halo.",
     about: "Equations & credits",
     closeInfo: "Close",
@@ -46,6 +49,7 @@ const COPY = {
     disc: [
       "Real gravitational lensing of a Schwarzschild (non-rotating) black hole: each pixel integrates the photon geodesic through curved spacetime.",
       "The accretion disk includes relativistic Doppler beaming and gravitational redshift, but the emission model is artistic (Shakura–Sunyaev-inspired), not radiative transfer.",
+      "The Spin slider adds frame dragging in the Lense-Thirring approximation (gravitomagnetism), not the full Kerr metric.",
       "This is NOT Interstellar's Gargantua render: that used the rotating Kerr metric with offline ray-tracing, hours per frame. This is a real-time approximation.",
     ],
     back: "← Back to Lab",
@@ -57,6 +61,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
   const [quality, setQuality] = useState<BlackHoleQuality>("medium");
   const [diskOn, setDiskOn] = useState(true);
   const [dopplerOn, setDopplerOn] = useState(true);
+  const [spin, setSpin] = useState(0);
   const [infoOpen, setInfoOpen] = useState(true);
   const aboutHref = locale === "it" ? "/lab/buco-nero/about" : "/en/lab/black-hole/about";
 
@@ -94,6 +99,20 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
           {t.doppler}
         </button>
 
+        <label className={`bh-control${spin > 0 ? " bh-control--active" : ""}`}>
+          <span>{t.spin}</span>
+          <input
+            type="range"
+            min={0}
+            max={0.98}
+            step={0.02}
+            value={spin}
+            onChange={(e) => setSpin(parseFloat(e.target.value))}
+            style={{ width: 90 }}
+          />
+          <span style={{ width: 28, textAlign: "right" }}>{spin.toFixed(2)}</span>
+        </label>
+
         <div className="bh-toolbar__sep" />
         <Link href={aboutHref} className="bh-control">
           {t.about}
@@ -104,7 +123,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
       </div>
 
       <div className="bh-canvas-wrap">
-        <BlackHoleScene quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} />
+        <BlackHoleScene quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} />
         <p className="bh-hint">{t.hint}</p>
 
         {infoOpen ? (

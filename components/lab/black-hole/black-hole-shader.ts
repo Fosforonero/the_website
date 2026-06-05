@@ -48,6 +48,7 @@ uniform float uDiskInner;  // disk inner radius (RS units) — ISCO = 3 for Schw
 uniform float uDiskOuter;  // disk outer radius (RS units)
 uniform float uDiskOn;     // 0 / 1
 uniform float uDoppler;    // 0 / 1 — relativistic beaming + redshift
+uniform float uSpin;       // spin a ∈ [0,1] — APPROXIMATE Lense-Thirring frame dragging
 uniform float uDiskTemp;   // emitted colour-temperature scale (Kelvin)
 uniform float uDiskBright; // disk brightness scale
 uniform float uExposure;
@@ -150,6 +151,17 @@ void main() {
 
     // Geodesic (Binet) acceleration — bends the ray toward the mass.
     vec3 acc     = -1.5 * h2 * pos / pow(dot(pos, pos), 2.5);
+
+    // APPROXIMATE frame dragging (Lense-Thirring gravitomagnetic dipole, spin
+    // along +Y). This is NOT the full Kerr metric: it is a physically-motivated
+    // approximation that drags photon paths azimuthally around the spin axis.
+    if (uSpin > 0.001) {
+      vec3  rh = pos / r;
+      vec3  J  = vec3(0.0, uSpin, 0.0);
+      vec3  Bg = (3.0 * dot(J, rh) * rh - J) / (r * r * r);
+      acc += 1.5 * cross(dir, Bg);
+    }
+
     vec3 posNext = pos + dir * dt + 0.5 * acc * dt * dt;
     vec3 dirNext = dir + acc * dt;
 
