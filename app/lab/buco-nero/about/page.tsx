@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { site } from "@/lib/site";
 import { BlackHoleAboutView } from "@/components/lab/black-hole-about-view";
+import "katex/dist/katex.min.css";
 import "@/components/lab/black-hole.css";
 
 const PAGE_URL = `${site.url}/lab/buco-nero/about`;

@@ -242,11 +242,14 @@
   border-radius: 7px;
 }
 .bh-about__eq-label { font-size: 0.7rem; color: #6f86ad; }
-.bh-about__eq-formula {
-  font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 0.92rem;
+.bh-about__tex {
   color: #ffd6a8;
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
 }
+.bh-about__tex .katex-display { margin: 4px 0; text-align: left; }
+.bh-about__tex .katex { font-size: 1.05em; }
 
 .bh-about__faq h3 {
   font-size: 0.92rem;

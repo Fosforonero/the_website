@@ -28,13 +28,13 @@ import { QUALITY_PRESETS, type BlackHoleQuality } from "./black-hole/black-hole-
 export type BodyKind = "planet" | "star" | "comet";
 
 export type PlaygroundHandle = {
-  spawn: (kind: BodyKind) => void;
   reset: () => void;
 };
 
 export type PlaygroundSceneProps = {
   quality: BlackHoleQuality;
   spin: number;
+  activeKind: BodyKind;
   apiRef: MutableRefObject<PlaygroundHandle | null>;
 };
 
@@ -88,7 +88,13 @@ function makeParticles(): ParticleArrays {
 // Simulation
 // ---------------------------------------------------------------------------
 
-function Simulation({ apiRef }: { apiRef: MutableRefObject<PlaygroundHandle | null> }) {
+function Simulation({
+  apiRef,
+  activeKind,
+}: {
+  apiRef: MutableRefObject<PlaygroundHandle | null>;
+  activeKind: BodyKind;
+}) {
   const bodies = useRef<Body[]>([]);
   const nextId = useRef(1);
   const groupRef = useRef<THREE.Group>(null);
@@ -112,22 +118,16 @@ function Simulation({ apiRef }: { apiRef: MutableRefObject<PlaygroundHandle | nu
     a.life[i] = life;
   }
 
-  function spawnBody(kind: BodyKind) {
-    // Start on a randomly oriented, eccentric infalling orbit close enough that
-    // the plunge / disruption happens within a few seconds.
-    const ang = Math.random() * Math.PI * 2;
-    const r0 = 7 + Math.random() * 3;
-    const incl = (Math.random() - 0.5) * 0.5; // slight inclination
-    const pos = new THREE.Vector3(
-      Math.cos(ang) * r0,
-      Math.sin(incl) * r0 * 0.25,
-      Math.sin(ang) * r0
-    );
-    // Tangential direction in the orbital plane (about +Y), well below the
-    // circular speed so the orbit is eccentric and dives toward the hole.
+  // Spawn a body at a user-chosen position (raycast point on the disk plane),
+  // with a tangential prograde velocity tuned for an eccentric infalling orbit.
+  function spawnBodyAt(kind: BodyKind, point: THREE.Vector3) {
+    const r0 = Math.hypot(point.x, point.z);
+    if (r0 < 2.5) return; // too close to the horizon to place
+    const pos = new THREE.Vector3(point.x, point.y, point.z);
     const vc = Math.sqrt(GM / r0);
-    const factor = 0.3 + Math.random() * 0.25;
-    const tang = new THREE.Vector3(-Math.sin(ang), 0, Math.cos(ang)).multiplyScalar(vc * factor);
+    const factor = 0.55; // < circular → eccentric, dives toward the hole
+    const radial = new THREE.Vector3(point.x, 0, point.z).normalize();
+    const tang = new THREE.Vector3(-radial.z, 0, radial.x).multiplyScalar(vc * factor);
     const vel = tang;
 
     const cfg =
@@ -182,7 +182,6 @@ function Simulation({ apiRef }: { apiRef: MutableRefObject<PlaygroundHandle | nu
 
   useEffect(() => {
     apiRef.current = {
-      spawn: (kind: BodyKind) => spawnBody(kind),
       reset: () => {
         bodies.current = [];
         const a = parts.current;
@@ -289,6 +288,20 @@ function Simulation({ apiRef }: { apiRef: MutableRefObject<PlaygroundHandle | nu
 
   return (
     <>
+      {/* Invisible, raycastable plane on the disk plane: a click places the
+          currently-selected body at the chosen position. A drag (handled by
+          OrbitControls) rotates the camera and does not fire onClick. */}
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        onClick={(e) => {
+          e.stopPropagation();
+          spawnBodyAt(activeKind, e.point);
+        }}
+      >
+        <planeGeometry args={[400, 400]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} colorWrite={false} />
+      </mesh>
+
       <group ref={groupRef} />
       <points ref={pointsRef} frustumCulled={false}>
         <bufferGeometry>
@@ -312,7 +325,7 @@ function Simulation({ apiRef }: { apiRef: MutableRefObject<PlaygroundHandle | nu
 // Public scene
 // ---------------------------------------------------------------------------
 
-export default function BlackHolePlaygroundScene({ quality, spin, apiRef }: PlaygroundSceneProps) {
+export default function BlackHolePlaygroundScene({ quality, spin, activeKind, apiRef }: PlaygroundSceneProps) {
   const dprCap = QUALITY_PRESETS[quality].dprCap;
   return (
     <Canvas
@@ -322,7 +335,7 @@ export default function BlackHolePlaygroundScene({ quality, spin, apiRef }: Play
       style={{ background: "#000003" }}
     >
       <BlackHoleQuad quality={quality} diskOn spin={spin} dopplerOn />
-      <Simulation apiRef={apiRef} />
+      <Simulation apiRef={apiRef} activeKind={activeKind} />
       <OrbitControls
         makeDefault
         enablePan={false}

@@ -46,7 +46,7 @@ export function BlackHoleQuad({ quality, diskOn, dopplerOn, spin }: BlackHoleSce
       uDoppler: { value: dopplerOn ? 1 : 0 },
       uSpin: { value: spin },
       uDiskTemp: { value: 9500 }, // emitted colour-temperature scale (Kelvin)
-      uDiskBright: { value: 4.0 },
+      uDiskBright: { value: 12.0 },
       uExposure: { value: 0.9 },
     }),
     // Intentionally created once — toggle changes are applied in useFrame.

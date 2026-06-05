@@ -172,23 +172,17 @@ void main() {
       float rd  = length(hit.xz);                       // in-plane radius
 
       if (rd > uDiskInner && rd < uDiskOuter) {
-        // Shakura–Sunyaev thin-disk: flux ∝ r⁻³·(1 − √(r_in/r)), T ∝ flux^¼.
+        // Physical optically-thick Shakura–Sunyaev thin disk (no artistic
+        // turbulence): emitted flux ∝ r⁻³·(1 − √(r_in/r)), T ∝ flux^¼. The
+        // surface is a local blackbody, so its intensity is set purely by T.
         float edge  = max(1.0 - sqrt(uDiskInner / rd), 0.0); // →0 at inner edge
         float flux  = pow(uDiskInner / rd, 3.0) * edge;
         float T     = uDiskTemp * pow(flux, 0.25);           // emitted temperature (K)
-        float bright = uDiskBright * flux;
-        bright *= smoothstep(uDiskOuter, uDiskOuter - 2.0, rd); // soft outer edge
 
-        // Turbulent swirl sampled in rotated disk-plane coordinates, so it is
-        // continuous all the way around the ring (no atan() texture seam).
-        // Inner radii rotate faster — Keplerian-like differential shear.
-        float omega = uTime * 0.9 / pow(rd, 1.5);
-        float ca = cos(omega), sa = sin(omega);
-        vec2  q  = mat2(ca, -sa, sa, ca) * hit.xz;
-        float swirl = 0.6 * vnoise(q * 1.3) + 0.4 * vnoise(q * 3.1);
-        bright *= 0.5 + 0.9 * swirl;
-
-        float Tobs = T;
+        // Relativistic transfer: a blackbody seen with Doppler factor g stays a
+        // blackbody at T_obs = g·T, with bolometric intensity ∝ g⁴ (the exact
+        // invariant I_ν/ν³ = const, integrated over frequency).
+        float g = 1.0;
         if (uDoppler > 0.5) {
           // Exact Schwarzschild circular-orbit speed (locally measured):
           //   v = √(M / (r − 2M)),  M = RS/2 = 0.5  →  0.5c at the ISCO.
@@ -196,13 +190,16 @@ void main() {
           vec3  tang = normalize(vec3(-hit.z, 0.0, hit.x)); // prograde about +y
           vec3  toCam = normalize(uCamPos - hit);
           float beta  = dot(tang, toCam) * v;                // line-of-sight, >0 approaching
-          // Total frequency ratio g = (orbiting-clock rate) / (longitudinal Doppler):
-          //   √(1 − 3M/r) already folds gravitational + transverse time dilation.
+          // √(1 − 3M/r) folds gravitational + transverse time dilation; the
+          // 1/(1−β) is the remaining longitudinal Doppler.
           float timeDil = sqrt(max(1.0 - 1.5 / rd, 0.0));
-          float g       = timeDil / max(1.0 - beta, 1e-3);
-          bright *= pow(g, 3.0);                              // relativistic beaming (I ∝ g³)
-          Tobs   *= g;                                        // observed colour shift (Wien)
+          g = timeDil / max(1.0 - beta, 1e-3);
         }
+        float Tobs = T * g;
+
+        // Bolometric surface brightness ∝ T_obs⁴ (Stefan–Boltzmann).
+        float bright = uDiskBright * pow(Tobs / uDiskTemp, 4.0);
+        bright *= smoothstep(uDiskOuter, uDiskOuter - 2.0, rd); // soft outer edge
 
         color = blackbody(Tobs) * bright;
         done = true; break;

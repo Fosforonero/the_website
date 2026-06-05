@@ -16,9 +16,9 @@ type Locale = "it" | "en";
 const COPY = {
   it: {
     title: "Buco Nero · Playground",
-    addPlanet: "+ Pianeta",
-    addStar: "+ Stella",
-    addComet: "+ Cometa",
+    addPlanet: "Pianeta",
+    addStar: "Stella",
+    addComet: "Cometa",
     reset: "Azzera",
     quality: "Qualità",
     qualities: { high: "Alta", medium: "Media", low: "Bassa" },
@@ -26,14 +26,14 @@ const COPY = {
     about: "Equazioni",
     back: "← Lab",
     sim: "Vista classica",
-    hint: "Aggiungi corpi e guarda il buco nero catturarli. Le stelle entro il raggio mareale vengono fatte a pezzi in uno stream.",
+    hint: "Scegli un tipo e clicca nella scena per posizionare il corpo · trascina per ruotare. Le stelle entro il raggio mareale vengono disgregate in uno stream.",
     discShort: "Dinamica con potenziale pseudo-newtoniano di Paczyński–Wiita (riproduce l'ISCO e la caduta). I corpi non sono lensati; lo stream mareale è un modello a particelle.",
   },
   en: {
     title: "Black Hole · Playground",
-    addPlanet: "+ Planet",
-    addStar: "+ Star",
-    addComet: "+ Comet",
+    addPlanet: "Planet",
+    addStar: "Star",
+    addComet: "Comet",
     reset: "Reset",
     quality: "Quality",
     qualities: { high: "High", medium: "Medium", low: "Low" },
@@ -41,7 +41,7 @@ const COPY = {
     about: "Equations",
     back: "← Lab",
     sim: "Classic view",
-    hint: "Add bodies and watch the black hole capture them. Stars within the tidal radius are torn into a debris stream.",
+    hint: "Pick a type and click in the scene to place the body · drag to rotate. Stars within the tidal radius are torn into a debris stream.",
     discShort: "Dynamics use the Paczyński–Wiita pseudo-Newtonian potential (reproduces the ISCO and the plunge). Bodies are not lensed; the tidal stream is a particle model.",
   },
 } as const;
@@ -51,9 +51,9 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
   const api = useRef<PlaygroundHandle | null>(null);
   const [quality, setQuality] = useState<BlackHoleQuality>("medium");
   const [spin, setSpin] = useState(0);
+  const [activeKind, setActiveKind] = useState<BodyKind>("star");
   const [infoOpen, setInfoOpen] = useState(true);
 
-  const spawn = (k: BodyKind) => api.current?.spawn(k);
   const aboutHref = locale === "it" ? "/lab/buco-nero/about" : "/en/lab/black-hole/about";
   const simHref = locale === "it" ? "/lab/buco-nero" : "/en/lab/black-hole";
 
@@ -63,9 +63,9 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
         <span className="bh-toolbar__title">{t.title}</span>
         <div className="bh-toolbar__sep" />
 
-        <button className="bh-control bh-control--active" onClick={() => spawn("planet")}>{t.addPlanet}</button>
-        <button className="bh-control bh-control--active" onClick={() => spawn("star")}>{t.addStar}</button>
-        <button className="bh-control bh-control--active" onClick={() => spawn("comet")}>{t.addComet}</button>
+        <button className={`bh-control${activeKind === "planet" ? " bh-control--active" : ""}`} onClick={() => setActiveKind("planet")}>{t.addPlanet}</button>
+        <button className={`bh-control${activeKind === "star" ? " bh-control--active" : ""}`} onClick={() => setActiveKind("star")}>{t.addStar}</button>
+        <button className={`bh-control${activeKind === "comet" ? " bh-control--active" : ""}`} onClick={() => setActiveKind("comet")}>{t.addComet}</button>
         <button className="bh-control" onClick={() => api.current?.reset()}>{t.reset}</button>
 
         <div className="bh-toolbar__sep bh-toolbar__hide-sm" />
@@ -95,8 +95,8 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
       </div>
 
       <div className="bh-canvas-wrap">
-        <PlaygroundScene quality={quality} spin={spin} apiRef={api} />
-        <p className="bh-hint bh-hint--hide-sm">{t.hint}</p>
+        <PlaygroundScene quality={quality} spin={spin} activeKind={activeKind} apiRef={api} />
+        <p className="bh-hint">{t.hint}</p>
 
         {infoOpen ? (
           <div className="bh-disclosure" role="note">
