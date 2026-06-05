@@ -19,7 +19,7 @@ const COPY = {
     L: "Momento angolare L", r0: "Raggio iniziale r₀", reset: "Riavvia", disk: "Disco",
     about: "Equazioni", back: "← Lab", sim: "Vista classica", presets: "Preset",
     pPrec: "Precessione", pIsco: "ISCO", pPlunge: "Caduta",
-    hint: "Geodetica di tipo-tempo esatta di Schwarzschild (non l'approssimazione del playground). L'orbita precede formando una rosetta — la stessa fisica della precessione del perielio di Mercurio. Sotto L = √3 non esistono orbite stabili → caduta. Anello arancio = ISCO (r = 6M), anello chiaro = sfera fotonica.",
+    hint: "Geodetica di tipo-tempo esatta di Schwarzschild (non l'approssimazione del playground). L'orbita precede formando una rosetta — la stessa fisica della precessione del perielio di Mercurio. Sotto L = √3 non esistono orbite stabili → caduta. Clicca nella scena per rilasciare la particella nel punto scelto. Anello arancio = ISCO (r = 6M), anello chiaro = sfera fotonica.",
     rLbl: "r (raggio)", eLbl: "E (energia)", precLbl: "Precessione / orbita", status: "Stato",
     orbiting: "in orbita", plunged: "caduto", info: "Come funziona",
   },
@@ -28,16 +28,17 @@ const COPY = {
     L: "Angular momentum L", r0: "Initial radius r₀", reset: "Restart", disk: "Disk",
     about: "Equations", back: "← Lab", sim: "Classic view", presets: "Presets",
     pPrec: "Precession", pIsco: "ISCO", pPlunge: "Plunge",
-    hint: "Exact Schwarzschild timelike geodesic (not the playground's approximation). The orbit precesses into a rosette — the same physics as Mercury's perihelion precession. Below L = √3 there are no stable orbits → plunge. Orange ring = ISCO (r = 6M), light ring = photon sphere.",
+    hint: "Exact Schwarzschild timelike geodesic (not the playground's approximation). The orbit precesses into a rosette — the same physics as Mercury's perihelion precession. Below L = √3 there are no stable orbits → plunge. Click in the scene to release the particle at the chosen point. Orange ring = ISCO (r = 6M), light ring = photon sphere.",
     rLbl: "r (radius)", eLbl: "E (energy)", precLbl: "Precession / orbit", status: "Status",
     orbiting: "orbiting", plunged: "plunged", info: "How it works",
   },
 } as const;
 
 const PRESETS: Record<string, OrbitParams> = {
-  prec: { L: 1.9, r0: 20 },
+  // Same start radius, different L: one precesses forever, the other plunges.
+  prec: { L: 2.1, r0: 14 },
   isco: { L: 1.7321, r0: 3.02 },
-  plunge: { L: 1.62, r0: 12 },
+  plunge: { L: 1.5, r0: 14 },
 };
 
 export function BlackHoleOrbitView({ locale = "it" }: { locale?: Locale }) {
@@ -106,7 +107,8 @@ export function BlackHoleOrbitView({ locale = "it" }: { locale?: Locale }) {
       </div>
 
       <div className="bh-canvas-wrap">
-        <OrbitScene quality={quality} diskOn={diskOn} params={params} apiRef={api} readoutRef={readout} />
+        <OrbitScene quality={quality} diskOn={diskOn} params={params} apiRef={api} readoutRef={readout}
+          onPlace={(r0, phi0) => setParams((p) => ({ ...p, r0, phi0 }))} />
         <p className="bh-hint bh-hint--hide-sm">{t.hint}</p>
 
         <div className="bh-readout">

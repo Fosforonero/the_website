@@ -495,8 +495,8 @@ export default function BlackHolePlaygroundScene({ quality, spin, diskOn, jetsOn
         dampingFactor={0.08}
         rotateSpeed={0.5}
         zoomSpeed={0.8}
-        minDistance={5}
-        maxDistance={70}
+        minDistance={2}
+        maxDistance={220}
       />
       <EffectComposer>
         <Bloom intensity={1.3} luminanceThreshold={0.5} luminanceSmoothing={0.8} mipmapBlur />

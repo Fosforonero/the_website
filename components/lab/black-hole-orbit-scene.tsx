@@ -27,7 +27,7 @@ const ISCO = 3.0;            // 6M
 const R_PHOTON = 1.5;        // photon sphere
 const TRAIL = 5000;
 
-export type OrbitParams = { L: number; r0: number };
+export type OrbitParams = { L: number; r0: number; phi0?: number };
 export type OrbitReadout = {
   r: number; E: number; L: number; precessionDeg: number;
   status: "orbiting" | "plunged";
@@ -39,6 +39,7 @@ export type OrbitSceneProps = {
   params: OrbitParams;
   apiRef: MutableRefObject<OrbitHandle | null>;
   readoutRef: MutableRefObject<OrbitReadout | null>;
+  onPlace?: (r0: number, phi0: number) => void; // click to set the start point
 };
 
 function uAccel(u: number, L: number): number {
@@ -85,7 +86,7 @@ function OrbitBody({ params, apiRef, readoutRef }: Omit<OrbitSceneProps, "qualit
 
   function init(p: OrbitParams) {
     const s = st.current;
-    s.u = 1 / p.r0; s.du = 0; s.phi = 0; s.L = p.L;
+    s.u = 1 / p.r0; s.du = 0; s.phi = p.phi0 ?? 0; s.L = p.L;
     s.E = specificEnergy(p.r0, p.L);
     s.count = 0; s.plunged = false; s.lastPeri = 0; s.precDeg = 0;
     lineObj.geometry.setDrawRange(0, 0);
@@ -176,7 +177,7 @@ function OrbitBody({ params, apiRef, readoutRef }: Omit<OrbitSceneProps, "qualit
   );
 }
 
-export default function BlackHoleOrbitScene({ quality, diskOn, params, apiRef, readoutRef }: OrbitSceneProps) {
+export default function BlackHoleOrbitScene({ quality, diskOn, params, apiRef, readoutRef, onPlace }: OrbitSceneProps) {
   const dprCap = QUALITY_PRESETS[quality].dprCap;
   return (
     <Canvas
@@ -187,8 +188,21 @@ export default function BlackHoleOrbitScene({ quality, diskOn, params, apiRef, r
     >
       <BlackHoleQuad quality={quality} diskOn={diskOn} spin={0} dopplerOn jetsOn={false} />
       <OrbitBody params={params} apiRef={apiRef} readoutRef={readoutRef} />
+      {/* Click on the orbital plane to release the particle at that point. */}
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        onClick={(e) => {
+          e.stopPropagation();
+          const x = e.point.x, z = e.point.z;
+          const r0 = Math.hypot(x, z);
+          if (r0 > 1.2 && onPlace) onPlace(r0, Math.atan2(z, x));
+        }}
+      >
+        <planeGeometry args={[400, 400]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} colorWrite={false} />
+      </mesh>
       <OrbitControls makeDefault enablePan={false} enableDamping dampingFactor={0.08}
-        rotateSpeed={0.5} zoomSpeed={0.8} minDistance={5} maxDistance={90} />
+        rotateSpeed={0.5} zoomSpeed={0.8} minDistance={2} maxDistance={220} />
       <EffectComposer>
         <Bloom intensity={0.9} luminanceThreshold={0.4} luminanceSmoothing={0.85} mipmapBlur />
       </EffectComposer>

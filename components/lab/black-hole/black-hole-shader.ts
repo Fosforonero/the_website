@@ -252,13 +252,16 @@ void main() {
         float omega = uTime * 1.4 / pow(rd, 1.5);
         float ca = cos(omega), sa = sin(omega);
         vec2  q  = mat2(ca, -sa, sa, ca) * hit.xz;
-        // anisotropic stretch → sheared, gas-like streaks along the flow.
-        vec2  qs = vec2(q.x, q.y * 1.8);
-        float turb = 0.50 * vnoise(qs * 0.45)
-                   + 0.30 * vnoise(qs * 1.05)
-                   + 0.20 * vnoise(qs * 2.30);
-        turb = pow(clamp(turb, 0.0, 1.0), 1.35); // contrast → visible rotating bands
-        bright *= 0.30 + 1.6 * turb;
+        // FBM with a per-octave rotation+offset so the value-noise grid never
+        // aligns into a visible checkerboard ("quadrettatura"). The rotation
+        // also gives the gas a swirled, filamentary look.
+        mat2 rot = mat2(0.80, -0.60, 0.60, 0.80);
+        vec2 p = q * 0.5;
+        float turb = 0.50 * vnoise(p);            p = rot * p * 2.1 + 11.5;
+        turb      += 0.30 * vnoise(p);            p = rot * p * 2.1 + 4.7;
+        turb      += 0.20 * vnoise(p);
+        turb = pow(clamp(turb, 0.0, 1.0), 1.3);   // contrast → visible rotating bands
+        bright *= 0.34 + 1.5 * turb;
 
         color = blackbody(Tobs) * bright;
         outDepth = depthFromWorld(hit);
