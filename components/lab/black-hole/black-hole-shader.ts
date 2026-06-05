@@ -71,14 +71,22 @@ float hash31(vec3 p) {
   p *= 17.0;
   return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
 }
-float vnoise(vec2 p) {
+// Gradient (Perlin-style) noise with a quintic fade (C² continuous). Unlike
+// value noise it carries no value plateaus, so it never shows the diamond/
+// triangle lattice facets that appear when the disk is seen nearly edge-on in
+// the foreground. Remapped to [0,1].
+vec2 grad2(vec2 i) {
+  float a = hash21(i) * 6.2831853; // random gradient direction
+  return vec2(cos(a), sin(a));
+}
+float gnoise(vec2 p) {
   vec2 i = floor(p), f = fract(p);
-  vec2 u = f * f * (3.0 - 2.0 * f);
-  float a = hash21(i + vec2(0.0, 0.0));
-  float b = hash21(i + vec2(1.0, 0.0));
-  float c = hash21(i + vec2(0.0, 1.0));
-  float d = hash21(i + vec2(1.0, 1.0));
-  return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+  vec2 u = f * f * f * (f * (f * 6.0 - 15.0) + 10.0); // quintic fade
+  float a = dot(grad2(i + vec2(0.0, 0.0)), f - vec2(0.0, 0.0));
+  float b = dot(grad2(i + vec2(1.0, 0.0)), f - vec2(1.0, 0.0));
+  float c = dot(grad2(i + vec2(0.0, 1.0)), f - vec2(0.0, 1.0));
+  float d = dot(grad2(i + vec2(1.0, 1.0)), f - vec2(1.0, 1.0));
+  return 0.5 + 0.5 * mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
 }
 
 // ── background star field (sampled with the final, lensed ray direction) ────
@@ -271,15 +279,19 @@ void main() {
         float omega = uTime * 1.4 / pow(rd, 1.5);
         float ca = cos(omega), sa = sin(omega);
         vec2  q  = mat2(ca, -sa, sa, ca) * hit.xz;
-        // FBM with a per-octave rotation+offset so the value-noise grid never
-        // aligns into a visible checkerboard ("quadrettatura"). The rotation
-        // also gives the gas a swirled, filamentary look.
+        // FBM of GRADIENT noise (no lattice facets), with a per-octave rotation
+        // so octaves never align into a grid, plus a domain warp that breaks up
+        // the coarse base cells — otherwise, seen edge-on in the foreground, the
+        // largest cell shows as flat triangular facets ("maglia" sul disco).
         mat2 rot = mat2(0.80, -0.60, 0.60, 0.80);
-        vec2 p = q * 0.5;
-        float turb = 0.50 * vnoise(p);            p = rot * p * 2.1 + 11.5;
-        turb      += 0.30 * vnoise(p);            p = rot * p * 2.1 + 4.7;
-        turb      += 0.20 * vnoise(p);
-        turb = pow(clamp(turb, 0.0, 1.0), 1.3);   // contrast → visible rotating bands
+        vec2 p = q * 0.6;
+        vec2 warp = vec2(gnoise(p + 3.1), gnoise(p + 7.7)) - 0.5;
+        p += 0.7 * warp;                          // domain warp → swirled, no facets
+        float turb = 0.50 * gnoise(p);            p = rot * p * 2.0 + 11.5;
+        turb      += 0.28 * gnoise(p);            p = rot * p * 2.0 + 4.7;
+        turb      += 0.15 * gnoise(p);            p = rot * p * 2.0 + 19.2;
+        turb      += 0.07 * gnoise(p);
+        turb = pow(clamp(turb, 0.0, 1.0), 1.25);  // contrast → visible rotating bands
         bright *= 0.34 + 1.5 * turb;
 
         color = blackbody(Tobs) * bright;
