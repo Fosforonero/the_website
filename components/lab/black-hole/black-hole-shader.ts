@@ -167,10 +167,14 @@ void main() {
         float bright = uDiskBright * flux;
         bright *= smoothstep(uDiskOuter, uDiskOuter - 2.0, rd); // soft outer edge
 
-        // Turbulent swirl, animated, sheared by radius (differential rotation).
-        float ang   = atan(hit.z, hit.x);
-        float swirl = vnoise(vec2(ang * 3.0 + uTime * 0.6 - rd * 1.5, rd * 1.2));
-        bright *= 0.55 + 0.85 * swirl;
+        // Turbulent swirl sampled in rotated disk-plane coordinates, so it is
+        // continuous all the way around the ring (no atan() texture seam).
+        // Inner radii rotate faster — Keplerian-like differential shear.
+        float omega = uTime * 0.9 / pow(rd, 1.5);
+        float ca = cos(omega), sa = sin(omega);
+        vec2  q  = mat2(ca, -sa, sa, ca) * hit.xz;
+        float swirl = 0.6 * vnoise(q * 1.3) + 0.4 * vnoise(q * 3.1);
+        bright *= 0.5 + 0.9 * swirl;
 
         float Tobs = T;
         if (uDoppler > 0.5) {
