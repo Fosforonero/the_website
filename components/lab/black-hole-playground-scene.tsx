@@ -55,6 +55,7 @@ function tidalRadiusFor(kind: BodyKind): number {
 const DISK_IN = 3.0;      // accretion-disk inner radius (matches the shader)
 const DISK_OUT = 16.0;    // accretion-disk outer radius
 const MASS_TRANSFER_RADIUS = 11.0; // bodies inside this shed matter toward the BH
+const C_CAP = 0.985;     // speed-of-light cap (c = 1 in geometric units)
 const MAX_PARTICLES = 2400;
 
 type Body = {
@@ -316,6 +317,9 @@ function Simulation({
           tmp.addScaledVector(tmp2, o.mass / (d2 * Math.sqrt(d2)));
         }
         b.vel.addScaledVector(tmp, h);
+        // No body may exceed the speed of light (c = 1 in geometric units).
+        const sp = b.vel.length();
+        if (sp > C_CAP) b.vel.multiplyScalar(C_CAP / sp);
         b.pos.addScaledVector(b.vel, h);
       }
       for (let k = 0; k < a.count; k++) {
@@ -325,6 +329,14 @@ function Simulation({
         a.vel[k * 3] = a.vel[k * 3]! + tmp2.x * h;
         a.vel[k * 3 + 1] = a.vel[k * 3 + 1]! + tmp2.y * h;
         a.vel[k * 3 + 2] = a.vel[k * 3 + 2]! + tmp2.z * h;
+        // Cap particle speed at c as well.
+        const psp = Math.hypot(a.vel[k * 3]!, a.vel[k * 3 + 1]!, a.vel[k * 3 + 2]!);
+        if (psp > C_CAP) {
+          const s = C_CAP / psp;
+          a.vel[k * 3] = a.vel[k * 3]! * s;
+          a.vel[k * 3 + 1] = a.vel[k * 3 + 1]! * s;
+          a.vel[k * 3 + 2] = a.vel[k * 3 + 2]! * s;
+        }
         a.pos[k * 3] = tmp.x + a.vel[k * 3]! * h;
         a.pos[k * 3 + 1] = tmp.y + a.vel[k * 3 + 1]! * h;
         a.pos[k * 3 + 2] = tmp.z + a.vel[k * 3 + 2]! * h;
