@@ -123,6 +123,13 @@ vec3 blackbody(float kelvin) {
   return mix(c, vec3(1.0), smoothstep(1000.0, 0.0, t));
 }
 
+// ACES filmic tone mapping (Narkowicz approximation): keeps saturation and
+// rolls highlights smoothly to white — the luminous, cinematic look.
+vec3 acesFilmic(vec3 x) {
+  const float a = 2.51, b = 0.03, c = 2.43, d = 0.59, e = 0.14;
+  return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
+}
+
 // Window-space depth [0,1] of a world point, for occluding composited 3D
 // objects (planets, moons, debris) behind the disk / shadow.
 float depthFromWorld(vec3 wp) {
@@ -161,8 +168,12 @@ void main() {
       done = true; break;
     }
 
-    // Adaptive step: fine near the hole, coarse far away.
+    // Adaptive step: fine near the hole, coarse far away. Extra refinement just
+    // outside the photon sphere lets a ray wind several times and hit the disk
+    // on later crossings — the RETURNING RADIATION that builds the photon ring
+    // from the disk's own light (higher-order images), not an analytic fake.
     float dt = clamp(r * 0.10, 0.02, 0.6);
+    if (r < 6.0) dt = min(dt, 0.016 + 0.045 * (r - 1.0));
 
     // Relativistic jets: optically-thin, collimated emission along the spin
     // axis (±Y). Accumulated along the (lensed) ray, so the beams bend near
@@ -265,23 +276,16 @@ void main() {
   // Jet emission accumulated along the (lensed) ray.
   color += jetAccum;
 
-  // Photon ring: light that skims the photon sphere has impact parameter near
-  // the critical value b_c = 3√3·M = 1.5√3·r_s ≈ 2.598, piling up into a thin
-  // bright ring outlining the shadow (the "most striking feature" of real
-  // black-hole images). Emphasise it as a sharp glow in b = √h².
-  // ...but only where the opaque disk is not in front of it (otherwise the ring
-  // would incorrectly bleed over the disk surface).
-  if (!hitDisk) {
-    float b  = sqrt(h2);
-    float bc = 2.598076;
-    float ring = exp(-pow((b - bc) / 0.045, 2.0))        // sharp primary ring
-               + 0.35 * exp(-pow((b - bc) / 0.16, 2.0)); // soft surrounding halo
-    color += vec3(1.0, 0.97, 0.92) * ring * 0.85;
-  }
+  // The photon ring is no longer drawn analytically: it now emerges physically
+  // from the returning radiation (higher-order disk images piling up near the
+  // shadow, captured by the refined stepping above) — same colour as the disk,
+  // so it merges with the secondary image instead of being a separate white band.
 
-  // Exposure + Reinhard tone map + gamma.
+  // Exposure + ACES filmic tone map + gamma. ACES keeps saturation and rolls
+  // bright highlights to white (the luminous, cinematic look) instead of the
+  // flat, washed-out Reinhard curve.
   color *= uExposure;
-  color = color / (1.0 + color);
+  color = acesFilmic(color);
   color = pow(color, vec3(1.0 / 2.2));
 
   fragColor = vec4(color, 1.0);

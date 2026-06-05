@@ -47,11 +47,11 @@ export function BlackHoleQuad({ quality, diskOn, dopplerOn, spin, jetsOn }: Blac
       uDiskOn: { value: diskOn ? 1 : 0 },
       uDoppler: { value: dopplerOn ? 1 : 0 },
       uSpin: { value: spin },
-      uDiskTemp: { value: 9500 }, // emitted colour-temperature scale (Kelvin)
-      uDiskBright: { value: 12.0 },
+      uDiskTemp: { value: 10500 }, // emitted colour-temperature scale (Kelvin)
+      uDiskBright: { value: 34.0 }, // bright, white-hot inner disk (ACES rolls highlights)
       uJets: { value: jetsOn ? 1 : 0 },
       uJetStr: { value: 0.7 },
-      uExposure: { value: 0.9 },
+      uExposure: { value: 1.15 },
     }),
     // Intentionally created once — toggle changes are applied in useFrame.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -131,9 +131,9 @@ export default function BlackHoleScene({
 
       <EffectComposer>
         <Bloom
-          intensity={0.6}
-          luminanceThreshold={0.6}
-          luminanceSmoothing={0.85}
+          intensity={1.3}
+          luminanceThreshold={0.5}
+          luminanceSmoothing={0.8}
           mipmapBlur
         />
       </EffectComposer>
