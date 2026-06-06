@@ -13,6 +13,7 @@ import {
 } from "./black-hole/black-hole-shader";
 import { BlackHoleGrid } from "./black-hole-grid";
 import { DISK_FLUX_LUT } from "./black-hole/physics";
+import { DitherEffect } from "./black-hole/dither-effect";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -157,6 +158,7 @@ export default function BlackHoleScene({
           luminanceSmoothing={0.75}
           mipmapBlur
         />
+        <DitherEffect />
       </EffectComposer>
     </Canvas>
   );

@@ -6,6 +6,7 @@ import { OrbitControls } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
 import { BlackHoleQuad } from "./black-hole-scene";
+import { DitherEffect } from "./black-hole/dither-effect";
 import { QUALITY_PRESETS, type BlackHoleQuality } from "./black-hole/black-hole-shader";
 
 // ---------------------------------------------------------------------------
@@ -227,6 +228,7 @@ export default function BlackHoleOrbitScene({ quality, diskOn, params, apiRef, r
         rotateSpeed={0.5} zoomSpeed={0.8} minDistance={2} maxDistance={600} />
       <EffectComposer frameBufferType={THREE.HalfFloatType}>
         <Bloom intensity={0.9} luminanceThreshold={0.4} luminanceSmoothing={0.85} mipmapBlur />
+        <DitherEffect />
       </EffectComposer>
     </Canvas>
   );

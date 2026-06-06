@@ -7,6 +7,7 @@ import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
 import { BlackHoleQuad } from "./black-hole-scene";
 import { BlackHoleGrid } from "./black-hole-grid";
+import { DitherEffect } from "./black-hole/dither-effect";
 import { QUALITY_PRESETS, type BlackHoleQuality } from "./black-hole/black-hole-shader";
 
 // ---------------------------------------------------------------------------
@@ -646,6 +647,7 @@ export default function BlackHolePlaygroundScene({ quality, spin, diskOn, jetsOn
       />
       <EffectComposer frameBufferType={THREE.HalfFloatType}>
         <Bloom intensity={1.0} luminanceThreshold={0.62} luminanceSmoothing={0.75} mipmapBlur />
+        <DitherEffect />
       </EffectComposer>
     </Canvas>
   );
