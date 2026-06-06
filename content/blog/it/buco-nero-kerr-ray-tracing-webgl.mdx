@@ -1,0 +1,41 @@
+---
+title: "Ray-tracing relativistico in tempo reale: un buco nero di Kerr in WebGL"
+excerpt: "Note tecniche su come ho reso le geodetiche nulle esatte della metrica di Kerr in un fragment shader WebGL: forma di Kerr–Schild, integratori (Eulero, RK4, Yoshida via Tao), disco di corpo nero e la battaglia col compilatore shader mobile."
+date: "2026-06-06"
+tag: "Dev"
+draft: true
+---
+
+La parte facile di un simulatore di buco nero sono i dati. La parte difficile è far girare la **relatività generale** dentro i ~16 millisecondi a fotogramma di un fragment shader WebGL — su un telefono.
+
+Queste sono le note tecniche di come ho reso un [buco nero di Kerr](/lab/buco-nero) in tempo reale.
+
+## Geodetiche, non texture
+
+Il cuore è un ray-marcher: per ogni pixel integro la **geodetica nulla** del fotone nello spazio-tempo curvo. Uso la metrica di Kerr in forma **di Kerr–Schild cartesiana** — niente singolarità di coordinate all'orizzonte, asintoticamente piatta, così il momento iniziale del fotone alla camera è semplicemente la direzione del raggio. A spin zero si riduce esattamente a Schwarzschild.
+
+L'integrazione è hamiltoniana: il _drift_ `ẋ = ∂H/∂p` in forma chiusa, il _kick_ `ṗ = −½∇Hq` per differenze finite, con passo adattivo — fine vicino al buco (dove la curvatura conta e si forma il photon ring), grosso lontano, dopo un avanzamento analitico in linea retta fino alla sfera d'influenza.
+
+## Tre integratori per tre problemi
+
+- **Eulero simplettico** (qualità media/bassa): un gradiente per passo, economico.
+- **Runge–Kutta 4° ordine** (alta): errore di deflessione ~10⁻⁷ rad, verificato offline contro una soluzione di riferimento.
+- **Yoshida 6° ordine simplettico** (modalità Ultra): l'hamiltoniana nulla è _non-separabile_, quindi il leapfrog classico non basta — serve il trucco di **Tao (2016)**, che estende lo spazio delle fasi. La demo «Orbite», che ha invece l'equazione di Binet _separabile_, usa un Yoshida diretto: il drift dell'invariante di energia resta dell'ordine di 10⁻¹³, e lo mostro dal vivo.
+
+## Il disco e il colore
+
+Il disco è una superficie a **profondità ottica** con emissione di corpo nero: ogni anello ha una temperatura (profilo relativistico di disco sottile, via Stefan–Boltzmann, con bordo interno all'ISCO di Kerr) e mostro il vero colore planckiano, spostato dal fattore Doppler relativistico _g_. Quest'ultimo è un invariante esatto (`I_ν/ν³ = cost`): un corpo nero visto con fattore _g_ resta un corpo nero a temperatura _g·T_. Niente palette arbitrarie.
+
+## La battaglia col compilatore shader mobile
+
+L'errore più istruttivo. Avevo aggiunto l'integratore simplettico al 6° ordine (Tao + Yoshida) nello shader. Su desktop: perfetto. Su mobile: il **disco spariva** — anche in qualità media.
+
+La causa non era la _velocità_: era la _dimensione_. Quel codice veniva compilato nell'**unico** fragment shader, sempre, e superava il limite di compilazione della GPU del telefono → falliva l'intero rettangolo a schermo intero (lensing e disco insieme). La soluzione: isolarlo dietro un `#define` GLSL, così il codice di Tao viene compilato **solo** quando selezioni «Ultra». Lo shader di default resta piccolo e gira ovunque.
+
+Lezione: su WebGL mobile non conta solo quanto è veloce uno shader, ma quanto è grande il programma da compilare.
+
+## Stack e onestà
+
+Three.js + React Three Fiber, GLSL3, pipeline a 16-bit con dithering anti-banding, KaTeX per le equazioni. Ogni approssimazione è dichiarata: il disco è un modello (non una soluzione GRMHD), i getti sono stilizzati. La derivazione completa, con le fonti accademiche, è nella [pagina delle equazioni](/lab/buco-nero/about).
+
+[Apri la simulazione →](/lab/buco-nero) · [Le equazioni →](/lab/buco-nero/about)

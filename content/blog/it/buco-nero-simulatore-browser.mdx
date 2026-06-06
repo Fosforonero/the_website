@@ -1,0 +1,33 @@
+---
+title: "Un vero buco nero nel browser: cosa ho costruito e cosa puoi farci"
+excerpt: "Ho costruito un simulatore di buco nero che calcola la fisica reale — lensing gravitazionale, metrica di Kerr, disco di accrescimento — in tempo reale nel browser. Non è un effetto grafico: è relatività generale, pixel per pixel."
+date: "2026-06-06"
+tag: "Dev"
+draft: true
+---
+
+Per anni i buchi neri li ho visti solo come immagini: la foto sgranata dell'Event Horizon Telescope, il Gargantua di _Interstellar_, qualche render. Volevo qualcosa di diverso — un buco nero che si potesse **toccare**: ruotare, zoomare, modificare — e che fosse **fisica vera**, non un effetto grafico.
+
+Così ho costruito un [simulatore di buco nero](/lab/buco-nero) che gira in tempo reale nel browser, gratis e senza installare nulla.
+
+## Non lo disegno, lo calcolo
+
+La differenza è tutta qui. Per ogni singolo pixel dello schermo il programma lancia un raggio di luce e lo fa cadere nello spazio-tempo curvo attorno al buco nero, seguendo la **geodetica nulla esatta** della metrica — la stessa traiettoria che percorre un fotone reale, ottenuta risolvendo numericamente le equazioni della relatività generale.
+
+Da questo unico gesto nascono **da sole** tutte le cose che vedi: la luce piegata (lensing gravitazionale), la sfera fotonica, l'ombra centrale e il sottile anello di fotoni. Nessuna è disegnata a mano.
+
+## Cosa puoi farci
+
+- **Far ruotare il buco nero** con lo slider Spin: non è un trucco, è la **metrica di Kerr esatta** ray-tracciata in tempo reale — la stessa del Gargantua di _Interstellar_, che però fu calcolato offline, ore per fotogramma. Compaiono l'ombra asimmetrica e il frame-dragging reali.
+- **Il disco di accrescimento** brilla del vero colore di corpo nero della sua temperatura, deformato dall'effetto Doppler relativistico: un lato abbagliante, l'altro cupo.
+- La modalità **EHT** imita la vera foto dell'Event Horizon Telescope; la modalità **Starless** trasforma lo sfondo in una Via Lattea lensata dal buco.
+- Nel [Playground](/lab/buco-nero/playground) puoi lanciare stelle, pianeti e comete e guardarle **disgregarsi** (spaghettificazione) nel campo mareale, con tanto di onde gravitazionali e fusioni.
+- La demo [Orbite](/lab/buco-nero/orbite) integra le orbite relativistiche esatte — precessione del periastro, ISCO — con una diagnostica di conservazione dal vivo.
+
+## Onestà prima di tutto
+
+Quello che è fisica reale è fisica reale; quello che è approssimato è **dichiarato apertamente**. Il lensing e le orbite sono esatti; il disco è un modello (niente magnetoidrodinamica, che richiederebbe ore di calcolo per fotogramma). Nella [pagina delle equazioni](/lab/buco-nero/about) c'è tutta la matematica con le fonti, e nelle [FAQ](/lab/buco-nero/faq) le risposte alle domande che si fanno tutti — da «cosa succede se ci cadi dentro» a «il tempo rallenta davvero».
+
+Nessun trucco nascosto. È un buco nero vero, calcolato pixel per pixel, nel tuo browser.
+
+[Apri la simulazione →](/lab/buco-nero)

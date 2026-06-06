@@ -1,0 +1,41 @@
+---
+title: "Real-time relativistic ray tracing: a Kerr black hole in WebGL"
+excerpt: "Technical notes on rendering the exact Kerr null geodesics in a WebGL fragment shader: Kerr–Schild form, integrators (Euler, RK4, Yoshida via Tao), a blackbody disk, and the fight with the mobile shader compiler."
+date: "2026-06-06"
+tag: "Dev"
+draft: true
+---
+
+The easy part of a black hole simulator is the data. The hard part is running **general relativity** inside the ~16 milliseconds per frame of a WebGL fragment shader — on a phone.
+
+These are the technical notes on how I rendered a [Kerr black hole](/en/lab/black-hole) in real time.
+
+## Geodesics, not textures
+
+The core is a ray-marcher: for every pixel I integrate the photon's **null geodesic** through curved spacetime. I use the Kerr metric in **Cartesian Kerr–Schild form** — no coordinate singularity at the horizon, asymptotically flat, so the photon's initial momentum at the camera is simply the ray direction. At zero spin it reduces exactly to Schwarzschild.
+
+The integration is Hamiltonian: the _drift_ `ẋ = ∂H/∂p` in closed form, the _kick_ `ṗ = −½∇Hq` by finite differences, with an adaptive step — fine near the hole (where curvature matters and the photon ring forms), coarse far away, after an analytic straight-line advance to the influence sphere.
+
+## Three integrators for three problems
+
+- **Symplectic Euler** (medium/low quality): one gradient per step, cheap.
+- **4th-order Runge–Kutta** (high): deflection error ~10⁻⁷ rad, verified offline against a reference solution.
+- **6th-order Yoshida symplectic** (Ultra mode): the null Hamiltonian is _non-separable_, so plain leapfrog isn't enough — it needs **Tao's (2016)** trick of extending the phase space. The "Orbits" demo, which instead has the _separable_ Binet equation, uses a direct Yoshida: the energy-invariant drift stays around 10⁻¹³, shown live.
+
+## The disk and the colour
+
+The disk is an **optical-depth** surface with blackbody emission: each ring has a temperature (a relativistic thin-disk profile via Stefan–Boltzmann, with the inner edge at the Kerr ISCO) and I show the true Planckian colour, shifted by the relativistic Doppler factor _g_. That factor is an exact invariant (`I_ν/ν³ = const`): a blackbody seen with factor _g_ stays a blackbody at _g·T_. No arbitrary palettes.
+
+## The fight with the mobile shader compiler
+
+The most instructive bug. I had added the 6th-order symplectic integrator (Tao + Yoshida) into the shader. On desktop: perfect. On mobile: the **disk disappeared** — even at medium quality.
+
+The cause wasn't _speed_, it was _size_. That code was compiled into the **single** fragment shader, always, and it exceeded the phone GPU's shader-compile budget → the whole full-screen quad failed (lensing and disk together). The fix: gate it behind a GLSL `#define`, so the Tao code is compiled **only** when you pick "Ultra". The default shader stays small and runs everywhere.
+
+Lesson: on mobile WebGL it's not just how _fast_ a shader is, but how _big_ the program is to compile.
+
+## Stack and honesty
+
+Three.js + React Three Fiber, GLSL3, a 16-bit pipeline with anti-banding dithering, KaTeX for the equations. Every approximation is declared: the disk is a model (not a GRMHD solution), the jets are stylized. The full derivation, with academic sources, is on the [equations page](/en/lab/black-hole/about).
+
+[Open the simulation →](/en/lab/black-hole) · [The equations →](/en/lab/black-hole/about)
