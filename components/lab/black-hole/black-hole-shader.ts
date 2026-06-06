@@ -287,7 +287,7 @@ void main() {
                           : (abs(pos.y) < abs(posNext.y) ? 0.0 : 1.0);
       vec3  hit = mix(pos, posNext, tt);
       float rd  = kerrR(hit, kerrA);                    // Boyer–Lindquist radius in the disk plane
-      float H   = 0.05 + 0.007 * rd;                    // disk scale height (thin, slight flare)
+      float H   = 0.03 + 0.22 * exp(-(rd - 3.0) * 0.25);  // puffy inner, thin outer
 
       if ((cross || abs(hit.y) < H) && rd > uDiskInner && rd < uDiskOuter) {
         // Physical optically-thick relativistic thin disk: exact Page–Thorne
