@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import type { BlackHoleQuality } from "./black-hole/black-hole-shader";
+import { bhFacts, diskColorTempForMass } from "./black-hole/physics";
 
 // WebGL Canvas must never run on the server.
 const BlackHoleScene = dynamic(() => import("./black-hole-scene"), {
@@ -12,6 +13,38 @@ const BlackHoleScene = dynamic(() => import("./black-hole-scene"), {
 });
 
 type Locale = "it" | "en";
+
+// ── compact number formatting for the real-scale panel ──────────────────────
+const SUP: Record<string, string> = {
+  "-": "⁻", "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴",
+  "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹",
+};
+const sup = (n: number) => String(n).split("").map((ch) => SUP[ch] ?? ch).join("");
+function sci(x: number, d = 1): string {
+  if (!isFinite(x) || x === 0) return "0";
+  const e = Math.floor(Math.log10(Math.abs(x)));
+  if (e >= -1 && e <= 3) return x >= 100 ? x.toFixed(0) : parseFloat(x.toPrecision(3)).toString();
+  return `${(x / 10 ** e).toFixed(d)}×10${sup(e)}`;
+}
+const AU_KM = 1.495978707e8;
+const YR_S = 3.15576e7;
+function fmtMass(m: number): string {
+  return m < 1e4 ? `${m >= 10 ? m.toFixed(0) : m.toFixed(1)} M☉` : `${sci(m)} M☉`;
+}
+function fmtLen(km: number): string {
+  if (km < 1) return `${(km * 1000).toFixed(0)} m`;
+  if (km < 1e7) return `${sci(km)} km`;
+  return `${sci(km / AU_KM)} AU`;
+}
+function fmtTime(s: number): string {
+  if (s < 1e-3) return `${(s * 1e6).toFixed(0)} µs`;
+  if (s < 1) return `${(s * 1e3).toFixed(1)} ms`;
+  if (s < 60) return `${s.toFixed(2)} s`;
+  if (s < 3600) return `${(s / 60).toFixed(1)} min`;
+  if (s < 8.64e4) return `${(s / 3600).toFixed(1)} h`;
+  if (s < 3.15e9) return `${(s / 8.64e4).toFixed(1)} d`;
+  return `${sci(s / YR_S)} yr`;
+}
 
 const COPY = {
   it: {
@@ -30,6 +63,14 @@ const COPY = {
     about: "Equazioni e crediti",
     playground: "Playground",
     orbits: "Orbite",
+    physics: "Scala reale",
+    phys: {
+      title: "Scala reale", mass: "Massa", close: "Chiudi",
+      note: "La massa fissa solo il colore del disco (il trend reale); le dimensioni in scena restano compresse per visibilità.",
+      rs: "Raggio di Schwarzschild", isco: "ISCO (orbita più interna)", tIsco: "Periodo orbitale all'ISCO",
+      diskPeak: "T disco interno (~Eddington)", hawking: "Temperatura di Hawking",
+      entropy: "Entropia (S/k_B)", evap: "Tempo di evaporazione",
+    },
     closeInfo: "Chiudi",
     openInfo: "ⓘ Info",
     discTitle: "Cosa stai guardando (e cosa no)",
@@ -57,6 +98,14 @@ const COPY = {
     about: "Equations & credits",
     playground: "Playground",
     orbits: "Orbits",
+    physics: "Real scale",
+    phys: {
+      title: "Real scale", mass: "Mass", close: "Close",
+      note: "Mass only sets the disk colour (the real trend); on-scene sizes stay compressed for visibility.",
+      rs: "Schwarzschild radius", isco: "ISCO (innermost orbit)", tIsco: "Orbital period at the ISCO",
+      diskPeak: "Inner-disk T (~Eddington)", hawking: "Hawking temperature",
+      entropy: "Entropy (S/k_B)", evap: "Evaporation time",
+    },
     closeInfo: "Close",
     openInfo: "ⓘ Info",
     discTitle: "What you are seeing (and what you are not)",
@@ -81,6 +130,10 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
   const [diskTemp, setDiskTemp] = useState(10500);
   const [diskBright, setDiskBright] = useState(24);
   const [diskOuter, setDiskOuter] = useState(16);
+  const [massSolar, setMassSolar] = useState(10);
+  const [physOpen, setPhysOpen] = useState(false);
+  const onMass = (m: number) => { setMassSolar(m); setDiskTemp(diskColorTempForMass(m)); };
+  const facts = bhFacts(massSolar);
   const [infoOpen, setInfoOpen] = useState(false);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -168,6 +221,13 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
             onChange={(e) => setDiskOuter(parseFloat(e.target.value))} style={{ width: 80 }} />
         </label>
 
+        <button
+          className={`bh-control${physOpen ? " bh-control--active" : ""}`}
+          onClick={() => setPhysOpen((v) => !v)}
+        >
+          {t.physics}
+        </button>
+
         <div className="bh-toolbar__sep" />
         <Link href={playgroundHref} className="bh-control">
           {t.playground}
@@ -186,6 +246,37 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
       <div className="bh-canvas-wrap">
         <BlackHoleScene quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn} gridOn={gridOn} diskTemp={diskTemp} diskBright={diskBright} diskOuter={diskOuter} />
         <p className="bh-hint">{t.hint}</p>
+
+        {physOpen && (
+          <div className="bh-physpanel" role="note">
+            <div className="bh-physpanel__head">
+              <span>{t.phys.title}</span>
+              <button onClick={() => setPhysOpen(false)} aria-label={t.phys.close}>×</button>
+            </div>
+            <label className="bh-physpanel__mass">
+              <span>{t.phys.mass}</span>
+              <input type="range" min={0} max={9.5} step={0.1}
+                value={Math.log10(massSolar)}
+                onChange={(e) => onMass(10 ** parseFloat(e.target.value))} />
+              <b>{fmtMass(massSolar)}</b>
+            </label>
+            <div className="bh-physpanel__presets">
+              <button onClick={() => onMass(10)}>10 M☉</button>
+              <button onClick={() => onMass(4.3e6)}>Sgr A*</button>
+              <button onClick={() => onMass(6.5e9)}>M87*</button>
+            </div>
+            <div className="bh-physpanel__grid">
+              <div><span>{t.phys.rs}</span><b>{fmtLen(facts.rsKm)}</b></div>
+              <div><span>{t.phys.isco}</span><b>{fmtLen(facts.iscoKm)}</b></div>
+              <div><span>{t.phys.tIsco}</span><b>{fmtTime(facts.tIscoSec)}</b></div>
+              <div><span>{t.phys.diskPeak}</span><b>{sci(facts.diskPeakK)} K</b></div>
+              <div><span>{t.phys.hawking}</span><b>{sci(facts.hawkingK)} K</b></div>
+              <div><span>{t.phys.entropy}</span><b>{sci(facts.entropyKB)}</b></div>
+              <div><span>{t.phys.evap}</span><b>{sci(facts.evapYears)} yr</b></div>
+            </div>
+            <p className="bh-physpanel__note">{t.phys.note}</p>
+          </div>
+        )}
 
         {infoOpen ? (
           <div className="bh-disclosure" role="note">

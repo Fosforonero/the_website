@@ -202,6 +202,95 @@
 }
 .bh-readout > div > b { color: #dfe8f5; font-weight: 600; }
 
+/* Real-scale physics panel (main sim) — interactive (mass slider + facts) */
+.bh-physpanel {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 230px;
+  max-width: calc(100% - 20px);
+  padding: 10px 12px 11px;
+  background: rgba(6, 8, 18, 0.9);
+  border: 1px solid #16203a;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  font-variant-numeric: tabular-nums;
+  z-index: 4;
+}
+.bh-physpanel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.bh-physpanel__head span {
+  font-size: 0.66rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #5f7bb0;
+}
+.bh-physpanel__head button {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: none;
+  color: #8298bb;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 6px;
+}
+.bh-physpanel__head button:hover { color: #e6ecf7; background: #131c33; }
+.bh-physpanel__mass {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.64rem;
+  color: #8aa0c4;
+  margin-bottom: 6px;
+}
+.bh-physpanel__mass input { flex: 1; min-width: 0; }
+.bh-physpanel__mass b { color: #dfe8f5; min-width: 56px; text-align: right; }
+.bh-physpanel__presets {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 9px;
+}
+.bh-physpanel__presets button {
+  flex: 1;
+  padding: 3px 4px;
+  font-size: 0.6rem;
+  color: #aebbd2;
+  background: rgba(12, 19, 38, 0.8);
+  border: 1px solid #1c2742;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.bh-physpanel__presets button:hover { border-color: #2e63b0; color: #e6ecf7; }
+.bh-physpanel__grid {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.bh-physpanel__grid > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.63rem;
+}
+.bh-physpanel__grid > div > span { color: #6f86ad; }
+.bh-physpanel__grid > div > b { color: #dfe8f5; font-weight: 600; }
+.bh-physpanel__note {
+  margin: 8px 0 0;
+  font-size: 0.58rem;
+  line-height: 1.4;
+  color: #5f7290;
+}
+
 /* ── About / methodology page ─────────────────────────────────────────── */
 .bh-about-page {
   min-height: 100vh;
