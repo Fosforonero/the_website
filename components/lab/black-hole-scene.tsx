@@ -64,7 +64,6 @@ export function BlackHoleQuad({
       uJetStr: { value: 0.7 },
       uExposure: { value: 1.15 },
       uHighOrder: { value: QUALITY_PRESETS[quality].rk4 ? 1 : 0 },
-      uUltra: { value: QUALITY_PRESETS[quality].tao ? 1 : 0 },
       uStyle: { value: starless ? 1 : 0 },
     }),
     // Intentionally created once — toggle changes are applied in useFrame.
@@ -89,7 +88,6 @@ export function BlackHoleQuad({
     // Live toggles / quality.
     u.uSteps.value = QUALITY_PRESETS[quality].steps;
     u.uHighOrder.value = QUALITY_PRESETS[quality].rk4 ? 1 : 0;
-    u.uUltra.value = QUALITY_PRESETS[quality].tao ? 1 : 0;
     u.uStyle.value = starless ? 1 : 0;
     u.uExposure.value = starless ? 1.0 : 1.15; // a touch flatter for the photographic look
     u.uDiskOn.value = diskOn ? 1 : 0;
