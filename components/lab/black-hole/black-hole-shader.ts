@@ -266,15 +266,15 @@ void main() {
 
         // Bolometric surface brightness ∝ T_obs⁴ (Stefan–Boltzmann).
         float bright = uDiskBright * pow(Tobs / uDiskTemp, 4.0);
-        // Outer boundary: NOT a razor edge. The disk is heavily over-bright
-        // (clipped to white by the tone map), so a narrow taper would still read
-        // as a hard rim — the fade has to span a WIDE radial band to be visible
-        // through the saturated range. We roll the brightness off from roughly
-        // mid-disk out to the truncation radius (so the over-exposed plate dims
-        // gradually into the background, like Interstellar's fading arms). The
-        // inner edge, by contrast, stays genuinely sharp — the ISCO zero-stress
-        // boundary where the flux physically goes to zero.
-        float outer = 1.0 - smoothstep(uDiskOuter * 0.45, uDiskOuter, rd);
+        // Outer boundary: NOT a razor edge — and the fix is mostly CONTRAST.
+        // The disk would otherwise read as a uniform over-exposed plate clipped
+        // to white, so its outer rim looks cut. We instead grade the brightness
+        // down across almost the whole face (from ~⅓ of the radius out to the
+        // truncation), concentrating the light into the hot inner ring and
+        // letting the outer disk fall through the visible range into the
+        // background — Interstellar's luminous core with fading arms. The inner
+        // edge stays genuinely sharp (ISCO zero-stress boundary, flux → 0).
+        float outer = 1.0 - smoothstep(uDiskOuter * 0.32, uDiskOuter, rd);
         bright *= outer * outer;
 
         // Gaseous structure: filamentary FBM turbulence in rotating disk-plane
@@ -309,7 +309,7 @@ void main() {
         turb += 0.15 * mix(0.5, gnoise(p), 1.0 - smoothstep(0.45, 0.9, foot * 2.4));  p = rot * p * 2.0 + 19.2;
         turb += 0.07 * mix(0.5, gnoise(p), 1.0 - smoothstep(0.45, 0.9, foot * 4.8));
         turb = pow(clamp(turb, 0.0, 1.0), 1.25);  // contrast → visible rotating bands
-        bright *= 0.34 + 1.5 * turb;
+        bright *= 0.20 + 1.7 * turb;               // lower floor → darker lanes, more contrast
 
         color = blackbody(Tobs) * bright;
         outDepth = depthFromWorld(hit);
