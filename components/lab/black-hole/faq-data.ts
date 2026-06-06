@@ -8,6 +8,18 @@ export type FaqLocale = "it" | "en";
 export const FAQ: Record<FaqLocale, FaqItem[]> = {
   it: [
     {
+      q: "Cos'è un buco nero?",
+      a: "Un buco nero è una regione di spazio-tempo dove la gravità è così intensa che nulla, nemmeno la luce, può sfuggire una volta superato l'orizzonte degli eventi. Si forma quando una grande massa viene compressa in un volume piccolissimo. In questa simulazione ne vedi l'effetto reale: la luce che gli passa accanto viene deviata (lensing gravitazionale) e attorno all'ombra centrale compare l'anello di fotoni.",
+    },
+    {
+      q: "Cosa succede se cadi in un buco nero?",
+      a: "Visto da lontano, sembreresti rallentare e arrossire fino a «congelarti» sull'orizzonte (dilatazione gravitazionale del tempo). Per te, localmente, attraverseresti l'orizzonte senza nulla di speciale — ma la differenza di gravità tra testa e piedi ti stirerebbe: la «spaghettificazione», che nel Playground puoi vedere applicata alle stelle.",
+    },
+    {
+      q: "Si può vedere un buco nero?",
+      a: "Non direttamente — è nero — ma se ne vede l'ombra stagliata contro la luce del gas caldo che gli orbita attorno (il disco di accrescimento) e contro le stelle di sfondo deformate dal lensing. È così che l'Event Horizon Telescope ha fotografato M87* e Sgr A*: la modalità «EHT» della simulazione imita quell'immagine.",
+    },
+    {
       q: "È una simulazione vera o un effetto grafico?",
       a: "È una simulazione vera. Per ogni pixel risolviamo numericamente la geodetica nulla esatta della metrica (Schwarzschild, e Kerr con lo spin): lensing gravitazionale, sfera fotonica, ombra e photon ring nascono dal calcolo della relatività generale, non da trucchi grafici. Tracciamo i raggi dalla camera all'indietro, ma in RG i cammini della luce sono reversibili, quindi l'immagine è esattamente quella che produrrebbe la luce reale.",
       sec: 1,
@@ -24,7 +36,7 @@ export const FAQ: Record<FaqLocale, FaqItem[]> = {
     },
     {
       q: "Il disco di accrescimento cambia con lo spin?",
-      a: "Sì. Il bordo interno è l'ISCO prograda di Kerr (formula di Bardeen): si stringe verso il buco man mano che lo spin aumenta. Il Doppler e il redshift seguono la metrica di Kerr, e ora anche il profilo radiale del flusso è l'esatto Page–Thorne di Kerr, calcolato per ogni spin (la regione calda si stringe verso l'ISCO più piccolo al crescere dello spin). Resta fissa solo la scala di luminosità assoluta del disco al variare dello spin: l'aumento reale di efficienza, fino a ~100× il flusso di picco a spin estremo, saturerebbe a bianco.",
+      a: "Sì. Il bordo interno è l'ISCO prograda di Kerr (formula di Bardeen): si stringe verso il buco man mano che lo spin aumenta, e con esso l'anello caldo. Il Doppler e il redshift seguono la metrica di Kerr esatta, e il profilo radiale del flusso è quello relativistico di disco sottile (Novikov–Thorne) con quel bordo interno dipendente dallo spin.",
       sec: 3,
     },
     {
@@ -63,11 +75,39 @@ export const FAQ: Record<FaqLocale, FaqItem[]> = {
     },
     {
       q: "Come avete scelto i colori del disco?",
-      a: "Non sono inventati. Ogni anello del disco ha una temperatura (dal flusso di Page–Thorne via Stefan–Boltzmann) e mostriamo il vero colore di corpo nero di quella temperatura (locus planckiano → sRGB), poi spostato dal redshift gravitazionale e dal Doppler relativistico.",
+      a: "Non sono inventati. Ogni anello del disco ha una temperatura (dal flusso relativistico di disco sottile via Stefan–Boltzmann) e mostriamo il vero colore di corpo nero di quella temperatura (locus planckiano → sRGB), poi spostato dal redshift gravitazionale e dal Doppler relativistico.",
       sec: 4,
+    },
+    {
+      q: "Il Sole diventerà un buco nero?",
+      a: "No. Solo stelle molto più massicce del Sole (oltre ~20 volte la sua massa) collassano in buchi neri. Il Sole, tra circa 5 miliardi di anni, diventerà una gigante rossa e poi una nana bianca — mai un buco nero.",
+    },
+    {
+      q: "Il tempo rallenta vicino a un buco nero?",
+      a: "Sì. Più ci si avvicina all'orizzonte, più il tempo scorre lento rispetto a un osservatore lontano: è la dilatazione gravitazionale del tempo, l'effetto reso celebre da Interstellar. La demo «Orbite» mostra la velocità misurata e il redshift legati a questo, e all'orizzonte un oggetto appare «congelarsi».",
+    },
+    {
+      q: "Cosa c'è dentro un buco nero?",
+      a: "La relatività generale prevede una singolarità centrale, dove la curvatura diventa infinita e la teoria stessa smette di valere. Cosa accada davvero lì richiederebbe una teoria quantistica della gravità che ancora non abbiamo. Questa simulazione modella solo l'esterno dell'orizzonte, dove la fisica è ben definita e verificabile.",
+    },
+    {
+      q: "Cos'è la radiazione di Hawking e i buchi neri «muoiono»?",
+      a: "Stephen Hawking previde che i buchi neri non siano del tutto neri: emettono una debolissima radiazione termica ed evaporano lentamente. Per i buchi neri reali è minuscola (sono più freddi del fondo cosmico), ma in tempi enormi li farebbe sparire. Il pannello «Scala reale» calcola la temperatura di Hawking e il tempo di evaporazione per la massa che scegli.",
     },
   ],
   en: [
+    {
+      q: "What is a black hole?",
+      a: "A black hole is a region of spacetime where gravity is so strong that nothing, not even light, can escape once it crosses the event horizon. It forms when a large mass is compressed into a tiny volume. This simulation shows its real effect: light passing nearby is bent (gravitational lensing) and a photon ring appears around the central shadow.",
+    },
+    {
+      q: "What happens if you fall into a black hole?",
+      a: "Seen from far away, you would appear to slow down and redden until you «freeze» at the horizon (gravitational time dilation). For you, locally, crossing the horizon feels unremarkable — but the difference in gravity between your head and feet would stretch you: «spaghettification», which you can watch applied to stars in the Playground.",
+    },
+    {
+      q: "Can you actually see a black hole?",
+      a: "Not directly — it's black — but you can see its shadow silhouetted against the hot gas orbiting it (the accretion disk) and against background stars warped by lensing. That is how the Event Horizon Telescope photographed M87* and Sgr A*: the simulation's «EHT» mode mimics that image.",
+    },
     {
       q: "Is it a real simulation or a graphical effect?",
       a: "It is a real simulation. For every pixel we numerically solve the metric's exact null geodesic (Schwarzschild, and Kerr with spin): gravitational lensing, the photon sphere, the shadow and the photon ring all emerge from the general-relativity calculation, not from tricks. We trace rays from the camera backwards, but light paths in GR are reversible, so the image is exactly the one real light would produce.",
@@ -85,7 +125,7 @@ export const FAQ: Record<FaqLocale, FaqItem[]> = {
     },
     {
       q: "Does the accretion disk change with spin?",
-      a: "Yes. The inner edge is the prograde Kerr ISCO (Bardeen's formula): it shrinks toward the hole as spin increases. The Doppler and redshift follow the Kerr metric, and now the radial flux profile is the exact Kerr Page–Thorne flux computed per spin (the hot region tightens toward the smaller ISCO as spin grows). Only the disk's absolute luminosity is held fixed across spin: the real efficiency increase, up to ~100× the peak flux at extreme spin, would simply clip to white.",
+      a: "Yes. The inner edge is the prograde Kerr ISCO (Bardeen's formula): it shrinks toward the hole as spin increases, so the hot ring tightens. The Doppler and redshift follow the exact Kerr metric, and the radial flux is the relativistic thin-disk (Novikov–Thorne) profile with that spin-dependent inner edge.",
       sec: 3,
     },
     {
@@ -124,8 +164,24 @@ export const FAQ: Record<FaqLocale, FaqItem[]> = {
     },
     {
       q: "How did you choose the disk colours?",
-      a: "They are not invented. Each ring of the disk has a temperature (from the Page–Thorne flux via Stefan–Boltzmann) and we show the true blackbody colour of that temperature (Planckian locus → sRGB), then shifted by gravitational redshift and relativistic Doppler.",
+      a: "They are not invented. Each ring of the disk has a temperature (from the relativistic thin-disk flux via Stefan–Boltzmann) and we show the true blackbody colour of that temperature (Planckian locus → sRGB), then shifted by gravitational redshift and relativistic Doppler.",
       sec: 4,
+    },
+    {
+      q: "Will the Sun become a black hole?",
+      a: "No. Only stars much heavier than the Sun (more than ~20 times its mass) collapse into black holes. In about 5 billion years the Sun will become a red giant and then a white dwarf — never a black hole.",
+    },
+    {
+      q: "Does time slow down near a black hole?",
+      a: "Yes. The closer you get to the horizon, the slower time runs relative to a distant observer: gravitational time dilation, the effect made famous by Interstellar. The «Orbits» demo shows the measured speed and redshift tied to this, and at the horizon an object appears to «freeze».",
+    },
+    {
+      q: "What is inside a black hole?",
+      a: "General relativity predicts a central singularity, where curvature becomes infinite and the theory itself breaks down. What actually happens there would need a quantum theory of gravity we do not yet have. This simulation models only the outside of the horizon, where the physics is well-defined and testable.",
+    },
+    {
+      q: "What is Hawking radiation, and do black holes «die»?",
+      a: "Stephen Hawking predicted that black holes are not entirely black: they emit a very faint thermal radiation and slowly evaporate. For real black holes it is tiny (they are colder than the cosmic background), but over immense timescales it would make them disappear. The «Real scale» panel computes the Hawking temperature and evaporation time for the mass you choose.",
     },
   ],
 };

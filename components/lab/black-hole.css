@@ -461,6 +461,55 @@
 }
 .bh-about__link:hover { color: #e6ecf7; }
 
+/* FAQ accordion (standalone FAQ page) — native <details> so the answers stay in
+   the DOM (crawlable for SEO/rich results) even when collapsed. */
+.bh-faq { display: flex; flex-direction: column; gap: 9px; margin: 26px 0; }
+.bh-faq__item {
+  background: #0a1124;
+  border: 1px solid #16203a;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color 0.18s, background 0.18s;
+}
+.bh-faq__item[open] { border-color: #28406e; background: #0b1530; }
+.bh-faq__item:hover { border-color: #1d2c4d; }
+.bh-faq__q {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 50px 15px 17px;
+  position: relative;
+  user-select: none;
+}
+.bh-faq__q::-webkit-details-marker { display: none; }
+.bh-faq__q h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #e6ecf7;
+  line-height: 1.35;
+}
+.bh-faq__q::after {
+  content: "+";
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.5rem;
+  font-weight: 300;
+  line-height: 1;
+  color: #6f86ad;
+  transition: transform 0.2s, color 0.2s;
+}
+.bh-faq__item[open] .bh-faq__q::after { content: "−"; color: #8ab4f0; }
+.bh-faq__q:hover h2 { color: #fff; }
+.bh-faq__q:hover::after { color: #8ab4f0; }
+.bh-faq__a { padding: 0 17px 15px; animation: bh-faq-in 0.22s ease; }
+.bh-faq__a p { margin: 0 0 8px; color: #b8c6e0; line-height: 1.6; font-size: 0.9rem; }
+@keyframes bh-faq-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
 /* Module navigator (table of contents) — turns the long methodology into a
    set of browsable "modules". */
 .bh-about__toc {

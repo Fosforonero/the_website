@@ -56,17 +56,21 @@ export function BlackHoleFaqView({ locale = "it" }: { locale?: Locale }) {
           </div>
         </header>
 
-        <section className="bh-about__section">
+        <section className="bh-faq">
           {items.map((f, i) => (
-            <div key={i} className="bh-about__faq">
-              <h2 style={{ fontSize: "1.05rem", margin: "0 0 6px" }}>{f.q}</h2>
-              <p>{f.a}</p>
-              {f.sec ? (
-                <Link href={`${aboutHref}#s${f.sec}`} className="bh-about__more">
-                  {t.more} →
-                </Link>
-              ) : null}
-            </div>
+            <details key={i} className="bh-faq__item" open={i === 0}>
+              <summary className="bh-faq__q">
+                <h2>{f.q}</h2>
+              </summary>
+              <div className="bh-faq__a">
+                <p>{f.a}</p>
+                {f.sec ? (
+                  <Link href={`${aboutHref}#s${f.sec}`} className="bh-about__more">
+                    {t.more} →
+                  </Link>
+                ) : null}
+              </div>
+            </details>
           ))}
         </section>
 
