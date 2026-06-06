@@ -1,33 +1,47 @@
 ---
-title: "Un vero buco nero nel browser: cosa ho costruito e cosa puoi farci"
-excerpt: "Ho costruito un simulatore di buco nero che calcola la fisica reale — lensing gravitazionale, metrica di Kerr, disco di accrescimento — in tempo reale nel browser. Non è un effetto grafico: è relatività generale, pixel per pixel."
+title: "Un vero buco nero nel browser: la fisica che lo fa funzionare"
+excerpt: "Un simulatore che non disegna il buco nero: lo calcola, integrando le geodetiche dei fotoni nello spazio-tempo curvo. Dall'ombra di raggio 3√3 GM/c² al disco che brilla del colore della sua temperatura — con le equazioni — e cosa puoi farci."
 date: "2026-06-06"
 tag: "Dev"
 draft: true
 ---
 
-Per anni i buchi neri li ho visti solo come immagini: la foto sgranata dell'Event Horizon Telescope, il Gargantua di _Interstellar_, qualche render. Volevo qualcosa di diverso — un buco nero che si potesse **toccare**: ruotare, zoomare, modificare — e che fosse **fisica vera**, non un effetto grafico.
-
-Così ho costruito un [simulatore di buco nero](/lab/buco-nero) che gira in tempo reale nel browser, gratis e senza installare nulla.
+Per anni i buchi neri li ho visti solo come immagini: la foto sgranata dell'Event Horizon Telescope, il Gargantua di _Interstellar_, qualche render. Volevo qualcosa di diverso — un buco nero che si potesse **toccare**: ruotare, zoomare, modificare — e che fosse **fisica vera**, non un effetto grafico. Così ho costruito un [simulatore](/lab/buco-nero) che gira in tempo reale nel browser.
 
 ## Non lo disegno, lo calcolo
 
-La differenza è tutta qui. Per ogni singolo pixel dello schermo il programma lancia un raggio di luce e lo fa cadere nello spazio-tempo curvo attorno al buco nero, seguendo la **geodetica nulla esatta** della metrica — la stessa traiettoria che percorre un fotone reale, ottenuta risolvendo numericamente le equazioni della relatività generale.
+La differenza è tutta qui. Per ogni singolo pixel lancio un raggio e lo faccio cadere nello spazio-tempo curvo, lungo la **geodetica nulla** del fotone. La scala naturale è il raggio di Schwarzschild, la dimensione dell'orizzonte:
 
-Da questo unico gesto nascono **da sole** tutte le cose che vedi: la luce piegata (lensing gravitazionale), la sfera fotonica, l'ombra centrale e il sottile anello di fotoni. Nessuna è disegnata a mano.
+<Math tex="r_s = \\frac{2 G M}{c^{2}}" />
 
-## Cosa puoi farci
+Per il Sole sarebbe 3 km, per la Terra 9 mm. Tutto il resto — luce piegata, sfera fotonica, ombra, anello luminoso — **emerge** dall'integrazione di quella traiettoria, non è disegnato a mano. È una simulazione del lensing, non un suo disegno.
 
-- **Far ruotare il buco nero** con lo slider Spin: non è un trucco, è la **metrica di Kerr esatta** ray-tracciata in tempo reale — la stessa del Gargantua di _Interstellar_, che però fu calcolato offline, ore per fotogramma. Compaiono l'ombra asimmetrica e il frame-dragging reali.
-- **Il disco di accrescimento** brilla del vero colore di corpo nero della sua temperatura, deformato dall'effetto Doppler relativistico: un lato abbagliante, l'altro cupo.
-- La modalità **EHT** imita la vera foto dell'Event Horizon Telescope; la modalità **Starless** trasforma lo sfondo in una Via Lattea lensata dal buco.
-- Nel [Playground](/lab/buco-nero/playground) puoi lanciare stelle, pianeti e comete e guardarle **disgregarsi** (spaghettificazione) nel campo mareale, con tanto di onde gravitazionali e fusioni.
-- La demo [Orbite](/lab/buco-nero/orbite) integra le orbite relativistiche esatte — precessione del periastro, ISCO — con una diagnostica di conservazione dal vivo.
+## L'ombra ha una dimensione precisa
+
+Un fotone che passa abbastanza vicino non torna più indietro. La soglia è la **sfera fotonica**, a <Mi tex="r_{\\rm ph} = 3GM/c^{2}" /> (cioè <Mi tex="1{,}5\\,r_s" />), dove la luce può addirittura mettersi in orbita. Tradotto in ciò che vede l'occhio: ogni raggio con parametro d'impatto sotto il valore critico è condannato a cadere, e questo fissa il raggio dell'ombra:
+
+<Math tex="b_c = 3\\sqrt{3}\\;\\frac{GM}{c^{2}} \\approx 2{,}6\\,r_s" />
+
+L'ombra che vedi al centro non è «il buco nero»: è leggermente più grande dell'orizzonte, perché anche la luce che lo sfiora viene catturata. Questo numero esce dalla geometria, non l'ho messo a mano.
+
+## Il disco brilla del colore della sua temperatura
+
+Il gas che spiraleggia verso il buco si scalda per attrito. Ogni anello irraggia, e la sua temperatura cresce verso il centro:
+
+<Math tex="T_{\\rm eff}(r) \\propto r^{-3/4}" />
+
+A ogni temperatura corrisponde un **vero colore di corpo nero** — lo stesso di un ferro arroventato che passa dal rosso all'arancio al bianco-azzurro. Converto quella temperatura nel suo colore lungo il locus planckiano e lo mostro: niente gradiente inventato. Poi lo sposto col Doppler relativistico, e un lato del disco diventa abbagliante, l'altro cupo.
+
+## Lo spin, e il resto
+
+Con lo slider Spin il buco nero ruota: non è un trucco, è la **metrica di Kerr esatta** ray-tracciata in tempo reale — la stessa del Gargantua di _Interstellar_, che però fu calcolato offline, ore per fotogramma. Compaiono l'ombra asimmetrica e il trascinamento dello spazio (frame-dragging).
+
+Accanto alla simulazione principale ci sono altri due strumenti. Il [Playground](/lab/buco-nero/playground) ti fa lanciare stelle, pianeti e comete e guardarle **disgregarsi** nel campo mareale, con onde gravitazionali e fusioni. La demo [Orbite](/lab/buco-nero/orbite) integra le orbite relativistiche esatte — precessione del periastro, ISCO — con una diagnostica di conservazione dell'energia dal vivo. E la modalità **EHT** imita la foto reale dell'Event Horizon Telescope.
 
 ## Onestà prima di tutto
 
-Quello che è fisica reale è fisica reale; quello che è approssimato è **dichiarato apertamente**. Il lensing e le orbite sono esatti; il disco è un modello (niente magnetoidrodinamica, che richiederebbe ore di calcolo per fotogramma). Nella [pagina delle equazioni](/lab/buco-nero/about) c'è tutta la matematica con le fonti, e nelle [FAQ](/lab/buco-nero/faq) le risposte alle domande che si fanno tutti — da «cosa succede se ci cadi dentro» a «il tempo rallenta davvero».
+Quello che è fisica reale è fisica reale; quello che è approssimato è **dichiarato**. Il lensing e le orbite sono esatti; il disco è un modello (niente magnetoidrodinamica completa, che richiederebbe ore di calcolo per fotogramma). Nella [pagina delle equazioni](/lab/buco-nero/about) c'è tutta la matematica con le fonti, e nelle [FAQ](/lab/buco-nero/faq) le risposte alle domande che si fanno tutti — da «cosa succede se ci cadi» a «il tempo rallenta davvero».
 
-Nessun trucco nascosto. È un buco nero vero, calcolato pixel per pixel, nel tuo browser.
+Nessun trucco nascosto: è un buco nero vero, calcolato pixel per pixel, nel tuo browser.
 
 [Apri la simulazione →](/lab/buco-nero)

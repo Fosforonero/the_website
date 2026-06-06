@@ -1,33 +1,47 @@
 ---
-title: "A real black hole in the browser: what I built and what you can do with it"
-excerpt: "I built a black hole simulator that computes the real physics — gravitational lensing, the Kerr metric, the accretion disk — in real time in the browser. It is not a graphical effect: it is general relativity, pixel by pixel."
+title: "A real black hole in the browser: the physics that makes it work"
+excerpt: "A simulator that doesn't draw the black hole — it computes it, integrating photon geodesics through curved spacetime. From the shadow of radius 3√3 GM/c² to the disk glowing with the colour of its temperature — with the equations — and what you can do with it."
 date: "2026-06-06"
 tag: "Dev"
 draft: true
 ---
 
-For years I only ever saw black holes as images: the blurry Event Horizon Telescope photo, _Interstellar_'s Gargantua, the odd render. I wanted something different — a black hole you could **touch**: rotate, zoom, change — and that was **real physics**, not a graphical effect.
-
-So I built a [black hole simulator](/en/lab/black-hole) that runs in real time in the browser, free, with nothing to install.
+For years I only saw black holes as images: the blurry Event Horizon Telescope photo, _Interstellar_'s Gargantua, the odd render. I wanted something different — a black hole you could **touch**: rotate, zoom, change — and that was **real physics**, not a graphical effect. So I built a [simulator](/en/lab/black-hole) that runs in real time in the browser.
 
 ## I don't draw it, I compute it
 
-That's the whole difference. For every single pixel on screen the program shoots a ray of light and lets it fall through the curved spacetime around the black hole, following the metric's **exact null geodesic** — the same path a real photon takes, obtained by numerically solving the equations of general relativity.
+That's the whole difference. For every single pixel I shoot a ray and let it fall through curved spacetime, along the photon's **null geodesic**. The natural scale is the Schwarzschild radius, the size of the horizon:
 
-From that one act, everything you see emerges **on its own**: the bent light (gravitational lensing), the photon sphere, the central shadow and the thin photon ring. None of it is drawn by hand.
+<Math tex="r_s = \\frac{2 G M}{c^{2}}" />
 
-## What you can do
+For the Sun that would be 3 km, for the Earth 9 mm. Everything else — bent light, the photon sphere, the shadow, the bright ring — **emerges** from integrating that trajectory; none of it is drawn by hand. It's a simulation of the lensing, not a drawing of it.
 
-- **Spin the black hole** with the Spin slider: it's not a trick, it's the **exact Kerr metric** ray-traced in real time — the same one as _Interstellar_'s Gargantua, which was rendered offline at hours per frame. The asymmetric shadow and real frame-dragging appear.
-- **The accretion disk** glows with the true blackbody colour of its temperature, warped by the relativistic Doppler effect: one side blinding, the other dim.
-- **EHT** mode mimics the real Event Horizon Telescope photo; **Starless** mode turns the background into a Milky Way lensed by the hole.
-- In the [Playground](/en/lab/black-hole/playground) you can throw stars, planets and comets and watch them be **torn apart** (spaghettification) in the tidal field, with gravitational waves and mergers.
-- The [Orbits](/en/lab/black-hole/orbit) demo integrates the exact relativistic orbits — periastron precession, ISCO — with a live conservation diagnostic.
+## The shadow has a precise size
+
+A photon passing close enough never comes back. The threshold is the **photon sphere**, at <Mi tex="r_{\\rm ph} = 3GM/c^{2}" /> (i.e. <Mi tex="1.5\\,r_s" />), where light can even settle into orbit. Translated into what the eye sees: any ray with impact parameter below a critical value is doomed to fall, and that sets the shadow's radius:
+
+<Math tex="b_c = 3\\sqrt{3}\\;\\frac{GM}{c^{2}} \\approx 2.6\\,r_s" />
+
+The shadow you see in the centre isn't "the black hole": it's slightly larger than the horizon, because even light that grazes it gets captured. That number comes out of the geometry — I didn't put it in by hand.
+
+## The disk glows with the colour of its temperature
+
+The gas spiralling toward the hole heats up by friction. Each ring radiates, and its temperature rises toward the centre:
+
+<Math tex="T_{\\rm eff}(r) \\propto r^{-3/4}" />
+
+Every temperature has a **true blackbody colour** — the same as a poker glowing red, then orange, then blue-white. I convert that temperature to its colour along the Planckian locus and show it: no invented gradient. Then I shift it with the relativistic Doppler effect, and one side of the disk turns blinding, the other dim.
+
+## Spin, and the rest
+
+With the Spin slider the black hole rotates: not a trick, the **exact Kerr metric** ray-traced in real time — the same one as _Interstellar_'s Gargantua, which was rendered offline at hours per frame. The asymmetric shadow and the dragging of space (frame-dragging) appear.
+
+Alongside the main simulation there are two more tools. The [Playground](/en/lab/black-hole/playground) lets you throw stars, planets and comets and watch them be **torn apart** in the tidal field, with gravitational waves and mergers. The [Orbits](/en/lab/black-hole/orbit) demo integrates the exact relativistic orbits — periastron precession, ISCO — with a live energy-conservation diagnostic. And **EHT** mode mimics the real Event Horizon Telescope photo.
 
 ## Honesty first
 
-What is real physics is real physics; what is approximate is **stated openly**. The lensing and the orbits are exact; the disk is a model (no magnetohydrodynamics — that would take hours per frame). The [equations page](/en/lab/black-hole/about) has all the maths with sources, and the [FAQ](/en/lab/black-hole/faq) answers the questions everyone asks — from "what happens if you fall in" to "does time really slow down".
+What's real physics is real physics; what's approximate is **declared**. The lensing and the orbits are exact; the disk is a model (no full magnetohydrodynamics — that would take hours per frame). The [equations page](/en/lab/black-hole/about) has all the maths with sources, and the [FAQ](/en/lab/black-hole/faq) answers the questions everyone asks — from "what happens if you fall in" to "does time really slow down".
 
-No hidden tricks. It's a real black hole, computed pixel by pixel, in your browser.
+No hidden tricks: it's a real black hole, computed pixel by pixel, in your browser.
 
 [Open the simulation →](/en/lab/black-hole)

@@ -1,41 +1,59 @@
 ---
 title: "Ray-tracing relativistico in tempo reale: un buco nero di Kerr in WebGL"
-excerpt: "Note tecniche su come ho reso le geodetiche nulle esatte della metrica di Kerr in un fragment shader WebGL: forma di Kerr–Schild, integratori (Eulero, RK4, Yoshida via Tao), disco di corpo nero e la battaglia col compilatore shader mobile."
+excerpt: "Come ho reso le geodetiche nulle esatte della metrica di Kerr in un fragment shader: la forma di Kerr–Schild, l'integrazione hamiltoniana, tre integratori (Eulero, RK4, Yoshida via Tao), il colore di corpo nero spostato dal Doppler, e la battaglia col compilatore shader mobile. Con le equazioni."
 date: "2026-06-06"
 tag: "Dev"
 draft: true
 ---
 
-La parte facile di un simulatore di buco nero sono i dati. La parte difficile è far girare la **relatività generale** dentro i ~16 millisecondi a fotogramma di un fragment shader WebGL — su un telefono.
+La parte facile di un simulatore di buco nero sono i dati. La parte difficile è far girare la **relatività generale** dentro i ~16 millisecondi a fotogramma di un fragment shader WebGL — su un telefono. Queste sono le note tecniche di come ci sono riuscito per un [buco nero di Kerr](/lab/buco-nero).
 
-Queste sono le note tecniche di come ho reso un [buco nero di Kerr](/lab/buco-nero) in tempo reale.
+## L'idea: sparare la luce all'indietro
 
-## Geodetiche, non texture
+Per ogni pixel dello schermo sparo un raggio **dalla** camera e lo seguo nello spazio-tempo curvo. Sembra al contrario — la luce va verso l'occhio, non da esso — ma in relatività generale i cammini dei fotoni sono reversibili: tracciare all'indietro dà la stessa identica immagine. È il trucco che ci risparmia di simulare miliardi di fotoni che non colpiranno mai lo schermo. Ne lanciamo uno solo per pixel, esattamente quello che serve.
 
-Il cuore è un ray-marcher: per ogni pixel integro la **geodetica nulla** del fotone nello spazio-tempo curvo. Uso la metrica di Kerr in forma **di Kerr–Schild cartesiana** — niente singolarità di coordinate all'orizzonte, asintoticamente piatta, così il momento iniziale del fotone alla camera è semplicemente la direzione del raggio. A spin zero si riduce esattamente a Schwarzschild.
+## La metrica: dove vive la geometria
 
-L'integrazione è hamiltoniana: il _drift_ `ẋ = ∂H/∂p` in forma chiusa, il _kick_ `ṗ = −½∇Hq` per differenze finite, con passo adattivo — fine vicino al buco (dove la curvatura conta e si forma il photon ring), grosso lontano, dopo un avanzamento analitico in linea retta fino alla sfera d'influenza.
+Qui la gravità non è una forza, è la **forma** dello spazio-tempo, scritta nella metrica <Mi tex="g_{\\mu\\nu}" />. Per un buco nero rotante uso la metrica di Kerr nella forma cartesiana di Kerr–Schild:
 
-## Tre integratori per tre problemi
+<Math tex="g_{\\mu\\nu} = \\eta_{\\mu\\nu} + f\\,k_\\mu k_\\nu, \\qquad f = \\frac{2 M r^{3}}{r^{4} + a^{2} z^{2}}" />
 
-- **Eulero simplettico** (qualità media/bassa): un gradiente per passo, economico.
-- **Runge–Kutta 4° ordine** (alta): errore di deflessione ~10⁻⁷ rad, verificato offline contro una soluzione di riferimento.
-- **Yoshida 6° ordine simplettico** (modalità Ultra): l'hamiltoniana nulla è _non-separabile_, quindi il leapfrog classico non basta — serve il trucco di **Tao (2016)**, che estende lo spazio delle fasi. La demo «Orbite», che ha invece l'equazione di Binet _separabile_, usa un Yoshida diretto: il drift dell'invariante di energia resta dell'ordine di 10⁻¹³, e lo mostro dal vivo.
+dove <Mi tex="\\eta" /> è lo spazio-tempo piatto di Minkowski, <Mi tex="k" /> un vettore nullo e <Mi tex="a = J/M" /> lo spin. Perché questa forma e non le solite coordinate di Boyer–Lindquist? Perché non ha la singolarità di coordinate all'orizzonte ed è asintoticamente piatta: così il fotone, alla camera lontana, parte con un momento banale (energia <Mi tex="E=1" />, impulso spaziale uguale alla direzione del raggio) e non devo costruire la tetrade dell'osservatore — uno dei punti dove è facilissimo sbagliarsi. A spin nullo (<Mi tex="a=0" />) si riduce esattamente a Schwarzschild.
 
-## Il disco e il colore
+## L'integrazione: hamiltoniana
 
-Il disco è una superficie a **profondità ottica** con emissione di corpo nero: ogni anello ha una temperatura (profilo relativistico di disco sottile, via Stefan–Boltzmann, con bordo interno all'ISCO di Kerr) e mostro il vero colore planckiano, spostato dal fattore Doppler relativistico _g_. Quest'ultimo è un invariante esatto (`I_ν/ν³ = cost`): un corpo nero visto con fattore _g_ resta un corpo nero a temperatura _g·T_. Niente palette arbitrarie.
+Un fotone viaggia su una geodetica nulla. La tratto come il flusso di un'hamiltoniana, perché così posso scrivere il passo in modo pulito:
+
+<Math tex="H = \\tfrac{1}{2}\\,g^{\\mu\\nu} p_\\mu p_\\nu = 0, \\qquad \\dot x^{\\mu} = \\frac{\\partial H}{\\partial p_\\mu}, \\quad \\dot p_\\mu = -\\frac{\\partial H}{\\partial x^{\\mu}}" />
+
+Il _drift_ (<Mi tex="\\dot x" />, come si muove la posizione) ha forma chiusa; il _kick_ (<Mi tex="\\dot p" />, come cambia l'impulso) lo calcolo per differenze finite del gradiente di <Mi tex="H" />. Il passo è adattivo: fine vicino al buco — dove la curvatura conta e si forma il photon ring — e grosso lontano, dopo un avanzamento analitico in linea retta fino alla sfera d'influenza, per non bruciare passi nel vuoto.
+
+## Tre integratori per tre esigenze
+
+Integrare un'equazione differenziale è come camminare al buio a passi finiti: troppo lunghi e sbagli strada, troppo corti e non arrivi mai. Uso tre «andature», scelte dalla qualità.
+
+- **Eulero simplettico** (media/bassa): un solo gradiente per passo, economico, 1° ordine.
+- **Runge–Kutta del 4° ordine** (alta): valuta la pendenza quattro volte e ne fa una media pesata,
+
+<Math tex="y_{n+1} = y_n + \\tfrac{h}{6}\\left(k_1 + 2k_2 + 2k_3 + k_4\\right)" />
+
+portando l'errore di deflessione a ~10⁻⁷ rad (l'ho verificato offline contro una soluzione di riferimento).
+- **Yoshida del 6° ordine, simplettico** (Ultra): qui c'è un trucco. Yoshida compone passi leapfrog, ma il leapfrog vuole un'hamiltoniana _separabile_; la nostra non lo è. Serve il metodo di Tao (2016), che raddoppia lo spazio delle fasi per renderla integrabile. La demo [«Orbite»](/lab/buco-nero/orbite) ha invece l'equazione di Binet, che _è_ separabile: lì un Yoshida diretto tiene il drift dell'energia a ~10⁻¹³, e lo mostro dal vivo.
+
+## Il colore non lo scelgo io
+
+Il disco emette come un corpo nero: ogni anello ha una temperatura, da cui ricavo il vero colore planckiano. Poi lo sposto con il fattore Doppler relativistico, esatto per un'orbita circolare di Kerr:
+
+<Math tex="g = \\frac{1}{u^{t}\\,(1 - \\Omega\\,\\lambda)}" />
+
+con <Mi tex="\\Omega" /> velocità angolare del gas, <Mi tex="u^{t}" /> la componente temporale della sua 4-velocità (la dilatazione del tempo) e <Mi tex="\\lambda" /> il momento angolare assiale conservato del fotone. La cosa elegante: non devo «trasportare» il colore lungo il raggio. La quantità <Mi tex="I_\\nu/\\nu^{3}" /> è un invariante (teorema di Liouville: i fotoni nel loro spazio delle fasi non si accalcano né si diradano), quindi un corpo nero visto con fattore <Mi tex="g" /> resta un corpo nero a temperatura <Mi tex="g\\,T" />. Niente palette arbitrarie — e un lato del disco diventa abbagliante e bluastro, l'altro cupo e rosso.
 
 ## La battaglia col compilatore shader mobile
 
-L'errore più istruttivo. Avevo aggiunto l'integratore simplettico al 6° ordine (Tao + Yoshida) nello shader. Su desktop: perfetto. Su mobile: il **disco spariva** — anche in qualità media.
-
-La causa non era la _velocità_: era la _dimensione_. Quel codice veniva compilato nell'**unico** fragment shader, sempre, e superava il limite di compilazione della GPU del telefono → falliva l'intero rettangolo a schermo intero (lensing e disco insieme). La soluzione: isolarlo dietro un `#define` GLSL, così il codice di Tao viene compilato **solo** quando selezioni «Ultra». Lo shader di default resta piccolo e gira ovunque.
-
-Lezione: su WebGL mobile non conta solo quanto è veloce uno shader, ma quanto è grande il programma da compilare.
+L'errore più istruttivo. Avevo messo l'integratore Yoshida-6 (Tao) dentro lo shader. Su desktop: perfetto. Su mobile: il **disco spariva**, anche in qualità media. La causa non era la velocità, era la **dimensione**: quel codice veniva compilato nell'unico shader, sempre, e superava il limite del compilatore della GPU del telefono → falliva l'intero rettangolo a schermo (lensing e disco insieme). La soluzione: isolarlo dietro un `#define` GLSL, compilato **solo** quando selezioni «Ultra». Lo shader di default resta piccolo e gira ovunque. Lezione che mi porto dietro: su WebGL mobile conta quanto è _grande_ il programma da compilare, non solo quanto è veloce.
 
 ## Stack e onestà
 
-Three.js + React Three Fiber, GLSL3, pipeline a 16-bit con dithering anti-banding, KaTeX per le equazioni. Ogni approssimazione è dichiarata: il disco è un modello (non una soluzione GRMHD), i getti sono stilizzati. La derivazione completa, con le fonti accademiche, è nella [pagina delle equazioni](/lab/buco-nero/about).
+Three.js + React Three Fiber, GLSL3, pipeline a 16-bit con dithering anti-banding, KaTeX per le equazioni. Ogni approssimazione è dichiarata: il disco è un modello (non una soluzione GRMHD), i getti sono stilizzati, i corpi del playground non sono lensati. La derivazione completa, con le fonti accademiche, è nella [pagina delle equazioni](/lab/buco-nero/about).
 
 [Apri la simulazione →](/lab/buco-nero) · [Le equazioni →](/lab/buco-nero/about)
