@@ -12,25 +12,25 @@ Bring a star close to a black hole and, beyond a certain threshold, it no longer
 
 A tide isn't a new force: it's the **difference** in gravity between two points of an extended body. The star's near face is closer, hence more strongly pulled, than its far face; that difference stretches it along the line to the hole and squeezes it in the other two directions.
 
-For a body of extent <Mi tex="\\Delta r" /> at distance <Mi tex="r" /> from a mass <Mi tex="M_\\bullet" />, the tidal acceleration is the derivative of the gravitational field times <Mi tex="\\Delta r" />:
+For a body of extent <Mi tex="\Delta r" /> at distance <Mi tex="r" /> from a mass <Mi tex="M_\bullet" />, the tidal acceleration is the derivative of the gravitational field times <Mi tex="\Delta r" />:
 
-<Math tex="a_{\\rm tide} \\;\\approx\\; \\frac{2\\,G M_\\bullet}{r^{3}}\\,\\Delta r" />
+<Math tex="a_{\rm tide} \;\approx\; \frac{2\,G M_\bullet}{r^{3}}\,\Delta r" />
 
 The heart of everything is that exponent: the tide goes as <Mi tex="r^{-3}" />, far steeper than gravity itself (<Mi tex="r^{-2}" />). Halve the distance and the tide gets **eight times** stronger. That's why disruption is a threshold phenomenon: negligible far away, explosive up close.
 
 ## The tidal radius
 
-A star holds itself together with its own gravity. It is disrupted when the hole's tide exceeds its surface self-gravity, which is about <Mi tex="G M_\\star / R_\\star^{2}" />. Setting that equal to the tide <Mi tex="(2 G M_\\bullet / r^{3})\\,R_\\star" /> gives the critical distance, the **tidal radius**:
+A star holds itself together with its own gravity. It is disrupted when the hole's tide exceeds its surface self-gravity, which is about <Mi tex="G M_\star / R_\star^{2}" />. Setting that equal to the tide <Mi tex="(2 G M_\bullet / r^{3})\,R_\star" /> gives the critical distance, the **tidal radius**:
 
-<Math tex="r_t \\;\\sim\\; R_\\star \\left(\\frac{M_\\bullet}{M_\\star}\\right)^{1/3}" />
+<Math tex="r_t \;\sim\; R_\star \left(\frac{M_\bullet}{M_\star}\right)^{1/3}" />
 
 Notice what's _missing_: the two masses enter only as a **ratio**, raised to one third. The star's density matters; its absolute mass barely does. This weak dependence produces the next, counter-intuitive fact.
 
 ## Stellar-mass vs supermassive
 
-The bigger the black hole, the "gentler" the disruption. The tidal radius grows slowly, as <Mi tex="M_\\bullet^{1/3}" />, but the event horizon grows fast, as <Mi tex="M_\\bullet" /> (it's <Mi tex="r_s = 2GM_\\bullet/c^{2}" />). At some point the horizon overtakes the tidal radius. So:
+The bigger the black hole, the "gentler" the disruption. The tidal radius grows slowly, as <Mi tex="M_\bullet^{1/3}" />, but the event horizon grows fast, as <Mi tex="M_\bullet" /> (it's <Mi tex="r_s = 2GM_\bullet/c^{2}" />). At some point the horizon overtakes the tidal radius. So:
 
-- around a **stellar-mass** or intermediate hole, <Mi tex="r_t \\gg r_s" />: the star is disrupted well outside the horizon and we see the fireworks;
+- around a **stellar-mass** or intermediate hole, <Mi tex="r_t \gg r_s" />: the star is disrupted well outside the horizon and we see the fireworks;
 - around a large enough **supermassive** one (above ~10⁸ solar masses), <Mi tex="r_t < r_s" />: the star crosses the horizon **whole**, swallowed with no show.
 
 There's a sweet spot of masses — million-solar-mass holes like Sgr A\* — where disruption happens just outside the horizon and is observable.
@@ -39,19 +39,19 @@ There's a sweet spot of masses — million-solar-mass holes like Sgr A\* — whe
 
 At the moment of breakup the star has a single orbital energy, but its pieces don't: the side near the hole is more tightly bound, the far side less. This **spread in specific energy** across the debris is the key mechanism (Rees 1988). Its scale is the tide times the star's size:
 
-<Math tex="\\Delta\\varepsilon \\;\\approx\\; \\frac{G M_\\bullet R_\\star}{r_t^{2}}" />
+<Math tex="\Delta\varepsilon \;\approx\; \frac{G M_\bullet R_\star}{r_t^{2}}" />
 
 About half the debris ends up with **negative** energy (bound) and falls back toward the hole; the other half with **positive** energy (unbound) is flung out in a long tail. In the Playground that's exactly the split I colour: one arm that returns and feeds the disk, one that escapes.
 
 ## The t⁻⁵ᐟ³ fallback law
 
-This is the phenomenon's most elegant result. The bound debris returns on Keplerian orbits, and the most bound returns first. The return time of debris with energy <Mi tex="\\varepsilon" /> follows Kepler's third law:
+This is the phenomenon's most elegant result. The bound debris returns on Keplerian orbits, and the most bound returns first. The return time of debris with energy <Mi tex="\varepsilon" /> follows Kepler's third law:
 
-<Math tex="t(\\varepsilon) \\;=\\; \\frac{2\\pi\\,G M_\\bullet}{\\left(2\\,|\\varepsilon|\\right)^{3/2}} \\qquad\\Longrightarrow\\qquad |\\varepsilon| \\,\\propto\\, t^{-2/3}" />
+<Math tex="t(\varepsilon) \;=\; \frac{2\pi\,G M_\bullet}{\left(2\,|\varepsilon|\right)^{3/2}} \qquad\Longrightarrow\qquad |\varepsilon| \,\propto\, t^{-2/3}" />
 
-If the mass is spread roughly uniformly in energy (<Mi tex="dM/d\\varepsilon \\approx \\text{const}" />, Rees's assumption), the rate at which gas falls back onto the hole is the chain rule:
+If the mass is spread roughly uniformly in energy (<Mi tex="dM/d\varepsilon \approx \text{const}" />, Rees's assumption), the rate at which gas falls back onto the hole is the chain rule:
 
-<Math tex="\\dot M_{\\rm fb} \\;=\\; \\frac{dM}{d\\varepsilon}\\,\\frac{d\\varepsilon}{dt} \\;\\propto\\; t^{-5/3}" />
+<Math tex="\dot M_{\rm fb} \;=\; \frac{dM}{d\varepsilon}\,\frac{d\varepsilon}{dt} \;\propto\; t^{-5/3}" />
 
 That <Mi tex="-5/3" /> slope is the observational signature of real TDEs: the flares telescopes see brighten and then fade over months track that very curve. It's one of the few _clean_ predictions of an otherwise chaotic event.
 
@@ -59,11 +59,11 @@ That <Mi tex="-5/3" /> slope is the observational signature of real TDEs: the fl
 
 The simulation doesn't solve the gas hydrodynamics — that would be a supercomputer job. It uses a particle model on top of the **Paczyński–Wiita** pseudo-Newtonian potential:
 
-<Math tex="\\Phi(r) \\;=\\; -\\frac{G M_\\bullet}{r - r_s}" />
+<Math tex="\Phi(r) \;=\; -\frac{G M_\bullet}{r - r_s}" />
 
-That <Mi tex="-r_s" /> in the denominator is a neat trick: it reproduces the ISCO at <Mi tex="3\\,r_s" /> and the final plunge — the strong-field effects Newton lacks — while staying light enough to run in real time with dozens of bodies.
+That <Mi tex="-r_s" /> in the denominator is a neat trick: it reproduces the ISCO at <Mi tex="3\,r_s" /> and the final plunge — the strong-field effects Newton lacks — while staying light enough to run in real time with dozens of bodies.
 
-When a star enters the tidal radius, I dissolve it into debris with the energy spread <Mi tex="\\Delta\\varepsilon" /> above: half falls back and feeds the disk, half escapes. The breakup is **gradual** (about half a second, not instantaneous) and the **star's mass drains away** as it is devoured, so its pull on the other bodies fades realistically. What's _not_ there: the shocks, the compression heating at periastron, the true fluid dynamics. It's an honest dynamical model, not a hydrodynamic solution.
+When a star enters the tidal radius, I dissolve it into debris with the energy spread <Mi tex="\Delta\varepsilon" /> above: half falls back and feeds the disk, half escapes. The breakup is **gradual** (about half a second, not instantaneous) and the **star's mass drains away** as it is devoured, so its pull on the other bodies fades realistically. What's _not_ there: the shocks, the compression heating at periastron, the true fluid dynamics. It's an honest dynamical model, not a hydrodynamic solution.
 
 The numerical details and the other approximations are on the [equations page](/en/lab/black-hole/about). Sources: Hills (1975) and Rees (1988) for the disruption and the <Mi tex="t^{-5/3}" /> law; Paczyński & Wiita (1980) for the potential.
 
