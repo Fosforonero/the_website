@@ -442,6 +442,6 @@ export const QUALITY_PRESETS: Record<
   { steps: number; dprCap: number }
 > = {
   high:   { steps: 400, dprCap: 2.0 },
-  medium: { steps: 240, dprCap: 1.6 },
+  medium: { steps: 240, dprCap: 1.4 },
   low:    { steps: 140, dprCap: 1.1 },
 };

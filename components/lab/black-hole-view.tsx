@@ -64,6 +64,7 @@ const COPY = {
     playground: "Playground",
     orbits: "Orbite",
     physics: "Scala reale",
+    controls: "Controlli",
     phys: {
       title: "Scala reale", mass: "Massa", close: "Chiudi",
       note: "La massa fissa solo il colore del disco (il trend reale); le dimensioni in scena restano compresse per visibilità.",
@@ -99,6 +100,7 @@ const COPY = {
     playground: "Playground",
     orbits: "Orbits",
     physics: "Real scale",
+    controls: "Controls",
     phys: {
       title: "Real scale", mass: "Mass", close: "Close",
       note: "Mass only sets the disk colour (the real trend); on-scene sizes stay compressed for visibility.",
@@ -132,6 +134,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
   const [diskOuter, setDiskOuter] = useState(16);
   const [massSolar, setMassSolar] = useState(10);
   const [physOpen, setPhysOpen] = useState(false);
+  const [controlsOpen, setControlsOpen] = useState(false);
   const onMass = (m: number) => { setMassSolar(m); setDiskTemp(diskColorTempForMass(m)); };
   const facts = bhFacts(massSolar);
   // Accretion rate Ṁ physically raises BOTH luminosity (∝ Ṁ) and temperature
@@ -239,6 +242,13 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
           {t.physics}
         </button>
 
+        <button
+          className={`bh-control bh-toolbar__only-sm${controlsOpen ? " bh-control--active" : ""}`}
+          onClick={() => setControlsOpen((v) => !v)}
+        >
+          ⚙ {t.controls}
+        </button>
+
         <div className="bh-toolbar__sep" />
         <Link href={playgroundHref} className="bh-control">
           {t.playground}
@@ -257,6 +267,42 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
       <div className="bh-canvas-wrap">
         <BlackHoleScene quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn} gridOn={gridOn} diskTemp={effTemp} diskBright={diskBright} diskOuter={diskOuter} />
         <p className="bh-hint">{t.hint}</p>
+
+        {controlsOpen && (
+          <div className="bh-controls" role="note">
+            <div className="bh-controls__head">
+              <span>{t.controls}</span>
+              <button onClick={() => setControlsOpen(false)} aria-label="×">×</button>
+            </div>
+            <label>
+              <span>{t.quality}</span>
+              <select value={quality} onChange={(e) => setQuality(e.target.value as BlackHoleQuality)}>
+                {(["high", "medium", "low"] as BlackHoleQuality[]).map((q) => (
+                  <option key={q} value={q}>{t.qualities[q]}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <span>{t.temp}</span>
+              <input type="range" min={3000} max={20000} step={250} value={diskTemp}
+                onChange={(e) => setDiskTemp(parseFloat(e.target.value))} />
+            </label>
+            <label>
+              <span>{t.accretion}</span>
+              <input type="range" min={5} max={60} step={1} value={diskBright}
+                onChange={(e) => setDiskBright(parseFloat(e.target.value))} />
+            </label>
+            <label>
+              <span>{t.diskRadius}</span>
+              <input type="range" min={8} max={26} step={0.5} value={diskOuter}
+                onChange={(e) => setDiskOuter(parseFloat(e.target.value))} />
+            </label>
+            <label className="bh-controls__toggle">
+              <span>{t.jets}</span>
+              <input type="checkbox" checked={jetsOn} onChange={(e) => setJetsOn(e.target.checked)} />
+            </label>
+          </div>
+        )}
 
         {physOpen && (
           <div className="bh-physpanel" role="note">
