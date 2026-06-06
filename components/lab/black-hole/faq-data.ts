@@ -70,6 +70,11 @@ export const FAQ: Record<FaqLocale, FaqItem[]> = {
       sec: 10,
     },
     {
+      q: "Che differenza c'è tra la vista normale e «Starless»?",
+      a: "Cambia solo il cielo di sfondo, non la fisica: lensing, disco, ombra e photon ring sono identici nelle due modalità. La vista normale è «cinematografica»: cielo quasi nero (paradosso di Olbers) con poche stelle discrete e una debole banda galattica, così l'attenzione resta sul buco nero. «Starless» (ispirata al raytracer rantonels/starless) accende una Via Lattea fotografica e strutturata — piano galattico con bande di polvere scure, un rigonfiamento caldo verso il centro, rade nebulose colorate (rosso delle regioni HII e blu di riflessione) e un campo stellare molto più fitto e concentrato nella banda, così la galassia si legge come miriadi di stelle non risolte invece che come foschia. Tutto è generato proceduralmente e campionato con la direzione del raggio GIÀ deviata dal buco: quindi il cielo ricco viene davvero spalmato e incurvato attorno all'ombra (la firma di starless), senza dover scaricare una panoramica da molti MB. In cambio è un filo più pesante da calcolare.",
+      sec: 10,
+    },
+    {
       q: "Perché su mobile ogni tanto rallenta?",
       a: "Il ray-tracing delle geodetiche di Kerr è pesante: ogni pixel integra la traiettoria del fotone, e il fragment shader gira sulla GPU del telefono. Se va a scatti, abbassa il preset Qualità (Media o Bassa): riduce i passi d'integrazione e la risoluzione.",
     },
@@ -156,6 +161,11 @@ export const FAQ: Record<FaqLocale, FaqItem[]> = {
     {
       q: "Why is space black instead of full of bright stars?",
       a: "It is Olbers' paradox: the deep sky is nearly black and only discrete stars glow. We keep a near-zero floor for exactly this reason — and the background light you see around the hole is genuinely lensed by the curvature.",
+      sec: 10,
+    },
+    {
+      q: "What's the difference between the normal view and «Starless»?",
+      a: "Only the background sky changes, not the physics: lensing, disk, shadow and photon ring are identical in both modes. The normal view is «cinematic»: a near-black sky (Olbers' paradox) with a few discrete stars and a faint galactic band, so attention stays on the black hole. «Starless» (inspired by the rantonels/starless raytracer) turns on a structured, photographic Milky Way — a galactic plane with dark dust lanes, a warm bulge toward the centre, sparse coloured nebulae (HII-region red and reflection blue) and a much denser starfield concentrated in the band, so the galaxy reads as countless unresolved stars rather than a haze. It is all generated procedurally and sampled with the ALREADY-lensed ray direction: so the rich sky is genuinely smeared and curved around the shadow (the starless signature), without downloading a multi-MB panorama. In return it is slightly heavier to compute.",
       sec: 10,
     },
     {
