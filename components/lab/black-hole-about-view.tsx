@@ -429,6 +429,8 @@ export function BlackHoleAboutView({ locale = "it" }: { locale?: Locale }) {
   const t = COPY[locale];
   const simHref = locale === "it" ? "/lab/buco-nero" : "/en/lab/black-hole";
   const labHref = locale === "it" ? "/lab" : "/en/lab";
+  const faqHref = locale === "it" ? "/lab/buco-nero/faq" : "/en/lab/black-hole/faq";
+  const faqLabel = locale === "it" ? "Domande frequenti →" : "FAQ →";
 
   return (
     <div className="bh-about-page">
@@ -441,6 +443,7 @@ export function BlackHoleAboutView({ locale = "it" }: { locale?: Locale }) {
           ))}
           <div className="bh-about__actions">
             <Link href={simHref} className="bh-about__cta">{t.openSim}</Link>
+            <Link href={faqHref} className="bh-about__link">{faqLabel}</Link>
             <Link href={labHref} className="bh-about__link">{t.backToLab}</Link>
           </div>
         </header>
@@ -451,7 +454,7 @@ export function BlackHoleAboutView({ locale = "it" }: { locale?: Locale }) {
         </section>
 
         {t.sections.map((s, i) => (
-          <section key={i} className="bh-about__section">
+          <section key={i} id={`s${i + 1}`} className="bh-about__section" style={{ scrollMarginTop: 16 }}>
             <h2>{s.heading}</h2>
             {s.body.map((p, j) => (
               <p key={j}>{p}</p>

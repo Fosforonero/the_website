@@ -300,6 +300,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         },
       },
     },
+    {
+      url: `${site.url}/lab/buco-nero/faq`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+      alternates: {
+        languages: {
+          it: `${site.url}/lab/buco-nero/faq`,
+          en: `${site.url}/en/lab/black-hole/faq`,
+        },
+      },
+    },
+    {
+      url: `${site.url}/en/lab/black-hole/faq`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+      alternates: {
+        languages: {
+          it: `${site.url}/lab/buco-nero/faq`,
+          en: `${site.url}/en/lab/black-hole/faq`,
+        },
+      },
+    },
   ];
 
   // Blog posts — separate per locale (slugs may differ across languages)
