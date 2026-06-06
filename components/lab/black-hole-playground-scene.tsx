@@ -307,10 +307,14 @@ function Simulation({
       const p = b.pos.clone()
         .addScaledVector(vdir, u * 0.5)
         .addScaledVector(radial, (Math.random() - 0.5) * 0.05);
-      // energy spread along the orbit: negative u slows debris (bound), positive
-      // u speeds it up (unbound). ~±16% of the orbital speed → the two arms.
+      // energy spread along the orbit (the two arms) PLUS a radial kick that
+      // separates the fates: the BOUND half (u<0) is pushed INWARD — it loses
+      // periastron and visibly spirals into the hole, getting eaten over the
+      // next seconds — while the UNBOUND half (u>0) is pushed OUT as the tail,
+      // so it is no longer just a single puff that disperses.
       const v = b.vel.clone()
         .addScaledVector(vdir, u * 0.16 * speed)
+        .addScaledVector(radial, u * 0.20 * speed)
         .add(new THREE.Vector3(
           (Math.random() - 0.5) * 0.02,
           (Math.random() - 0.5) * 0.05,   // thin vertical width
