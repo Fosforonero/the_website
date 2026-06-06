@@ -140,11 +140,13 @@ const COPY: Record<Locale, Copy> = {
         body: [
           "Il playground baratta un po' di esattezza per il gusto di lanciare le cose e vedere che succede. Invece delle geodetiche complete usa un trucco famoso: il potenziale di Paczyński–Wiita, Φ = −GM/(r − rₛ). Sembra Newton, ma quel −rₛ al denominatore fa la magia — riproduce esattamente l'ISCO a 6M e il tuffo finale, gli effetti di campo forte che a Newton mancano. In cambio possiamo permetterci la vera gravità reciproca tra tutti i corpi (un N-corpi smorzato). Il tasto «Sistema» costruisce d'un colpo un piccolo sistema planetario inclinato, con il buco nero al posto della stella centrale, come Gargantua.",
           "E quando un corpo si avvicina troppo? Viene fatto a spaghetti. La marea — la differenza di gravità tra la faccia vicina e quella lontana del corpo — vince la sua presa e lo stira. La fisica chiave (Rees 1988) è uno spread di energia: metà dei detriti rallenta e ricade, avvolgendosi attorno al buco e alimentando il disco; l'altra metà accelera e viene scagliata via in una lunga coda. La ricaduta segue la legge famosa Ṁ ∝ t⁻⁵ᐟ³. Ancora prima della disgregazione completa la stella perde gas dalla calotta rivolta al buco — un velo che si allarga via via che affonda. (Paczyński–Wiita 1980; Rees 1988.)",
+          "Due corpi che si toccano non si attraversano: si fondono, conservando massa e quantità di moto (il raggio si combina per volume). E col tasto «Onde grav.» si accende la reazione di radiazione: i corpi irraggiano onde gravitazionali, perdono energia e spiraleggiano verso il buco — un EMRI in miniatura — con la caduta che accelera vertiginosamente (la «chirp») perché la potenza irraggiata cresce come 1/r⁵, fino al plunge o alla fusione. L'effetto reale è minuscolo, ∝ (v/c)⁵: qui è amplificato per renderlo visibile, esattamente come l'accelerazione del tempo. (Peters 1964.)",
         ],
         eqs: [
           { label: "Potenziale di Paczyński–Wiita", tex: "\\Phi(r) = -\\frac{GM}{r - r_s}" },
           { label: "Raggio mareale e spread di energia", tex: "r_t \\simeq R_\\star\\!\\left(\\frac{M_{\\mathrm{BH}}}{M_\\star}\\right)^{1/3}, \\qquad \\Delta\\varepsilon \\simeq \\frac{G M_{\\mathrm{BH}} R_\\star}{r_t^{2}}" },
           { label: "Tasso di ricaduta (fallback) del TDE", tex: "\\dot M_{\\mathrm{fb}} \\propto t^{-5/3}" },
+          { label: "Inspiral per onde gravitazionali (Peters, orbita circolare)", tex: "\\frac{da}{dt} = -\\frac{64}{5}\\,\\frac{G^{3} m_1 m_2 (m_1+m_2)}{c^{5} a^{3}}" },
         ],
       },
       {
@@ -212,6 +214,7 @@ const COPY: Record<Locale, Copy> = {
       { cite: "I. D. Novikov & K. S. Thorne (1973), «Astrophysics of Black Holes», in Black Holes (Les Houches)." },
       { cite: "B. Paczyński & P. J. Wiita (1980), Astronomy & Astrophysics 88, 23." },
       { cite: "M. J. Rees (1988), «Tidal disruption of stars by black holes…», Nature 333, 523.", url: "https://ui.adsabs.harvard.edu/abs/1988Natur.333..523R/abstract" },
+      { cite: "P. C. Peters (1964), «Gravitational radiation and the motion of two point masses», Physical Review 136, B1224.", url: "https://journals.aps.org/pr/abstract/10.1103/PhysRev.136.B1224" },
       { cite: "J. M. Bardeen (1973), «Timelike and null geodesics in the Kerr metric», in Black Holes (Les Houches)." },
       { cite: "L. Flamm (1916), «Beiträge zur Einsteinschen Gravitationstheorie», Physikalische Zeitschrift 17, 448 — il paraboloide." },
       { cite: "O. James, E. von Tunzelmann, P. Franklin & K. S. Thorne (2015), «Gravitational lensing by spinning black holes… Interstellar», Classical and Quantum Gravity 32, 065001.", url: "https://iopscience.iop.org/article/10.1088/0264-9381/32/6/065001" },
@@ -322,11 +325,13 @@ const COPY: Record<Locale, Copy> = {
         body: [
           "The playground trades a little exactness for the fun of throwing things in and watching. Instead of the full geodesics it uses a famous trick: the Paczyński–Wiita potential, Φ = −GM/(r − rₛ). It looks like Newton, but that −rₛ in the denominator works the magic — it reproduces the ISCO at 6M and the final plunge exactly, the strong-field effects Newton lacks. In return we can afford real mutual gravity between all the bodies (a softened N-body). The «System» button builds, in one go, a small inclined planetary system with the black hole standing in for the central star, like Gargantua.",
           "And when a body comes too close? It gets spaghettified. The tide — the difference in gravity between the body's near and far sides — overcomes its self-grip and stretches it. The key physics (Rees 1988) is a spread in energy: half the debris slows and falls back, wrapping around the hole and feeding the disk; the other half speeds up and is flung out in a long tail. The fallback follows the famous Ṁ ∝ t⁻⁵ᐟ³ law. Even before full disruption the star sheds gas from the cap facing the hole — a veil that widens as it sinks. (Paczyński–Wiita 1980; Rees 1988.)",
+          "Two bodies that touch do not pass through each other: they merge, conserving mass and momentum (the radius combines by volume). And the «GW» button switches on radiation reaction: bodies emit gravitational waves, lose energy and spiral toward the hole — a miniature EMRI — the fall accelerating headlong (the «chirp») because the radiated power grows as 1/r⁵, down to the plunge or merger. The real effect is minuscule, ∝ (v/c)⁵: here it is amplified to be visible, exactly like the time speed-up. (Peters 1964.)",
         ],
         eqs: [
           { label: "Paczyński–Wiita potential", tex: "\\Phi(r) = -\\frac{GM}{r - r_s}" },
           { label: "Tidal radius and energy spread", tex: "r_t \\simeq R_\\star\\!\\left(\\frac{M_{\\mathrm{BH}}}{M_\\star}\\right)^{1/3}, \\qquad \\Delta\\varepsilon \\simeq \\frac{G M_{\\mathrm{BH}} R_\\star}{r_t^{2}}" },
           { label: "TDE fallback rate", tex: "\\dot M_{\\mathrm{fb}} \\propto t^{-5/3}" },
+          { label: "Gravitational-wave inspiral (Peters, circular orbit)", tex: "\\frac{da}{dt} = -\\frac{64}{5}\\,\\frac{G^{3} m_1 m_2 (m_1+m_2)}{c^{5} a^{3}}" },
         ],
       },
       {
@@ -394,6 +399,7 @@ const COPY: Record<Locale, Copy> = {
       { cite: "I. D. Novikov & K. S. Thorne (1973), “Astrophysics of Black Holes”, in Black Holes (Les Houches)." },
       { cite: "B. Paczyński & P. J. Wiita (1980), Astronomy & Astrophysics 88, 23." },
       { cite: "M. J. Rees (1988), “Tidal disruption of stars by black holes…”, Nature 333, 523.", url: "https://ui.adsabs.harvard.edu/abs/1988Natur.333..523R/abstract" },
+      { cite: "P. C. Peters (1964), “Gravitational radiation and the motion of two point masses”, Physical Review 136, B1224.", url: "https://journals.aps.org/pr/abstract/10.1103/PhysRev.136.B1224" },
       { cite: "J. M. Bardeen (1973), “Timelike and null geodesics in the Kerr metric”, in Black Holes (Les Houches)." },
       { cite: "L. Flamm (1916), “Beiträge zur Einsteinschen Gravitationstheorie”, Physikalische Zeitschrift 17, 448 — the paraboloid." },
       { cite: "O. James, E. von Tunzelmann, P. Franklin & K. S. Thorne (2015), “Gravitational lensing by spinning black holes… Interstellar”, Classical and Quantum Gravity 32, 065001.", url: "https://iopscience.iop.org/article/10.1088/0264-9381/32/6/065001" },

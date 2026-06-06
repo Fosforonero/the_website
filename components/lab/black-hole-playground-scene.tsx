@@ -39,6 +39,7 @@ export type PlaygroundSceneProps = {
   diskOn: boolean;
   jetsOn: boolean;
   gridOn: boolean;
+  gwOn: boolean;
   activeKind: BodyKind;
   apiRef: MutableRefObject<PlaygroundHandle | null>;
 };
@@ -60,6 +61,10 @@ const DISK_OUT = 16.0;    // accretion-disk outer radius
 const MASS_TRANSFER_RADIUS = 11.0; // bodies inside this shed matter toward the BH
 const C_CAP = 0.985;     // speed-of-light cap (c = 1 in geometric units)
 const MAX_PARTICLES = 4000;
+// Gravitational-wave radiation-reaction strength. The real effect is ~(v/c)⁵
+// tiny; this amplifies it so the inspiral is visible on playground timescales,
+// exactly like the time speed-up. Tunable.
+const GW_STR = 150.0;
 
 type Body = {
   id: number;
@@ -122,9 +127,11 @@ function makeParticles(): ParticleArrays {
 function Simulation({
   apiRef,
   activeKind,
+  gwOn,
 }: {
   apiRef: MutableRefObject<PlaygroundHandle | null>;
   activeKind: BodyKind;
+  gwOn: boolean;
 }) {
   const bodies = useRef<Body[]>([]);
   const nextId = useRef(1);
@@ -357,6 +364,20 @@ function Simulation({
           tmp.addScaledVector(tmp2, o.mass / (d2 * Math.sqrt(d2)));
         }
         b.vel.addScaledVector(tmp, h);
+        // Gravitational-wave radiation reaction (optional). The body radiates
+        // GWs and loses orbital energy, spiralling toward the BH — a miniature
+        // EMRI. We remove energy at the Peters luminosity P = (32/5)·M²m²(M+m)/r⁵
+        // (G=c=1) via a drag F = −(P/v²)·v (does work −P). Because P ∝ 1/r⁵ the
+        // inspiral runs away near the hole — the chirp.
+        if (gwOn && b.mass > 0.0) {
+          const rb = b.pos.length();
+          const vb2 = b.vel.lengthSq();
+          if (rb > HORIZON && vb2 > 1e-8) {
+            const P = GW_STR * 6.4 * GM * GM * b.mass * b.mass * (GM + b.mass) / Math.pow(rb, 5.0);
+            const factor = Math.max(-(P * h) / (b.mass * vb2), -0.4); // clamp: never reverse v
+            b.vel.addScaledVector(b.vel, factor);
+          }
+        }
         // No body may exceed the speed of light (c = 1 in geometric units).
         const sp = b.vel.length();
         if (sp > C_CAP) b.vel.multiplyScalar(C_CAP / sp);
@@ -569,7 +590,7 @@ function Simulation({
 // Public scene
 // ---------------------------------------------------------------------------
 
-export default function BlackHolePlaygroundScene({ quality, spin, diskOn, jetsOn, gridOn, activeKind, apiRef }: PlaygroundSceneProps) {
+export default function BlackHolePlaygroundScene({ quality, spin, diskOn, jetsOn, gridOn, gwOn, activeKind, apiRef }: PlaygroundSceneProps) {
   const dprCap = QUALITY_PRESETS[quality].dprCap;
   return (
     <Canvas
@@ -580,7 +601,7 @@ export default function BlackHolePlaygroundScene({ quality, spin, diskOn, jetsOn
     >
       <BlackHoleQuad quality={quality} diskOn={diskOn} spin={spin} dopplerOn jetsOn={jetsOn} />
       <BlackHoleGrid visible={gridOn} spin={spin} />
-      <Simulation apiRef={apiRef} activeKind={activeKind} />
+      <Simulation apiRef={apiRef} activeKind={activeKind} gwOn={gwOn} />
       <OrbitControls
         makeDefault
         enablePan={false}
