@@ -45,6 +45,7 @@ export type BlackHoleSceneProps = {
   diskBright?: number; // accretion-rate / brightness scale
   diskOuter?: number;  // disk outer radius (r_s)
   eht?: boolean;       // "EHT mode": render at very low resolution (beam-limited look)
+  starless?: boolean;  // "Starless" photographic look (rich lensed Milky-Way sky)
 };
 
 // ---------------------------------------------------------------------------
@@ -53,7 +54,7 @@ export type BlackHoleSceneProps = {
 
 export function BlackHoleQuad({
   quality, diskOn, dopplerOn, spin, jetsOn,
-  diskTemp = 10500, diskBright = 24, diskOuter = 16,
+  diskTemp = 10500, diskBright = 24, diskOuter = 16, starless = false,
 }: BlackHoleSceneProps) {
   const matRef = useRef<THREE.ShaderMaterial>(null);
   const camBasis = useRef(new THREE.Matrix3());
@@ -78,6 +79,8 @@ export function BlackHoleQuad({
       uJets: { value: jetsOn ? 1 : 0 },
       uJetStr: { value: 0.7 },
       uExposure: { value: 1.15 },
+      uHighOrder: { value: QUALITY_PRESETS[quality].rk4 ? 1 : 0 },
+      uStyle: { value: starless ? 1 : 0 },
       uDiskFluxTex: { value: DISK_FLUX_TEXTURE },
     }),
     // Intentionally created once — toggle changes are applied in useFrame.
@@ -101,6 +104,9 @@ export function BlackHoleQuad({
     u.uTanFov.value = Math.tan((fov * Math.PI) / 360);
     // Live toggles / quality.
     u.uSteps.value = QUALITY_PRESETS[quality].steps;
+    u.uHighOrder.value = QUALITY_PRESETS[quality].rk4 ? 1 : 0;
+    u.uStyle.value = starless ? 1 : 0;
+    u.uExposure.value = starless ? 1.0 : 1.15; // a touch flatter for the photographic look
     u.uDiskOn.value = diskOn ? 1 : 0;
     u.uDoppler.value = dopplerOn ? 1 : 0;
     u.uSpin.value = spin;
@@ -141,6 +147,7 @@ export default function BlackHoleScene({
   diskBright,
   diskOuter,
   eht = false,
+  starless = false,
 }: BlackHoleSceneProps) {
   const dprCap = QUALITY_PRESETS[quality].dprCap;
 
@@ -153,7 +160,7 @@ export default function BlackHoleScene({
     >
       <BlackHoleQuad
         quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn}
-        diskTemp={diskTemp} diskBright={diskBright} diskOuter={diskOuter}
+        diskTemp={diskTemp} diskBright={diskBright} diskOuter={diskOuter} starless={starless}
       />
       <BlackHoleGrid visible={gridOn} spin={spin} />
 

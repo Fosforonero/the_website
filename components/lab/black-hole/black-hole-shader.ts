@@ -1,21 +1,21 @@
 // ---------------------------------------------------------------------------
-// Schwarzschild black-hole renderer — GLSL shader source
+// Kerr black-hole renderer — GLSL shader source
 // ---------------------------------------------------------------------------
 //
-// Physically-based (non-rotating, Schwarzschild) gravitational lensing.
-// For every screen pixel we shoot a camera ray and integrate the null
-// geodesic (photon path) in the curved spacetime around a point mass at the
-// origin, then shade:
+// Physically-based gravitational lensing. For every screen pixel we shoot a
+// camera ray and integrate the photon's EXACT null geodesic through curved
+// spacetime around the hole, then shade:
 //   - event horizon  → absorbed (black)
-//   - accretion disk → blackbody-ish emission + relativistic Doppler beaming
+//   - accretion disk → blackbody emission + relativistic Doppler beaming
 //                       + gravitational redshift
 //   - escape         → background star field (already lensed by the bent ray)
 //
-// Units: Schwarzschild radius RS = 1. Photon-sphere at 1.5, ISCO at 3.
-// The geodesic uses the Binet-equation acceleration
-//     a = -1.5 · h² · r / |r|⁵      with  h² = |r × v|²  (conserved)
-// which reproduces the exact light-bending of the Schwarzschild metric
-// (Einstein ring, photon sphere) via velocity-Verlet integration.
+// Units: Schwarzschild radius RS = 1, M = ½. Photon-sphere at 1.5, ISCO at 3
+// (a = 0). The geodesic is integrated in the Kerr–Schild Hamiltonian form
+// H = ½·g^{μν}p_μp_ν (drift dx/dλ = ∂H/∂p closed-form, kick dp/dλ = −½∇_x Hq by
+// central differences), which at a = 0 reduces to Schwarzschild and reproduces
+// the exact light-bending (Einstein ring, photon sphere, shadow). Two steppers:
+// symplectic Euler (medium/low) and 4th-order Runge–Kutta (high, uHighOrder).
 //
 // DISCLOSURE: this is real GR lensing. At spin a = 0 it is Schwarzschild; with
 // the Spin slider it integrates the EXACT Kerr null geodesics (Kerr–Schild
@@ -59,6 +59,8 @@ uniform float uDiskBright; // disk brightness scale
 uniform float uJets;       // 0 / 1 — relativistic jets along the spin axis
 uniform float uJetStr;     // jet emission strength
 uniform float uExposure;
+uniform float uHighOrder;  // 0/1 — use 4th-order RK4 geodesic step (high quality)
+uniform float uStyle;      // 0 = cinematic, 1 = "Starless" photographic (lensed real-sky look)
 uniform sampler2D uDiskFluxTex; // baked EXACT Kerr Page–Thorne flux field F(rd, a)
 
 const float RS = 1.0;
@@ -115,22 +117,46 @@ float gnoise(vec2 p) {
 }
 
 // ── background star field (sampled with the final, lensed ray direction) ────
+// Two looks: the default "cinematic" near-black sky (Olbers), and a richer
+// "Starless" photographic sky (uStyle>0.5) — a structured, dust-laned Milky Way
+// with a denser starfield, à la rantonels/starless. Because this is sampled with
+// the FULLY LENSED ray direction, the rich sky is genuinely warped by the hole
+// (the starless signature), without shipping a multi-MB panorama texture.
 vec3 starField(vec3 d) {
-  // Space is essentially black (Olbers' paradox): only discrete stars glow.
   vec3 col = vec3(0.00012, 0.00014, 0.00022);        // ~black sky floor
-  float band = exp(-pow(d.y * 5.5, 2.0));            // extremely faint Milky-Way band
+  bool sl = uStyle > 0.5;
+  float band = exp(-pow(d.y * (sl ? 3.2 : 5.5), 2.0));
   col += vec3(0.0035, 0.004, 0.007) * band;
 
-  for (int k = 0; k < 2; k++) {
-    float scale = (k == 0) ? 230.0 : 95.0;
+  if (sl) {
+    // Structured galactic plane: layered gradient-noise filaments + dark dust
+    // lanes, warming toward the galactic-centre direction (+x).
+    float az = atan(d.z, d.x);
+    vec2  g  = vec2(az * 2.2, d.y * 6.0);
+    mat2  rr = mat2(0.80, -0.60, 0.60, 0.80);
+    float n  = 0.0, amp = 0.5;
+    for (int o = 0; o < 4; o++) { n += amp * gnoise(g); g = rr * g * 2.03 + 5.1; amp *= 0.5; }
+    float dust = smoothstep(0.30, 0.72, n);          // dark dust lanes carve the band
+    float glow = band * (0.45 + 1.0 * n);            // mottled brightness
+    vec3  mwCol = mix(vec3(0.020, 0.021, 0.032), vec3(0.052, 0.043, 0.032), band); // bluish arms → warm core
+    col += mwCol * glow * (1.0 - 0.7 * dust) * 1.7;
+    float core = exp(-pow(az * 0.9, 2.0)) * band;    // bright bulge toward the centre
+    col += vec3(0.05, 0.04, 0.03) * core;
+  }
+
+  int layers = sl ? 3 : 2;
+  float thr  = sl ? 0.975 : 0.985;                   // lower threshold → denser stars
+  for (int k = 0; k < 3; k++) {
+    if (k >= layers) break;
+    float scale = (k == 0) ? 230.0 : (k == 1 ? 95.0 : 440.0);
     vec3 g  = d * scale;
     vec3 id = floor(g);
     float h = hash31(id);
-    if (h > 0.985) {
+    if (h > thr) {
       vec3 f = fract(g) - 0.5;
       float star = smoothstep(0.5, 0.0, length(f));
       float tw   = 0.7 + 0.3 * sin(uTime * 2.0 + h * 40.0);
-      float mag  = pow((h - 0.985) / 0.015, 2.0);
+      float mag  = pow((h - thr) / (1.0 - thr), 2.0);
       vec3 sc    = mix(vec3(1.0, 0.9, 0.8), vec3(0.8, 0.9, 1.0), hash31(id + 7.0));
       col += sc * star * mag * tw * 2.0;              // brighter → pop on black
     }
@@ -205,6 +231,26 @@ float kerrISCO(float chi) {
   float z2 = sqrt(3.0 * a * a + z1 * z1);
   float xi = 3.0 + z2 - sqrt(max((3.0 - z1) * (3.0 + z1 + 2.0 * z2), 0.0)); // r_isco / M
   return 0.5 * xi;                                                          // r_s units
+}
+
+// Hamiltonian flow of H = ½·Hq for the Kerr null geodesic, split into the two
+// vector fields used by the integrators below:
+//   drift  dx/dλ = ∂H/∂p = g^{iμ}p_μ = p − f·κ·k_s   (closed form)
+//   kick   dp/dλ = −∂H/∂x = −½ ∇_x Hq                 (central differences)
+vec3 kerrVel(vec3 p, vec3 ps, float a) {
+  float r = kerrR(p, a), r2 = r * r;
+  float f = (r2 * r) / (r2 * r2 + a * a * p.y * p.y);
+  float inv = 1.0 / (r2 + a * a);
+  vec3  ks = vec3((r * p.x + a * p.z) * inv, p.y / r, (r * p.z - a * p.x) * inv);
+  return ps - f * (1.0 + dot(ks, ps)) * ks;
+}
+vec3 kerrKick(vec3 p, vec3 ps, float a) {
+  float e = 1.0e-3;
+  vec3 g = vec3(
+    kerrHq(p + vec3(e, 0.0, 0.0), ps, a) - kerrHq(p - vec3(e, 0.0, 0.0), ps, a),
+    kerrHq(p + vec3(0.0, e, 0.0), ps, a) - kerrHq(p - vec3(0.0, e, 0.0), ps, a),
+    kerrHq(p + vec3(0.0, 0.0, e), ps, a) - kerrHq(p - vec3(0.0, 0.0, e), ps, a));
+  return -(0.25 / e) * g; // −½·(g/2e)
 }
 
 void main() {
@@ -294,22 +340,26 @@ void main() {
       }
     }
 
-    // Exact Kerr geodesic step — symplectic Euler on the null Hamiltonian Hq.
-    // Kick: dp_i/dλ = −½ ∂_i Hq (central differences of Hq w.r.t. position).
-    // Drift: dx^i/dλ = ∂H/∂p_i = g^{iμ}p_μ = p_i − f·κ·k_i.
-    float e = 1.0e-3;
-    vec3 gH;
-    gH.x = kerrHq(pos + vec3(e, 0.0, 0.0), ps, kerrA) - kerrHq(pos - vec3(e, 0.0, 0.0), ps, kerrA);
-    gH.y = kerrHq(pos + vec3(0.0, e, 0.0), ps, kerrA) - kerrHq(pos - vec3(0.0, e, 0.0), ps, kerrA);
-    gH.z = kerrHq(pos + vec3(0.0, 0.0, e), ps, kerrA) - kerrHq(pos - vec3(0.0, 0.0, e), ps, kerrA);
-    ps -= (0.25 / e) * gH * dt;                       // Δp = −½∇Hq·dt  (central diff = gH/2e)
-    float r2   = r * r;
-    float kf   = (r2 * r) / (r2 * r2 + kerrA * kerrA * pos.y * pos.y);
-    float kinv = 1.0 / (r2 + kerrA * kerrA);
-    vec3  ks   = vec3((r * pos.x + kerrA * pos.z) * kinv, pos.y / r, (r * pos.z - kerrA * pos.x) * kinv);
-    float kap  = 1.0 + dot(ks, ps);
-    vec3  vel  = ps - kf * kap * ks;                  // coordinate velocity dx/dλ
-    vec3 posNext = pos + vel * dt;
+    // Exact Kerr geodesic step on the null Hamiltonian H = ½·Hq. Two schemes:
+    //   • uHighOrder>0.5 → classic 4th-order Runge–Kutta (deflection accurate to
+    //     ~1e-7 rad; the null invariant Hq stays constant to ~1e-6). Costs 4
+    //     gradient evaluations per step, so it is reserved for "high" quality.
+    //   • otherwise → 1st-order symplectic (semi-implicit) Euler: kick then drift
+    //     with the updated momentum — cheap, one gradient/step, for medium/low.
+    vec3 vel, posNext, psNext;
+    if (uHighOrder > 0.5) {
+      vec3 k1x = kerrVel(pos, ps, kerrA),                         k1p = kerrKick(pos, ps, kerrA);
+      vec3 k2x = kerrVel(pos + 0.5*dt*k1x, ps + 0.5*dt*k1p, kerrA), k2p = kerrKick(pos + 0.5*dt*k1x, ps + 0.5*dt*k1p, kerrA);
+      vec3 k3x = kerrVel(pos + 0.5*dt*k2x, ps + 0.5*dt*k2p, kerrA), k3p = kerrKick(pos + 0.5*dt*k2x, ps + 0.5*dt*k2p, kerrA);
+      vec3 k4x = kerrVel(pos + dt*k3x, ps + dt*k3p, kerrA),         k4p = kerrKick(pos + dt*k3x, ps + dt*k3p, kerrA);
+      posNext = pos + (dt/6.0)*(k1x + 2.0*k2x + 2.0*k3x + k4x);
+      psNext  = ps  + (dt/6.0)*(k1p + 2.0*k2p + 2.0*k3p + k4p);
+      vel = (posNext - pos) / dt;                     // mean coordinate velocity over the step
+    } else {
+      psNext  = ps + dt * kerrKick(pos, ps, kerrA);   // kick
+      vel     = kerrVel(pos, psNext, kerrA);          // drift with updated momentum
+      posNext = pos + vel * dt;
+    }
 
     // Accretion-disk crossing of the equatorial (y = 0) plane. ONE sample per
     // crossing (no multi-step accumulation → no concentric step banding). The
@@ -422,6 +472,7 @@ void main() {
     }
 
     pos = posNext;
+    ps  = psNext;
     dir = normalize(vel);
   }
 
@@ -461,9 +512,12 @@ export type BlackHoleQuality = "high" | "medium" | "low";
 
 export const QUALITY_PRESETS: Record<
   BlackHoleQuality,
-  { steps: number; dprCap: number }
+  { steps: number; dprCap: number; rk4: boolean }
 > = {
-  high:   { steps: 400, dprCap: 2.0 },
-  medium: { steps: 240, dprCap: 1.4 },
-  low:    { steps: 140, dprCap: 1.1 },
+  // "high" uses the 4th-order RK4 geodesic step (rk4: true) — ~2× the per-step
+  // cost, so the step count is trimmed; RK4 at 320 steps is still vastly more
+  // accurate than 1st-order Euler at 400. Medium/low keep the cheap Euler step.
+  high:   { steps: 320, dprCap: 2.0, rk4: true },
+  medium: { steps: 240, dprCap: 1.4, rk4: false },
+  low:    { steps: 140, dprCap: 1.1, rk4: false },
 };

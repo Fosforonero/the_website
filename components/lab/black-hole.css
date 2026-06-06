@@ -459,6 +459,42 @@
 }
 .bh-about__link:hover { color: #e6ecf7; }
 
+/* Module navigator (table of contents) — turns the long methodology into a
+   set of browsable "modules". */
+.bh-about__toc {
+  margin: 24px 0;
+  padding: 14px 18px;
+  background: #0a1124;
+  border: 1px solid #16203a;
+  border-radius: 12px;
+}
+.bh-about__toc h2 {
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8aa0c4;
+  margin: 0 0 10px;
+}
+.bh-about__toc ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 4px 18px;
+  counter-reset: bh-toc;
+}
+.bh-about__toc li { counter-increment: bh-toc; }
+.bh-about__toc a {
+  display: block;
+  padding: 5px 0;
+  font-size: 0.85rem;
+  color: #b8c6e0;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+.bh-about__toc a:hover { color: #8ab4f0; border-bottom-color: #1d2c4d; }
+
 .bh-about__section { margin: 30px 0; }
 .bh-about__section h2 {
   font-size: 1.15rem;
