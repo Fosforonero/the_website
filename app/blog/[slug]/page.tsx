@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
+import "katex/dist/katex.min.css";
+import { Math, Mi } from "@/components/parts/mdx-math";
 import { Nav } from "@/components/parts/nav";
 import { Footer } from "@/components/parts/footer";
 import { Pill } from "@/components/parts/pill";
@@ -137,7 +139,7 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
             </p>
           </header>
           <div className="prose">
-            <MDXRemote source={post.content} />
+            <MDXRemote source={post.content} components={{ Math, Mi }} />
           </div>
           <footer
             style={{
