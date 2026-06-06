@@ -12,23 +12,8 @@ import {
   type BlackHoleQuality,
 } from "./black-hole/black-hole-shader";
 import { BlackHoleGrid } from "./black-hole-grid";
-import { DISK_FLUX_FIELD, DISK_FLUX_NR, DISK_FLUX_NA } from "./black-hole/physics";
+import { DISK_FLUX_LUT, kerrFluxProfile } from "./black-hole/physics";
 import { DitherEffect } from "./black-hole/dither-effect";
-
-// Exact Kerr Page–Thorne flux field F(rd, spin), as an unfilterable R32F
-// texture (NR radial × NA spin). The shader bilinearly samples it via
-// texelFetch. Created once and shared by every scene that renders BlackHoleQuad.
-const DISK_FLUX_TEXTURE = (() => {
-  const tex = new THREE.DataTexture(
-    DISK_FLUX_FIELD, DISK_FLUX_NR, DISK_FLUX_NA, THREE.RedFormat, THREE.FloatType
-  );
-  tex.minFilter = THREE.NearestFilter;
-  tex.magFilter = THREE.NearestFilter;
-  tex.wrapS = THREE.ClampToEdgeWrapping;
-  tex.wrapT = THREE.ClampToEdgeWrapping;
-  tex.needsUpdate = true;
-  return tex;
-})();
 
 // ---------------------------------------------------------------------------
 // Props
@@ -58,6 +43,7 @@ export function BlackHoleQuad({
 }: BlackHoleSceneProps) {
   const matRef = useRef<THREE.ShaderMaterial>(null);
   const camBasis = useRef(new THREE.Matrix3());
+  const lastSpin = useRef(0); // recompute the per-spin Kerr flux profile only on change
 
   // Uniforms are created once; values are mutated each frame.
   const uniforms = useMemo(
@@ -82,7 +68,7 @@ export function BlackHoleQuad({
       uHighOrder: { value: QUALITY_PRESETS[quality].rk4 ? 1 : 0 },
       uUltra: { value: QUALITY_PRESETS[quality].tao ? 1 : 0 },
       uStyle: { value: starless ? 1 : 0 },
-      uDiskFluxTex: { value: DISK_FLUX_TEXTURE },
+      uDiskFlux: { value: DISK_FLUX_LUT.slice() },
     }),
     // Intentionally created once — toggle changes are applied in useFrame.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -108,6 +94,13 @@ export function BlackHoleQuad({
     u.uHighOrder.value = QUALITY_PRESETS[quality].rk4 ? 1 : 0;
     u.uUltra.value = QUALITY_PRESETS[quality].tao ? 1 : 0;
     u.uStyle.value = starless ? 1 : 0;
+    // Exact Kerr Page–Thorne flux depends on spin; recompute only when it moves.
+    if (spin !== lastSpin.current) {
+      lastSpin.current = spin;
+      const prof = kerrFluxProfile(spin);
+      const arr = u.uDiskFlux.value as number[];
+      for (let i = 0; i < arr.length; i++) arr[i] = prof[i]!;
+    }
     u.uExposure.value = starless ? 1.0 : 1.15; // a touch flatter for the photographic look
     u.uDiskOn.value = diskOn ? 1 : 0;
     u.uDoppler.value = dopplerOn ? 1 : 0;

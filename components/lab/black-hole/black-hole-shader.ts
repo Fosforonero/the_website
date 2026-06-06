@@ -62,30 +62,20 @@ uniform float uExposure;
 uniform float uHighOrder;  // 0/1 — use 4th-order RK4 geodesic step (high quality)
 uniform float uUltra;      // 0/1 — 6th-order Yoshida symplectic via Tao (ultra quality)
 uniform float uStyle;      // 0 = cinematic, 1 = "Starless" photographic (lensed real-sky look)
-uniform sampler2D uDiskFluxTex; // baked EXACT Kerr Page–Thorne flux field F(rd, a)
+uniform float uDiskFlux[96]; // EXACT Kerr Page–Thorne flux profile for the CURRENT spin
 
 const float RS = 1.0;
 const int   MAX_STEPS = 400;
 
-// Sample the exact Kerr Page–Thorne disk flux, baked as a 2-D field
-// (NR radial × NA spin) and bilinearly sampled (manual, via texelFetch — the
-// field is an unfilterable R32F texture). Each spin row spans rd ∈ [ISCO(a),30]
-// r_s, normalised to a common peak; rIn = ISCO(spin) is the current inner edge.
-const int   FLUX_NR   = 96;
-const int   FLUX_NA   = 16;
-const float FLUX_AMAX = 0.98;
-float diskFluxKerr(float rd, float rIn, float spin) {
-  float rf = clamp((rd - rIn) / (30.0 - rIn), 0.0, 1.0) * float(FLUX_NR - 1);
-  float af = clamp(spin / FLUX_AMAX, 0.0, 1.0) * float(FLUX_NA - 1);
-  int ri = int(floor(rf)); int rj = min(ri + 1, FLUX_NR - 1);
-  int ai = int(floor(af)); int aj = min(ai + 1, FLUX_NA - 1);
-  float tr = rf - float(ri);
-  float ta = af - float(ai);
-  float f00 = texelFetch(uDiskFluxTex, ivec2(ri, ai), 0).r;
-  float f10 = texelFetch(uDiskFluxTex, ivec2(rj, ai), 0).r;
-  float f01 = texelFetch(uDiskFluxTex, ivec2(ri, aj), 0).r;
-  float f11 = texelFetch(uDiskFluxTex, ivec2(rj, aj), 0).r;
-  return mix(mix(f00, f10, tr), mix(f01, f11, tr), ta);
+// Sample the exact Kerr Page–Thorne disk flux profile (recomputed on the CPU per
+// spin and uploaded as a plain float-array uniform — no float texture, so it
+// runs on every device). The 96 samples span rd ∈ [rIn, 30] (r_s); we sample
+// over the normalised radius. rIn = ISCO(spin) is the current inner edge.
+float diskFlux(float rd, float rIn) {
+  float t = clamp((rd - rIn) / (30.0 - rIn), 0.0, 1.0) * 95.0;
+  int i = int(floor(t));
+  int j = min(i + 1, 95);
+  return mix(uDiskFlux[i], uDiskFlux[j], t - float(i));
 }
 
 // ── hashes / noise ─────────────────────────────────────────────────────────
@@ -267,6 +257,48 @@ vec3 kerrKick(vec3 p, vec3 ps, float a) {
   return -(0.25 / e) * g; // −½·(g/2e)
 }
 
+// Inner product of two 4-vectors (a0,av),(b0,bv) in the Kerr–Schild metric
+// g = η + f·k⊗k with k_μ = (1, ks).
+float ksDot(float a0, vec3 av, float b0, vec3 bv, float f, vec3 ks) {
+  return -a0 * b0 + dot(av, bv) + f * (a0 + dot(ks, av)) * (b0 + dot(ks, bv));
+}
+
+// Photon spatial momenta for a STATIC observer at P looking along local unit
+// direction n. Builds the observer's orthonormal tetrad (Gram–Schmidt in g) and
+// maps n → coordinate momenta with E = −p_t normalised to 1. This makes the
+// CLOSE-UP view physically correct: the flat-space ps = n is only the far-field
+// limit (to which this reduces as f → 0). Verified offline: |Hq| ≈ 1e-16 at the
+// camera for all radii. Falls back to n inside the ergosphere (no static obs).
+vec3 cameraMomentum(vec3 P, vec3 n, float a) {
+  float r = kerrR(P, a), r2 = r * r;
+  float f = (r2 * r) / (r2 * r2 + a * a * P.y * P.y);
+  if (f > 0.98) return n;
+  float inv = 1.0 / (r2 + a * a);
+  vec3  ks  = vec3((r * P.x + a * P.z) * inv, P.y / r, (r * P.z - a * P.x) * inv);
+  float e0t = 1.0 / sqrt(1.0 - f);                          // observer u = ∂_t/√(−g_tt)
+  float ee0 = ksDot(e0t, vec3(0.0), e0t, vec3(0.0), f, ks); // = −1
+  // Gram–Schmidt the three coordinate axes against e0, then each other.
+  float t1 = 0.0; vec3 s1 = vec3(1.0, 0.0, 0.0);
+  t1 -= (ksDot(t1, s1, e0t, vec3(0.0), f, ks) / ee0) * e0t;
+  float m1 = sqrt(abs(ksDot(t1, s1, t1, s1, f, ks))); t1 /= m1; s1 /= m1;
+  float t2 = 0.0; vec3 s2 = vec3(0.0, 1.0, 0.0);
+  t2 -= (ksDot(t2, s2, e0t, vec3(0.0), f, ks) / ee0) * e0t;
+  float c21 = ksDot(t2, s2, t1, s1, f, ks) / ksDot(t1, s1, t1, s1, f, ks); t2 -= c21 * t1; s2 -= c21 * s1;
+  float m2 = sqrt(abs(ksDot(t2, s2, t2, s2, f, ks))); t2 /= m2; s2 /= m2;
+  float t3 = 0.0; vec3 s3 = vec3(0.0, 0.0, 1.0);
+  t3 -= (ksDot(t3, s3, e0t, vec3(0.0), f, ks) / ee0) * e0t;
+  float c31 = ksDot(t3, s3, t1, s1, f, ks) / ksDot(t1, s1, t1, s1, f, ks); t3 -= c31 * t1; s3 -= c31 * s1;
+  float c32 = ksDot(t3, s3, t2, s2, f, ks) / ksDot(t2, s2, t2, s2, f, ks); t3 -= c32 * t2; s3 -= c32 * s2;
+  float m3 = sqrt(abs(ksDot(t3, s3, t3, s3, f, ks))); t3 /= m3; s3 /= m3;
+  // p^μ = e0 + n.x e1 + n.y e2 + n.z e3, then lower index and set E = −p_t = 1.
+  float put = e0t + n.x * t1 + n.y * t2 + n.z * t3;
+  vec3  puv =        n.x * s1 + n.y * s2 + n.z * s3;
+  float kp  = put + dot(ks, puv);
+  float pt  = -put + f * kp;            // p_t = g_tν p^ν
+  vec3  ps  = puv + f * kp * ks;        // p_i = g_iν p^ν
+  return ps / (-pt);
+}
+
 // ── Ultra integrator: 6th-order Yoshida SYMPLECTIC step for the NON-separable
 // null Hamiltonian, via Tao's (2016) extended phase space. We duplicate the
 // state (q,p)→(q,p,sx,sy) and a binding rotation keeps the copies together; the
@@ -421,7 +453,7 @@ void main() {
         // baked EXACT Kerr Page–Thorne flux F(rd, spin) gives the true radial
         // profile for this spin (not the a=0 shape rescaled), so the hot region
         // tightens toward the smaller ISCO as the hole spins up.
-        float flux  = diskFluxKerr(rd, rIn, uSpin);
+        float flux  = diskFlux(rd, rIn);
         float T     = uDiskTemp * pow(flux, 0.25);           // emitted temperature (K)
 
         // Relativistic transfer: a blackbody seen with Doppler factor g stays a

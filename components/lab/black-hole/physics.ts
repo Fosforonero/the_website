@@ -75,10 +75,19 @@ export function bhFacts(mSolar: number): BHFacts {
 // Thorne 1974, ApJ 191, 499; Bardeen 1972; Novikov & Thorne 1973.
 // ---------------------------------------------------------------------------
 
-export const DISK_FLUX_NR = 96;        // radial samples per spin row
-export const DISK_FLUX_NA = 16;        // spin rows (a/M from 0 to A_MAX)
-export const DISK_FLUX_AMAX = 0.98;    // max sampled spin (a/M)
+export const DISK_FLUX_N = 96;         // radial samples in the profile
 export const DISK_FLUX_RD_MAX = 30.0;  // outer radial extent of the LUT (r_s)
+
+// Reference peak = the Newtonian profile peak, so the a = 0 profile reproduces
+// the original Schwarzschild LUT exactly (overall brightness scale unchanged).
+const FLUX_REF_PEAK = (() => {
+  let p = 0;
+  for (let rd = 3.001; rd < 30; rd += 0.02) {
+    const f = Math.pow(3 / rd, 3) * Math.max(1 - Math.sqrt(3 / rd), 0);
+    if (f > p) p = f;
+  }
+  return p;
+})();
 
 // Prograde equatorial circular-orbit quantities (M = 1, x = r/M).
 function kerrCirc(x: number, a: number): { E: number; L: number; Om: number } {
@@ -122,35 +131,31 @@ function ptFluxKerrAtX(x: number, a: number, xIsco: number): number {
   return (-dOmdx / (4 * Math.PI * emol * emol * x)) * I;
 }
 
-// Build the 2-D flux field, row-major [spin][radius] flattened to NR·NA floats.
-export function buildKerrFluxField(): Float32Array {
-  // Reference peak = the Newtonian profile peak, so the a = 0 row reproduces the
-  // previous Schwarzschild LUT exactly (overall brightness scale unchanged).
-  let refPeak = 0;
-  for (let rd = 3.001; rd < 30; rd += 0.02) {
-    const f = Math.pow(3 / rd, 3) * Math.max(1 - Math.sqrt(3 / rd), 0);
-    if (f > refPeak) refPeak = f;
+// Exact Kerr Page–Thorne radial flux profile for a given spin (uSpin = a/M ∈
+// [0,1)), as DISK_FLUX_N samples over rd ∈ [ISCO(spin), 30] (r_s units),
+// normalised to the common reference peak (the radial SHAPE varies with spin;
+// the absolute luminosity stays the artistic accretion control). Recomputed on
+// the CPU whenever the spin slider changes and uploaded as a plain float-array
+// uniform — NO float texture, so it works on every WebGL2 device. The shader
+// samples it over the normalised radius (rd − rIn)/(30 − rIn).
+export function kerrFluxProfile(uSpin: number): number[] {
+  const a = Math.min(Math.max(uSpin, 0), 0.999); // a/M
+  const xIsco = kerrISCOx(a);
+  const rdIsco = xIsco / 2; // r_s units
+  const row: number[] = [];
+  let peak = 0;
+  for (let j = 0; j < DISK_FLUX_N; j++) {
+    const rd = rdIsco + (DISK_FLUX_RD_MAX - rdIsco) * (j / (DISK_FLUX_N - 1));
+    const F = Math.max(ptFluxKerrAtX(2 * rd, a, xIsco), 0); // r/M = 2·rd
+    row.push(F);
+    if (F > peak) peak = F;
   }
-  const field = new Float32Array(DISK_FLUX_NR * DISK_FLUX_NA);
-  for (let ai = 0; ai < DISK_FLUX_NA; ai++) {
-    const a = (ai / (DISK_FLUX_NA - 1)) * DISK_FLUX_AMAX;
-    const xIsco = kerrISCOx(a);
-    const rdIsco = xIsco / 2; // r_s units
-    const row: number[] = [];
-    let rowPeak = 0;
-    for (let j = 0; j < DISK_FLUX_NR; j++) {
-      const rd = rdIsco + (DISK_FLUX_RD_MAX - rdIsco) * (j / (DISK_FLUX_NR - 1));
-      const F = Math.max(ptFluxKerrAtX(2 * rd, a, xIsco), 0); // r/M = 2·rd
-      row.push(F);
-      if (F > rowPeak) rowPeak = F;
-    }
-    const s = rowPeak > 0 ? refPeak / rowPeak : 0; // normalise each profile to refPeak
-    for (let j = 0; j < DISK_FLUX_NR; j++) field[ai * DISK_FLUX_NR + j] = row[j]! * s;
-  }
-  return field;
+  const s = peak > 0 ? FLUX_REF_PEAK / peak : 0;
+  return row.map((F) => F * s);
 }
 
-export const DISK_FLUX_FIELD = buildKerrFluxField();
+// Default (a = 0) profile for the initial uniform value.
+export const DISK_FLUX_LUT = kerrFluxProfile(0);
 
 // Map the mass to the disk's *colour* temperature for the renderer (shader
 // range ≈ 3000–30000 K). This is a trend, not the literal peak temperature
