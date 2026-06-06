@@ -495,6 +495,13 @@ export function BlackHoleAboutView({ locale = "it" }: { locale?: Locale }) {
           <div className="bh-about__actions">
             <Link href={simHref} className="bh-about__cta">{t.openSim}</Link>
             <Link href={faqHref} className="bh-about__link">{faqLabel}</Link>
+            <Link
+              href={locale === "it" ? "/en/lab/black-hole/about" : "/lab/buco-nero/about"}
+              className="bh-about__link"
+              hrefLang={locale === "it" ? "en" : "it"}
+            >
+              {locale === "it" ? "English" : "Italiano"}
+            </Link>
             <Link href={labHref} className="bh-about__link">{t.backToLab}</Link>
           </div>
         </header>

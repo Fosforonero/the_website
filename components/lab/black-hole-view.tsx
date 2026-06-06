@@ -307,6 +307,14 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
         <Link href={aboutHref} className="bh-control bh-toolbar__hide-sm">
           {t.about}
         </Link>
+        <Link
+          href={locale === "it" ? "/en/lab/black-hole" : "/lab/buco-nero"}
+          className="bh-control"
+          hrefLang={locale === "it" ? "en" : "it"}
+          aria-label={locale === "it" ? "English version" : "Versione italiana"}
+        >
+          {locale === "it" ? "EN" : "IT"}
+        </Link>
         <Link href={locale === "it" ? "/lab" : "/en/lab"} className="bh-control">
           {t.back}
         </Link>

@@ -116,6 +116,7 @@ export function BlackHoleOrbitView({ locale = "it" }: { locale?: Locale }) {
         <div className="bh-toolbar__sep" />
         <Link href={simHref} className="bh-control bh-toolbar__hide-sm">{t.sim}</Link>
         <Link href={aboutHref} className="bh-control bh-toolbar__hide-sm">{t.about}</Link>
+        <Link href={locale === "it" ? "/en/lab/black-hole/orbit" : "/lab/buco-nero/orbite"} className="bh-control" hrefLang={locale === "it" ? "en" : "it"} aria-label={locale === "it" ? "English version" : "Versione italiana"}>{locale === "it" ? "EN" : "IT"}</Link>
         <Link href={locale === "it" ? "/lab" : "/en/lab"} className="bh-control">{t.back}</Link>
       </div>
 

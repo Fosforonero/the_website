@@ -53,6 +53,13 @@ export function BlackHoleFaqView({ locale = "it" }: { locale?: Locale }) {
           <div className="bh-about__actions">
             <Link href={simHref} className="bh-about__cta">{t.sim}</Link>
             <Link href={aboutHref} className="bh-about__link">{t.about}</Link>
+            <Link
+              href={locale === "it" ? "/en/lab/black-hole/faq" : "/lab/buco-nero/faq"}
+              className="bh-about__link"
+              hrefLang={locale === "it" ? "en" : "it"}
+            >
+              {locale === "it" ? "English" : "Italiano"}
+            </Link>
           </div>
         </header>
 
