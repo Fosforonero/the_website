@@ -38,6 +38,23 @@ export type BlackHoleSceneProps = {
 // an all-sky equirectangular map built from real star catalogs (Gaia/Tycho).
 const DEFAULT_SKY_URL = "/sky/starmap_8k.jpg";
 
+// NASA Deep Star Maps variants by pixel width. We load the LARGEST that fits the
+// GPU's maxTextureSize, so the real photo also shows on phones (whose GPUs are
+// often capped at 4096) instead of being rejected and falling back to procedural.
+const NASA_VARIANTS: { w: number; url: string }[] = [
+  { w: 16384, url: "/sky/starmap_16k.jpg" },
+  { w: 8192, url: "/sky/starmap_8k.jpg" },
+  { w: 4096, url: "/sky/starmap_4k.jpg" },
+  { w: 2048, url: "/sky/starmap_2k.jpg" },
+];
+const SMALLEST_NASA_URL = "/sky/starmap_2k.jpg";
+function fitNasaUrl(requested: string, maxTex: number): string {
+  const i = NASA_VARIANTS.findIndex((v) => v.url === requested);
+  if (i < 0) return requested; // not a NASA starmap (e.g. ESO): leave as-is
+  const fit = NASA_VARIANTS.find((v, k) => k >= i && v.w <= maxTex);
+  return fit ? fit.url : SMALLEST_NASA_URL;
+}
+
 // ---------------------------------------------------------------------------
 // Fullscreen geodesic raymarch quad
 // ---------------------------------------------------------------------------
@@ -64,8 +81,10 @@ export function BlackHoleQuad({
   useEffect(() => {
     skyReady.current = false;
     let cancelled = false;
+    // Pick the largest NASA variant the GPU can actually upload (phones cap low).
+    const url = fitNasaUrl(skyUrl, glCaps.maxTextureSize);
     new THREE.TextureLoader().load(
-      skyUrl,
+      url,
       (tex) => {
         if (cancelled) { tex.dispose(); return; }
         // Guard against textures larger than the GPU can upload (the 16k photo is
