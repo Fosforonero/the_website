@@ -360,12 +360,14 @@ function Simulation({
     const wanted = Math.min(rawDt, 0.05) * 16.0;
     let minDist = 1e9;
     for (const b of bodies.current) {
-      const d = b.pos.length() - RS;
-      if (d < minDist) minDist = d;
+      const r = b.pos.length();
+      if (r < 1.6) continue;          // doomed plungers don't force global slow-motion
+      if (r - RS < minDist) minDist = r - RS;
     }
-    const dtMax = Math.min(0.02, Math.max(0.0025, 0.010 * minDist));
-    const nSub = Math.min(96, Math.max(1, Math.ceil(wanted / dtMax)));
+    const dtMax = Math.min(0.02, Math.max(0.005, 0.010 * minDist));
+    const nSub = Math.min(64, Math.max(1, Math.ceil(wanted / dtMax)));
     const h = Math.min(dtMax, wanted / nSub); // h ≤ dtMax always → stable
+    const total = h * nSub;                   // actual simulated time this frame
     const a = parts.current;
 
     for (let s = 0; s < nSub; s++) {
@@ -401,24 +403,33 @@ function Simulation({
         if (sp > C_CAP) b.vel.multiplyScalar(C_CAP / sp);
         b.pos.addScaledVector(b.vel, h);
       }
+    }
+
+    // Particles (tidal streams / debris) are integrated with their OWN, capped
+    // sub-stepping — they don't need the bodies' fine near-horizon steps. This
+    // stops a single plunging body (up to 64 substeps) from multiplying the
+    // 14k-particle cost and freezing the whole sim. Same total simulated time.
+    const pSub = Math.min(nSub, 16);
+    const ph = total / pSub;
+    for (let ps = 0; ps < pSub; ps++) {
       for (let k = 0; k < a.count; k++) {
         if (a.life[k]! <= 0) continue;
         tmp.set(a.pos[k * 3]!, a.pos[k * 3 + 1]!, a.pos[k * 3 + 2]!);
         pwAccel(tmp, tmp2);
-        a.vel[k * 3] = a.vel[k * 3]! + tmp2.x * h;
-        a.vel[k * 3 + 1] = a.vel[k * 3 + 1]! + tmp2.y * h;
-        a.vel[k * 3 + 2] = a.vel[k * 3 + 2]! + tmp2.z * h;
+        a.vel[k * 3] = a.vel[k * 3]! + tmp2.x * ph;
+        a.vel[k * 3 + 1] = a.vel[k * 3 + 1]! + tmp2.y * ph;
+        a.vel[k * 3 + 2] = a.vel[k * 3 + 2]! + tmp2.z * ph;
         // Cap particle speed at c as well.
         const psp = Math.hypot(a.vel[k * 3]!, a.vel[k * 3 + 1]!, a.vel[k * 3 + 2]!);
         if (psp > C_CAP) {
-          const s = C_CAP / psp;
-          a.vel[k * 3] = a.vel[k * 3]! * s;
-          a.vel[k * 3 + 1] = a.vel[k * 3 + 1]! * s;
-          a.vel[k * 3 + 2] = a.vel[k * 3 + 2]! * s;
+          const s2 = C_CAP / psp;
+          a.vel[k * 3] = a.vel[k * 3]! * s2;
+          a.vel[k * 3 + 1] = a.vel[k * 3 + 1]! * s2;
+          a.vel[k * 3 + 2] = a.vel[k * 3 + 2]! * s2;
         }
-        a.pos[k * 3] = tmp.x + a.vel[k * 3]! * h;
-        a.pos[k * 3 + 1] = tmp.y + a.vel[k * 3 + 1]! * h;
-        a.pos[k * 3 + 2] = tmp.z + a.vel[k * 3 + 2]! * h;
+        a.pos[k * 3] = tmp.x + a.vel[k * 3]! * ph;
+        a.pos[k * 3 + 1] = tmp.y + a.vel[k * 3 + 1]! * ph;
+        a.pos[k * 3 + 2] = tmp.z + a.vel[k * 3 + 2]! * ph;
         // Absorb into the disk: if this step crossed the disk plane within the
         // disk's radial extent, the debris merges into the disk (feeds it)
         // rather than passing through and flying out the other side.
