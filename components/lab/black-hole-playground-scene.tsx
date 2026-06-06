@@ -101,6 +101,8 @@ type Body = {
   merged?: boolean;        // marked when absorbed by another body this frame
   disrupting?: number;     // seconds remaining of a gradual tidal disruption
   disruptN?: number;       // total debris to release over the disruption
+  mass0?: number;          // mass at disruption onset (to scale it down to 0)
+  radius0?: number;        // radius at disruption onset
 };
 
 const STREAM_COLOR = new THREE.Color("#ffc89c"); // tidally-stripped gas (reused)
@@ -556,11 +558,18 @@ function Simulation({
           // eslint-disable-next-line react-hooks/immutability
           b.disrupting = 0.5;
           b.disruptN = Math.round(220 + 900 * b.radius);
+          b.mass0 = b.mass; b.radius0 = b.radius; // freeze pre-disruption values
         }
         const dtFrac = Math.min(rawDt, b.disrupting) / 0.5;
         disrupt(b, Math.max(1, Math.round(b.disruptN! * dtFrac)));
         b.disrupting -= rawDt;
-        if (b.mesh) b.mesh.scale.setScalar(Math.max(b.disrupting / 0.5, 0.0));
+        // The star loses mass as it is spaghettified: it drains to 0 over the ½ s,
+        // so its gravitational pull on the other bodies visibly wanes. Radius (and
+        // the mesh) track the remaining fraction f; mass ∝ volume ∝ f³.
+        const f = Math.max(b.disrupting / 0.5, 0.0);
+        b.mass = (b.mass0 ?? b.mass) * f * f * f;
+        b.radius = (b.radius0 ?? b.radius) * f;
+        if (b.mesh) b.mesh.scale.setScalar(f);
         if (b.disrupting <= 0 || r < HORIZON) {
           if (b.mesh) group.remove(b.mesh);
           continue; // fully spaghettified / swallowed

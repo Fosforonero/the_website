@@ -137,6 +137,16 @@ vec3 starField(vec3 d) {
     col += mwCol * band2 * 0.6;
     float core = exp(-pow(az * 0.8, 2.0)) * band;          // warm bulge toward the centre
     col += vec3(0.045, 0.035, 0.026) * core * (1.0 - 0.6 * dust);
+    // Nebulae: sparse coloured emission/reflection patches along the plane — a
+    // second, lower-frequency fBm picks bright clumps, tinted between reddish HII
+    // and bluish reflection. Adds the colour/depth that reads as "more detailed".
+    vec2  ng = vec2(az * 1.3, d.y * 3.2) + 41.0;
+    float neb = 0.0, na = 0.55;
+    for (int o = 0; o < 3; o++) { neb += na * gnoise(ng); ng = rr * ng * 2.1 + 2.3; na *= 0.5; }
+    neb = pow(clamp(neb, 0.0, 1.0), 3.0);                   // sparse, bright clumps
+    float tint = gnoise(vec2(az * 0.7, d.y * 1.6) + 7.0);
+    vec3  nebCol = mix(vec3(0.075, 0.020, 0.035), vec3(0.018, 0.035, 0.075), tint); // HII red ↔ reflection blue
+    col += nebCol * neb * band * (1.0 - 0.55 * dust) * 1.3;
   }
 
   // Discrete stars. In Starless mode two extra layers (k=2,3) are dense, faint
