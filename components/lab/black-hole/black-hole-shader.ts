@@ -60,6 +60,7 @@ uniform float uJets;       // 0 / 1 — relativistic jets along the spin axis
 uniform float uJetStr;     // jet emission strength
 uniform float uExposure;
 uniform float uHighOrder;  // 0/1 — use 4th-order RK4 geodesic step (high quality)
+uniform float uUltra;      // 0/1 — 6th-order Yoshida symplectic (only compiled when BH_ULTRA is defined)
 uniform float uStyle;      // 0 = cinematic, 1 = "Starless" photographic (lensed real-sky look)
 
 const float RS = 1.0;
@@ -266,6 +267,29 @@ vec3 kerrKick(vec3 p, vec3 ps, float a) {
   return -(0.25 / e) * g; // −½·(g/2e)
 }
 
+// ── "Ultra" integrator (DESKTOP): 6th-order Yoshida SYMPLECTIC step for the
+// non-separable null Hamiltonian, via Tao's (2016) extended phase space. This is
+// gated behind #define BH_ULTRA so it is compiled ONLY for the Ultra-quality
+// shader variant — the default/mobile shader never contains it, so it cannot
+// blow the mobile shader-compile budget (which is what broke the disk before).
+#ifdef BH_ULTRA
+const float YOSH6[7] = float[7](
+  0.78451361047756, 0.235573213359357, -1.17767998417887,
+  1.315185948683906, -1.17767998417887, 0.235573213359357, 0.78451361047756);
+void taoStep(inout vec3 q, inout vec3 p, inout vec3 sx, inout vec3 sy, float d, float a, float om) {
+  float h = 0.5 * d;
+  p += h * kerrKick(q, sy, a);  sx += h * kerrVel(q, sy, a);
+  q += h * kerrVel(sx, p, a);   sy += h * kerrKick(sx, p, a);
+  float c = cos(2.0 * om * d), s = sin(2.0 * om * d);
+  vec3 qa = q - sx, pb = p - sy, qsum = q + sx, psum = p + sy;
+  vec3 na = qa * c + pb * s, nb = -qa * s + pb * c;
+  q = 0.5 * (qsum + na); sx = 0.5 * (qsum - na);
+  p = 0.5 * (psum + nb); sy = 0.5 * (psum - nb);
+  q += h * kerrVel(sx, p, a);   sy += h * kerrKick(sx, p, a);
+  p += h * kerrKick(q, sy, a);  sx += h * kerrVel(q, sy, a);
+}
+#endif
+
 void main() {
   // Reconstruct the world-space camera ray for this pixel.
   vec2 ndc = vUv * 2.0 - 1.0;
@@ -314,6 +338,9 @@ void main() {
   float rHor  = 0.5 * (1.0 + sqrt(max(1.0 - uSpin * uSpin, 0.0)));      // outer horizon r₊
   float rIn   = kerrISCO(uSpin);                                        // spin-dependent disk inner edge (ISCO)
   vec3  ps    = dir;                                                    // photon momentum (E=1, far→flat)
+#ifdef BH_ULTRA
+  vec3  shPos = pos, shMom = ps;                                        // Tao extended-phase-space shadow copy
+#endif
 
   for (int i = 0; i < MAX_STEPS && !done; i++) {
     if (i >= uSteps) break;
@@ -360,6 +387,17 @@ void main() {
     //   • otherwise → 1st-order symplectic (semi-implicit) Euler: kick then drift
     //     with the updated momentum — cheap, one gradient/step, for medium/low.
     vec3 vel, posNext, psNext;
+#ifdef BH_ULTRA
+    if (uUltra > 0.5) {
+      // 6th-order Yoshida symplectic (Tao). ω = 0.25/dt keeps the binding
+      // rotation angle constant per (adaptive) step.
+      vec3 q = pos, p = ps, sx = shPos, sy = shMom;
+      float om = 0.25 / dt;
+      for (int k = 0; k < 7; k++) taoStep(q, p, sx, sy, YOSH6[k] * dt, kerrA, om);
+      posNext = q; psNext = p; shPos = sx; shMom = sy;
+      vel = (posNext - pos) / dt;
+    } else
+#endif
     if (uHighOrder > 0.5) {
       vec3 k1x = kerrVel(pos, ps, kerrA),                         k1p = kerrKick(pos, ps, kerrA);
       vec3 k2x = kerrVel(pos + 0.5*dt*k1x, ps + 0.5*dt*k1p, kerrA), k2p = kerrKick(pos + 0.5*dt*k1x, ps + 0.5*dt*k1p, kerrA);
@@ -521,16 +559,18 @@ void main() {
 // Higher steps = more accurate bending but heavier per-pixel cost.
 // ---------------------------------------------------------------------------
 
-export type BlackHoleQuality = "high" | "medium" | "low";
+export type BlackHoleQuality = "ultra" | "high" | "medium" | "low";
 
 export const QUALITY_PRESETS: Record<
   BlackHoleQuality,
-  { steps: number; dprCap: number; rk4: boolean }
+  { steps: number; dprCap: number; rk4: boolean; tao: boolean }
 > = {
-  // "high" uses the 4th-order RK4 geodesic step; medium/low use the cheap
-  // symplectic Euler step. (A 6th-order Yoshida/Tao "ultra" tier was removed —
-  // it added a lot of shader code for no visible benefit.)
-  high:   { steps: 320, dprCap: 2.0, rk4: true },
-  medium: { steps: 240, dprCap: 1.4, rk4: false },
-  low:    { steps: 140, dprCap: 1.1, rk4: false },
+  // "ultra" → 6th-order Yoshida SYMPLECTIC step (Tao), compiled into a SEPARATE
+  // shader variant (#define BH_ULTRA) used only when selected, so it never
+  // bloats the default/mobile shader. Desktop/laptop-oriented (heaviest).
+  // "high" → 4th-order RK4. medium/low → cheap symplectic Euler.
+  ultra:  { steps: 260, dprCap: 1.4, rk4: false, tao: true },
+  high:   { steps: 320, dprCap: 2.0, rk4: true,  tao: false },
+  medium: { steps: 240, dprCap: 1.4, rk4: false, tao: false },
+  low:    { steps: 140, dprCap: 1.1, rk4: false, tao: false },
 };

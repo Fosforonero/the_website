@@ -50,7 +50,7 @@ const COPY = {
   it: {
     title: "Buco Nero · Lensing Schwarzschild",
     quality: "Qualità",
-    qualities: { high: "Alta", medium: "Media", low: "Bassa" },
+    qualities: { ultra: "Ultra ✦", high: "Alta", medium: "Media", low: "Bassa" },
     disk: "Disco di accrescimento",
     doppler: "Doppler relativistico",
     jets: "Getti relativistici",
@@ -89,7 +89,7 @@ const COPY = {
   en: {
     title: "Black Hole · Schwarzschild Lensing",
     quality: "Quality",
-    qualities: { high: "High", medium: "Medium", low: "Low" },
+    qualities: { ultra: "Ultra ✦", high: "High", medium: "Medium", low: "Low" },
     disk: "Accretion disk",
     doppler: "Relativistic Doppler",
     jets: "Relativistic jets",
@@ -198,7 +198,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
             value={quality}
             onChange={(e) => setQuality(e.target.value as BlackHoleQuality)}
           >
-            {(["high", "medium", "low"] as BlackHoleQuality[]).map((q) => (
+            {(["ultra", "high", "medium", "low"] as BlackHoleQuality[]).map((q) => (
               <option key={q} value={q}>
                 {t.qualities[q]}
               </option>
@@ -325,7 +325,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
             <label>
               <span>{t.quality}</span>
               <select value={quality} onChange={(e) => setQuality(e.target.value as BlackHoleQuality)}>
-                {(["high", "medium", "low"] as BlackHoleQuality[]).map((q) => (
+                {(["ultra", "high", "medium", "low"] as BlackHoleQuality[]).map((q) => (
                   <option key={q} value={q}>{t.qualities[q]}</option>
                 ))}
               </select>

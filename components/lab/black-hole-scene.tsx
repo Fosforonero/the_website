@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useEffect } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
@@ -64,6 +64,7 @@ export function BlackHoleQuad({
       uJetStr: { value: 0.7 },
       uExposure: { value: 1.15 },
       uHighOrder: { value: QUALITY_PRESETS[quality].rk4 ? 1 : 0 },
+      uUltra: { value: QUALITY_PRESETS[quality].tao ? 1 : 0 },
       uStyle: { value: starless ? 1 : 0 },
     }),
     // Intentionally created once — toggle changes are applied in useFrame.
@@ -88,6 +89,7 @@ export function BlackHoleQuad({
     // Live toggles / quality.
     u.uSteps.value = QUALITY_PRESETS[quality].steps;
     u.uHighOrder.value = QUALITY_PRESETS[quality].rk4 ? 1 : 0;
+    u.uUltra.value = QUALITY_PRESETS[quality].tao ? 1 : 0;
     u.uStyle.value = starless ? 1 : 0;
     u.uExposure.value = starless ? 1.0 : 1.15; // a touch flatter for the photographic look
     u.uDiskOn.value = diskOn ? 1 : 0;
@@ -98,6 +100,23 @@ export function BlackHoleQuad({
     u.uDiskBright.value = diskBright;
     u.uDiskOuter.value = diskOuter;
   });
+
+  // "Ultra" compiles a SEPARATE shader variant (#define BH_ULTRA) that contains
+  // the Yoshida/Tao integrator. We toggle the define + recompile only when the
+  // quality crosses into/out of "ultra", so the default shader never carries it.
+  useEffect(() => {
+    const mat = matRef.current;
+    if (!mat) return;
+    const want = QUALITY_PRESETS[quality].tao;
+    const defs = (mat.defines ?? {}) as Record<string, string>;
+    const has = defs.BH_ULTRA !== undefined;
+    if (want !== has) {
+      if (want) defs.BH_ULTRA = "";
+      else delete defs.BH_ULTRA;
+      mat.defines = defs;
+      mat.needsUpdate = true; // force GLSL recompile of the correct variant
+    }
+  }, [quality]);
 
   return (
     <mesh frustumCulled={false} renderOrder={-1}>
