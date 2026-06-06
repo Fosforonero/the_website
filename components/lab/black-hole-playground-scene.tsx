@@ -60,7 +60,7 @@ const DISK_IN = 3.0;      // accretion-disk inner radius (matches the shader)
 const DISK_OUT = 16.0;    // accretion-disk outer radius
 const MASS_TRANSFER_RADIUS = 11.0; // bodies inside this shed matter toward the BH
 const C_CAP = 0.985;     // speed-of-light cap (c = 1 in geometric units)
-const MAX_PARTICLES = 4000;
+const MAX_PARTICLES = 14000; // large pool → dense, continuous streams
 // Gravitational-wave radiation-reaction strength. The real effect is ~(v/c)⁵
 // tiny; this amplifies it so the inspiral is visible on playground timescales,
 // exactly like the time speed-up. Tunable.
@@ -265,7 +265,7 @@ function Simulation({
       b.kind === "comet" ? new THREE.Color("#d6eef8")
       : b.kind === "planet" ? new THREE.Color("#cdb79c")
       : new THREE.Color("#ffd9a0");
-    const N = Math.round(70 + 280 * b.radius); // bigger body → more debris
+    const N = Math.round(220 + 900 * b.radius); // bigger body → more debris
     for (let k = 0; k < N; k++) {
       const u = (k / (N - 1)) * 2 - 1;          // -1 (bound) .. +1 (unbound)
       const isBound = u < 0.0;
@@ -465,7 +465,9 @@ function Simulation({
       // broadens as the star sinks deeper into the tidal field.
       if (b.parentId === null && r > rt && r < MASS_TRANSFER_RADIUS) {
         const frac = 1.0 - (r - rt) / (MASS_TRANSFER_RADIUS - rt); // 0 (far) .. 1 (near rt)
-        const nShed = 1 + Math.round(frac * 6);
+        // Dense, continuous stream: many parcels per frame, scaled by how deep
+        // the body is in the tidal field and by its size.
+        const nShed = Math.round((4 + frac * 30) * (b.radius / 0.4));
         const radial = b.pos.clone().multiplyScalar(1 / Math.max(r, 1e-4)); // outward unit
         // tangent basis on the star's BH-facing cap
         const up = Math.abs(radial.y) < 0.9 ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(1, 0, 0);
