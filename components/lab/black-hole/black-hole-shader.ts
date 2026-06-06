@@ -62,20 +62,20 @@ uniform float uExposure;
 uniform float uHighOrder;  // 0/1 — use 4th-order RK4 geodesic step (high quality)
 uniform float uUltra;      // 0/1 — 6th-order Yoshida symplectic via Tao (ultra quality)
 uniform float uStyle;      // 0 = cinematic, 1 = "Starless" photographic (lensed real-sky look)
-uniform float uDiskFlux[96]; // EXACT Kerr Page–Thorne flux profile for the CURRENT spin
 
 const float RS = 1.0;
 const int   MAX_STEPS = 400;
 
-// Sample the exact Kerr Page–Thorne disk flux profile (recomputed on the CPU per
-// spin and uploaded as a plain float-array uniform — no float texture, so it
-// runs on every device). The 96 samples span rd ∈ [rIn, 30] (r_s); we sample
-// over the normalised radius. rIn = ISCO(spin) is the current inner edge.
+// Relativistic thin-disk radiative flux (Novikov–Thorne / Shakura–Sunyaev radial
+// profile with a zero-torque inner boundary): F ∝ (r_in/r)³·(1−√(r_in/r)). The
+// inner edge r_in is the spin-dependent ISCO, so the hot ring tracks the ISCO as
+// the hole spins up. Computed ANALYTICALLY in the shader — no lookup table, no
+// uniform array, no texture — so it renders on every WebGL device. Peaks at
+// ~0.057 near 1.36·r_in, matching the previous baked profile.
 float diskFlux(float rd, float rIn) {
-  float t = clamp((rd - rIn) / (30.0 - rIn), 0.0, 1.0) * 95.0;
-  int i = int(floor(t));
-  int j = min(i + 1, 95);
-  return mix(uDiskFlux[i], uDiskFlux[j], t - float(i));
+  if (rd <= rIn) return 0.0;
+  float x = rIn / rd;
+  return x * x * x * (1.0 - sqrt(x));
 }
 
 // ── hashes / noise ─────────────────────────────────────────────────────────
@@ -255,48 +255,6 @@ vec3 kerrKick(vec3 p, vec3 ps, float a) {
     kerrHq(p + vec3(0.0, e, 0.0), ps, a) - kerrHq(p - vec3(0.0, e, 0.0), ps, a),
     kerrHq(p + vec3(0.0, 0.0, e), ps, a) - kerrHq(p - vec3(0.0, 0.0, e), ps, a));
   return -(0.25 / e) * g; // −½·(g/2e)
-}
-
-// Inner product of two 4-vectors (a0,av),(b0,bv) in the Kerr–Schild metric
-// g = η + f·k⊗k with k_μ = (1, ks).
-float ksDot(float a0, vec3 av, float b0, vec3 bv, float f, vec3 ks) {
-  return -a0 * b0 + dot(av, bv) + f * (a0 + dot(ks, av)) * (b0 + dot(ks, bv));
-}
-
-// Photon spatial momenta for a STATIC observer at P looking along local unit
-// direction n. Builds the observer's orthonormal tetrad (Gram–Schmidt in g) and
-// maps n → coordinate momenta with E = −p_t normalised to 1. This makes the
-// CLOSE-UP view physically correct: the flat-space ps = n is only the far-field
-// limit (to which this reduces as f → 0). Verified offline: |Hq| ≈ 1e-16 at the
-// camera for all radii. Falls back to n inside the ergosphere (no static obs).
-vec3 cameraMomentum(vec3 P, vec3 n, float a) {
-  float r = kerrR(P, a), r2 = r * r;
-  float f = (r2 * r) / (r2 * r2 + a * a * P.y * P.y);
-  if (f > 0.98) return n;
-  float inv = 1.0 / (r2 + a * a);
-  vec3  ks  = vec3((r * P.x + a * P.z) * inv, P.y / r, (r * P.z - a * P.x) * inv);
-  float e0t = 1.0 / sqrt(1.0 - f);                          // observer u = ∂_t/√(−g_tt)
-  float ee0 = ksDot(e0t, vec3(0.0), e0t, vec3(0.0), f, ks); // = −1
-  // Gram–Schmidt the three coordinate axes against e0, then each other.
-  float t1 = 0.0; vec3 s1 = vec3(1.0, 0.0, 0.0);
-  t1 -= (ksDot(t1, s1, e0t, vec3(0.0), f, ks) / ee0) * e0t;
-  float m1 = sqrt(abs(ksDot(t1, s1, t1, s1, f, ks))); t1 /= m1; s1 /= m1;
-  float t2 = 0.0; vec3 s2 = vec3(0.0, 1.0, 0.0);
-  t2 -= (ksDot(t2, s2, e0t, vec3(0.0), f, ks) / ee0) * e0t;
-  float c21 = ksDot(t2, s2, t1, s1, f, ks) / ksDot(t1, s1, t1, s1, f, ks); t2 -= c21 * t1; s2 -= c21 * s1;
-  float m2 = sqrt(abs(ksDot(t2, s2, t2, s2, f, ks))); t2 /= m2; s2 /= m2;
-  float t3 = 0.0; vec3 s3 = vec3(0.0, 0.0, 1.0);
-  t3 -= (ksDot(t3, s3, e0t, vec3(0.0), f, ks) / ee0) * e0t;
-  float c31 = ksDot(t3, s3, t1, s1, f, ks) / ksDot(t1, s1, t1, s1, f, ks); t3 -= c31 * t1; s3 -= c31 * s1;
-  float c32 = ksDot(t3, s3, t2, s2, f, ks) / ksDot(t2, s2, t2, s2, f, ks); t3 -= c32 * t2; s3 -= c32 * s2;
-  float m3 = sqrt(abs(ksDot(t3, s3, t3, s3, f, ks))); t3 /= m3; s3 /= m3;
-  // p^μ = e0 + n.x e1 + n.y e2 + n.z e3, then lower index and set E = −p_t = 1.
-  float put = e0t + n.x * t1 + n.y * t2 + n.z * t3;
-  vec3  puv =        n.x * s1 + n.y * s2 + n.z * s3;
-  float kp  = put + dot(ks, puv);
-  float pt  = -put + f * kp;            // p_t = g_tν p^ν
-  vec3  ps  = puv + f * kp * ks;        // p_i = g_iν p^ν
-  return ps / (-pt);
 }
 
 // ── Ultra integrator: 6th-order Yoshida SYMPLECTIC step for the NON-separable
