@@ -40,7 +40,7 @@ const FAQ = [
   },
   {
     q: "È identica al buco nero di Interstellar?",
-    a: "No. Interstellar (Gargantua) usa la metrica di Kerr di un buco nero rotante, calcolata offline. Questa simulazione è di Schwarzschild (non rotante) e gira in tempo reale nel browser; lo spin è un'approssimazione di Lense–Thirring.",
+    a: "È la stessa metrica di Kerr. La differenza è il calcolo: il Gargantua di Interstellar è stato ray-tracciato offline (ore per fotogramma), mentre questa simulazione integra le geodetiche nulle esatte di Kerr in tempo reale nel browser (con lo slider Spin). Anche il disco di Interstellar è un modello artistico, come il nostro.",
   },
 ];
 

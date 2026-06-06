@@ -504,8 +504,20 @@ export function BlackHoleAboutView({ locale = "it" }: { locale?: Locale }) {
           </ol>
         </section>
 
+        <div className="bh-kofi">
+          <p>
+            {locale === "it"
+              ? "Questo laboratorio è gratuito, senza pubblicità e costruito con la fisica vera. Se ti è utile o vuoi sostenere nuovi strumenti scientifici interattivi, puoi offrirmi un caffè."
+              : "This lab is free, ad-free and built on real physics. If it is useful to you or you want to support more interactive scientific tools, you can buy me a coffee."}
+          </p>
+          <a href="https://ko-fi.com/fosforonero" target="_blank" rel="noopener noreferrer" className="bh-kofi__btn">
+            ☕ {locale === "it" ? "Supporta su Ko-fi" : "Support on Ko-fi"}
+          </a>
+        </div>
+
         <footer className="bh-about__foot">
           <Link href={simHref} className="bh-about__cta">{t.openSim}</Link>
+          <Link href={faqHref} className="bh-about__link" style={{ marginLeft: 12 }}>{faqLabel}</Link>
         </footer>
       </article>
     </div>

@@ -91,6 +91,28 @@ export const projects: Project[] = [
     },
   },
   {
+    id: "buco-nero",
+    name: "Buco Nero",
+    url: "/lab/buco-nero",
+    handle: "lab · astrofisica",
+    status: "LIVE",
+    year: 2026,
+    stack: ["Three.js", "WebGL", "GLSL", "Next.js"],
+    brand: "#ff8a3c",
+    copy: {
+      it: {
+        tagline: "Lensing di Kerr in tempo reale, disco e playground gravitazionale.",
+        description:
+          "Simulazione di un buco nero con ray-tracing delle geodetiche nulle esatte (Schwarzschild e Kerr) in tempo reale: lensing gravitazionale, ombra, photon ring e disco di accrescimento di Page–Thorne con Doppler relativistico. Include una demo di orbite relativistiche, un playground a N-corpi con disgregazione mareale e onde gravitazionali, una griglia spazio-tempo, un pannello a scala reale e pagine equazioni/FAQ bilingui.",
+      },
+      en: {
+        tagline: "Real-time Kerr lensing, accretion disk and a gravitational playground.",
+        description:
+          "A black-hole simulation ray-tracing the exact null geodesics (Schwarzschild and Kerr) in real time: gravitational lensing, shadow, photon ring and a Page–Thorne accretion disk with relativistic Doppler. Includes a relativistic-orbits demo, an N-body playground with tidal disruption and gravitational waves, a spacetime grid, a real-scale panel and bilingual equations/FAQ pages.",
+      },
+    },
+  },
+  {
     id: "sitebrain",
     name: "SiteBrain AI",
     url: "/sitebrain",

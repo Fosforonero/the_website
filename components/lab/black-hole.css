@@ -324,6 +324,32 @@
   background:
     radial-gradient(1200px 600px at 50% -10%, #0b1426 0%, #05060d 60%, #04050a 100%);
 }
+/* Ko-fi support block */
+.bh-kofi {
+  margin: 36px 0 0;
+  padding: 18px 20px;
+  background: rgba(10, 16, 30, 0.6);
+  border: 1px solid #16203a;
+  border-radius: 10px;
+}
+.bh-kofi p {
+  margin: 0 0 12px;
+  font-size: 0.85rem;
+  color: #aebbd2;
+}
+.bh-kofi__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  background: #ff5e5b;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border-radius: 999px;
+  text-decoration: none;
+}
+.bh-kofi__btn:hover { background: #ff423f; }
 .bh-about {
   max-width: 760px;
   margin: 0 auto;

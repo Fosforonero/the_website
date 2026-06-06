@@ -145,6 +145,8 @@ const COPY = {
     about: "Equazioni e crediti →",
     sim: "Apri la simulazione →",
     back: "← Torna al Lab",
+    kofi: "Questo laboratorio è gratuito, senza pubblicità e costruito con la fisica vera. Se ti è utile, puoi offrirmi un caffè.",
+    kofiBtn: "Supporta su Ko-fi",
   },
   en: {
     kicker: "Fosforonero Lab",
@@ -154,6 +156,8 @@ const COPY = {
     about: "Equations & credits →",
     sim: "Open the simulation →",
     back: "← Back to the Lab",
+    kofi: "This lab is free, ad-free and built on real physics. If it is useful to you, you can buy me a coffee.",
+    kofiBtn: "Support on Ko-fi",
   },
 } as const;
 
@@ -190,6 +194,13 @@ export function BlackHoleFaqView({ locale = "it" }: { locale?: Locale }) {
             </div>
           ))}
         </section>
+
+        <div className="bh-kofi">
+          <p>{t.kofi}</p>
+          <a href="https://ko-fi.com/fosforonero" target="_blank" rel="noopener noreferrer" className="bh-kofi__btn">
+            ☕ {t.kofiBtn}
+          </a>
+        </div>
 
         <footer className="bh-about__foot">
           <Link href={aboutHref} className="bh-about__cta">{t.about}</Link>

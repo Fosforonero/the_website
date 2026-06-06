@@ -40,7 +40,7 @@ const FAQ = [
   },
   {
     q: "Is it identical to Interstellar's black hole?",
-    a: "No. Interstellar (Gargantua) uses the Kerr metric of a rotating black hole, computed offline. This simulation is Schwarzschild (non-rotating) and runs in real time in the browser; spin is a Lense–Thirring approximation.",
+    a: "It is the same Kerr metric. The difference is the computation: Interstellar's Gargantua was ray-traced offline (hours per frame), while this simulation integrates the exact Kerr null geodesics in real time in the browser (with the Spin slider). Interstellar's disk is an artistic model too, like ours.",
   },
 ];
 
