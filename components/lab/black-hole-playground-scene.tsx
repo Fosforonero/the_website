@@ -96,6 +96,8 @@ type Body = {
   parentId: number | null; // moon → host planet
   mesh: THREE.Mesh | null;
   merged?: boolean;        // marked when absorbed by another body this frame
+  disrupting?: number;     // seconds remaining of a gradual tidal disruption
+  disruptN?: number;       // total debris to release over the disruption
 };
 
 const STREAM_COLOR = new THREE.Color("#ffc89c"); // tidally-stripped gas (reused)
@@ -279,7 +281,7 @@ function Simulation({
     addBody(kind, pos, vel, cfg.radius, cfg.color, cfg.mass, null);
   }
 
-  function disrupt(b: Body) {
+  function disrupt(b: Body, n: number) {
     // Tidal disruption event (TDE): the body is spaghettified into a thin
     // stream. The key physics is a spread in *specific orbital energy* imparted
     // along the orbital direction: half the debris becomes bound (ε<0) and
@@ -298,9 +300,8 @@ function Simulation({
       b.kind === "comet" ? new THREE.Color("#d6eef8")
       : b.kind === "planet" ? new THREE.Color("#cdb79c")
       : new THREE.Color("#ffd9a0");
-    const N = Math.round(220 + 900 * b.radius); // bigger body → more debris
-    for (let k = 0; k < N; k++) {
-      const u = (k / (N - 1)) * 2 - 1;          // -1 (bound) .. +1 (unbound)
+    for (let k = 0; k < n; k++) {
+      const u = ((k + Math.random()) / n) * 2 - 1; // -1 (bound) .. +1 (unbound)
       const isBound = u < 0.0;
       // Stretch the body into a long thin noodle along the orbit right away
       // (the classic spaghetti), with a tiny radial/vertical width.
@@ -511,7 +512,7 @@ function Simulation({
       // toward the hole, feeding the disk. Emission is CONTINUOUS (a deterministic
       // number of parcels per frame, ≥1) so the stream never stutters, and it
       // broadens as the star sinks deeper into the tidal field.
-      if (b.parentId === null && r > rt && r < MASS_TRANSFER_RADIUS) {
+      if (b.parentId === null && b.disrupting === undefined && r > rt && r < MASS_TRANSFER_RADIUS) {
         const frac = 1.0 - (r - rt) / (MASS_TRANSFER_RADIUS - rt); // 0 (far) .. 1 (near rt)
         // Dense, continuous stream: many parcels per frame, scaled by how deep
         // the body is in the tidal field and by its size.
@@ -537,12 +538,27 @@ function Simulation({
           emit(p, vv, STREAM_COLOR, 8.0);
         }
       }
-      // Tidal disruption at the body's density-dependent radius (planets are
-      // denser → smaller radius → more resistant). Moons (parented) just plunge.
-      if (b.parentId === null && r < rt) {
-        disrupt(b);
-        if (b.mesh) group.remove(b.mesh);
-        continue; // body becomes a debris stream
+      // Tidal disruption at the density-dependent radius. Spread over ~½ s so
+      // the star stretches and is eaten gradually (a real spaghettification),
+      // not a single puff: it keeps orbiting and shedding debris along its path
+      // while shrinking, then disappears.
+      if (b.parentId === null && (b.disrupting !== undefined || r < rt)) {
+        if (b.disrupting === undefined) {
+          // eslint-disable-next-line react-hooks/immutability
+          b.disrupting = 0.5;
+          b.disruptN = Math.round(220 + 900 * b.radius);
+        }
+        const dtFrac = Math.min(rawDt, b.disrupting) / 0.5;
+        disrupt(b, Math.max(1, Math.round(b.disruptN! * dtFrac)));
+        b.disrupting -= rawDt;
+        if (b.mesh) b.mesh.scale.setScalar(Math.max(b.disrupting / 0.5, 0.0));
+        if (b.disrupting <= 0 || r < HORIZON) {
+          if (b.mesh) group.remove(b.mesh);
+          continue; // fully spaghettified / swallowed
+        }
+        if (b.mesh) b.mesh.position.copy(b.pos);
+        survivors.push(b); // still dissolving — keeps moving & emitting
+        continue;
       }
       if (r < HORIZON) {
         burst(b);
