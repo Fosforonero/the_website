@@ -154,12 +154,14 @@ const COPY: Record<Locale, Copy> = {
         body: [
           "Lensing: la geodetica nulla è integrata in forma vettoriale con un'accelerazione che curva il raggio, dove h² = |r × v|² è il momento angolare conservato del fotone; l'integratore è velocity-Verlet con passo adattivo, raffinato vicino alla sfera fotonica per la returning radiation. Il tone mapping è ACES filmico seguito da correzione gamma.",
           "Playground: la dinamica nel potenziale di Paczyński–Wiita usa sub-passi adattivi con gravità reciproca smorzata (softening ε) e velocità limitate a c. Il passo è però vincolato alla stabilità: non supera mai una frazione del tempo dinamico locale vicino al buco (criterio di tipo CFL, h ≤ min(h_max, C·(r−rₛ))). Se il budget di sub-passi non basta in prossimità dell'orizzonte, la simulazione avanza meno tempo simulato — rallenta dolcemente — invece di allungare il passo e iniettare energia: così il sistema a N-corpi resta stabile anche con molti corpi. L'aggiornamento semi-implicito (simplettico) conserva l'energia, quindi le orbite legate restano legate e le lune orbitano con la velocità circolare della stessa forza addolcita usata dall'integratore (non si sganciano). I detriti mareali vivono in un pool a dimensione fissa (ring buffer). Le geodetiche di tipo-tempo della demo «Orbite» sono integrate nell'azimuth φ con l'equazione orbitale esatta.",
+          "Quanto è affidabile l'integrazione? La demo «Orbite» mostra dal vivo il drift dell'invariante di energia C dell'orbita (il primo integrale dell'equazione, legato a E): con il passo simplettico velocity-Verlet resta minuscolo e oscillante, non cresce — la prova numerica che l'energia non si disperde e le orbite legate restano legate.",
         ],
         eqs: [
           { label: "Accelerazione geodetica integrata (rₛ = 1, M = ½)", tex: "\\mathbf a = -\\tfrac{3}{2}\\,h^{2}\\,\\frac{\\mathbf r}{|\\mathbf r|^{5}}, \\qquad h^{2} = |\\mathbf r\\times\\mathbf v|^{2}" },
           { label: "Passo velocity-Verlet", tex: "\\mathbf r_{n+1} = \\mathbf r_{n} + \\mathbf v_{n}\\,\\delta + \\tfrac{1}{2}\\mathbf a_{n}\\,\\delta^{2}" },
           { label: "Passo a stabilità garantita (vicino all'orizzonte)", tex: "h \\le \\min\\!\\left(h_{\\max},\\; C\\,(r-r_s)\\right)" },
           { label: "Velocità circolare addolcita (lune, softening ε)", tex: "v_{\\mathrm{circ}}^{2} = \\frac{G M_p\\, r^{2}}{(r^{2}+\\varepsilon^{2})^{3/2}}" },
+          { label: "Invariante di conservazione monitorato (demo Orbite)", tex: "C = \\left(\\frac{du}{d\\varphi}\\right)^{2} + u^{2} - \\frac{2M}{L^{2}}u - 2M u^{3} = \\frac{E^{2}-1}{L^{2}}" },
         ],
       },
       {
@@ -339,12 +341,14 @@ const COPY: Record<Locale, Copy> = {
         body: [
           "Lensing: the null geodesic is integrated in vector form with an acceleration that bends the ray, where h² = |r × v|² is the photon's conserved angular momentum; the integrator is velocity-Verlet with an adaptive step, refined near the photon sphere for the returning radiation. Tone mapping is ACES filmic followed by gamma correction.",
           "Playground: dynamics in the Paczyński–Wiita potential use adaptive sub-stepping with softened mutual gravity (softening ε) and speeds capped at c. The step, however, is stability-limited: it never exceeds a fraction of the local dynamical time near the hole (a CFL-like criterion, h ≤ min(h_max, C·(r−rₛ))). If the sub-step budget is not enough close to the horizon, the simulation advances less simulated time — it gently slows down — instead of stretching the step and injecting energy, so the N-body system stays stable even with many bodies. The semi-implicit (symplectic) update conserves energy, so bound orbits stay bound and moons orbit with the circular speed of the same softened force the integrator uses (they do not unbind). Tidal debris lives in a fixed-size pool (ring buffer). The «Orbits» demo integrates the exact timelike orbit equation in the azimuth φ.",
+          "How trustworthy is the integration? The «Orbits» demo shows, live, the drift of the orbit's energy invariant C (the first integral of the equation, tied to E): with the symplectic velocity-Verlet step it stays tiny and oscillating rather than growing — the numerical proof that energy is not leaking and that bound orbits stay bound.",
         ],
         eqs: [
           { label: "Integrated geodesic acceleration (rₛ = 1, M = ½)", tex: "\\mathbf a = -\\tfrac{3}{2}\\,h^{2}\\,\\frac{\\mathbf r}{|\\mathbf r|^{5}}, \\qquad h^{2} = |\\mathbf r\\times\\mathbf v|^{2}" },
           { label: "Velocity-Verlet step", tex: "\\mathbf r_{n+1} = \\mathbf r_{n} + \\mathbf v_{n}\\,\\delta + \\tfrac{1}{2}\\mathbf a_{n}\\,\\delta^{2}" },
           { label: "Stability-limited step (near the horizon)", tex: "h \\le \\min\\!\\left(h_{\\max},\\; C\\,(r-r_s)\\right)" },
           { label: "Softened circular speed (moons, softening ε)", tex: "v_{\\mathrm{circ}}^{2} = \\frac{G M_p\\, r^{2}}{(r^{2}+\\varepsilon^{2})^{3/2}}" },
+          { label: "Conservation invariant monitored (Orbits demo)", tex: "C = \\left(\\frac{du}{d\\varphi}\\right)^{2} + u^{2} - \\frac{2M}{L^{2}}u - 2M u^{3} = \\frac{E^{2}-1}{L^{2}}" },
         ],
       },
       {

@@ -20,7 +20,7 @@ const COPY = {
     about: "Equazioni", back: "← Lab", sim: "Vista classica", presets: "Preset",
     pPrec: "Precessione", pIsco: "ISCO", pPlunge: "Caduta",
     hint: "Geodetica di tipo-tempo esatta di Schwarzschild (non l'approssimazione del playground). L'orbita precede formando una rosetta — la stessa fisica della precessione del perielio di Mercurio. Sotto L = √3 non esistono orbite stabili → caduta. Clicca nella scena per rilasciare la particella nel punto scelto. Anello arancio = ISCO (r = 6M), anello chiaro = sfera fotonica.",
-    rLbl: "r", vLbl: "v", eLbl: "E", precLbl: "Δφ", status: "stato",
+    rLbl: "r", vLbl: "v", eLbl: "E", precLbl: "Δφ", driftLbl: "drift E", status: "stato",
     orbiting: "in orbita", plunged: "caduto", info: "Come funziona",
   },
   en: {
@@ -29,7 +29,7 @@ const COPY = {
     about: "Equations", back: "← Lab", sim: "Classic view", presets: "Presets",
     pPrec: "Precession", pIsco: "ISCO", pPlunge: "Plunge",
     hint: "Exact Schwarzschild timelike geodesic (not the playground's approximation). The orbit precesses into a rosette — the same physics as Mercury's perihelion precession. Below L = √3 there are no stable orbits → plunge. Click in the scene to release the particle at the chosen point. Orange ring = ISCO (r = 6M), light ring = photon sphere.",
-    rLbl: "r", vLbl: "v", eLbl: "E", precLbl: "Δφ", status: "status",
+    rLbl: "r", vLbl: "v", eLbl: "E", precLbl: "Δφ", driftLbl: "E drift", status: "status",
     orbiting: "orbiting", plunged: "plunged", info: "How it works",
   },
 } as const;
@@ -52,6 +52,7 @@ export function BlackHoleOrbitView({ locale = "it" }: { locale?: Locale }) {
   const [r, setR] = useState(0);
   const [vel, setVel] = useState(0);
   const [prec, setPrec] = useState(0);
+  const [drift, setDrift] = useState(0);
   const [status, setStatus] = useState<"orbiting" | "plunged">("orbiting");
 
   useEffect(() => {
@@ -63,7 +64,7 @@ export function BlackHoleOrbitView({ locale = "it" }: { locale?: Locale }) {
     const id = setInterval(() => {
       const ro = readout.current;
       if (!ro) return;
-      setR(ro.r); setVel(ro.v); setPrec(ro.precessionDeg); setStatus(ro.status);
+      setR(ro.r); setVel(ro.v); setPrec(ro.precessionDeg); setDrift(ro.driftE); setStatus(ro.status);
     }, 120);
     return () => clearInterval(id);
   }, []);
@@ -118,6 +119,7 @@ export function BlackHoleOrbitView({ locale = "it" }: { locale?: Locale }) {
           <div><span>{t.eLbl}</span><b>{E.toFixed(4)}</b></div>
           <div><span>L</span><b>{params.L.toFixed(3)}</b></div>
           <div><span>{t.precLbl}</span><b>{status === "plunged" ? "—" : `${prec.toFixed(1)}°`}</b></div>
+          <div><span>{t.driftLbl}</span><b style={{ color: "#7fe0a0" }}>{drift > 0 ? drift.toExponential(1) : "—"}</b></div>
           <div><span>{t.status}</span><b style={{ color: status === "plunged" ? "#ff7a5c" : "#7fe0a0" }}>{status === "plunged" ? t.plunged : t.orbiting}</b></div>
         </div>
 

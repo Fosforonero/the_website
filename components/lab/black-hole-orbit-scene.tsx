@@ -30,6 +30,7 @@ const TRAIL = 5000;
 export type OrbitParams = { L: number; r0: number; phi0?: number };
 export type OrbitReadout = {
   r: number; E: number; L: number; v: number; precessionDeg: number;
+  driftE: number; // relative numerical drift of the conserved energy invariant
   status: "orbiting" | "plunged";
 };
 export type OrbitHandle = { reset: (p: OrbitParams) => void };
@@ -47,6 +48,13 @@ function uAccel(u: number, L: number): number {
 }
 function specificEnergy(r0: number, L: number): number {
   return Math.sqrt(Math.max(1 - 2 * M / r0, 0) * (1 + (L * L) / (r0 * r0)));
+}
+// First integral of the orbit equation (conserved along the exact geodesic):
+//   C = u'² + u² − (2M/L²)u − 2M u³   [ = (E²−1)/L² ].
+// Its numerical drift is the conservation diagnostic — with the symplectic
+// velocity-Verlet step it stays tiny and bounded (bound orbits stay bound).
+function invariant(u: number, du: number, L: number): number {
+  return du * du + u * u - (2 * M / (L * L)) * u - 2 * M * u * u * u;
 }
 
 // thin reference ring in the equatorial plane
@@ -82,6 +90,7 @@ function OrbitBody({ params, apiRef, readoutRef }: Omit<OrbitSceneProps, "qualit
     u: 1 / params.r0, du: 0, phi: 0, L: params.L,
     E: specificEnergy(params.r0, params.L),
     count: 0, plunged: false, lastPeri: 0, precDeg: 0,
+    c0: invariant(1 / params.r0, 0, params.L), drift: 0,
   });
 
   function init(p: OrbitParams) {
@@ -89,6 +98,7 @@ function OrbitBody({ params, apiRef, readoutRef }: Omit<OrbitSceneProps, "qualit
     s.u = 1 / p.r0; s.du = 0; s.phi = p.phi0 ?? 0; s.L = p.L;
     s.E = specificEnergy(p.r0, p.L);
     s.count = 0; s.plunged = false; s.lastPeri = 0; s.precDeg = 0;
+    s.c0 = invariant(s.u, 0, s.L); s.drift = 0;
     lineObj.geometry.setDrawRange(0, 0);
   }
 
@@ -122,6 +132,9 @@ function OrbitBody({ params, apiRef, readoutRef }: Omit<OrbitSceneProps, "qualit
         }
         prevDu = s.du;
       }
+      // Conservation diagnostic: relative drift of the energy invariant.
+      const C = invariant(s.u, s.du, s.L);
+      s.drift = Math.abs(C - s.c0) / Math.max(Math.abs(s.c0), 1e-12);
     }
 
     const r = 1 / s.u;
@@ -157,8 +170,8 @@ function OrbitBody({ params, apiRef, readoutRef }: Omit<OrbitSceneProps, "qualit
     const v = Math.min(0.9999, Math.sqrt(Math.max(0, 1 - (1 - 2 * M / r) / (s.E * s.E))));
     const ro = readoutRef.current;
     const status: "orbiting" | "plunged" = s.plunged ? "plunged" : "orbiting";
-    const next = { r, E: s.E, L: s.L, v, precessionDeg: s.precDeg, status };
-    if (ro) { ro.r = next.r; ro.E = next.E; ro.L = next.L; ro.v = next.v; ro.precessionDeg = next.precessionDeg; ro.status = next.status; }
+    const next = { r, E: s.E, L: s.L, v, precessionDeg: s.precDeg, driftE: s.drift, status };
+    if (ro) { ro.r = next.r; ro.E = next.E; ro.L = next.L; ro.v = next.v; ro.precessionDeg = next.precessionDeg; ro.driftE = next.driftE; ro.status = next.status; }
     else readoutRef.current = next;
   });
 
