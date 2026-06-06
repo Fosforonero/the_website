@@ -134,10 +134,21 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
   const [physOpen, setPhysOpen] = useState(false);
   const onMass = (m: number) => { setMassSolar(m); setDiskTemp(diskColorTempForMass(m)); };
   const facts = bhFacts(massSolar);
+  // Accretion rate Ṁ physically raises BOTH luminosity (∝ Ṁ) and temperature
+  // (∝ Ṁ¼): so the accretion control also shifts the colour (hotter/bluer when
+  // higher), not just the brightness. The temperature slider is the base colour.
+  const effTemp = Math.round(diskTemp * Math.pow(diskBright / 24, 0.25));
   const [infoOpen, setInfoOpen] = useState(false);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (typeof window !== "undefined" && window.innerWidth >= 680) setInfoOpen(true);
+  }, []);
+  // Mobile: nudge the WebGL canvas to re-measure after a device rotation, so the
+  // black hole re-centres instead of staying on the old (portrait) viewport.
+  useEffect(() => {
+    const onRot = () => window.setTimeout(() => window.dispatchEvent(new Event("resize")), 250);
+    window.addEventListener("orientationchange", onRot);
+    return () => window.removeEventListener("orientationchange", onRot);
   }, []);
   const aboutHref = locale === "it" ? "/lab/buco-nero/about" : "/en/lab/black-hole/about";
   const playgroundHref = locale === "it" ? "/lab/buco-nero/playground" : "/en/lab/black-hole/playground";
@@ -195,7 +206,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
           <input
             type="range"
             min={0}
-            max={0.98}
+            max={0.95}
             step={0.02}
             value={spin}
             onChange={(e) => setSpin(parseFloat(e.target.value))}
@@ -244,7 +255,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
       </div>
 
       <div className="bh-canvas-wrap">
-        <BlackHoleScene quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn} gridOn={gridOn} diskTemp={diskTemp} diskBright={diskBright} diskOuter={diskOuter} />
+        <BlackHoleScene quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn} gridOn={gridOn} diskTemp={effTemp} diskBright={diskBright} diskOuter={diskOuter} />
         <p className="bh-hint">{t.hint}</p>
 
         {physOpen && (

@@ -59,6 +59,11 @@ export function BlackHoleOrbitView({ locale = "it" }: { locale?: Locale }) {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (typeof window !== "undefined" && window.innerWidth >= 680) setInfoOpen(true);
   }, []);
+  useEffect(() => {
+    const onRot = () => window.setTimeout(() => window.dispatchEvent(new Event("resize")), 250);
+    window.addEventListener("orientationchange", onRot);
+    return () => window.removeEventListener("orientationchange", onRot);
+  }, []);
 
   useEffect(() => {
     const id = setInterval(() => {

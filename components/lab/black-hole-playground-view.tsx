@@ -74,6 +74,11 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (typeof window !== "undefined" && window.innerWidth >= 680) setInfoOpen(true);
   }, []);
+  useEffect(() => {
+    const onRot = () => window.setTimeout(() => window.dispatchEvent(new Event("resize")), 250);
+    window.addEventListener("orientationchange", onRot);
+    return () => window.removeEventListener("orientationchange", onRot);
+  }, []);
 
   const aboutHref = locale === "it" ? "/lab/buco-nero/about" : "/en/lab/black-hole/about";
   const simHref = locale === "it" ? "/lab/buco-nero" : "/en/lab/black-hole";
@@ -123,7 +128,7 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
         <label className={`bh-control bh-toolbar__hide-sm${spin > 0 ? " bh-control--active" : ""}`}>
           <span>{t.spin}</span>
           <input
-            type="range" min={0} max={0.98} step={0.02} value={spin}
+            type="range" min={0} max={0.95} step={0.02} value={spin}
             onChange={(e) => setSpin(parseFloat(e.target.value))}
             style={{ width: 80 }}
           />

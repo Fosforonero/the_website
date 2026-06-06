@@ -276,13 +276,19 @@ void main() {
     vec3  vel  = ps - kf * kap * ks;                  // coordinate velocity dx/dλ
     vec3 posNext = pos + vel * dt;
 
-    // Accretion-disk crossing in the equatorial (y = 0) plane.
-    if (uDiskOn > 0.5 && pos.y * posNext.y < 0.0) {
-      float tt  = pos.y / (pos.y - posNext.y);          // crossing fraction
+    // Accretion disk as a thin SLAB of half-thickness H around the equatorial
+    // plane — not a zero-thickness sheet, which seen edge-on vanishes into a
+    // black seam. The ray registers the disk on a plane crossing OR when it
+    // grazes within the slab, so edge-on it reads as a glowing band.
+    if (uDiskOn > 0.5) {
+      bool  cross = pos.y * posNext.y < 0.0;
+      float tt    = cross ? pos.y / (pos.y - posNext.y)
+                          : (abs(pos.y) < abs(posNext.y) ? 0.0 : 1.0);
       vec3  hit = mix(pos, posNext, tt);
       float rd  = kerrR(hit, kerrA);                    // Boyer–Lindquist radius in the disk plane
+      float H   = 0.10 + 0.012 * rd;                    // disk scale height (slight outward flare)
 
-      if (rd > uDiskInner && rd < uDiskOuter) {
+      if ((cross || abs(hit.y) < H) && rd > uDiskInner && rd < uDiskOuter) {
         // Physical optically-thick relativistic thin disk: exact Page–Thorne
         // (Novikov–Thorne, a=0) radiative flux, baked into uDiskFlux. T ∝ flux^¼;
         // the surface is a local blackbody, so its intensity is set purely by T.
