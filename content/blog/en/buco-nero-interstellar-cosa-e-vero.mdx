@@ -1,0 +1,33 @@
+---
+title: "Is Interstellar's black hole real? What's physics and what's cinema"
+excerpt: "Gargantua, the black hole in Interstellar, was computed with real general relativity, with a Nobel laureate in the credits. But the film also cheated, on purpose. Here's what's true, what isn't, and what you can see for yourself in the simulator."
+date: "2026-06-06"
+tag: "Dev"
+draft: true
+---
+
+Gargantua, the black hole in _Interstellar_, is one of the most talked-about sci-fi images ever — partly because behind it there isn't just an artist, but a Nobel-laureate physicist. So: is it real?
+
+Short answer: the **physics** is real, the **image** takes a few deliberate liberties. It's worth separating the two, because they are exactly the choices I had to face building the [black hole simulator](/en/lab/black-hole).
+
+## What's true
+
+Kip Thorne wrote the equations; the VFX house Double Negative built a dedicated engine, DNGR, and it even produced a [genuine scientific paper](/en/lab/black-hole/about) (James, von Tunzelmann, Franklin & Thorne, 2015). They ray-traced the **exact null geodesics of the Kerr metric**: the very same physics I run in real time in the browser. The bent light, the shadow, the bright arc above and below — the famous "hat" — are not drawn: they emerge from the calculation.
+
+Gargantua is also a **near-maximally spinning** black hole (a/M ≈ 0.999). That's not an aesthetic detail: it served the plot. Extreme spin is what makes Miller's planet's time dilation possible — one hour there, seven years on Earth.
+
+## What's cinema (on purpose)
+
+The detail few people know: in the film the disk is almost **symmetric** in brightness. In reality it isn't. Relativistic Doppler beaming makes one side of the disk blinding (the side coming toward us) and the other dim (the side receding). Nolan and Thorne chose to **suppress** that asymmetry, because such a lopsided image would have confused the audience.
+
+And the disk itself? A bespoke artistic-volumetric model built by the artists, not a simulation of magnetised plasma ([GRMHD](/en/lab/black-hole/about)). Like ours: full magnetohydrodynamics costs hours per frame — out of reach both for a film on human timescales and for a browser shader.
+
+Finally: DNGR ran **offline**, up to hours per frame at IMAX resolution, tracing whole bundles of rays to anti-alias the razor-thin edges. I have a single ray per pixel and ~16 milliseconds.
+
+## What you can see for yourself
+
+In the [simulator](/en/lab/black-hole) you can do what the film couldn't: **turn on the real Doppler asymmetry** and watch the disk genuinely lopside, **drag the spin slider** instead of being stuck on Gargantua, and orbit the shadow in real time. Same Kerr metric, but interactive — and with every approximation declared.
+
+In one line: Interstellar is real physics in service of a story; this is the same physics, laid bare and in your hands.
+
+[Open the simulation →](/en/lab/black-hole) · [The differences in detail →](/en/lab/black-hole/about)

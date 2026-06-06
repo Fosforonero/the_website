@@ -1,0 +1,33 @@
+---
+title: "Il buco nero di Interstellar è reale? Cosa è fisica e cosa è cinema"
+excerpt: "Gargantua, il buco nero di Interstellar, è stato calcolato con la vera relatività generale, con un premio Nobel nei titoli di coda. Ma il film ha anche barato, di proposito. Ecco cosa è vero, cosa no, e cosa puoi vedere tu nel simulatore."
+date: "2026-06-06"
+tag: "Dev"
+draft: true
+---
+
+Gargantua, il buco nero di _Interstellar_, è una delle immagini di fantascienza più discusse di sempre — anche perché dietro non c'è solo un grafico, ma un fisico premio Nobel. Quindi: è reale?
+
+Risposta breve: la **fisica** è reale, l'**immagine** ha qualche licenza poetica voluta. Vale la pena separare le due cose, perché sono esattamente le scelte che ho dovuto affrontare anch'io costruendo il [simulatore di buco nero](/lab/buco-nero).
+
+## Cosa è vero
+
+Kip Thorne scrisse le equazioni; lo studio di effetti Double Negative costruì un motore apposito, il DNGR, e ne uscì pure un [articolo scientifico vero](/lab/buco-nero/about) (James, von Tunzelmann, Franklin & Thorne, 2015). Hanno ray-tracciato le **geodetiche nulle esatte della metrica di Kerr**: la stessa identica fisica che giro in tempo reale nel browser. La luce piegata, l'ombra, l'anello luminoso sopra e sotto — il famoso «cappello» — non sono disegnati: emergono dal calcolo.
+
+Gargantua è anche un buco nero **quasi al massimo dello spin** (a/M ≈ 0,999). Non è un dettaglio estetico: serviva alla trama. È la rotazione estrema a rendere possibile la dilatazione del tempo del pianeta di Miller — un'ora lì, sette anni sulla Terra.
+
+## Cosa è cinema (di proposito)
+
+La chicca che pochi conoscono: nel film il disco è quasi **simmetrico** in luminosità. In realtà non lo è. Il beaming Doppler relativistico rende un lato del disco accecante (quello che ci viene incontro) e l'altro cupo (quello che fugge). Nolan e Thorne scelsero di **attenuare** questa asimmetria, perché un'immagine così sbilanciata avrebbe confuso il pubblico.
+
+E il disco stesso? Un modello artistico-volumetrico costruito dagli artisti, non una simulazione del plasma magnetizzato ([GRMHD](/lab/buco-nero/about)). Come il nostro: la magnetoidrodinamica completa costa ore di calcolo per fotogramma, impensabile sia per un film in tempi umani sia per uno shader nel browser.
+
+Infine: il DNGR girava **offline**, fino a ore per fotogramma a risoluzione IMAX, tracciando interi fasci di raggi per anti-aliasare i bordi sottili. Io ho un solo raggio per pixel e ~16 millisecondi.
+
+## Cosa puoi vedere tu
+
+Nel [simulatore](/lab/buco-nero) puoi fare quello che il film non poteva: **accendere l'asimmetria Doppler vera** e vedere il disco sbilanciarsi davvero, **muovere lo slider dello spin** invece di restare fissi su Gargantua, e ruotare attorno all'ombra in tempo reale. Stessa metrica di Kerr, ma interattiva — e con ogni approssimazione dichiarata.
+
+In una frase: Interstellar è fisica vera al servizio di una storia; questo è la stessa fisica, ma messa a nudo e nelle tue mani.
+
+[Apri la simulazione →](/lab/buco-nero) · [Le differenze in dettaglio →](/lab/buco-nero/about)
