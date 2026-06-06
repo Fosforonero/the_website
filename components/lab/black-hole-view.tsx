@@ -67,7 +67,7 @@ const COPY = {
     controls: "Controlli",
     share: "Condividi",
     eht: "EHT",
-    starless: "Starless",
+    starless: "Cielo reale",
     pureBlack: "Nero puro",
     phys: {
       title: "Scala reale", mass: "Massa", close: "Chiudi",
@@ -107,7 +107,7 @@ const COPY = {
     controls: "Controls",
     share: "Share",
     eht: "EHT",
-    starless: "Starless",
+    starless: "Real sky",
     pureBlack: "Pure black",
     phys: {
       title: "Real scale", mass: "Mass", close: "Close",
@@ -293,7 +293,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
         <button
           className={`bh-control${starlessOn ? " bh-control--active" : ""}`}
           onClick={() => setStarlessOn((v) => !v)}
-          title="Starless — cielo fotografico lensato (rantonels/starless)"
+          title={locale === "it" ? "Cielo reale — foto NASA Deep Star Maps lensata dal buco nero" : "Real sky — NASA Deep Star Maps photo, lensed by the black hole"}
         >
           {t.starless}
         </button>

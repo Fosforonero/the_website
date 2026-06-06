@@ -63,6 +63,9 @@ uniform float uHighOrder;  // 0/1 — use 4th-order RK4 geodesic step (high qual
 uniform float uUltra;      // 0/1 — 6th-order Yoshida symplectic (only compiled when BH_ULTRA is defined)
 uniform float uStyle;      // 0 = cinematic, 1 = "Starless" photographic (lensed real-sky look)
 uniform float uPureBlack;  // 1 = "Pure black" preset (sky off, saturated-orange disk — NASA/Schnittman look)
+uniform sampler2D uSkyTex; // equirectangular real-sky photo (NASA Deep Star Maps 2020)
+uniform float uSkyOn;      // 1 = sample the real photo (lensed) instead of procedural stars
+uniform float uSkyBright;  // brightness scale for the real sky
 
 const float RS = 1.0;
 const int   MAX_STEPS = 400;
@@ -116,6 +119,14 @@ float gnoise(vec2 p) {
 // (the starless signature), without shipping a multi-MB panorama texture.
 vec3 starField(vec3 d) {
   if (uPureBlack > 0.5) return vec3(0.0);             // sky off (pure-black preset)
+  // Real sky: a NASA equirectangular all-sky photo sampled with the FULLY LENSED
+  // ray direction, so the genuine Milky Way is bent and smeared around the hole.
+  if (uSkyOn > 0.5) {
+    float lon = atan(d.z, d.x);
+    float lat = asin(clamp(d.y, -1.0, 1.0));
+    vec2  uv  = vec2(lon * 0.15915494 + 0.5, 0.5 - lat * 0.31830989); // /(2π), /π
+    return texture(uSkyTex, uv).rgb * uSkyBright;
+  }
   vec3 col = vec3(0.00012, 0.00014, 0.00022);        // ~black sky floor
   bool sl = uStyle > 0.5;
   // Starless uses a BROADER band so the Milky Way fills more of the sky (the thin

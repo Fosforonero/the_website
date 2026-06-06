@@ -70,8 +70,8 @@ export const FAQ: Record<FaqLocale, FaqItem[]> = {
       sec: 10,
     },
     {
-      q: "Che differenza c'è tra la vista normale e «Starless»?",
-      a: "Cambia solo il cielo di sfondo, non la fisica: lensing, disco, ombra e photon ring sono identici nelle due modalità. La vista normale è «cinematografica»: cielo quasi nero (paradosso di Olbers) con poche stelle discrete e una debole banda galattica, così l'attenzione resta sul buco nero. «Starless» (ispirata al raytracer rantonels/starless) accende una Via Lattea fotografica e strutturata — piano galattico con bande di polvere scure, un rigonfiamento caldo verso il centro, rade nebulose colorate (rosso delle regioni HII e blu di riflessione) e un campo stellare molto più fitto e concentrato nella banda, così la galassia si legge come miriadi di stelle non risolte invece che come foschia. Tutto è generato proceduralmente e campionato con la direzione del raggio GIÀ deviata dal buco: quindi il cielo ricco viene davvero spalmato e incurvato attorno all'ombra (la firma di starless), senza dover scaricare una panoramica da molti MB. In cambio è un filo più pesante da calcolare.",
+      q: "Che differenza c'è tra la vista normale e «Cielo reale»?",
+      a: "Cambia solo il cielo di sfondo, non la fisica: lensing, disco, ombra e photon ring sono identici. La vista normale è «cinematografica»: cielo quasi nero (paradosso di Olbers) con poche stelle discrete, così l'attenzione resta sul buco nero. «Cielo reale» usa una vera foto astronomica di tutto il cielo — la NASA «Deep Star Maps 2020» (Goddard SVS, dominio pubblico), costruita da cataloghi stellari reali (Gaia/Tycho) con la banda diffusa della Via Lattea — proiettata sulla sfera celeste e campionata con la direzione del raggio GIÀ deviata dal buco: così la vera Via Lattea viene davvero spalmata e incurvata attorno all'ombra. Se la foto non è disponibile, si ricade su un cielo procedurale strutturato (banda con bande di polvere, rigonfiamento, nebulose). In cambio carica un'immagine da alcuni MB.",
       sec: 10,
     },
     {
@@ -164,8 +164,8 @@ export const FAQ: Record<FaqLocale, FaqItem[]> = {
       sec: 10,
     },
     {
-      q: "What's the difference between the normal view and «Starless»?",
-      a: "Only the background sky changes, not the physics: lensing, disk, shadow and photon ring are identical in both modes. The normal view is «cinematic»: a near-black sky (Olbers' paradox) with a few discrete stars and a faint galactic band, so attention stays on the black hole. «Starless» (inspired by the rantonels/starless raytracer) turns on a structured, photographic Milky Way — a galactic plane with dark dust lanes, a warm bulge toward the centre, sparse coloured nebulae (HII-region red and reflection blue) and a much denser starfield concentrated in the band, so the galaxy reads as countless unresolved stars rather than a haze. It is all generated procedurally and sampled with the ALREADY-lensed ray direction: so the rich sky is genuinely smeared and curved around the shadow (the starless signature), without downloading a multi-MB panorama. In return it is slightly heavier to compute.",
+      q: "What's the difference between the normal view and «Real sky»?",
+      a: "Only the background sky changes, not the physics: lensing, disk, shadow and photon ring are identical. The normal view is «cinematic»: a near-black sky (Olbers' paradox) with a few discrete stars, so attention stays on the black hole. «Real sky» uses a genuine all-sky astronomical photo — NASA's «Deep Star Maps 2020» (Goddard SVS, public domain), built from real star catalogs (Gaia/Tycho) with the Milky Way's diffuse band — projected onto the celestial sphere and sampled with the ALREADY-lensed ray direction: so the real Milky Way is genuinely smeared and curved around the shadow. If the photo isn't available it falls back to a structured procedural sky (dust-laned band, bulge, nebulae). In return it loads a few-MB image.",
       sec: 10,
     },
     {

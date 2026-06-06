@@ -29,9 +29,14 @@ export type BlackHoleSceneProps = {
   diskBright?: number; // accretion-rate / brightness scale
   diskOuter?: number;  // disk outer radius (r_s)
   eht?: boolean;       // "EHT mode": render at very low resolution (beam-limited look)
-  starless?: boolean;  // "Starless" photographic look (rich lensed Milky-Way sky)
+  starless?: boolean;  // "Real sky" toggle — sample the NASA photo (procedural fallback)
   pureBlack?: boolean; // "Pure black" preset: sky off, saturated-orange disk (NASA look)
+  skyUrl?: string;     // equirectangular real-sky photo (default: NASA Deep Star Maps 8k)
 };
+
+// Default real-sky photo: NASA/Goddard SVS "Deep Star Maps 2020" (public domain),
+// an all-sky equirectangular map built from real star catalogs (Gaia/Tycho).
+const DEFAULT_SKY_URL = "/sky/starmap_8k.jpg";
 
 // ---------------------------------------------------------------------------
 // Fullscreen geodesic raymarch quad
@@ -40,9 +45,44 @@ export type BlackHoleSceneProps = {
 export function BlackHoleQuad({
   quality, diskOn, dopplerOn, spin, jetsOn,
   diskTemp = 10500, diskBright = 24, diskOuter = 16, starless = false, pureBlack = false,
+  skyUrl = DEFAULT_SKY_URL,
 }: BlackHoleSceneProps) {
   const matRef = useRef<THREE.ShaderMaterial>(null);
   const camBasis = useRef(new THREE.Matrix3());
+  const skyReady = useRef(false);
+  // 1×1 black placeholder so the sampler is always bound (some drivers warn on an
+  // unbound sampler even when the branch using it is disabled).
+  const placeholder = useMemo(() => {
+    const t = new THREE.DataTexture(new Uint8Array([0, 0, 0, 255]), 1, 1, THREE.RGBAFormat);
+    t.needsUpdate = true;
+    return t;
+  }, []);
+
+  // Load the real-sky photo asynchronously. On success we bind it; on error we
+  // simply leave uSkyOn at 0, so the procedural sky remains as a graceful fallback.
+  useEffect(() => {
+    skyReady.current = false;
+    let cancelled = false;
+    new THREE.TextureLoader().load(
+      skyUrl,
+      (tex) => {
+        if (cancelled) { tex.dispose(); return; }
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.wrapS = THREE.RepeatWrapping;       // longitude wraps seamlessly
+        tex.wrapT = THREE.ClampToEdgeWrapping;  // poles
+        tex.minFilter = THREE.LinearMipmapLinearFilter;
+        tex.magFilter = THREE.LinearFilter;
+        tex.generateMipmaps = true;
+        tex.anisotropy = 4;
+        const mat = matRef.current;
+        if (mat) (mat.uniforms as { uSkyTex: { value: THREE.Texture } }).uSkyTex.value = tex;
+        skyReady.current = true;
+      },
+      undefined,
+      () => { skyReady.current = false; },
+    );
+    return () => { cancelled = true; };
+  }, [skyUrl]);
 
   // Uniforms are created once; values are mutated each frame.
   const uniforms = useMemo(
@@ -68,6 +108,9 @@ export function BlackHoleQuad({
       uUltra: { value: QUALITY_PRESETS[quality].tao ? 1 : 0 },
       uStyle: { value: starless ? 1 : 0 },
       uPureBlack: { value: pureBlack ? 1 : 0 },
+      uSkyTex: { value: placeholder },
+      uSkyOn: { value: 0 },
+      uSkyBright: { value: 1.3 },
     }),
     // Intentionally created once — toggle changes are applied in useFrame.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -94,6 +137,9 @@ export function BlackHoleQuad({
     u.uUltra.value = QUALITY_PRESETS[quality].tao ? 1 : 0;
     u.uStyle.value = starless ? 1 : 0;
     u.uPureBlack.value = pureBlack ? 1 : 0;
+    // Real photo when the toggle is on AND the texture has loaded; otherwise the
+    // procedural starless sky (uStyle) shows as the fallback.
+    u.uSkyOn.value = starless && skyReady.current ? 1 : 0;
     u.uExposure.value = starless ? 1.12 : 1.15; // keep brightness ~constant so the toggle is instant, not a fade
     u.uDiskOn.value = diskOn ? 1 : 0;
     u.uDoppler.value = dopplerOn ? 1 : 0;
