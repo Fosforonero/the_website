@@ -66,6 +66,9 @@ uniform float uPureBlack;  // 1 = "Pure black" preset (sky off, saturated-orange
 uniform sampler2D uSkyTex; // equirectangular real-sky photo (NASA Deep Star Maps 2020)
 uniform float uSkyOn;      // 1 = sample the real photo (lensed) instead of procedural stars
 uniform float uSkyBright;  // brightness scale for the real sky
+uniform float uVolDisk;    // 1 = volumetric 3D disk (radiative transfer through an analytic plasma)
+uniform float uVolThick;   // disk aspect-ratio scale (sets H/r)
+uniform float uVolOpacity; // volumetric absorption coefficient
 
 const float RS = 1.0;
 const int   MAX_STEPS = 400;
@@ -435,7 +438,7 @@ void main() {
     // crossing (no multi-step accumulation → no concentric step banding). The
     // opacity below uses the crossing angle so edge-on rays (long path through
     // the disk) read as thick/bright without any geometric slab.
-    if (uDiskOn > 0.5 && pos.y * posNext.y < 0.0) {
+    if (uDiskOn > 0.5 && uVolDisk < 0.5 && pos.y * posNext.y < 0.0) {
       float tt  = pos.y / (pos.y - posNext.y);
       vec3  hit = mix(pos, posNext, tt);
       float rd  = kerrR(hit, kerrA);                    // Boyer–Lindquist radius in the disk plane
@@ -566,7 +569,7 @@ void main() {
     // integrated along the ray, so the razor-thin disk gains a soft vertical
     // "thickness" (Interstellar's wispy halo) without a real 3D gas model. Cheap:
     // a fixed warm tint × the analytic flux, gated to steps actually near the plane.
-    if (uDiskOn > 0.5) {
+    if (uDiskOn > 0.5 && uVolDisk < 0.5) {
       float ya = abs(pos.y);
       if (ya < 0.55) {
         float rv = kerrR(pos, kerrA);
@@ -579,6 +582,60 @@ void main() {
         }
       }
     }
+
+#ifdef BH_VOLDISK
+    // Volumetric 3D disk: integrate the radiative-transfer equation (emission +
+    // absorption) through an ANALYTIC plasma model along this geodesic step,
+    // instead of sampling a thin sheet. Vertical structure is a hydrostatic
+    // Gaussian ρ(r,z)=ρ₀(r)·exp(−z²/2H²) with scale height H≈c_s/Ω_K (the sound
+    // speed c_s comes from the local temperature we already compute). NOT GRMHD —
+    // an analytic slim-disk model — but a real volume: it self-occludes and
+    // limb-brightens. Gated behind a compile #define so the default shader stays
+    // small (mobile compile budget).
+    if (uDiskOn > 0.5 && uVolDisk > 0.5 && accA < 0.99) {
+      vec3  mid = 0.5 * (pos + posNext);
+      float rho = length(mid.xz);                          // cylindrical radius (equatorial plane y=0)
+      if (rho > rIn && rho < uDiskOuter) {
+        float flux = diskFlux(rho, rIn);
+        float T    = uDiskTemp * pow(flux, 0.25);
+        // H/r ≈ c_s/v_φ ∝ sqrt(T·r): a flared slim disk, clamped to a sane range.
+        float HoR  = clamp(uVolThick * sqrt(pow(flux, 0.25) * rho), 0.02, 0.35);
+        float Hh   = HoR * rho;
+        float zr   = mid.y / Hh;
+        if (abs(zr) < 4.0) {
+          float dens = exp(-0.5 * zr * zr);                // hydrostatic vertical profile
+          float radial = 1.0 - smoothstep(uDiskOuter * 0.32, uDiskOuter, rho);
+          dens *= radial * radial;                         // soft outer taper
+          // Exact Kerr Doppler/redshift for the local circular orbit (as thin disk).
+          float g = 1.0;
+          if (uDoppler > 0.5) {
+            float X = 2.0 * rho, aM = uSpin;
+            float Om = 1.0 / (pow(X, 1.5) + aM);
+            float gtt = -(1.0 - 2.0 / X), gtp = -2.0 * aM / X, gpp = X * X + aM * aM + 2.0 * aM * aM / X;
+            float nrm = -(gtt + 2.0 * Om * gtp + Om * Om * gpp);
+            float ut  = 1.0 / sqrt(max(nrm, 1e-4));
+            float lam = 2.0 * (mid.x * ps.z - mid.z * ps.x);
+            g = 1.0 / (ut * max(1.0 - Om * lam, 1e-3));
+          }
+          float Tobs = T * g;
+          // Co-rotating turbulence (2 octaves), sheared by differential rotation.
+          float om = uTime * 1.4 / pow(rho, 1.5);
+          float ca = cos(om), sa = sin(om);
+          vec2  qd = mat2(ca, -sa, sa, ca) * mid.xz * 0.6;
+          float tb = 0.6 * gnoise(qd) + 0.4 * gnoise(qd * 2.03 + vec2(uTime * 0.1, 5.1));
+          tb = clamp(0.45 + 1.1 * tb, 0.0, 1.7);
+          float ds   = dt * length(vel);                   // path length of this step
+          float emis = pow(Tobs / uDiskTemp, 4.0) * dens * tb;   // emission coefficient (beaming ∝ T_obs⁴)
+          float dtau = uVolOpacity * dens * ds;            // optical depth of this segment
+          vec3  j    = blackbody(Tobs) * (uDiskBright * 0.05 * emis * ds);
+          accCol += (1.0 - accA) * j;                      // emission, attenuated by gas already in front
+          accA   += (1.0 - accA) * (1.0 - exp(-dtau));     // accumulate opacity (self-occlusion)
+          if (!depthSet && accA > 0.30) { outDepth = depthFromWorld(mid); depthSet = true; hitDisk = true; }
+          if (accA > 0.99) { color = accCol; done = true; break; }
+        }
+      }
+    }
+#endif
 
     pos = posNext;
     ps  = psNext;

@@ -80,6 +80,7 @@ const COPY = {
     starless: "Cielo reale",
     pureBlack: "Nero puro",
     skySrc: "Sorgente cielo",
+    volDisk: "Disco 3D",
     phys: {
       title: "Scala reale", mass: "Massa", close: "Chiudi",
       note: "I preset impostano massa e spin di un oggetto reale. La massa fissa il colore del disco (il trend reale); le dimensioni in scena restano compresse per visibilità.",
@@ -121,6 +122,7 @@ const COPY = {
     starless: "Real sky",
     pureBlack: "Pure black",
     skySrc: "Sky source",
+    volDisk: "3D disk",
     phys: {
       title: "Real scale", mass: "Mass", close: "Close",
       note: "The presets set a real object's mass and spin. Mass sets the disk colour (the real trend); on-scene sizes stay compressed for visibility.",
@@ -159,6 +161,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
   const [starlessOn, setStarlessOn] = useState(false);
   const [pureBlackOn, setPureBlackOn] = useState(false);
   const [skySource, setSkySource] = useState<SkySource>("nasa8k");
+  const [volDiskOn, setVolDiskOn] = useState(false);
   const onMass = (m: number) => { setMassSolar(m); setDiskTemp(diskColorTempForMass(m)); };
   // Capture the WebGL canvas (preserveDrawingBuffer is on) and share/download it.
   const onShare = () => {
@@ -333,6 +336,14 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
           {t.pureBlack}
         </button>
 
+        <button
+          className={`bh-control bh-toolbar__hide-sm${volDiskOn ? " bh-control--active" : ""}`}
+          onClick={() => setVolDiskOn((v) => !v)}
+          title={locale === "it" ? "Disco 3D volumetrico — trasporto radiativo (pesante, desktop)" : "Volumetric 3D disk — radiative transfer (heavy, desktop)"}
+        >
+          {t.volDisk}
+        </button>
+
         <button className="bh-control" onClick={onShare}>📷 {t.share}</button>
 
         <div className="bh-toolbar__sep" />
@@ -359,7 +370,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
       </div>
 
       <div className={`bh-canvas-wrap${ehtOn ? " bh-eht" : ""}`}>
-        <BlackHoleScene quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn} gridOn={gridOn} diskTemp={effTemp} diskBright={diskBright} diskOuter={diskOuter} eht={ehtOn} starless={starlessOn} pureBlack={pureBlackOn} skyUrl={SKY_SOURCES[skySource]} />
+        <BlackHoleScene quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn} gridOn={gridOn} diskTemp={effTemp} diskBright={diskBright} diskOuter={diskOuter} eht={ehtOn} starless={starlessOn} pureBlack={pureBlackOn} skyUrl={SKY_SOURCES[skySource]} volDisk={volDiskOn} />
         <p className="bh-hint">{t.hint}</p>
 
         {controlsOpen && (

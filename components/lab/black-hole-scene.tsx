@@ -32,6 +32,7 @@ export type BlackHoleSceneProps = {
   starless?: boolean;  // "Real sky" toggle — sample the NASA photo (procedural fallback)
   pureBlack?: boolean; // "Pure black" preset: sky off, saturated-orange disk (NASA look)
   skyUrl?: string;     // equirectangular real-sky photo (default: NASA Deep Star Maps 8k)
+  volDisk?: boolean;   // volumetric 3D disk (radiative transfer through an analytic plasma)
 };
 
 // Default real-sky photo: NASA/Goddard SVS "Deep Star Maps 2020" (public domain),
@@ -62,7 +63,7 @@ function fitNasaUrl(requested: string, maxTex: number): string {
 export function BlackHoleQuad({
   quality, diskOn, dopplerOn, spin, jetsOn,
   diskTemp = 10500, diskBright = 24, diskOuter = 16, starless = false, pureBlack = false,
-  skyUrl = DEFAULT_SKY_URL,
+  skyUrl = DEFAULT_SKY_URL, volDisk = false,
 }: BlackHoleSceneProps) {
   const matRef = useRef<THREE.ShaderMaterial>(null);
   const camBasis = useRef(new THREE.Matrix3());
@@ -135,6 +136,9 @@ export function BlackHoleQuad({
       uSkyTex: { value: placeholder },
       uSkyOn: { value: 0 },
       uSkyBright: { value: 1.3 },
+      uVolDisk: { value: volDisk ? 1 : 0 },
+      uVolThick: { value: 0.10 },
+      uVolOpacity: { value: 6.0 },
     }),
     // Intentionally created once — toggle changes are applied in useFrame.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -164,6 +168,7 @@ export function BlackHoleQuad({
     // Real photo when the toggle is on AND the texture has loaded; otherwise the
     // procedural starless sky (uStyle) shows as the fallback.
     u.uSkyOn.value = starless && skyReady.current ? 1 : 0;
+    u.uVolDisk.value = volDisk ? 1 : 0;
     u.uExposure.value = starless ? 1.12 : 1.15; // keep brightness ~constant so the toggle is instant, not a fade
     u.uDiskOn.value = diskOn ? 1 : 0;
     u.uDoppler.value = dopplerOn ? 1 : 0;
@@ -190,6 +195,22 @@ export function BlackHoleQuad({
       mat.needsUpdate = true; // force GLSL recompile of the correct variant
     }
   }, [quality]);
+
+  // The volumetric disk is likewise compiled into a SEPARATE variant
+  // (#define BH_VOLDISK), so the default/mobile shader never carries the heavier
+  // per-step radiative-transfer loop.
+  useEffect(() => {
+    const mat = matRef.current;
+    if (!mat) return;
+    const defs = (mat.defines ?? {}) as Record<string, string>;
+    const has = defs.BH_VOLDISK !== undefined;
+    if (volDisk !== has) {
+      if (volDisk) defs.BH_VOLDISK = "";
+      else delete defs.BH_VOLDISK;
+      mat.defines = defs;
+      mat.needsUpdate = true;
+    }
+  }, [volDisk]);
 
   return (
     <mesh frustumCulled={false} renderOrder={-1}>
@@ -225,6 +246,7 @@ export default function BlackHoleScene({
   starless = false,
   pureBlack = false,
   skyUrl,
+  volDisk = false,
 }: BlackHoleSceneProps) {
   const dprCap = QUALITY_PRESETS[quality].dprCap;
 
@@ -237,7 +259,7 @@ export default function BlackHoleScene({
     >
       <BlackHoleQuad
         quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn}
-        diskTemp={diskTemp} diskBright={diskBright} diskOuter={diskOuter} starless={starless} pureBlack={pureBlack} skyUrl={skyUrl}
+        diskTemp={diskTemp} diskBright={diskBright} diskOuter={diskOuter} starless={starless} pureBlack={pureBlack} skyUrl={skyUrl} volDisk={volDisk}
       />
       <BlackHoleGrid visible={gridOn} spin={spin} />
 
