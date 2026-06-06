@@ -32,7 +32,7 @@ const COPY = {
     grid: "Griglia",
     gw: "Onde grav.",
     hint: "Scegli un tipo e clicca nella scena per posizionare il corpo · trascina per ruotare. Le stelle entro il raggio mareale vengono disgregate in uno stream.",
-    discShort: "Dinamica con potenziale pseudo-newtoniano di Paczyński–Wiita (riproduce l'ISCO e la caduta). I corpi non sono lensati; lo stream mareale è un modello a particelle. Scala (barra in basso): rₛ = orizzonte, ISCO 3 rₛ, disco 3–16 rₛ; le dimensioni dei corpi sono compresse per visibilità (stella ≈0,4 rₛ, pianeta ≈0,15 rₛ, cometa ≈0,05 rₛ).",
+    discShort: "Dinamica con potenziale pseudo-newtoniano di Paczyński–Wiita (riproduce l'ISCO e la caduta). I corpi non sono lensati; lo stream mareale è un modello a particelle. Scala (barra in basso): rₛ = orizzonte, ISCO 3 rₛ, disco 3–16 rₛ; le dimensioni dei corpi sono compresse per visibilità (stella ≈0,4 rₛ, pianeta ≈0,15 rₛ, cometa ≈0,05 rₛ). In scala reale il rapporto stella/buco nero dipende dalla massa: attorno a un buco nero stellare (~10 M☉, rₛ≈30 km) una stella è migliaia di volte più grande dell'orizzonte; attorno a uno supermassiccio (Gargantua) l'orizzonte supera di gran lunga ogni stella.",
     infoTitle: "Come funziona",
   },
   en: {
@@ -53,7 +53,7 @@ const COPY = {
     grid: "Grid",
     gw: "GW inspiral",
     hint: "Pick a type and click in the scene to place the body · drag to rotate. Stars within the tidal radius are torn into a debris stream.",
-    discShort: "Dynamics use the Paczyński–Wiita pseudo-Newtonian potential (reproduces the ISCO and the plunge). Bodies are not lensed; the tidal stream is a particle model. Scale (bar, bottom): rₛ = horizon, ISCO 3 rₛ, disk 3–16 rₛ; body sizes are compressed for visibility (star ≈0.4 rₛ, planet ≈0.15 rₛ, comet ≈0.05 rₛ).",
+    discShort: "Dynamics use the Paczyński–Wiita pseudo-Newtonian potential (reproduces the ISCO and the plunge). Bodies are not lensed; the tidal stream is a particle model. Scale (bar, bottom): rₛ = horizon, ISCO 3 rₛ, disk 3–16 rₛ; body sizes are compressed for visibility (star ≈0.4 rₛ, planet ≈0.15 rₛ, comet ≈0.05 rₛ). At real scale the star-to-hole ratio depends on mass: around a stellar-mass hole (~10 M☉, rₛ≈30 km) a star is thousands of times larger than the horizon; around a supermassive one (Gargantua) the horizon dwarfs any star.",
     infoTitle: "How it works",
   },
 } as const;
