@@ -16,7 +16,7 @@ type Locale = "it" | "en";
 const COPY = {
   it: {
     title: "Buco Nero · Orbite relativistiche",
-    L: "Momento angolare L", r0: "Raggio iniziale r₀", reset: "Riavvia", disk: "Disco",
+    L: "Momento angolare L", r0: "Raggio iniziale r₀", reset: "Riavvia", disk: "Disco", incl: "Inclinazione",
     about: "Equazioni", back: "← Lab", sim: "Vista classica", presets: "Preset",
     pPrec: "Precessione", pIsco: "ISCO", pPlunge: "Caduta",
     hint: "Geodetica di tipo-tempo esatta di Schwarzschild (non l'approssimazione del playground). L'orbita precede formando una rosetta — la stessa fisica della precessione del perielio di Mercurio. Sotto L = √3 non esistono orbite stabili → caduta. Clicca nella scena per rilasciare la particella nel punto scelto. Anello arancio = ISCO (r = 6M), anello chiaro = sfera fotonica.",
@@ -25,7 +25,7 @@ const COPY = {
   },
   en: {
     title: "Black Hole · Relativistic orbits",
-    L: "Angular momentum L", r0: "Initial radius r₀", reset: "Restart", disk: "Disk",
+    L: "Angular momentum L", r0: "Initial radius r₀", reset: "Restart", disk: "Disk", incl: "Inclination",
     about: "Equations", back: "← Lab", sim: "Classic view", presets: "Presets",
     pPrec: "Precession", pIsco: "ISCO", pPlunge: "Plunge",
     hint: "Exact Schwarzschild timelike geodesic (not the playground's approximation). The orbit precesses into a rosette — the same physics as Mercury's perihelion precession. Below L = √3 there are no stable orbits → plunge. Click in the scene to release the particle at the chosen point. Orange ring = ISCO (r = 6M), light ring = photon sphere.",
@@ -98,6 +98,12 @@ export function BlackHoleOrbitView({ locale = "it" }: { locale?: Locale }) {
           <input type="range" min={3} max={30} step={0.2} value={params.r0}
             onChange={(e) => setParams((p) => ({ ...p, r0: parseFloat(e.target.value) }))} style={{ width: 88 }} />
           <span style={{ width: 30, textAlign: "right" }}>{params.r0.toFixed(1)}</span>
+        </label>
+        <label className={`bh-control${(params.incl ?? 0) > 0 ? " bh-control--active" : ""}`}>
+          <span>{t.incl}</span>
+          <input type="range" min={0} max={1.4} step={0.05} value={params.incl ?? 0}
+            onChange={(e) => setParams((p) => ({ ...p, incl: parseFloat(e.target.value) }))} style={{ width: 72 }} />
+          <span style={{ width: 30, textAlign: "right" }}>{Math.round((params.incl ?? 0) * 180 / Math.PI)}°</span>
         </label>
 
         <button className={`bh-control bh-toolbar__hide-sm${diskOn ? " bh-control--active" : ""}`} onClick={() => setDiskOn((v) => !v)}>{t.disk}</button>

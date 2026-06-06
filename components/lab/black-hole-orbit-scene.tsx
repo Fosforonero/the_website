@@ -27,7 +27,7 @@ const ISCO = 3.0;            // 6M
 const R_PHOTON = 1.5;        // photon sphere
 const TRAIL = 5000;
 
-export type OrbitParams = { L: number; r0: number; phi0?: number };
+export type OrbitParams = { L: number; r0: number; phi0?: number; incl?: number };
 export type OrbitReadout = {
   r: number; E: number; L: number; v: number; precessionDeg: number;
   driftE: number; // relative numerical drift of the conserved energy invariant
@@ -90,7 +90,7 @@ function OrbitBody({ params, apiRef, readoutRef }: Omit<OrbitSceneProps, "qualit
     u: 1 / params.r0, du: 0, phi: 0, L: params.L,
     E: specificEnergy(params.r0, params.L),
     count: 0, plunged: false, lastPeri: 0, precDeg: 0,
-    c0: invariant(1 / params.r0, 0, params.L), drift: 0,
+    c0: invariant(1 / params.r0, 0, params.L), drift: 0, incl: params.incl ?? 0,
   });
 
   function init(p: OrbitParams) {
@@ -98,7 +98,7 @@ function OrbitBody({ params, apiRef, readoutRef }: Omit<OrbitSceneProps, "qualit
     s.u = 1 / p.r0; s.du = 0; s.phi = p.phi0 ?? 0; s.L = p.L;
     s.E = specificEnergy(p.r0, p.L);
     s.count = 0; s.plunged = false; s.lastPeri = 0; s.precDeg = 0;
-    s.c0 = invariant(s.u, 0, s.L); s.drift = 0;
+    s.c0 = invariant(s.u, 0, s.L); s.drift = 0; s.incl = p.incl ?? 0;
     lineObj.geometry.setDrawRange(0, 0);
   }
 
@@ -138,10 +138,16 @@ function OrbitBody({ params, apiRef, readoutRef }: Omit<OrbitSceneProps, "qualit
     }
 
     const r = 1 / s.u;
-    const x = r * Math.cos(s.phi);
-    const z = r * Math.sin(s.phi);
-    meshRef.current?.position.set(x, 0, z);
-    haloRef.current?.position.set(x, 0, z);
+    // Schwarzschild geodesics are planar (spherical symmetry); we orient the
+    // orbital plane in 3D by an inclination about the line of nodes (the x
+    // axis). e1 = (1,0,0), e2 = (0, sin i, cos i); incl = 0 → equatorial.
+    const si = Math.sin(s.incl), ci = Math.cos(s.incl);
+    const cp = Math.cos(s.phi), sp = Math.sin(s.phi);
+    const x = r * cp;
+    const y = r * sp * si;
+    const z = r * sp * ci;
+    meshRef.current?.position.set(x, y, z);
+    haloRef.current?.position.set(x, y, z);
 
     if (!s.plunged) {
       const geo = lineObj.geometry;
@@ -150,7 +156,7 @@ function OrbitBody({ params, apiRef, readoutRef }: Omit<OrbitSceneProps, "qualit
       const pa = pos.array as Float32Array;
       const ca = col.array as Float32Array;
       if (s.count >= TRAIL) { pa.copyWithin(0, 3); ca.copyWithin(0, 3); s.count = TRAIL - 1; }
-      pa[s.count * 3] = x; pa[s.count * 3 + 1] = 0; pa[s.count * 3 + 2] = z;
+      pa[s.count * 3] = x; pa[s.count * 3 + 1] = y; pa[s.count * 3 + 2] = z;
       ca[s.count * 3] = 0.45; ca[s.count * 3 + 1] = 0.85; ca[s.count * 3 + 2] = 1.0;
       s.count++;
       // fade the tail (older points dimmer) for a comet-like trail — kept bright
