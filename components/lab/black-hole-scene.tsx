@@ -131,7 +131,7 @@ export default function BlackHoleScene({
     <Canvas
       camera={{ fov: 50, near: 0.01, far: 5000, position: [0, 2.2, 16] }}
       dpr={[1, dprCap]}
-      gl={{ antialias: false, alpha: false }}
+      gl={{ antialias: false, alpha: false, preserveDrawingBuffer: true }}
       style={{ background: "#000003" }}
     >
       <BlackHoleQuad

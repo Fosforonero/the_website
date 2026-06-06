@@ -65,6 +65,7 @@ const COPY = {
     orbits: "Orbite",
     physics: "Scala reale",
     controls: "Controlli",
+    share: "Condividi",
     phys: {
       title: "Scala reale", mass: "Massa", close: "Chiudi",
       note: "I preset impostano massa e spin di un oggetto reale. La massa fissa il colore del disco (il trend reale); le dimensioni in scena restano compresse per visibilità.",
@@ -101,6 +102,7 @@ const COPY = {
     orbits: "Orbits",
     physics: "Real scale",
     controls: "Controls",
+    share: "Share",
     phys: {
       title: "Real scale", mass: "Mass", close: "Close",
       note: "The presets set a real object's mass and spin. Mass sets the disk colour (the real trend); on-scene sizes stay compressed for visibility.",
@@ -136,6 +138,26 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
   const [physOpen, setPhysOpen] = useState(false);
   const [controlsOpen, setControlsOpen] = useState(false);
   const onMass = (m: number) => { setMassSolar(m); setDiskTemp(diskColorTempForMass(m)); };
+  // Capture the WebGL canvas (preserveDrawingBuffer is on) and share/download it.
+  const onShare = () => {
+    const canvas = document.querySelector(".bh-canvas-wrap canvas") as HTMLCanvasElement | null;
+    if (!canvas) return;
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      const file = new File([blob], "fosforonero-buco-nero.png", { type: "image/png" });
+      const nav = navigator as Navigator & { canShare?: (d: { files: File[] }) => boolean };
+      if (nav.canShare?.({ files: [file] }) && navigator.share) {
+        navigator.share({ files: [file], title: "Buco Nero · Fosforonero", text: "fosforonero.com/lab/buco-nero" }).catch(() => {});
+        return;
+      }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "fosforonero-buco-nero.png";
+      a.click();
+      URL.revokeObjectURL(url);
+    }, "image/png");
+  };
   // Scenario presets: set a representative mass AND spin for a famous object.
   const applyScenario = (m: number, s: number) => { onMass(m); setSpin(s); };
   const facts = bhFacts(massSolar);
@@ -250,6 +272,8 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
         >
           ⚙ {t.controls}
         </button>
+
+        <button className="bh-control" onClick={onShare}>📷 {t.share}</button>
 
         <div className="bh-toolbar__sep" />
         <Link href={playgroundHref} className="bh-control">

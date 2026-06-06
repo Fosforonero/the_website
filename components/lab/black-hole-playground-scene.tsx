@@ -663,7 +663,7 @@ export default function BlackHolePlaygroundScene({ quality, spin, diskOn, jetsOn
     <Canvas
       camera={{ fov: 50, near: 0.01, far: 5000, position: [0, 6, 22] }}
       dpr={[1, dprCap]}
-      gl={{ antialias: false, alpha: false }}
+      gl={{ antialias: false, alpha: false, preserveDrawingBuffer: true }}
       style={{ background: "#000003" }}
     >
       <BlackHoleQuad quality={quality} diskOn={diskOn} spin={spin} dopplerOn jetsOn={jetsOn} />
