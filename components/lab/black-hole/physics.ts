@@ -53,61 +53,104 @@ export function bhFacts(mSolar: number): BHFacts {
 }
 
 // ---------------------------------------------------------------------------
-// Page–Thorne (1974) relativistic thin-disk radiative flux for a Schwarzschild
-// (a = 0) hole, computed exactly via the orbit-averaged integral rather than
-// the Newtonian (1 − √(r_in/r)) approximation. For circular Schwarzschild
-// geodesics (units M = 1): Ω = X^(−3/2), E = (1−2/X)/√(1−3/X),
-// L = √X/√(1−3/X), and conveniently (E − ΩL)² = 1 − 3/X. The flux is
-//   F(r) = −(Ṁ)/(4π√g)·(Ω_,r /(E−ΩL)²)·∫_{6}^{X}(E−ΩL) L_,r dX'
-// with √g = r = X. We bake a normalised lookup over the renderer's disk radius
-// rd (r_s = 1, so r/M = 2·rd) and the shader samples it. Source: Page & Thorne
-// 1974, ApJ 191, 499; Novikov & Thorne 1973.
+// Page–Thorne (1974) relativistic thin-disk radiative flux for the EXACT KERR
+// metric (Bardeen 1972 equatorial circular orbits), not just a = 0. For
+// prograde circular orbits (units M = 1, x = r/M):
+//   Ω = 1/(x^{3/2}+a),
+//   E = (x^{3/2}−2x^{1/2}+a)/D,  L = (x²−2a x^{1/2}+a²)/D,
+//   D = x^{3/4}·√(x^{3/2}−3x^{1/2}+2a),
+// and the orbit-averaged flux
+//   F(r) = −Ω_,r /(4π (E−ΩL)² √g) · ∫_{r_isco}^{r}(E−ΩL) L_,r dx'   (√g = x).
+// At a = 0 this reduces analytically to the Schwarzschild profile
+// ((E−ΩL)=√(1−3/X), Ω_,r=−3/2·X^{−5/2}) and numerically reproduces it to ~1e-10.
+//
+// We bake a 2-D lookup F(rd, a): NR radial samples per spin × NA spin rows, each
+// row spanning rd ∈ [r_isco(a), 30] (r_s units, r/M = 2·rd) and NORMALISED to a
+// common peak. So the *radial shape* (the physics — where the disk emits, how
+// the hot region tightens toward the smaller ISCO as the hole spins up) varies
+// with spin, while the absolute luminosity stays the artistic accretion-rate
+// control (the true a→1 efficiency soars from 6% to 42%, ~100× peak flux, which
+// would simply clip to white). The a = 0 row is byte-for-byte the previous
+// Schwarzschild LUT. The shader bilinearly samples this field. Sources: Page &
+// Thorne 1974, ApJ 191, 499; Bardeen 1972; Novikov & Thorne 1973.
 // ---------------------------------------------------------------------------
 
-export const DISK_FLUX_LUT_N = 96;
-export const DISK_FLUX_RD_MIN = 3.0;   // ISCO (r_s units)
-export const DISK_FLUX_RD_MAX = 30.0;  // beyond the largest disk radius
+export const DISK_FLUX_NR = 96;        // radial samples per spin row
+export const DISK_FLUX_NA = 16;        // spin rows (a/M from 0 to A_MAX)
+export const DISK_FLUX_AMAX = 0.98;    // max sampled spin (a/M)
+export const DISK_FLUX_RD_MAX = 30.0;  // outer radial extent of the LUT (r_s)
 
-function ptFluxAtX(X: number): number {
-  if (X <= 6.0) return 0.0; // inside the ISCO: no stable disk
-  const Lz = (x: number) => Math.sqrt(x) / Math.sqrt(1 - 3 / x);
-  const integrand = (x: number) => {
-    const dx = 1e-5 * x;
-    const dL = (Lz(x + dx) - Lz(x - dx)) / (2 * dx);
-    return Math.sqrt(1 - 3 / x) * dL; // (E−ΩL)·L_,r , with (E−ΩL)=√(1−3/X)
+// Prograde equatorial circular-orbit quantities (M = 1, x = r/M).
+function kerrCirc(x: number, a: number): { E: number; L: number; Om: number } {
+  const sx = Math.sqrt(x);
+  const D = Math.pow(x, 0.75) * Math.sqrt(Math.pow(x, 1.5) - 3 * sx + 2 * a);
+  return {
+    E: (Math.pow(x, 1.5) - 2 * sx + a) / D,
+    L: (x * x - 2 * a * sx + a * a) / D,
+    Om: 1 / (Math.pow(x, 1.5) + a),
   };
-  const n = 240, x0 = 6.0, hh = (X - x0) / n;
+}
+
+// Prograde ISCO radius (Bardeen 1972), returned in r/M.
+function kerrISCOx(a: number): number {
+  const Z1 = 1 + Math.cbrt(1 - a * a) * (Math.cbrt(1 + a) + Math.cbrt(1 - a));
+  const Z2 = Math.sqrt(3 * a * a + Z1 * Z1);
+  return 3 + Z2 - Math.sqrt(Math.max((3 - Z1) * (3 + Z1 + 2 * Z2), 0));
+}
+
+// Orbit-averaged Page–Thorne flux at x = r/M for spin a, inner edge xIsco.
+function ptFluxKerrAtX(x: number, a: number, xIsco: number): number {
+  if (x <= xIsco) return 0.0;
+  const EmoL = (xx: number) => { const c = kerrCirc(xx, a); return c.E - c.Om * c.L; };
+  const Lz = (xx: number) => kerrCirc(xx, a).L;
+  const Om = (xx: number) => kerrCirc(xx, a).Om;
+  const integrand = (xx: number) => {
+    const dx = 1e-5 * xx;
+    return (EmoL(xx) * (Lz(xx + dx) - Lz(xx - dx))) / (2 * dx); // (E−ΩL)·L_,r
+  };
+  const n = 240, hh = (x - xIsco) / n;
   let I = 0;
   for (let i = 0; i <= n; i++) {
-    const xx = x0 + i * hh;
+    const xx = xIsco + i * hh;
     const w = i === 0 || i === n ? 0.5 : 1.0; // trapezoidal
     I += w * integrand(xx);
   }
   I *= hh;
-  // F = (3/2)/(4π X^{7/2}(1−3/X))·I   [from Ω_,r = −(3/2)X^{−5/2}, √g = X]
-  return (1.5 / (4 * Math.PI * Math.pow(X, 3.5) * (1 - 3 / X))) * I;
+  const dx = 1e-5 * x;
+  const dOmdx = (Om(x + dx) - Om(x - dx)) / (2 * dx);
+  const emol = EmoL(x);
+  return (-dOmdx / (4 * Math.PI * emol * emol * x)) * I;
 }
 
-export function buildDiskFluxLUT(): number[] {
-  // peak of the Newtonian profile, to keep the overall brightness scale
-  let oldPeak = 0;
+// Build the 2-D flux field, row-major [spin][radius] flattened to NR·NA floats.
+export function buildKerrFluxField(): Float32Array {
+  // Reference peak = the Newtonian profile peak, so the a = 0 row reproduces the
+  // previous Schwarzschild LUT exactly (overall brightness scale unchanged).
+  let refPeak = 0;
   for (let rd = 3.001; rd < 30; rd += 0.02) {
     const f = Math.pow(3 / rd, 3) * Math.max(1 - Math.sqrt(3 / rd), 0);
-    if (f > oldPeak) oldPeak = f;
+    if (f > refPeak) refPeak = f;
   }
-  const pt: number[] = [];
-  let ptPeak = 0;
-  for (let i = 0; i < DISK_FLUX_LUT_N; i++) {
-    const rd = DISK_FLUX_RD_MIN + (DISK_FLUX_RD_MAX - DISK_FLUX_RD_MIN) * (i / (DISK_FLUX_LUT_N - 1));
-    const F = Math.max(ptFluxAtX(2 * rd), 0); // r/M = 2·rd
-    pt.push(F);
-    if (F > ptPeak) ptPeak = F;
+  const field = new Float32Array(DISK_FLUX_NR * DISK_FLUX_NA);
+  for (let ai = 0; ai < DISK_FLUX_NA; ai++) {
+    const a = (ai / (DISK_FLUX_NA - 1)) * DISK_FLUX_AMAX;
+    const xIsco = kerrISCOx(a);
+    const rdIsco = xIsco / 2; // r_s units
+    const row: number[] = [];
+    let rowPeak = 0;
+    for (let j = 0; j < DISK_FLUX_NR; j++) {
+      const rd = rdIsco + (DISK_FLUX_RD_MAX - rdIsco) * (j / (DISK_FLUX_NR - 1));
+      const F = Math.max(ptFluxKerrAtX(2 * rd, a, xIsco), 0); // r/M = 2·rd
+      row.push(F);
+      if (F > rowPeak) rowPeak = F;
+    }
+    const s = rowPeak > 0 ? refPeak / rowPeak : 0; // normalise each profile to refPeak
+    for (let j = 0; j < DISK_FLUX_NR; j++) field[ai * DISK_FLUX_NR + j] = row[j]! * s;
   }
-  const scale = ptPeak > 0 ? oldPeak / ptPeak : 1;
-  return pt.map((F) => F * scale);
+  return field;
 }
 
-export const DISK_FLUX_LUT = buildDiskFluxLUT();
+export const DISK_FLUX_FIELD = buildKerrFluxField();
 
 // Map the mass to the disk's *colour* temperature for the renderer (shader
 // range ≈ 3000–30000 K). This is a trend, not the literal peak temperature

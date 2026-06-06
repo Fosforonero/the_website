@@ -12,8 +12,23 @@ import {
   type BlackHoleQuality,
 } from "./black-hole/black-hole-shader";
 import { BlackHoleGrid } from "./black-hole-grid";
-import { DISK_FLUX_LUT } from "./black-hole/physics";
+import { DISK_FLUX_FIELD, DISK_FLUX_NR, DISK_FLUX_NA } from "./black-hole/physics";
 import { DitherEffect } from "./black-hole/dither-effect";
+
+// Exact Kerr Page–Thorne flux field F(rd, spin), as an unfilterable R32F
+// texture (NR radial × NA spin). The shader bilinearly samples it via
+// texelFetch. Created once and shared by every scene that renders BlackHoleQuad.
+const DISK_FLUX_TEXTURE = (() => {
+  const tex = new THREE.DataTexture(
+    DISK_FLUX_FIELD, DISK_FLUX_NR, DISK_FLUX_NA, THREE.RedFormat, THREE.FloatType
+  );
+  tex.minFilter = THREE.NearestFilter;
+  tex.magFilter = THREE.NearestFilter;
+  tex.wrapS = THREE.ClampToEdgeWrapping;
+  tex.wrapT = THREE.ClampToEdgeWrapping;
+  tex.needsUpdate = true;
+  return tex;
+})();
 
 // ---------------------------------------------------------------------------
 // Props
@@ -63,7 +78,7 @@ export function BlackHoleQuad({
       uJets: { value: jetsOn ? 1 : 0 },
       uJetStr: { value: 0.7 },
       uExposure: { value: 1.15 },
-      uDiskFlux: { value: DISK_FLUX_LUT },
+      uDiskFluxTex: { value: DISK_FLUX_TEXTURE },
     }),
     // Intentionally created once — toggle changes are applied in useFrame.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -144,11 +159,13 @@ export default function BlackHoleScene({
 
       <OrbitControls
         makeDefault
-        enablePan={false}
+        enablePan
+        screenSpacePanning
         enableDamping
         dampingFactor={0.08}
         rotateSpeed={0.5}
         zoomSpeed={0.8}
+        panSpeed={0.8}
         minDistance={2}
         maxDistance={600}
       />

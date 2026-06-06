@@ -681,11 +681,13 @@ export default function BlackHolePlaygroundScene({ quality, spin, diskOn, jetsOn
       <ScaleProbe scaleRef={scaleRef} />
       <OrbitControls
         makeDefault
-        enablePan={false}
+        enablePan
+        screenSpacePanning
         enableDamping
         dampingFactor={0.08}
         rotateSpeed={0.5}
         zoomSpeed={0.8}
+        panSpeed={0.8}
         minDistance={2}
         maxDistance={600}
       />

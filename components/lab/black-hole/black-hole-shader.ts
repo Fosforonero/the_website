@@ -20,9 +20,11 @@
 // DISCLOSURE: this is real GR lensing. At spin a = 0 it is Schwarzschild; with
 // the Spin slider it integrates the EXACT Kerr null geodesics (Kerr–Schild
 // Hamiltonian, see below) in real time — the same metric used for Interstellar's
-// Gargantua (which was ray-traced offline). Still approximate: the disk's
-// colour/Doppler and radial flux are computed for a = 0, and the gaseous
-// turbulence is procedural (not a GRMHD radiative-transfer solution).
+// Gargantua (which was ray-traced offline). The disk follows Kerr too: inner
+// edge at the prograde ISCO, exact Kerr Doppler/redshift, and the exact Kerr
+// Page–Thorne radial flux per spin (only the absolute luminosity is held fixed
+// across spin). Still approximate: the gaseous turbulence is procedural (not a
+// GRMHD radiative-transfer solution).
 // ---------------------------------------------------------------------------
 
 export const blackHoleVertexShader = /* glsl */ `
@@ -57,19 +59,30 @@ uniform float uDiskBright; // disk brightness scale
 uniform float uJets;       // 0 / 1 — relativistic jets along the spin axis
 uniform float uJetStr;     // jet emission strength
 uniform float uExposure;
-uniform float uDiskFlux[96]; // baked Page–Thorne radial flux profile (rd ∈ [3,30])
+uniform sampler2D uDiskFluxTex; // baked EXACT Kerr Page–Thorne flux field F(rd, a)
 
 const float RS = 1.0;
 const int   MAX_STEPS = 400;
 
-// Sample the exact Page–Thorne disk flux (relativistic Novikov–Thorne, a=0),
-// linearly interpolated over disk radius rd. Replaces the Newtonian
-// (1−√(r_in/r)) approximation with the orbit-averaged GR profile.
-float diskFlux(float rd) {
-  float t = clamp((rd - 3.0) / 27.0, 0.0, 1.0) * 95.0;
-  int i = int(floor(t));
-  int j = min(i + 1, 95);
-  return mix(uDiskFlux[i], uDiskFlux[j], t - float(i));
+// Sample the exact Kerr Page–Thorne disk flux, baked as a 2-D field
+// (NR radial × NA spin) and bilinearly sampled (manual, via texelFetch — the
+// field is an unfilterable R32F texture). Each spin row spans rd ∈ [ISCO(a),30]
+// r_s, normalised to a common peak; rIn = ISCO(spin) is the current inner edge.
+const int   FLUX_NR   = 96;
+const int   FLUX_NA   = 16;
+const float FLUX_AMAX = 0.98;
+float diskFluxKerr(float rd, float rIn, float spin) {
+  float rf = clamp((rd - rIn) / (30.0 - rIn), 0.0, 1.0) * float(FLUX_NR - 1);
+  float af = clamp(spin / FLUX_AMAX, 0.0, 1.0) * float(FLUX_NA - 1);
+  int ri = int(floor(rf)); int rj = min(ri + 1, FLUX_NR - 1);
+  int ai = int(floor(af)); int aj = min(ai + 1, FLUX_NA - 1);
+  float tr = rf - float(ri);
+  float ta = af - float(ai);
+  float f00 = texelFetch(uDiskFluxTex, ivec2(ri, ai), 0).r;
+  float f10 = texelFetch(uDiskFluxTex, ivec2(rj, ai), 0).r;
+  float f01 = texelFetch(uDiskFluxTex, ivec2(ri, aj), 0).r;
+  float f11 = texelFetch(uDiskFluxTex, ivec2(rj, aj), 0).r;
+  return mix(mix(f00, f10, tr), mix(f01, f11, tr), ta);
 }
 
 // ── hashes / noise ─────────────────────────────────────────────────────────
@@ -309,9 +322,10 @@ void main() {
 
       if (rd > rIn && rd < uDiskOuter) {
         // Relativistic thin disk. Inner edge is the spin-dependent ISCO; the
-        // baked Page–Thorne profile (computed for ISCO=3) is rescaled to the
-        // current inner edge so the hot ring tracks the ISCO as the hole spins.
-        float flux  = diskFlux(3.0 * rd / rIn);
+        // baked EXACT Kerr Page–Thorne flux F(rd, spin) gives the true radial
+        // profile for this spin (not the a=0 shape rescaled), so the hot region
+        // tightens toward the smaller ISCO as the hole spins up.
+        float flux  = diskFluxKerr(rd, rIn, uSpin);
         float T     = uDiskTemp * pow(flux, 0.25);           // emitted temperature (K)
 
         // Relativistic transfer: a blackbody seen with Doppler factor g stays a

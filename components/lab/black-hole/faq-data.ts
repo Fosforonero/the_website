@@ -24,7 +24,7 @@ export const FAQ: Record<FaqLocale, FaqItem[]> = {
     },
     {
       q: "Il disco di accrescimento cambia con lo spin?",
-      a: "Sì. Il bordo interno è l'ISCO prograda di Kerr (formula di Bardeen): si stringe verso il buco man mano che lo spin aumenta. Il Doppler e il redshift seguono la metrica di Kerr. L'unica approssimazione rimasta è la forma del profilo radiale del flusso (calcolata per a=0 e riscalata sull'ISCO).",
+      a: "Sì. Il bordo interno è l'ISCO prograda di Kerr (formula di Bardeen): si stringe verso il buco man mano che lo spin aumenta. Il Doppler e il redshift seguono la metrica di Kerr, e ora anche il profilo radiale del flusso è l'esatto Page–Thorne di Kerr, calcolato per ogni spin (la regione calda si stringe verso l'ISCO più piccolo al crescere dello spin). Resta fissa solo la scala di luminosità assoluta del disco al variare dello spin: l'aumento reale di efficienza, fino a ~100× il flusso di picco a spin estremo, saturerebbe a bianco.",
       sec: 3,
     },
     {
@@ -85,7 +85,7 @@ export const FAQ: Record<FaqLocale, FaqItem[]> = {
     },
     {
       q: "Does the accretion disk change with spin?",
-      a: "Yes. The inner edge is the prograde Kerr ISCO (Bardeen's formula): it shrinks toward the hole as spin increases. The Doppler and redshift follow the Kerr metric. The only remaining approximation is the shape of the radial flux profile (computed for a=0 and rescaled to the ISCO).",
+      a: "Yes. The inner edge is the prograde Kerr ISCO (Bardeen's formula): it shrinks toward the hole as spin increases. The Doppler and redshift follow the Kerr metric, and now the radial flux profile is the exact Kerr Page–Thorne flux computed per spin (the hot region tightens toward the smaller ISCO as spin grows). Only the disk's absolute luminosity is held fixed across spin: the real efficiency increase, up to ~100× the peak flux at extreme spin, would simply clip to white.",
       sec: 3,
     },
     {
