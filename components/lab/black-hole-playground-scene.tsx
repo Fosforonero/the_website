@@ -261,10 +261,16 @@ function Simulation({
     if (r0 < 2.5) return; // too close to the horizon to place
     const pos = new THREE.Vector3(point.x, point.y, point.z);
     // Circular-orbit speed in the Paczyński–Wiita potential: v² = r·dΦ/dr.
-    // Planets/stars get a (near-)circular orbit so they actually orbit the
-    // black hole; comets keep an eccentric, plunging orbit.
+    // The launch speed as a FRACTION of circular sets the eccentricity:
+    //   • planet → 1.0  : (near-)circular, so it forms a stable orbiting system;
+    //   • star   → 0.86 : gently eccentric, so it visibly swings inward each
+    //     orbit, skims the tidal radius, sheds gas and is eventually
+    //     spaghettified — at the large radii where stars are usually dropped a
+    //     perfectly circular orbit is a slow uniform rotation that reads as
+    //     "immobile", whereas the radial infall is clearly dynamic;
+    //   • comet  → 0.55 : strongly eccentric, plunging.
     const vCirc = Math.sqrt(GM * r0) / Math.max(r0 - RS, 0.1);
-    const factor = kind === "comet" ? 0.55 : 1.0;
+    const factor = kind === "comet" ? 0.55 : kind === "star" ? 0.86 : 1.0;
     const radial = new THREE.Vector3(point.x, 0, point.z).normalize();
     const vel = new THREE.Vector3(-radial.z, 0, radial.x).multiplyScalar(vCirc * factor);
 

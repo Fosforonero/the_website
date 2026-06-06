@@ -366,13 +366,21 @@ void main() {
         // so octaves never align into a grid, plus a domain warp that breaks up
         // the coarse base cells — otherwise, seen edge-on in the foreground, the
         // largest cell shows as flat triangular facets ("maglia" sul disco).
-        // Screen-space footprint of the disk surface under this pixel (world
-        // units per pixel). At grazing / distant views one pixel covers many
-        // noise cells, so the high octaves under-sample and shimmer — classic
-        // perspective aliasing. We fade each octave toward its mean (0.5) once
-        // its period drops below the footprint (filtered fBm / mip-style band-
-        // limiting), removing the shimmer without darkening the disk.
-        float foot = max(fwidth(hit.x), fwidth(hit.z));
+        // Texel footprint of the disk surface under this pixel (world units per
+        // pixel). At grazing / distant views one pixel covers many noise cells,
+        // so the high octaves under-sample and shimmer — classic perspective
+        // aliasing. We fade each octave toward its mean (0.5) once its period
+        // drops below the footprint (filtered fBm / mip-style band-limiting),
+        // removing the shimmer without darkening the disk.
+        //
+        // The footprint is estimated ANALYTICALLY — distance × pixel-angle /
+        // crossing-cosine — NOT from fwidth(hit). The hit point is ray-marched:
+        // across a 2x2 GPU quad neighbouring rays can land on very
+        // different disk radii (lensing, different equatorial crossings), so
+        // fwidth(hit) is discontinuous and its per-quad value makes the octave
+        // fade flip on/off in a screen-aligned lattice — the "rete" on the disk.
+        // The analytic estimate is smooth across pixels, so no grid appears.
+        float foot = length(hit - uCamPos) * uTanFov * 0.010 / max(abs(dir.y), 0.05);
         mat2 rot = mat2(0.80, -0.60, 0.60, 0.80);
         vec2 p = q * 0.6;
         vec2 warp = vec2(gnoise(p + 3.1), gnoise(p + 7.7)) - 0.5;

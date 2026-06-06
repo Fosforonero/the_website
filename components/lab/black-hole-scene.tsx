@@ -29,6 +29,7 @@ export type BlackHoleSceneProps = {
   diskTemp?: number;   // disk colour-temperature scale (K)
   diskBright?: number; // accretion-rate / brightness scale
   diskOuter?: number;  // disk outer radius (r_s)
+  eht?: boolean;       // "EHT mode": render at very low resolution (beam-limited look)
 };
 
 // ---------------------------------------------------------------------------
@@ -124,13 +125,14 @@ export default function BlackHoleScene({
   diskTemp,
   diskBright,
   diskOuter,
+  eht = false,
 }: BlackHoleSceneProps) {
   const dprCap = QUALITY_PRESETS[quality].dprCap;
 
   return (
     <Canvas
       camera={{ fov: 50, near: 0.01, far: 5000, position: [0, 2.2, 16] }}
-      dpr={[1, dprCap]}
+      dpr={eht ? [0.16, 0.16] : [1, dprCap]}
       gl={{ antialias: false, alpha: false, preserveDrawingBuffer: true }}
       style={{ background: "#000003" }}
     >

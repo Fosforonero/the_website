@@ -67,6 +67,15 @@
 .bh-canvas-wrap { position: relative; min-height: 0; }
 .bh-canvas-wrap > div { width: 100%; height: 100%; }
 
+/* "EHT mode": the scene already renders at a very low internal resolution
+   (beam-limited); a small extra blur + warm push sells the radio-interferometry
+   look of the real Event Horizon Telescope images, where the ring is resolved
+   at only a few beam elements across. Soft upscale keeps it free of hard pixels. */
+.bh-canvas-wrap.bh-eht canvas {
+  filter: blur(1.4px) saturate(1.25) contrast(1.08) brightness(1.05)
+    sepia(0.16) hue-rotate(-6deg);
+}
+
 .bh-hint {
   position: absolute;
   left: 50%;
