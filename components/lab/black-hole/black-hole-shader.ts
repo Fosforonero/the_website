@@ -447,7 +447,7 @@ void main() {
         // fwidth(hit) is discontinuous and its per-quad value makes the octave
         // fade flip on/off in a screen-aligned lattice — the "rete" on the disk.
         // The analytic estimate is smooth across pixels, so no grid appears.
-        float foot = length(hit - uCamPos) * uTanFov * 0.010 / max(abs(dir.y), 0.05);
+        float foot = length(hit - uCamPos) * uTanFov * 0.0035 / max(abs(dir.y), 0.05);
         mat2 rot = mat2(0.80, -0.60, 0.60, 0.80);
         vec2 p = q * 0.6;
         vec2 warp = vec2(gnoise(p + 3.1), gnoise(p + 7.7)) - 0.5;
