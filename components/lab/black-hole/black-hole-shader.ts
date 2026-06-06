@@ -287,19 +287,16 @@ void main() {
     vec3  vel  = ps - kf * kap * ks;                  // coordinate velocity dx/dλ
     vec3 posNext = pos + vel * dt;
 
-    // Accretion disk as a thin SLAB of half-thickness H around the equatorial
-    // plane — not a zero-thickness sheet, which seen edge-on vanishes into a
-    // black seam. The ray registers the disk on a plane crossing OR when it
-    // grazes within the slab, so edge-on it reads as a glowing band.
-    if (uDiskOn > 0.5) {
-      bool  cross = pos.y * posNext.y < 0.0;
-      float tt    = cross ? pos.y / (pos.y - posNext.y)
-                          : (abs(pos.y) < abs(posNext.y) ? 0.0 : 1.0);
+    // Accretion-disk crossing of the equatorial (y = 0) plane. ONE sample per
+    // crossing (no multi-step accumulation → no concentric step banding). The
+    // opacity below uses the crossing angle so edge-on rays (long path through
+    // the disk) read as thick/bright without any geometric slab.
+    if (uDiskOn > 0.5 && pos.y * posNext.y < 0.0) {
+      float tt  = pos.y / (pos.y - posNext.y);
       vec3  hit = mix(pos, posNext, tt);
       float rd  = kerrR(hit, kerrA);                    // Boyer–Lindquist radius in the disk plane
-      float H   = 0.03 + 0.22 * exp(-(rd - 3.0) * 0.25);  // puffy inner, thin outer
 
-      if ((cross || abs(hit.y) < H) && rd > uDiskInner && rd < uDiskOuter) {
+      if (rd > uDiskInner && rd < uDiskOuter) {
         // Physical optically-thick relativistic thin disk: exact Page–Thorne
         // (Novikov–Thorne, a=0) radiative flux, baked into uDiskFlux. T ∝ flux^¼;
         // the surface is a local blackbody, so its intensity is set purely by T.
@@ -372,11 +369,12 @@ void main() {
         bright *= 0.20 + 1.7 * turb;               // lower floor → darker lanes, more contrast
 
         vec3 dcol = blackbody(Tobs) * bright;
-        // Local opacity from brightness (optical-depth proxy): bright inner disk
-        // → opaque, faint outskirts → translucent. Front-to-back composite; the
-        // ray keeps going until the accumulated disk is opaque, giving a smooth
-        // radial transition and a self-limited edge-on band (no streaks/ring).
-        float alpha = clamp(bright * 1.6, 0.0, 1.0);
+        // Optical depth through the thin disk at this crossing: surface term
+        // (∝ brightness) divided by the crossing cosine |v_y| — a grazing
+        // (edge-on) crossing traverses a longer path, so it is more opaque and
+        // brighter, with no geometric slab and no step banding. Bright inner
+        // disk → opaque; faint outskirts → translucent (smooth radial fade).
+        float alpha = clamp(bright * 1.1 / max(abs(vel.y), 0.07), 0.0, 1.0);
         accCol += (1.0 - accA) * alpha * dcol;
         if (!depthSet && alpha > 0.25) { outDepth = depthFromWorld(hit); depthSet = true; hitDisk = true; }
         accA += (1.0 - accA) * alpha;
