@@ -91,7 +91,7 @@ export function BlackHoleQuad({
     u.uHighOrder.value = QUALITY_PRESETS[quality].rk4 ? 1 : 0;
     u.uUltra.value = QUALITY_PRESETS[quality].tao ? 1 : 0;
     u.uStyle.value = starless ? 1 : 0;
-    u.uExposure.value = starless ? 1.0 : 1.15; // a touch flatter for the photographic look
+    u.uExposure.value = starless ? 1.12 : 1.15; // keep brightness ~constant so the toggle is instant, not a fade
     u.uDiskOn.value = diskOn ? 1 : 0;
     u.uDoppler.value = dopplerOn ? 1 : 0;
     u.uSpin.value = spin;

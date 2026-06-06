@@ -116,7 +116,7 @@ float gnoise(vec2 p) {
 vec3 starField(vec3 d) {
   vec3 col = vec3(0.00012, 0.00014, 0.00022);        // ~black sky floor
   bool sl = uStyle > 0.5;
-  float band = exp(-pow(d.y * (sl ? 3.2 : 5.5), 2.0));
+  float band = exp(-pow(d.y * (sl ? 4.2 : 5.5), 2.0));
   col += vec3(0.0035, 0.004, 0.007) * band;
 
   float dust = 0.0, band2 = 0.0;
@@ -133,21 +133,22 @@ vec3 starField(vec3 d) {
     n = pow(clamp(n, 0.0, 1.0), 1.5);                       // contrast → filaments, not haze
     dust  = smoothstep(0.45, 0.85, gnoise(vec2(az * 3.3, d.y * 5.5) + 23.0)); // dark lanes
     band2 = band * n * (1.0 - 0.85 * dust);                // where the band stars live
-    // faint diffuse component only (most of the band's light is the grain below)
+    // Very faint diffuse component — kept low on purpose so the band reads as
+    // STARS (the grain below), not as a smooth haze/fog.
     vec3 mwCol = mix(vec3(0.013, 0.014, 0.022), vec3(0.040, 0.032, 0.024), band);
-    col += mwCol * band2 * 0.6;
+    col += mwCol * band2 * 0.22;
     float core = exp(-pow(az * 0.8, 2.0)) * band;          // warm bulge toward the centre
-    col += vec3(0.045, 0.035, 0.026) * core * (1.0 - 0.6 * dust);
+    col += vec3(0.045, 0.035, 0.026) * core * (1.0 - 0.6 * dust) * 0.6;
     // Nebulae: sparse coloured emission/reflection patches along the plane — a
     // second, lower-frequency fBm picks bright clumps, tinted between reddish HII
     // and bluish reflection. Adds the colour/depth that reads as "more detailed".
     vec2  ng = vec2(az * 1.3, d.y * 3.2) + 41.0;
     float neb = 0.0, na = 0.55;
     for (int o = 0; o < 3; o++) { neb += na * gnoise(ng); ng = rr * ng * 2.1 + 2.3; na *= 0.5; }
-    neb = pow(clamp(neb, 0.0, 1.0), 3.0);                   // sparse, bright clumps
+    neb = pow(clamp(neb, 0.0, 1.0), 3.5);                   // sparser, brighter clumps (less haze)
     float tint = gnoise(vec2(az * 0.7, d.y * 1.6) + 7.0);
     vec3  nebCol = mix(vec3(0.075, 0.020, 0.035), vec3(0.018, 0.035, 0.075), tint); // HII red ↔ reflection blue
-    col += nebCol * neb * band * (1.0 - 0.55 * dust) * 1.3;
+    col += nebCol * neb * band * (1.0 - 0.55 * dust) * 0.7;
   }
 
   // Discrete stars. In Starless mode two extra layers (k=2,3) are dense, faint
