@@ -184,6 +184,16 @@ float kerrHq(vec3 p, vec3 ps, float a) {
   return dot(ps, ps) - 1.0 - f * kap * kap;
 }
 
+// Prograde ISCO radius (Bardeen 1972), χ = a/M = uSpin, returned in r_s units
+// (M = ½). χ=0 → 3 r_s (= 6M); spinning up shrinks the inner edge.
+float kerrISCO(float chi) {
+  float a  = clamp(chi, 0.0, 0.999);
+  float z1 = 1.0 + pow(1.0 - a * a, 1.0 / 3.0) * (pow(1.0 + a, 1.0 / 3.0) + pow(1.0 - a, 1.0 / 3.0));
+  float z2 = sqrt(3.0 * a * a + z1 * z1);
+  float xi = 3.0 + z2 - sqrt(max((3.0 - z1) * (3.0 + z1 + 2.0 * z2), 0.0)); // r_isco / M
+  return 0.5 * xi;                                                          // r_s units
+}
+
 void main() {
   // Reconstruct the world-space camera ray for this pixel.
   vec2 ndc = vUv * 2.0 - 1.0;
@@ -230,6 +240,7 @@ void main() {
 
   float kerrA = uSpin * 0.5;                                            // a = χ·M, χ = uSpin ∈ [0,1]
   float rHor  = 0.5 * (1.0 + sqrt(max(1.0 - uSpin * uSpin, 0.0)));      // outer horizon r₊
+  float rIn   = kerrISCO(uSpin);                                        // spin-dependent disk inner edge (ISCO)
   vec3  ps    = dir;                                                    // photon momentum (E=1, far→flat)
 
   for (int i = 0; i < MAX_STEPS && !done; i++) {
@@ -296,11 +307,11 @@ void main() {
       vec3  hit = mix(pos, posNext, tt);
       float rd  = kerrR(hit, kerrA);                    // Boyer–Lindquist radius in the disk plane
 
-      if (rd > uDiskInner && rd < uDiskOuter) {
-        // Physical optically-thick relativistic thin disk: exact Page–Thorne
-        // (Novikov–Thorne, a=0) radiative flux, baked into uDiskFlux. T ∝ flux^¼;
-        // the surface is a local blackbody, so its intensity is set purely by T.
-        float flux  = diskFlux(rd);
+      if (rd > rIn && rd < uDiskOuter) {
+        // Relativistic thin disk. Inner edge is the spin-dependent ISCO; the
+        // baked Page–Thorne profile (computed for ISCO=3) is rescaled to the
+        // current inner edge so the hot ring tracks the ISCO as the hole spins.
+        float flux  = diskFlux(3.0 * rd / rIn);
         float T     = uDiskTemp * pow(flux, 0.25);           // emitted temperature (K)
 
         // Relativistic transfer: a blackbody seen with Doppler factor g stays a
@@ -308,16 +319,22 @@ void main() {
         // invariant I_ν/ν³ = const, integrated over frequency).
         float g = 1.0;
         if (uDoppler > 0.5) {
-          // Exact Schwarzschild circular-orbit speed (locally measured):
-          //   v = √(M / (r − 2M)),  M = RS/2 = 0.5  →  0.5c at the ISCO.
-          float v    = min(sqrt(0.5 / max(rd - 1.0, 0.05)), 0.99);
-          vec3  tang = normalize(vec3(-hit.z, 0.0, hit.x)); // prograde about +y
-          vec3  toCam = normalize(uCamPos - hit);
-          float beta  = dot(tang, toCam) * v;                // line-of-sight, >0 approaching
-          // √(1 − 3M/r) folds gravitational + transverse time dilation; the
-          // 1/(1−β) is the remaining longitudinal Doppler.
-          float timeDil = sqrt(max(1.0 - 1.5 / rd, 0.0));
-          g = timeDil / max(1.0 - beta, 1e-3);
+          // EXACT Kerr redshift+Doppler for a prograde circular-orbit emitter:
+          //   g = 1 / [ u^t (1 − Ω λ) ],
+          // with Ω the gas angular velocity, u^t its 4-velocity time component
+          // (gravitational + transverse dilation), and λ = L_z/E the photon's
+          // conserved axial angular momentum. Reduces to √(1−3M/r)/(1−β) at a=0.
+          // Units M = 1: X = r/M = 2·rd, a/M = uSpin.
+          float X   = 2.0 * rd;
+          float aM  = uSpin;
+          float Om  = 1.0 / (pow(X, 1.5) + aM);                  // prograde Ω
+          float gtt = -(1.0 - 2.0 / X);
+          float gtp = -2.0 * aM / X;
+          float gpp = X * X + aM * aM + 2.0 * aM * aM / X;        // equatorial Kerr
+          float nrm = -(gtt + 2.0 * Om * gtp + Om * Om * gpp);    // (u^t)^{-2}
+          float ut  = 1.0 / sqrt(max(nrm, 1e-4));
+          float lam = 2.0 * (hit.x * ps.z - hit.z * ps.x);        // λ = L_z/E (M=1 units)
+          g = 1.0 / (ut * max(1.0 - Om * lam, 1e-3));
         }
         float Tobs = T * g;
 
