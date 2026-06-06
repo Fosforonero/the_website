@@ -150,7 +150,7 @@ export default function BlackHoleScene({
         maxDistance={600}
       />
 
-      <EffectComposer>
+      <EffectComposer frameBufferType={THREE.HalfFloatType}>
         <Bloom
           intensity={1.0}
           luminanceThreshold={0.62}

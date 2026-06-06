@@ -225,7 +225,7 @@ export default function BlackHoleOrbitScene({ quality, diskOn, params, apiRef, r
       </mesh>
       <OrbitControls makeDefault enablePan={false} enableDamping dampingFactor={0.08}
         rotateSpeed={0.5} zoomSpeed={0.8} minDistance={2} maxDistance={600} />
-      <EffectComposer>
+      <EffectComposer frameBufferType={THREE.HalfFloatType}>
         <Bloom intensity={0.9} luminanceThreshold={0.4} luminanceSmoothing={0.85} mipmapBlur />
       </EffectComposer>
     </Canvas>

@@ -644,7 +644,7 @@ export default function BlackHolePlaygroundScene({ quality, spin, diskOn, jetsOn
         minDistance={2}
         maxDistance={600}
       />
-      <EffectComposer>
+      <EffectComposer frameBufferType={THREE.HalfFloatType}>
         <Bloom intensity={1.0} luminanceThreshold={0.62} luminanceSmoothing={0.75} mipmapBlur />
       </EffectComposer>
     </Canvas>
