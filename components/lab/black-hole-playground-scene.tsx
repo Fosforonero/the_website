@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useMemo, useEffect, type MutableRefObject } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
@@ -42,7 +42,25 @@ export type PlaygroundSceneProps = {
   gwOn: boolean;
   activeKind: BodyKind;
   apiRef: MutableRefObject<PlaygroundHandle | null>;
+  scaleRef?: MutableRefObject<number>; // px on screen per 1 r_s (for the scale bar)
 };
+
+// Reports how many screen pixels one Schwarzschild radius spans at the centre,
+// so the UI can draw a zoom-aware scale bar.
+function ScaleProbe({ scaleRef }: { scaleRef?: MutableRefObject<number> }) {
+  const { camera, size } = useThree();
+  const a = useMemo(() => new THREE.Vector3(), []);
+  const b = useMemo(() => new THREE.Vector3(), []);
+  useFrame(() => {
+    if (!scaleRef) return;
+    a.set(0, 0, 0).project(camera);
+    b.set(1, 0, 0).project(camera);            // 1 r_s along world x at the centre
+    const dx = (b.x - a.x) * 0.5 * size.width;
+    const dy = (b.y - a.y) * 0.5 * size.height;
+    scaleRef.current = Math.hypot(dx, dy);
+  });
+  return null;
+}
 
 const RS = 1.0;
 const GM = 0.5;
@@ -592,7 +610,7 @@ function Simulation({
 // Public scene
 // ---------------------------------------------------------------------------
 
-export default function BlackHolePlaygroundScene({ quality, spin, diskOn, jetsOn, gridOn, gwOn, activeKind, apiRef }: PlaygroundSceneProps) {
+export default function BlackHolePlaygroundScene({ quality, spin, diskOn, jetsOn, gridOn, gwOn, activeKind, apiRef, scaleRef }: PlaygroundSceneProps) {
   const dprCap = QUALITY_PRESETS[quality].dprCap;
   return (
     <Canvas
@@ -604,6 +622,7 @@ export default function BlackHolePlaygroundScene({ quality, spin, diskOn, jetsOn
       <BlackHoleQuad quality={quality} diskOn={diskOn} spin={spin} dopplerOn jetsOn={jetsOn} />
       <BlackHoleGrid visible={gridOn} spin={spin} />
       <Simulation apiRef={apiRef} activeKind={activeKind} gwOn={gwOn} />
+      <ScaleProbe scaleRef={scaleRef} />
       <OrbitControls
         makeDefault
         enablePan={false}

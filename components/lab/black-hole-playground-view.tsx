@@ -32,7 +32,7 @@ const COPY = {
     grid: "Griglia",
     gw: "Onde grav.",
     hint: "Scegli un tipo e clicca nella scena per posizionare il corpo · trascina per ruotare. Le stelle entro il raggio mareale vengono disgregate in uno stream.",
-    discShort: "Dinamica con potenziale pseudo-newtoniano di Paczyński–Wiita (riproduce l'ISCO e la caduta). I corpi non sono lensati; lo stream mareale è un modello a particelle.",
+    discShort: "Dinamica con potenziale pseudo-newtoniano di Paczyński–Wiita (riproduce l'ISCO e la caduta). I corpi non sono lensati; lo stream mareale è un modello a particelle. Scala (barra in basso): rₛ = orizzonte, ISCO 3 rₛ, disco 3–16 rₛ; le dimensioni dei corpi sono compresse per visibilità (stella ≈0,4 rₛ, pianeta ≈0,15 rₛ, cometa ≈0,05 rₛ).",
     infoTitle: "Come funziona",
   },
   en: {
@@ -53,7 +53,7 @@ const COPY = {
     grid: "Grid",
     gw: "GW inspiral",
     hint: "Pick a type and click in the scene to place the body · drag to rotate. Stars within the tidal radius are torn into a debris stream.",
-    discShort: "Dynamics use the Paczyński–Wiita pseudo-Newtonian potential (reproduces the ISCO and the plunge). Bodies are not lensed; the tidal stream is a particle model.",
+    discShort: "Dynamics use the Paczyński–Wiita pseudo-Newtonian potential (reproduces the ISCO and the plunge). Bodies are not lensed; the tidal stream is a particle model. Scale (bar, bottom): rₛ = horizon, ISCO 3 rₛ, disk 3–16 rₛ; body sizes are compressed for visibility (star ≈0.4 rₛ, planet ≈0.15 rₛ, comet ≈0.05 rₛ).",
     infoTitle: "How it works",
   },
 } as const;
@@ -61,6 +61,8 @@ const COPY = {
 export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) {
   const t = COPY[locale];
   const api = useRef<PlaygroundHandle | null>(null);
+  const scaleRef = useRef(0);
+  const [scaleBar, setScaleBar] = useState({ px: 0, label: "" });
   const [quality, setQuality] = useState<BlackHoleQuality>("medium");
   const [spin, setSpin] = useState(0);
   const [diskOn, setDiskOn] = useState(true);
@@ -78,6 +80,19 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
     const onRot = () => window.setTimeout(() => window.dispatchEvent(new Event("resize")), 250);
     window.addEventListener("orientationchange", onRot);
     return () => window.removeEventListener("orientationchange", onRot);
+  }, []);
+  // Zoom-aware scale bar: pick a round number of r_s whose on-screen length is
+  // a comfortable 60–150 px at the current zoom.
+  useEffect(() => {
+    const steps = [0.5, 1, 2, 5, 10, 20, 50, 100, 200];
+    const id = setInterval(() => {
+      const pxPerRs = scaleRef.current;
+      if (!pxPerRs || !isFinite(pxPerRs)) return;
+      let pick = steps[0]!;
+      for (const s of steps) { pick = s; if (pxPerRs * s >= 60) break; }
+      setScaleBar({ px: Math.round(pxPerRs * pick), label: `${pick} rₛ` });
+    }, 200);
+    return () => clearInterval(id);
   }, []);
 
   const aboutHref = locale === "it" ? "/lab/buco-nero/about" : "/en/lab/black-hole/about";
@@ -150,7 +165,13 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
       </div>
 
       <div className="bh-canvas-wrap">
-        <PlaygroundScene quality={quality} spin={spin} diskOn={diskOn} jetsOn={jetsOn} gridOn={gridOn} gwOn={gwOn} activeKind={activeKind} apiRef={api} />
+        <PlaygroundScene quality={quality} spin={spin} diskOn={diskOn} jetsOn={jetsOn} gridOn={gridOn} gwOn={gwOn} activeKind={activeKind} apiRef={api} scaleRef={scaleRef} />
+        {scaleBar.px > 0 && (
+          <div className="bh-scalebar" aria-hidden>
+            <span className="bh-scalebar__label">{scaleBar.label}</span>
+            <span className="bh-scalebar__line" style={{ width: scaleBar.px }} />
+          </div>
+        )}
         <p className="bh-hint bh-hint--hide-sm">{t.hint}</p>
 
         {infoOpen ? (

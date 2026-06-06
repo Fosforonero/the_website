@@ -291,6 +291,33 @@
   color: #5f7290;
 }
 
+/* Zoom-aware scale bar (playground) */
+.bh-scalebar {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  pointer-events: none;
+  z-index: 4;
+}
+.bh-scalebar__label {
+  font-size: 0.62rem;
+  color: #aebbd2;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+.bh-scalebar__line {
+  height: 6px;
+  box-sizing: border-box;
+  border-bottom: 2px solid #cdd6e6;
+  border-left: 2px solid #cdd6e6;
+  border-right: 2px solid #cdd6e6;
+  opacity: 0.85;
+}
+
 /* ── About / methodology page ─────────────────────────────────────────── */
 .bh-about-page {
   min-height: 100vh;
