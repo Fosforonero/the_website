@@ -256,9 +256,11 @@
 .bh-physpanel__mass b { color: #dfe8f5; min-width: 56px; text-align: right; }
 .bh-physpanel__presets {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   margin-bottom: 9px;
 }
+.bh-physpanel__presets button { flex: 1 1 64px; }
 .bh-physpanel__presets button {
   flex: 1;
   padding: 3px 4px;

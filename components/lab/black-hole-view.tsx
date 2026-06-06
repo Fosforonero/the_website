@@ -67,7 +67,7 @@ const COPY = {
     controls: "Controlli",
     phys: {
       title: "Scala reale", mass: "Massa", close: "Chiudi",
-      note: "La massa fissa solo il colore del disco (il trend reale); le dimensioni in scena restano compresse per visibilità.",
+      note: "I preset impostano massa e spin di un oggetto reale. La massa fissa il colore del disco (il trend reale); le dimensioni in scena restano compresse per visibilità.",
       rs: "Raggio di Schwarzschild", isco: "ISCO (orbita più interna)", tIsco: "Periodo orbitale all'ISCO",
       diskPeak: "T disco interno (~Eddington)", hawking: "Temperatura di Hawking",
       entropy: "Entropia (S/k_B)", evap: "Tempo di evaporazione",
@@ -103,7 +103,7 @@ const COPY = {
     controls: "Controls",
     phys: {
       title: "Real scale", mass: "Mass", close: "Close",
-      note: "Mass only sets the disk colour (the real trend); on-scene sizes stay compressed for visibility.",
+      note: "The presets set a real object's mass and spin. Mass sets the disk colour (the real trend); on-scene sizes stay compressed for visibility.",
       rs: "Schwarzschild radius", isco: "ISCO (innermost orbit)", tIsco: "Orbital period at the ISCO",
       diskPeak: "Inner-disk T (~Eddington)", hawking: "Hawking temperature",
       entropy: "Entropy (S/k_B)", evap: "Evaporation time",
@@ -136,6 +136,8 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
   const [physOpen, setPhysOpen] = useState(false);
   const [controlsOpen, setControlsOpen] = useState(false);
   const onMass = (m: number) => { setMassSolar(m); setDiskTemp(diskColorTempForMass(m)); };
+  // Scenario presets: set a representative mass AND spin for a famous object.
+  const applyScenario = (m: number, s: number) => { onMass(m); setSpin(s); };
   const facts = bhFacts(massSolar);
   // Accretion rate Ṁ physically raises BOTH luminosity (∝ Ṁ) and temperature
   // (∝ Ṁ¼): so the accretion control also shifts the colour (hotter/bluer when
@@ -318,9 +320,10 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
               <b>{fmtMass(massSolar)}</b>
             </label>
             <div className="bh-physpanel__presets">
-              <button onClick={() => onMass(10)}>10 M☉</button>
-              <button onClick={() => onMass(4.3e6)}>Sgr A*</button>
-              <button onClick={() => onMass(6.5e9)}>M87*</button>
+              <button onClick={() => applyScenario(10, 0)}>10 M☉</button>
+              <button onClick={() => applyScenario(4.3e6, 0.5)}>Sgr A*</button>
+              <button onClick={() => applyScenario(6.5e9, 0.9)}>M87*</button>
+              <button onClick={() => applyScenario(1e8, 0.95)}>Gargantua</button>
             </div>
             <div className="bh-physpanel__grid">
               <div><span>{t.phys.rs}</span><b>{fmtLen(facts.rsKm)}</b></div>
