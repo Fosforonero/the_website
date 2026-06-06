@@ -30,6 +30,7 @@ export type BlackHoleSceneProps = {
   diskOuter?: number;  // disk outer radius (r_s)
   eht?: boolean;       // "EHT mode": render at very low resolution (beam-limited look)
   starless?: boolean;  // "Starless" photographic look (rich lensed Milky-Way sky)
+  pureBlack?: boolean; // "Pure black" preset: sky off, saturated-orange disk (NASA look)
 };
 
 // ---------------------------------------------------------------------------
@@ -38,7 +39,7 @@ export type BlackHoleSceneProps = {
 
 export function BlackHoleQuad({
   quality, diskOn, dopplerOn, spin, jetsOn,
-  diskTemp = 10500, diskBright = 24, diskOuter = 16, starless = false,
+  diskTemp = 10500, diskBright = 24, diskOuter = 16, starless = false, pureBlack = false,
 }: BlackHoleSceneProps) {
   const matRef = useRef<THREE.ShaderMaterial>(null);
   const camBasis = useRef(new THREE.Matrix3());
@@ -66,6 +67,7 @@ export function BlackHoleQuad({
       uHighOrder: { value: QUALITY_PRESETS[quality].rk4 ? 1 : 0 },
       uUltra: { value: QUALITY_PRESETS[quality].tao ? 1 : 0 },
       uStyle: { value: starless ? 1 : 0 },
+      uPureBlack: { value: pureBlack ? 1 : 0 },
     }),
     // Intentionally created once — toggle changes are applied in useFrame.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -91,6 +93,7 @@ export function BlackHoleQuad({
     u.uHighOrder.value = QUALITY_PRESETS[quality].rk4 ? 1 : 0;
     u.uUltra.value = QUALITY_PRESETS[quality].tao ? 1 : 0;
     u.uStyle.value = starless ? 1 : 0;
+    u.uPureBlack.value = pureBlack ? 1 : 0;
     u.uExposure.value = starless ? 1.12 : 1.15; // keep brightness ~constant so the toggle is instant, not a fade
     u.uDiskOn.value = diskOn ? 1 : 0;
     u.uDoppler.value = dopplerOn ? 1 : 0;
@@ -150,6 +153,7 @@ export default function BlackHoleScene({
   diskOuter,
   eht = false,
   starless = false,
+  pureBlack = false,
 }: BlackHoleSceneProps) {
   const dprCap = QUALITY_PRESETS[quality].dprCap;
 
@@ -162,7 +166,7 @@ export default function BlackHoleScene({
     >
       <BlackHoleQuad
         quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn}
-        diskTemp={diskTemp} diskBright={diskBright} diskOuter={diskOuter} starless={starless}
+        diskTemp={diskTemp} diskBright={diskBright} diskOuter={diskOuter} starless={starless} pureBlack={pureBlack}
       />
       <BlackHoleGrid visible={gridOn} spin={spin} />
 
@@ -181,9 +185,9 @@ export default function BlackHoleScene({
 
       <EffectComposer frameBufferType={THREE.HalfFloatType}>
         <Bloom
-          intensity={1.0}
-          luminanceThreshold={0.62}
-          luminanceSmoothing={0.75}
+          intensity={1.35}
+          luminanceThreshold={0.55}
+          luminanceSmoothing={0.82}
           mipmapBlur
         />
         <DitherEffect />

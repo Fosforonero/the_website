@@ -62,6 +62,7 @@ uniform float uExposure;
 uniform float uHighOrder;  // 0/1 — use 4th-order RK4 geodesic step (high quality)
 uniform float uUltra;      // 0/1 — 6th-order Yoshida symplectic (only compiled when BH_ULTRA is defined)
 uniform float uStyle;      // 0 = cinematic, 1 = "Starless" photographic (lensed real-sky look)
+uniform float uPureBlack;  // 1 = "Pure black" preset (sky off, saturated-orange disk — NASA/Schnittman look)
 
 const float RS = 1.0;
 const int   MAX_STEPS = 400;
@@ -114,9 +115,12 @@ float gnoise(vec2 p) {
 // the FULLY LENSED ray direction, the rich sky is genuinely warped by the hole
 // (the starless signature), without shipping a multi-MB panorama texture.
 vec3 starField(vec3 d) {
+  if (uPureBlack > 0.5) return vec3(0.0);             // sky off (pure-black preset)
   vec3 col = vec3(0.00012, 0.00014, 0.00022);        // ~black sky floor
   bool sl = uStyle > 0.5;
-  float band = exp(-pow(d.y * (sl ? 4.2 : 5.5), 2.0));
+  // Starless uses a BROADER band so the Milky Way fills more of the sky (the thin
+  // cinematic band sat right on the disk plane and read as "nothing").
+  float band = exp(-pow(d.y * (sl ? 3.0 : 5.5), 2.0));
   col += vec3(0.0035, 0.004, 0.007) * band;
 
   float dust = 0.0, band2 = 0.0;
@@ -130,25 +134,25 @@ vec3 starField(vec3 d) {
     mat2  rr = mat2(0.80, -0.60, 0.60, 0.80);
     float n  = 0.0, amp = 0.5;
     for (int o = 0; o < 5; o++) { n += amp * gnoise(g); g = rr * g * 2.03 + 5.1; amp *= 0.5; }
-    n = pow(clamp(n, 0.0, 1.0), 1.5);                       // contrast → filaments, not haze
-    dust  = smoothstep(0.45, 0.85, gnoise(vec2(az * 3.3, d.y * 5.5) + 23.0)); // dark lanes
+    n = pow(clamp(n, 0.0, 1.0), 1.35);                      // contrast → filaments, not haze
+    dust  = smoothstep(0.40, 0.80, gnoise(vec2(az * 3.3, d.y * 5.5) + 23.0)); // dark lanes
     band2 = band * n * (1.0 - 0.85 * dust);                // where the band stars live
-    // Very faint diffuse component — kept low on purpose so the band reads as
-    // STARS (the grain below), not as a smooth haze/fog.
-    vec3 mwCol = mix(vec3(0.013, 0.014, 0.022), vec3(0.040, 0.032, 0.024), band);
-    col += mwCol * band2 * 0.22;
+    // Diffuse Milky-Way glow — brighter than before so the band actually reads,
+    // but still structured (filaments carved by dark dust lanes), not a flat fog.
+    vec3 mwCol = mix(vec3(0.020, 0.024, 0.040), vec3(0.075, 0.060, 0.045), band);
+    col += mwCol * band2 * 0.9;
     float core = exp(-pow(az * 0.8, 2.0)) * band;          // warm bulge toward the centre
-    col += vec3(0.045, 0.035, 0.026) * core * (1.0 - 0.6 * dust) * 0.6;
+    col += vec3(0.090, 0.066, 0.046) * core * (1.0 - 0.6 * dust) * 1.5;
     // Nebulae: sparse coloured emission/reflection patches along the plane — a
     // second, lower-frequency fBm picks bright clumps, tinted between reddish HII
     // and bluish reflection. Adds the colour/depth that reads as "more detailed".
     vec2  ng = vec2(az * 1.3, d.y * 3.2) + 41.0;
     float neb = 0.0, na = 0.55;
     for (int o = 0; o < 3; o++) { neb += na * gnoise(ng); ng = rr * ng * 2.1 + 2.3; na *= 0.5; }
-    neb = pow(clamp(neb, 0.0, 1.0), 3.5);                   // sparser, brighter clumps (less haze)
+    neb = pow(clamp(neb, 0.0, 1.0), 3.0);                   // sparse, bright clumps (less haze)
     float tint = gnoise(vec2(az * 0.7, d.y * 1.6) + 7.0);
-    vec3  nebCol = mix(vec3(0.075, 0.020, 0.035), vec3(0.018, 0.035, 0.075), tint); // HII red ↔ reflection blue
-    col += nebCol * neb * band * (1.0 - 0.55 * dust) * 0.7;
+    vec3  nebCol = mix(vec3(0.16, 0.04, 0.07), vec3(0.04, 0.07, 0.16), tint); // HII red ↔ reflection blue
+    col += nebCol * neb * band * (1.0 - 0.55 * dust) * 1.8;
   }
 
   // Discrete stars. In Starless mode two extra layers (k=2,3) are dense, faint
@@ -159,7 +163,9 @@ vec3 starField(vec3 d) {
     if (k >= layers) break;
     bool dense = k >= 2;                                    // band-concentrated grain
     float scale = (k == 0) ? 230.0 : (k == 1) ? 95.0 : (k == 2) ? 520.0 : 900.0;
-    float thr   = dense ? (k == 2 ? 0.93 : 0.90) : (sl ? 0.978 : 0.985);
+    // Denser, brighter band grain so the Milky Way reads as countless unresolved
+    // stars; in Starless the general field is also a touch denser than cinematic.
+    float thr   = dense ? (k == 2 ? 0.88 : 0.85) : (sl ? 0.965 : 0.985);
     vec3 g  = d * scale;
     vec3 id = floor(g);
     float h = hash31(id);
@@ -169,10 +175,10 @@ vec3 starField(vec3 d) {
       float tw   = 0.7 + 0.3 * sin(uTime * 2.0 + h * 40.0);
       float mag  = pow((h - thr) / (1.0 - thr), 2.0);
       vec3 sc    = mix(vec3(1.0, 0.9, 0.8), vec3(0.8, 0.9, 1.0), hash31(id + 7.0));
-      // grain layers are faint and live only in the band (carved by dust);
-      // bright foreground stars fill the whole sky.
-      float w = dense ? band2 * 1.3 : 1.0;
-      float bright = dense ? 0.7 : 2.0;
+      // grain layers live in the band (carved by dust); bright foreground stars
+      // fill the whole sky.
+      float w = dense ? band2 * 2.4 : 1.0;
+      float bright = dense ? 1.5 : 2.0;
       col += sc * star * mag * tw * bright * w;
     }
   }
@@ -338,6 +344,7 @@ void main() {
   float kerrA = uSpin * 0.5;                                            // a = χ·M, χ = uSpin ∈ [0,1]
   float rHor  = 0.5 * (1.0 + sqrt(max(1.0 - uSpin * uSpin, 0.0)));      // outer horizon r₊
   float rIn   = kerrISCO(uSpin);                                        // spin-dependent disk inner edge (ISCO)
+  int   diskXings = 0;                                                  // disk-plane crossings (for photon-ring contrast)
   vec3  ps    = dir;                                                    // photon momentum (E=1, far→flat)
 #ifdef BH_ULTRA
   vec3  shPos = pos, shMom = ps;                                        // Tao extended-phase-space shadow copy
@@ -423,6 +430,7 @@ void main() {
       float rd  = kerrR(hit, kerrA);                    // Boyer–Lindquist radius in the disk plane
 
       if (rd > rIn && rd < uDiskOuter) {
+        diskXings++;                                        // 1 = direct image, ≥2 = returning (ring) images
         // Relativistic thin disk. Inner edge is the spin-dependent ISCO; the
         // baked EXACT Kerr Page–Thorne flux F(rd, spin) gives the true radial
         // profile for this spin (not the a=0 shape rescaled), so the hot region
@@ -466,6 +474,10 @@ void main() {
         // edge stays genuinely sharp (ISCO zero-stress boundary, flux → 0).
         float outer = 1.0 - smoothstep(uDiskOuter * 0.32, uDiskOuter, rd);
         bright *= outer * outer;
+        // Hot inner lip (Interstellar look): flare toward the ISCO where the flux
+        // peaks, so the inner edge glows white-hot. The flux already → 0 exactly
+        // at rIn (zero-torque boundary), so the sharp inner edge is preserved.
+        bright *= 1.0 + 1.3 * smoothstep(rIn * 3.0, rIn * 1.25, rd);
 
         // Gaseous structure: filamentary FBM turbulence in rotating disk-plane
         // coordinates (seamless, differential rotation). The disk is optically
@@ -516,7 +528,16 @@ void main() {
         turb = pow(clamp(turb, 0.0, 1.0), 1.25);  // contrast → bands ride under churning grain
         bright *= 0.20 + 1.7 * turb;               // lower floor → darker lanes, more contrast
 
+        // Photon-ring contrast: the returning-radiation images (2nd, 3rd disk
+        // crossing) are intrinsically much fainter; lift them a little so the
+        // secondary image / ring actually reads (a declared legibility boost,
+        // not new physics — the ring still emerges from the real returning light).
+        if (diskXings >= 2) bright *= 1.0 + 0.7 * float(min(diskXings - 1, 3));
+
         vec3 dcol = blackbody(Tobs) * bright;
+        // "Pure black" preset: monochromatic saturated orange (NASA/Schnittman
+        // look) instead of the physical blackbody colour ramp.
+        if (uPureBlack > 0.5) dcol = vec3(1.0, 0.42, 0.12) * bright;
         // Optical depth through the thin disk at this crossing: surface term
         // (∝ brightness) divided by the crossing cosine |v_y| — a grazing
         // (edge-on) crossing traverses a longer path, so it is more opaque and
@@ -527,6 +548,24 @@ void main() {
         if (!depthSet && alpha > 0.25) { outDepth = depthFromWorld(hit); depthSet = true; hitDisk = true; }
         accA += (1.0 - accA) * alpha;
         if (accA > 0.97) { color = accCol; done = true; break; }
+      }
+    }
+
+    // Volumetric veil: a faint warm glow within a scale height of the disk plane,
+    // integrated along the ray, so the razor-thin disk gains a soft vertical
+    // "thickness" (Interstellar's wispy halo) without a real 3D gas model. Cheap:
+    // a fixed warm tint × the analytic flux, gated to steps actually near the plane.
+    if (uDiskOn > 0.5) {
+      float ya = abs(pos.y);
+      if (ya < 0.55) {
+        float rv = kerrR(pos, kerrA);
+        if (rv > rIn && rv < uDiskOuter) {
+          float vfl  = diskFlux(rv, rIn);
+          float vert = exp(-(ya * ya) / 0.040);            // scale height ≈ 0.14
+          float ov   = 1.0 - smoothstep(uDiskOuter * 0.32, uDiskOuter, rv);
+          vec3  vcol = (uPureBlack > 0.5 ? vec3(1.0, 0.42, 0.12) : vec3(1.0, 0.62, 0.32)) * (vfl * ov * ov);
+          accCol += (1.0 - accA) * vcol * vert * dt * uDiskBright * 0.035;
+        }
       }
     }
 
