@@ -12,6 +12,7 @@ import {
   type BlackHoleQuality,
 } from "./black-hole/black-hole-shader";
 import { BlackHoleGrid } from "./black-hole-grid";
+import { DISK_FLUX_LUT } from "./black-hole/physics";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -60,6 +61,7 @@ export function BlackHoleQuad({
       uJets: { value: jetsOn ? 1 : 0 },
       uJetStr: { value: 0.7 },
       uExposure: { value: 1.15 },
+      uDiskFlux: { value: DISK_FLUX_LUT },
     }),
     // Intentionally created once — toggle changes are applied in useFrame.
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -56,9 +56,20 @@ uniform float uDiskBright; // disk brightness scale
 uniform float uJets;       // 0 / 1 — relativistic jets along the spin axis
 uniform float uJetStr;     // jet emission strength
 uniform float uExposure;
+uniform float uDiskFlux[96]; // baked Page–Thorne radial flux profile (rd ∈ [3,30])
 
 const float RS = 1.0;
 const int   MAX_STEPS = 400;
+
+// Sample the exact Page–Thorne disk flux (relativistic Novikov–Thorne, a=0),
+// linearly interpolated over disk radius rd. Replaces the Newtonian
+// (1−√(r_in/r)) approximation with the orbit-averaged GR profile.
+float diskFlux(float rd) {
+  float t = clamp((rd - 3.0) / 27.0, 0.0, 1.0) * 95.0;
+  int i = int(floor(t));
+  int j = min(i + 1, 95);
+  return mix(uDiskFlux[i], uDiskFlux[j], t - float(i));
+}
 
 // ── hashes / noise ─────────────────────────────────────────────────────────
 float hash21(vec2 p) {
@@ -239,11 +250,10 @@ void main() {
       float rd  = length(hit.xz);                       // in-plane radius
 
       if (rd > uDiskInner && rd < uDiskOuter) {
-        // Physical optically-thick Shakura–Sunyaev thin disk (no artistic
-        // turbulence): emitted flux ∝ r⁻³·(1 − √(r_in/r)), T ∝ flux^¼. The
-        // surface is a local blackbody, so its intensity is set purely by T.
-        float edge  = max(1.0 - sqrt(uDiskInner / rd), 0.0); // →0 at inner edge
-        float flux  = pow(uDiskInner / rd, 3.0) * edge;
+        // Physical optically-thick relativistic thin disk: exact Page–Thorne
+        // (Novikov–Thorne, a=0) radiative flux, baked into uDiskFlux. T ∝ flux^¼;
+        // the surface is a local blackbody, so its intensity is set purely by T.
+        float flux  = diskFlux(rd);
         float T     = uDiskTemp * pow(flux, 0.25);           // emitted temperature (K)
 
         // Relativistic transfer: a blackbody seen with Doppler factor g stays a

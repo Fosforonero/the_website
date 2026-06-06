@@ -52,6 +52,63 @@ export function bhFacts(mSolar: number): BHFacts {
   };
 }
 
+// ---------------------------------------------------------------------------
+// Page–Thorne (1974) relativistic thin-disk radiative flux for a Schwarzschild
+// (a = 0) hole, computed exactly via the orbit-averaged integral rather than
+// the Newtonian (1 − √(r_in/r)) approximation. For circular Schwarzschild
+// geodesics (units M = 1): Ω = X^(−3/2), E = (1−2/X)/√(1−3/X),
+// L = √X/√(1−3/X), and conveniently (E − ΩL)² = 1 − 3/X. The flux is
+//   F(r) = −(Ṁ)/(4π√g)·(Ω_,r /(E−ΩL)²)·∫_{6}^{X}(E−ΩL) L_,r dX'
+// with √g = r = X. We bake a normalised lookup over the renderer's disk radius
+// rd (r_s = 1, so r/M = 2·rd) and the shader samples it. Source: Page & Thorne
+// 1974, ApJ 191, 499; Novikov & Thorne 1973.
+// ---------------------------------------------------------------------------
+
+export const DISK_FLUX_LUT_N = 96;
+export const DISK_FLUX_RD_MIN = 3.0;   // ISCO (r_s units)
+export const DISK_FLUX_RD_MAX = 30.0;  // beyond the largest disk radius
+
+function ptFluxAtX(X: number): number {
+  if (X <= 6.0) return 0.0; // inside the ISCO: no stable disk
+  const Lz = (x: number) => Math.sqrt(x) / Math.sqrt(1 - 3 / x);
+  const integrand = (x: number) => {
+    const dx = 1e-5 * x;
+    const dL = (Lz(x + dx) - Lz(x - dx)) / (2 * dx);
+    return Math.sqrt(1 - 3 / x) * dL; // (E−ΩL)·L_,r , with (E−ΩL)=√(1−3/X)
+  };
+  const n = 240, x0 = 6.0, hh = (X - x0) / n;
+  let I = 0;
+  for (let i = 0; i <= n; i++) {
+    const xx = x0 + i * hh;
+    const w = i === 0 || i === n ? 0.5 : 1.0; // trapezoidal
+    I += w * integrand(xx);
+  }
+  I *= hh;
+  // F = (3/2)/(4π X^{7/2}(1−3/X))·I   [from Ω_,r = −(3/2)X^{−5/2}, √g = X]
+  return (1.5 / (4 * Math.PI * Math.pow(X, 3.5) * (1 - 3 / X))) * I;
+}
+
+export function buildDiskFluxLUT(): number[] {
+  // peak of the Newtonian profile, to keep the overall brightness scale
+  let oldPeak = 0;
+  for (let rd = 3.001; rd < 30; rd += 0.02) {
+    const f = Math.pow(3 / rd, 3) * Math.max(1 - Math.sqrt(3 / rd), 0);
+    if (f > oldPeak) oldPeak = f;
+  }
+  const pt: number[] = [];
+  let ptPeak = 0;
+  for (let i = 0; i < DISK_FLUX_LUT_N; i++) {
+    const rd = DISK_FLUX_RD_MIN + (DISK_FLUX_RD_MAX - DISK_FLUX_RD_MIN) * (i / (DISK_FLUX_LUT_N - 1));
+    const F = Math.max(ptFluxAtX(2 * rd), 0); // r/M = 2·rd
+    pt.push(F);
+    if (F > ptPeak) ptPeak = F;
+  }
+  const scale = ptPeak > 0 ? oldPeak / ptPeak : 1;
+  return pt.map((F) => F * scale);
+}
+
+export const DISK_FLUX_LUT = buildDiskFluxLUT();
+
 // Map the mass to the disk's *colour* temperature for the renderer (shader
 // range ≈ 3000–30000 K). This is a trend, not the literal peak temperature
 // (which is far hotter): low-mass holes have hot, X-ray/UV disks → blue-white;

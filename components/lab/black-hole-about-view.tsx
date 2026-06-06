@@ -83,12 +83,13 @@ const COPY: Record<Locale, Copy> = {
       {
         heading: "3. Disco di accrescimento relativistico",
         body: [
-          "Il disco è gas che spiraleggia verso il buco, e mentre cade attrito e turbolenza lo scaldano finché non splende. Il modello classico è quello di Shakura e Sunyaev (1973), qui nella veste relativistica di Novikov e Thorne, con una condizione al contorno elegante: all'ISCO lo sforzo si annulla, perché lì il gas perde la presa e precipita. Da quanta energia ogni anello irraggia segue — via Stefan–Boltzmann — la sua temperatura, che cresce verso il centro come r⁻³ᐟ⁴.",
+          "Il disco è gas che spiraleggia verso il buco, e mentre cade attrito e turbolenza lo scaldano finché non splende. Il modello classico è quello di Shakura e Sunyaev (1973), qui nella veste relativistica di Novikov e Thorne, con una condizione al contorno elegante: all'ISCO lo sforzo si annulla, perché lì il gas perde la presa e precipita. Da quanta energia ogni anello irraggia segue — via Stefan–Boltzmann — la sua temperatura, che cresce verso il centro come r⁻³ᐟ⁴. Il profilo radiale del renderer è il flusso esatto di Page–Thorne (l'integrale relativistico orbita-mediato), non la sola approssimazione newtoniana (1−√(r_in/r)): lo calcoliamo numericamente per Schwarzschild e lo campioniamo nello shader.",
           "E qui c'è la parte che ci piace di più: il colore non lo scegliamo noi. Ogni punto del disco ha una temperatura, e a quella temperatura corrisponde un vero colore di corpo nero — lo stesso di un ferro arroventato che passa dal rosso all'arancio al bianco-azzurro man mano che scalda. Convertiamo quella temperatura nel suo colore lungo il locus planckiano e lo mostriamo, niente gradiente arbitrario. Il primo a calcolare l'immagine di un disco così, a mano, nel 1979, fu Jean-Pierre Luminet — e somigliava già a Interstellar. (Shakura–Sunyaev 1973; Novikov–Thorne 1973; Luminet 1979.)",
           "Una parola sui bordi, perché raccontano due fisiche opposte. Quello interno è tagliente sul serio: all'ISCO il gas se ne va e la luce semplicemente finisce lì. Quello esterno no — dipende da dove il disco viene alimentato, ed è sfumato. Nella realtà la brillanza scende già da sola come r⁻³; noi aggiungiamo una dissolvenza morbida e larga che si spegne con pendenza nulla, così l'orlo non sembra tagliato col coltello.",
         ],
         eqs: [
-          { label: "Flusso del disco (Novikov–Thorne / Shakura–Sunyaev)", tex: "F(r) = \\frac{3\\,G M \\dot M}{8\\pi r^{3}}\\left(1 - \\sqrt{r_{\\mathrm{in}}/r}\\,\\right)" },
+          { label: "Flusso del disco (limite newtoniano)", tex: "F(r) = \\frac{3\\,G M \\dot M}{8\\pi r^{3}}\\left(1 - \\sqrt{r_{\\mathrm{in}}/r}\\,\\right)" },
+          { label: "Flusso esatto di Page–Thorne (a=0, usato dal renderer)", tex: "F(r) = -\\frac{\\dot M}{4\\pi\\sqrt{g}}\\,\\frac{\\Omega_{,r}}{(E-\\Omega L)^{2}}\\int_{r_{\\mathrm{in}}}^{r}(E-\\Omega L)\\,L_{,r}\\,dr'" },
           { label: "Temperatura efficace", tex: "T_{\\mathrm{eff}}(r) = \\left(F(r)/\\sigma\\right)^{1/4} \\propto r^{-3/4}" },
           { label: "Bordo interno (ISCO)", tex: "r_{\\mathrm{in}} = 6M = 3\\,r_s" },
         ],
@@ -215,6 +216,7 @@ const COPY: Record<Locale, Copy> = {
       { cite: "M. D. Johnson et al. (2020), «Universal interferometric signatures of a black hole's photon ring», Science Advances 6, eaaz1310.", url: "https://www.science.org/doi/10.1126/sciadv.aaz1310" },
       { cite: "N. I. Shakura & R. A. Sunyaev (1973), Astronomy & Astrophysics 24, 337." },
       { cite: "I. D. Novikov & K. S. Thorne (1973), «Astrophysics of Black Holes», in Black Holes (Les Houches)." },
+      { cite: "D. N. Page & K. S. Thorne (1974), «Disk-accretion onto a black hole. Time-averaged structure of accretion disk», ApJ 191, 499.", url: "https://ui.adsabs.harvard.edu/abs/1974ApJ...191..499P/abstract" },
       { cite: "B. Paczyński & P. J. Wiita (1980), Astronomy & Astrophysics 88, 23." },
       { cite: "M. J. Rees (1988), «Tidal disruption of stars by black holes…», Nature 333, 523.", url: "https://ui.adsabs.harvard.edu/abs/1988Natur.333..523R/abstract" },
       { cite: "P. C. Peters (1964), «Gravitational radiation and the motion of two point masses», Physical Review 136, B1224.", url: "https://journals.aps.org/pr/abstract/10.1103/PhysRev.136.B1224" },
@@ -271,12 +273,13 @@ const COPY: Record<Locale, Copy> = {
       {
         heading: "3. Relativistic accretion disk",
         body: [
-          "The thin, optically-thick disk follows the Shakura–Sunyaev model in its relativistic Novikov–Thorne version, with a zero-stress boundary condition at the ISCO. The emitted flux and the effective (Stefan–Boltzmann) temperature set a local blackbody emission.",
-          "The color is therefore the true blackbody color of the local temperature (Planckian locus → sRGB), not an arbitrary gradient. The first computed image of such a disk is Luminet's (1979). (Shakura–Sunyaev 1973; Novikov–Thorne 1973; Luminet 1979.)",
-          "On the edges: the inner one (at the ISCO) is genuinely sharp — the zero-stress boundary makes the flux vanish at the inner radius. The outer one, instead, is a numerical truncation at a finite radius: we render it feathered (the brightness already falls ∝ r⁻³ and we add a gradual taper reaching zero slope at the edge), because a real disk's outer boundary — set by its feeding region — is fuzzy, not a razor edge.",
+          "The disk is gas spiralling toward the hole, and as it falls friction and turbulence heat it until it glows. The classic model is Shakura & Sunyaev's (1973), here in Novikov & Thorne's relativistic version, with one elegant boundary condition: at the ISCO the stress vanishes, because there the gas loses its grip and plunges. From how much energy each ring radiates follows — via Stefan–Boltzmann — its temperature, rising toward the centre as r⁻³ᐟ⁴. The renderer's radial profile is the exact Page–Thorne flux (the relativistic, orbit-averaged integral), not just the Newtonian (1−√(r_in/r)) approximation: we compute it numerically for Schwarzschild and sample it in the shader.",
+          "And here is the part we like best: we do not choose the colour. Every point on the disk has a temperature, and that temperature has a true blackbody colour — the same as a poker glowing red, then orange, then blue-white as it heats. We convert that temperature to its colour along the Planckian locus and show it — no arbitrary gradient. The first to compute the image of such a disk, by hand, in 1979, was Jean-Pierre Luminet — and it already looked like Interstellar. (Shakura–Sunyaev 1973; Novikov–Thorne 1973; Luminet 1979.)",
+          "A word on the edges, because they tell two opposite stories. The inner one is genuinely sharp: at the ISCO the gas departs and the light simply ends there. The outer one is not — it depends on where the disk is fed, and it is fuzzy. In reality the brightness already falls on its own as r⁻³; we add a soft, wide taper that dies out with vanishing slope, so the rim is not cut with a knife.",
         ],
         eqs: [
-          { label: "Disk flux (Novikov–Thorne / Shakura–Sunyaev)", tex: "F(r) = \\frac{3\\,G M \\dot M}{8\\pi r^{3}}\\left(1 - \\sqrt{r_{\\mathrm{in}}/r}\\,\\right)" },
+          { label: "Disk flux (Newtonian limit)", tex: "F(r) = \\frac{3\\,G M \\dot M}{8\\pi r^{3}}\\left(1 - \\sqrt{r_{\\mathrm{in}}/r}\\,\\right)" },
+          { label: "Exact Page–Thorne flux (a=0, used by the renderer)", tex: "F(r) = -\\frac{\\dot M}{4\\pi\\sqrt{g}}\\,\\frac{\\Omega_{,r}}{(E-\\Omega L)^{2}}\\int_{r_{\\mathrm{in}}}^{r}(E-\\Omega L)\\,L_{,r}\\,dr'" },
           { label: "Effective temperature", tex: "T_{\\mathrm{eff}}(r) = \\left(F(r)/\\sigma\\right)^{1/4} \\propto r^{-3/4}" },
           { label: "Inner edge (ISCO)", tex: "r_{\\mathrm{in}} = 6M = 3\\,r_s" },
         ],
@@ -284,8 +287,8 @@ const COPY: Record<Locale, Copy> = {
       {
         heading: "4. Radiative transfer and relativistic effects",
         body: [
-          "Along a ray the quantity Iᵥ/ν³ is invariant (Liouville's theorem for photons). With the redshift factor g = νₒᵦₛ/νₑₘ, for an emitter on a circular orbit g combines gravitational and time dilation with the longitudinal Doppler.",
-          "A blackbody seen with factor g remains a blackbody at temperature g·T (Doppler invariance of the Planck spectrum), with bolometric intensity ∝ g⁴. The same g drives brightness and color: the approaching side is brighter and bluer, the receding side darker and redder. (Luminet 1979; Vincent et al. 2011, GYOTO.)",
+          "How does the light change along the way? There is an almost magical quantity that stays constant: the intensity divided by the frequency cubed, Iᵥ/ν³. It is Liouville's theorem in disguise — photons, in their phase space, neither crowd together nor thin out. If we know it where the light is born, we know it here at the eye. All the work then boils down to one number: the factor g, the ratio of the frequency we receive to the one emitted.",
+          "That g rolls three effects into one: time running slower near the mass (gravitational redshift), the time dilation of the racing gas, and the Doppler of whatever comes toward us or flees. A blackbody seen with factor g stays a blackbody, but at temperature g·T — so g shifts colour and brightness together. The result is an unmistakable signature: the side coming at us is dazzling and bluish, the side fleeing dim and red. And since brightness goes as g⁴, it takes little for one side to dominate the other. (Luminet 1979; Vincent et al. 2011, GYOTO.)",
         ],
         eqs: [
           { label: "Liouville invariant", tex: "\\frac{I_\\nu}{\\nu^{3}} = \\text{constant along the ray}" },
@@ -296,8 +299,8 @@ const COPY: Record<Locale, Copy> = {
       {
         heading: "5. Returning radiation and the photon ring",
         body: [
-          "Rays grazing the photon sphere wind around the black hole before escaping or hitting the disk: this is returning radiation. The renderer refines the integration step just outside the photon sphere, capturing the higher-order images of the disk — disk light that completed extra half-orbits.",
-          "These images pile up into ever-thinner sub-rings converging to the critical impact parameter b_c, with an exponentially decaying spacing (Lyapunov exponent γ = π for Schwarzschild). The limit is the photon ring: in our implementation it emerges from the real disk light (same color), not drawn analytically. (Luminet 1979; Gralla, Holz & Wald 2019; Johnson et al. 2020, EHT.)",
+          "Here is what makes a black hole so luminous. Some rays go neither straight nor in: they graze the photon sphere, make half a turn, a turn, two turns around the hole, and then leave. This is returning radiation — the disk's own light coming back into view after passing behind the horizon. To catch it the renderer refines its steps exactly where the path winds, where a coarse step would miss the loop.",
+          "The result is a ladder of ever-thinner images of the disk, stacked side by side, crowding toward the edge of the shadow. Each extra turn shrinks the image by a fixed factor — exponentially, with Lyapunov exponent γ = π for Schwarzschild — until they merge into the bright thread of the photon ring. The part we are proud of: we do not draw it. It emerges on its own from the real returning disk light, in the same colour, with no fake ring laid on top. (Luminet 1979; Gralla, Holz & Wald 2019; Johnson et al. 2020, EHT.)",
         ],
         eqs: [
           { label: "Sub-rings converge to the critical value", tex: "b_{n} - b_{c} \\;\\propto\\; e^{-\\gamma n}, \\qquad \\gamma = \\pi \\ (\\text{Schwarzschild})" },
@@ -403,6 +406,7 @@ const COPY: Record<Locale, Copy> = {
       { cite: "M. D. Johnson et al. (2020), “Universal interferometric signatures of a black hole's photon ring”, Science Advances 6, eaaz1310.", url: "https://www.science.org/doi/10.1126/sciadv.aaz1310" },
       { cite: "N. I. Shakura & R. A. Sunyaev (1973), Astronomy & Astrophysics 24, 337." },
       { cite: "I. D. Novikov & K. S. Thorne (1973), “Astrophysics of Black Holes”, in Black Holes (Les Houches)." },
+      { cite: "D. N. Page & K. S. Thorne (1974), “Disk-accretion onto a black hole. Time-averaged structure of accretion disk”, ApJ 191, 499.", url: "https://ui.adsabs.harvard.edu/abs/1974ApJ...191..499P/abstract" },
       { cite: "B. Paczyński & P. J. Wiita (1980), Astronomy & Astrophysics 88, 23." },
       { cite: "M. J. Rees (1988), “Tidal disruption of stars by black holes…”, Nature 333, 523.", url: "https://ui.adsabs.harvard.edu/abs/1988Natur.333..523R/abstract" },
       { cite: "P. C. Peters (1964), “Gravitational radiation and the motion of two point masses”, Physical Review 136, B1224.", url: "https://journals.aps.org/pr/abstract/10.1103/PhysRev.136.B1224" },
