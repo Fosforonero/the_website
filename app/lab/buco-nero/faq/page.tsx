@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { site } from "@/lib/site";
-import { BlackHoleFaqView, FAQ } from "@/components/lab/black-hole-faq-view";
+import { BlackHoleFaqView } from "@/components/lab/black-hole-faq-view";
+import { FAQ } from "@/components/lab/black-hole/faq-data";
 import "@/components/lab/black-hole.css";
 
 const PAGE_URL = `${site.url}/lab/buco-nero/faq`;
