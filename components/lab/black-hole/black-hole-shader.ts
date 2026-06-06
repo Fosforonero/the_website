@@ -388,6 +388,10 @@ void main() {
   color = acesFilmic(color);
   color = pow(color, vec3(1.0 / 2.2));
 
+  // Dither (±½ LSB, animated) to break the 8-bit banding/terracing visible on
+  // the disk's smooth brightness gradient at close range.
+  color += (hash21(gl_FragCoord.xy + fract(uTime) * 17.0) - 0.5) / 255.0;
+
   fragColor = vec4(color, 1.0);
   gl_FragDepth = outDepth;
 }

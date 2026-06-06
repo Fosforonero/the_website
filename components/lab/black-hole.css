@@ -445,4 +445,26 @@
     place-items: center;
     border-radius: 50%;
   }
+  /* The always-on hint overlaps the canvas on phones; the info card carries it. */
+  .bh-hint { display: none; }
+  /* Real-scale panel: a dismissible bottom sheet instead of a 230px card that
+     sits over the (centred) black hole. */
+  .bh-physpanel {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    max-width: none;
+    max-height: 56vh;
+    overflow-y: auto;
+    border: none;
+    border-top: 1px solid #1c2742;
+    border-radius: 14px 14px 0 0;
+    background: rgba(6, 8, 18, 0.97);
+    padding: 12px 16px calc(14px + env(safe-area-inset-bottom));
+  }
+  .bh-physpanel__head button { width: 32px; height: 32px; font-size: 1.3rem; }
+  /* Live readout chip stays a tight top-right corner. */
+  .bh-readout { top: 8px; right: 8px; gap: 1px; padding: 6px 8px; }
 }
