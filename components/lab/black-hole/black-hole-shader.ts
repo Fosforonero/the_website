@@ -201,6 +201,7 @@ void main() {
   bool hitDisk = false; // the opaque disk occludes the photon ring behind it
   float outDepth = 1.0; // far by default (background → no occlusion)
   vec3 jetAccum = vec3(0.0); // optically-thin jet emission accumulated along the ray
+  vec3 diskGlow = vec3(0.0); // optically-thin outer-disk emission (semi-transparent)
 
   // Far from the hole spacetime is essentially flat, so a distant camera ray
   // travels in a straight line. Analytically advance it to the hole's
@@ -286,7 +287,7 @@ void main() {
                           : (abs(pos.y) < abs(posNext.y) ? 0.0 : 1.0);
       vec3  hit = mix(pos, posNext, tt);
       float rd  = kerrR(hit, kerrA);                    // Boyer–Lindquist radius in the disk plane
-      float H   = 0.10 + 0.012 * rd;                    // disk scale height (slight outward flare)
+      float H   = 0.05 + 0.007 * rd;                    // disk scale height (thin, slight flare)
 
       if ((cross || abs(hit.y) < H) && rd > uDiskInner && rd < uDiskOuter) {
         // Physical optically-thick relativistic thin disk: exact Page–Thorne
@@ -360,9 +361,18 @@ void main() {
         turb = pow(clamp(turb, 0.0, 1.0), 1.25);  // contrast → visible rotating bands
         bright *= 0.20 + 1.7 * turb;               // lower floor → darker lanes, more contrast
 
-        color = blackbody(Tobs) * bright;
-        outDepth = depthFromWorld(hit);
-        hitDisk = true; done = true; break;
+        vec3 dcol = blackbody(Tobs) * bright;
+        if (bright >= 0.5) {
+          // Optically THICK inner disk → opaque photosphere (occludes).
+          color = dcol;
+          outDepth = depthFromWorld(hit);
+          hitDisk = true; done = true; break;
+        } else if (cross) {
+          // Optically THIN outskirts → emissive and semi-transparent: add its
+          // faint glow and let the ray pass through to the bright lensed image
+          // behind, so the dim outer disk seen edge-on is NOT a black seam.
+          diskGlow += dcol;
+        }
       }
     }
 
@@ -374,7 +384,7 @@ void main() {
   if (!done) color = starField(normalize(dir));
 
   // Jet emission accumulated along the (lensed) ray.
-  color += jetAccum;
+  color += jetAccum + diskGlow;
 
   // The photon ring is no longer drawn analytically: it now emerges physically
   // from the returning radiation (higher-order disk images piling up near the
