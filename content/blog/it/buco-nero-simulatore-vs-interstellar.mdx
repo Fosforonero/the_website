@@ -1,0 +1,85 @@
+---
+title: "Il nostro buco nero contro Gargantua: stessa fisica, render farm contro 16 millisecondi"
+excerpt: "Interstellar ha ray-tracciato la vera metrica di Kerr offline, ore per fotogramma, su una render farm. Io faccio la stessa fisica in tempo reale nel browser. Cosa è identico, cosa cambia e perché — con le equazioni: geodetiche di Kerr, beaming Doppler g⁴, flusso di disco sottile, photon ring, e dove un telefono deve arrendersi a una render farm (e dove invece no)."
+date: "2026-06-06"
+tag: "Dev"
+draft: false
+---
+
+C'è una domanda che mi fanno spesso quando mostro il [simulatore di buco nero](/lab/buco-nero): «ma è come quello di Interstellar?». La risposta onesta è: _la fisica è la stessa, il resto no_ — ed è proprio nel «resto» che c'è tutta l'ingegneria interessante. Questo articolo mette i due a confronto, riga per riga, senza barare.
+
+Gargantua, il buco nero del film (2014), fu calcolato dalla Double Negative con un motore dedicato, il DNGR (Double Negative Gravitational Renderer), descritto in un vero articolo scientifico (James, von Tunzelmann, Franklin & Thorne, 2015). Non è grafica «a sentimento»: è relatività generale integrata. E lo stesso vale per il mio renderer. La differenza non è _cosa_ si calcola, ma _quanto tempo_ ci si può mettere.
+
+## Cosa è identico: la metrica e le geodetiche
+
+Entrambi partono dalla stessa geometria — la metrica di Kerr, lo spazio-tempo di un buco nero rotante. Io la uso nella forma cartesiana di Kerr–Schild:
+
+<Math tex="g_{\mu\nu} = \eta_{\mu\nu} + f\,k_\mu k_\nu, \qquad f = \frac{2 M r^{3}}{r^{4} + a^{2} z^{2}}" />
+
+dove <Mi tex="\eta" /> è lo spazio-tempo piatto, <Mi tex="k" /> un vettore nullo e <Mi tex="a = J/M" /> lo spin. Su questa geometria, un fotone viaggia su una geodetica nulla, che tratto come il flusso di un'hamiltoniana:
+
+<Math tex="H = \tfrac{1}{2}\,g^{\mu\nu} p_\mu p_\nu = 0" />
+
+Per ogni pixel sparo un raggio dalla camera e integro questa equazione all'indietro nello spazio-tempo curvo. Il DNGR fa esattamente lo stesso: ray-tracing delle geodetiche nulle _esatte_ di Kerr. Da qui — non da un disegno — emergono l'ombra, la luce piegata, gli archi del disco che passano sopra e sotto il buco. Il bordo dell'ombra cade allo stesso identico posto per entrambi:
+
+<Math tex="b_c = 3\sqrt{3}\,M \approx 2{,}6\,r_s \quad (\text{Schwarzschild})" />
+
+Su questo siamo alla pari, e le differenze sono sub-pixel, numeriche. È la parte «wow» ed è genuinamente la stessa.
+
+## Cosa cambia: ore per fotogramma contro 16 millisecondi
+
+Qui si apre la voragine. Il DNGR girava **offline**, su una render farm: fino a **ore per fotogramma** a risoluzione IMAX (decine di megapixel), con centinaia di terabyte di dati per alcune sequenze. Io ho il budget di un **fragment shader WebGL**: circa **16 millisecondi a fotogramma**, sulla GPU di un telefono. Tra i due budget temporali ci sono cinque o sei ordini di grandezza.
+
+Quel divario non cambia _quali_ equazioni risolvi, ma _quanta cura_ puoi metterci. Tre conseguenze concrete:
+
+- **Ray bundles contro un raggio per pixel.** Il DNGR non tracciava un raggio, ma interi _fasci_ di raggi, propagandone la sezione trasversale. Così poteva filtrare e anti-aliasare in modo accurato i dettagli sottilissimi — il filo del photon ring, gli orli del disco. Io ho un raggio per pixel; al loro posto uso supersampling, band-limiting del rumore e dithering. I miei bordi sono un filo più «vivi», i loro chirurgici.
+- **Passo adattivo aggressivo.** Per restare nei 16 ms infittisco i passi solo dove la curvatura conta (vicino alla sfera fotonica) e avanzo in linea retta nel vuoto. Loro potevano permettersi di essere generosi ovunque.
+- **Niente seconda passata.** Loro rifinivano offline; io devo azzeccare tutto in un solo passaggio di shading.
+
+## Dove sono più onesto del film: l'asimmetria Doppler
+
+Questa è la mia preferita, perché è un caso in cui il film ha barato _di proposito_ e io no. Il disco che gira: un lato ci viene incontro, l'altro fugge. Il beaming Doppler relativistico fa sì che l'intensità osservata scali con la **quarta potenza** del fattore Doppler:
+
+<Math tex="I_{\rm oss} = g^{4}\,I_{\rm em}, \qquad g = \frac{\nu_{\rm oss}}{\nu_{\rm em}}" />
+
+Basta poco perché un lato diventi accecante e l'altro si spenga. In _Interstellar_ il disco è invece quasi **simmetrico**: Christopher Nolan e Kip Thorne scelsero di **attenuare** l'asimmetria, perché un'immagine così sbilanciata avrebbe confuso il pubblico. Scelta narrativa legittima. Io faccio l'opposto: c'è un interruttore per **accendere l'asimmetria Doppler vera** e vedere il disco sbilanciarsi come la fisica comanda. Lo scopo qui è didattico, non cinematografico — quindi mostro ciò che il film ha nascosto.
+
+## Il disco: due modelli diversi, nessuno dei due è GRMHD
+
+Attenzione a un punto che pochi sanno: **nessuno dei due disci è una simulazione del plasma**. Una soluzione completa — magnetoidrodinamica relativistica generale (GRMHD), con i campi magnetici, la turbolenza magnetorotazionale e il sincrotrone — costa minuti o ore di calcolo per fotogramma su un supercomputer. Né il film né io possiamo permettercela in quei contesti.
+
+Il loro disco era un modello **artistico-volumetrico** costruito a mano dagli artisti (texture, spessore, volute). Il mio è una superficie otticamente spessa con **emissione di corpo nero reale** e un profilo di flusso relativistico di disco sottile (Shakura–Sunyaev):
+
+<Math tex="F(r) \propto \left(\frac{r_{\rm in}}{r}\right)^{3}\left(1 - \sqrt{\frac{r_{\rm in}}{r}}\,\right)" />
+
+con il bordo interno <Mi tex="r_{\rm in}" /> ancorato all'ISCO di Kerr. Da quel flusso ricavo la temperatura di ogni anello e quindi il suo **vero colore planckiano** — niente palette arbitrarie. Sono due modelli del gas, entrambi onesti su ciò che non sono. Di recente ho aggiunto anche un velo volumetrico per dare al mio disco sottile un accenno di spessore, l'alone «soffice» che nel film viene dal volume vero.
+
+## Il photon ring: nessuno dei due lo disegna
+
+Attorno all'ombra c'è un filo di luce: il photon ring, la luce del disco che ha fatto mezzo giro, un giro, due giri attorno al buco prima di tornare verso di noi (la _returning radiation_). Né loro né io lo disegniamo: emerge dall'integrazione. Ma quanto in fretta si stringono quegli anelli annidati? La sfera fotonica è un'orbita instabile, e ogni giro in più rimpicciolisce l'immagine di un fattore fisso, governato dall'esponente di Lyapunov <Mi tex="\gamma = \pi" /> (Schwarzschild):
+
+<Math tex="\frac{w_{n+1}}{w_n} \sim e^{-\gamma} = e^{-\pi} \approx \frac{1}{23}" />
+
+Ogni anello successivo è ~23 volte più sottile e fioco del precedente. Con i ray bundles, il DNGR risolveva questi sub-anelli meglio di me; io risolvo bene il primario e il primo anello (con un lieve ritocco di contrasto perché il secondo si legga). La fisica è la stessa; la nitidezza la paga, di nuovo, il budget.
+
+## Il cielo: finalmente stelle vere
+
+Per molto tempo il mio sfondo è stato un cielo stellato procedurale. Adesso no: il toggle «Cielo reale» proietta una **vera fotografia di tutto il cielo** — la mappa NASA «Deep Star Maps 2020», costruita dai cataloghi stellari reali Gaia/Tycho — sulla sfera celeste, e la campiona con la direzione del raggio **già deviata** dal buco. Il trucco è elegante: poiché il lensing è già dentro la direzione del raggio, la Via Lattea vera viene **spalmata e incurvata** attorno all'ombra senza alcuno sforzo aggiuntivo. È la stessa idea con cui un film mette le placche stellari reali dietro al buco, solo calcolata in tempo reale, qui e ora.
+
+## Lo spin: loro fissi su Gargantua, io con uno slider
+
+Gargantua ruota quasi al massimo, <Mi tex="a/M \approx 0{,}999" />, e non per estetica: serve alla trama. Lo spin estremo stringe l'ultima orbita stabile (ISCO) fin quasi all'orizzonte —
+
+<Math tex="r_{\rm ISCO}:\quad 6\,\frac{GM}{c^{2}}\ (a=0)\ \longrightarrow\ \frac{GM}{c^{2}}\ (a\to M)" />
+
+— ed è questo che permette al pianeta di Miller di orbitare vicinissimo e di sopravvivere, con la celebre dilatazione del tempo
+
+<Math tex="\frac{\Delta t_{\rm lontano}}{\Delta\tau_{\rm pianeta}} \approx 6{,}1\times 10^{4}\quad (7\ \text{anni} = 1\ \text{ora})" />
+
+Nel film lo spin è inchiodato a quel valore. Da me è uno **slider**: lo muovi e guardi l'ISCO, l'ombra e il photon ring deformarsi e schiacciarsi in tempo reale. Stessa metrica, ma nelle tue mani.
+
+## In una frase
+
+Stessa metrica di Kerr, stesse geodetiche nulle. Loro: offline, fotorealistici, con licenze artistiche al servizio della storia. Io: in tempo reale, interattivo, con la fisica vera messa a nudo e **ogni approssimazione dichiarata**. Il distacco non è nella fisica — è tutto nei cinque ordini di grandezza tra una render farm e i 16 millisecondi di un telefono. E forse la cosa più bella è proprio questa: la stessa relatività generale che ha richiesto una render farm per un film oggi gira nel browser che hai in tasca.
+
+[Apri la simulazione →](/lab/buco-nero) · [Le equazioni complete →](/lab/buco-nero/about) · [«Il buco nero di Interstellar è reale?» →](/blog/buco-nero-interstellar-cosa-e-vero)
