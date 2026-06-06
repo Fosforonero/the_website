@@ -196,12 +196,7 @@ float kerrISCO(float chi) {
 
 void main() {
   // Reconstruct the world-space camera ray for this pixel.
-  // Stochastic sub-pixel jitter (temporal AA): the scene/disk is in motion, so
-  // averaging this over frames softens the per-pixel shader stair-stepping
-  // (the "tearing") without any extra render passes.
-  vec2 jit = vec2(hash21(gl_FragCoord.xy + uTime * 11.3),
-                  hash21(gl_FragCoord.yx + uTime * 7.7)) - 0.5;
-  vec2 ndc = (vUv + jit * fwidth(vUv) * 0.8) * 2.0 - 1.0;
+  vec2 ndc = vUv * 2.0 - 1.0;
   float px = ndc.x * uAspect * uTanFov;
   float py = ndc.y * uTanFov;
   vec3 dir = normalize(uCamBasis * vec3(px, py, -1.0));
@@ -446,7 +441,7 @@ export const QUALITY_PRESETS: Record<
   BlackHoleQuality,
   { steps: number; dprCap: number }
 > = {
-  high:   { steps: 400, dprCap: 1.75 },
-  medium: { steps: 240, dprCap: 1.25 },
-  low:    { steps: 140, dprCap: 1.0 },
+  high:   { steps: 400, dprCap: 2.0 },
+  medium: { steps: 240, dprCap: 1.6 },
+  low:    { steps: 140, dprCap: 1.1 },
 };
