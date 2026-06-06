@@ -502,11 +502,18 @@ void main() {
         vec2 warp = vec2(gnoise(p + 3.1), gnoise(p + 7.7)) - 0.5;
         p += 0.7 * warp;                          // domain warp → swirled, no facets
         float turb = 0.0;
+        // The two coarse octaves co-rotate rigidly, so the Keplerian shear winds
+        // them into the big concentric bands (physically right — like cream in
+        // coffee). The two fine octaves below get a slow time-drifting seed: they
+        // keep regenerating (a "boil") instead of shearing into perfectly clean
+        // filaments — a cheap stand-in for the MRI continuously rebuilding the
+        // small-scale turbulence, so the disk never settles into spotless rings
+        // and always keeps some turbulent grain riding on the bands.
         turb += 0.50 * mix(0.5, gnoise(p), 1.0 - smoothstep(0.45, 0.9, foot * 0.6));  p = rot * p * 2.0 + 11.5;
         turb += 0.28 * mix(0.5, gnoise(p), 1.0 - smoothstep(0.45, 0.9, foot * 1.2));  p = rot * p * 2.0 + 4.7;
-        turb += 0.15 * mix(0.5, gnoise(p), 1.0 - smoothstep(0.45, 0.9, foot * 2.4));  p = rot * p * 2.0 + 19.2;
-        turb += 0.07 * mix(0.5, gnoise(p), 1.0 - smoothstep(0.45, 0.9, foot * 4.8));
-        turb = pow(clamp(turb, 0.0, 1.0), 1.25);  // contrast → visible rotating bands
+        turb += 0.15 * mix(0.5, gnoise(p + vec2( uTime * 0.09, -uTime * 0.06)), 1.0 - smoothstep(0.45, 0.9, foot * 2.4));  p = rot * p * 2.0 + 19.2;
+        turb += 0.07 * mix(0.5, gnoise(p + vec2(-uTime * 0.13,  uTime * 0.11)), 1.0 - smoothstep(0.45, 0.9, foot * 4.8));
+        turb = pow(clamp(turb, 0.0, 1.0), 1.25);  // contrast → bands ride under churning grain
         bright *= 0.20 + 1.7 * turb;               // lower floor → darker lanes, more contrast
 
         vec3 dcol = blackbody(Tobs) * bright;
