@@ -8,9 +8,14 @@ const PAGE_URL = `${site.url}/lab/buco-nero`;
 const PAGE_URL_EN = `${site.url}/en/lab/black-hole`;
 
 export const metadata: Metadata = {
-  title: "Buco Nero 3D · Lensing gravitazionale Schwarzschild · Fosforonero Lab",
+  title: "Simulatore Buco Nero 3D · Kerr in tempo reale · Fosforonero Lab",
   description:
-    "Simulazione in tempo reale del lensing gravitazionale di un buco nero di Schwarzschild: geodetiche dei fotoni, disco di accrescimento con beaming Doppler e redshift gravitazionale. WebGL, gratis nel browser.",
+    "Simulatore di buco nero rotante (metrica di Kerr) in tempo reale nel browser: lensing gravitazionale reale, disco di accrescimento con effetto Doppler e redshift, ombra e photon ring. La stessa fisica del Gargantua di Interstellar, ma interattiva e gratis.",
+  keywords: [
+    "simulatore buco nero", "buco nero 3D", "buco nero rotante", "metrica di Kerr",
+    "lensing gravitazionale", "disco di accrescimento", "Gargantua Interstellar",
+    "photon ring", "onde gravitazionali", "relatività generale", "WebGL",
+  ],
   alternates: {
     canonical: PAGE_URL,
     languages: { it: PAGE_URL, en: PAGE_URL_EN, "x-default": PAGE_URL },
@@ -20,9 +25,9 @@ export const metadata: Metadata = {
     locale: "it_IT",
     url: PAGE_URL,
     siteName: site.name,
-    title: "Buco Nero 3D · Lensing gravitazionale in tempo reale",
+    title: "Simulatore di Buco Nero 3D · Kerr in tempo reale",
     description:
-      "Geodetiche dei fotoni in spazio-tempo curvo, disco di accrescimento con effetti relativistici. Approssimazione real-time (non il render Kerr di Interstellar).",
+      "Lensing gravitazionale reale di un buco nero rotante (Kerr): geodetiche dei fotoni ray-tracciate in tempo reale, disco di accrescimento relativistico, onde gravitazionali. Come il Gargantua di Interstellar, interattivo nel browser.",
   },
   twitter: { card: "summary_large_image" },
   robots: { index: true, follow: true },
@@ -35,8 +40,8 @@ export default function BucoNeroPage() {
       {
         "@type": "WebApplication",
         "@id": PAGE_URL,
-        name: "Buco Nero 3D",
-        alternateName: "Black Hole 3D",
+        name: "Simulatore di Buco Nero 3D",
+        alternateName: "Black Hole 3D Simulator",
         description: metadata.description,
         url: PAGE_URL,
         applicationCategory: "EducationalApplication",
@@ -45,7 +50,7 @@ export default function BucoNeroPage() {
         offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
         author: { "@type": "Person", name: site.author.name, url: site.url },
         keywords:
-          "buco nero 3D, lensing gravitazionale, geodetiche fotoni, disco di accrescimento, beaming Doppler, redshift gravitazionale, Schwarzschild WebGL",
+          "simulatore buco nero, buco nero 3D, buco nero rotante, metrica di Kerr, lensing gravitazionale, disco di accrescimento, Gargantua Interstellar, photon ring, onde gravitazionali, relatività generale, WebGL",
       },
       {
         "@type": "BreadcrumbList",
@@ -77,7 +82,7 @@ export default function BucoNeroPage() {
           borderWidth: 0,
         }}
       >
-        Buco Nero 3D — Lensing gravitazionale Schwarzschild
+        Simulatore di Buco Nero 3D — lensing gravitazionale e metrica di Kerr in tempo reale
       </h1>
       <Suspense fallback={<div className="bh-loading">…</div>}>
         <BlackHoleView locale="it" />

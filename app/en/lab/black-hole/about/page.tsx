@@ -8,7 +8,7 @@ const PAGE_URL = `${site.url}/en/lab/black-hole/about`;
 const PAGE_URL_IT = `${site.url}/lab/buco-nero/about`;
 
 const DESCRIPTION =
-  "The equations behind the black-hole simulation: photon geodesics in the Schwarzschild metric, a Shakura–Sunyaev accretion disk, gravitational redshift and relativistic beaming. What is physically correct and what is artistic, with sources and credits.";
+  "The equations behind the black hole simulator: exact Kerr (rotating) null geodesics ray-traced in real time, an accretion disk with the Page–Thorne flux, gravitational redshift and relativistic beaming, gravitational waves. What is physically correct and what is artistic, with sources and credits.";
 
 export const metadata: Metadata = {
   title: "Black hole: equations, physics & credits · Fosforonero Lab",
@@ -65,7 +65,7 @@ export default function BlackHoleAbout() {
           "General relativity",
         ],
         keywords:
-          "black hole, Schwarzschild metric, photon geodesics, gravitational lensing, accretion disk, Shakura-Sunyaev, gravitational redshift, relativistic beaming, ISCO, Binet equation",
+          "black hole, Kerr metric, Schwarzschild metric, photon geodesics, gravitational lensing, accretion disk, Page-Thorne, gravitational redshift, relativistic beaming, ISCO, Binet equation, gravitational waves",
         citation: [
           "Shakura & Sunyaev (1973), Astronomy & Astrophysics 24, 337",
           "James, von Tunzelmann, Franklin & Thorne (2015), Classical and Quantum Gravity 32, 065001",

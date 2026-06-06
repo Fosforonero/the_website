@@ -8,11 +8,16 @@ const PAGE_URL = `${site.url}/en/lab/black-hole`;
 const PAGE_URL_IT = `${site.url}/lab/buco-nero`;
 
 const DESCRIPTION =
-  "Real-time gravitational lensing of a Schwarzschild black hole: photon geodesics, an accretion disk with relativistic Doppler beaming and gravitational redshift. WebGL, free in the browser.";
+  "Real-time rotating (Kerr) black hole simulator in the browser: real gravitational lensing, an accretion disk with relativistic Doppler and redshift, the shadow and the photon ring. The same physics as Interstellar's Gargantua, but interactive and free.";
 
 export const metadata: Metadata = {
-  title: "Black Hole 3D · Schwarzschild gravitational lensing · Fosforonero Lab",
+  title: "Black Hole 3D Simulator · Real-time Kerr · Fosforonero Lab",
   description: DESCRIPTION,
+  keywords: [
+    "black hole simulator", "black hole 3D", "rotating black hole", "Kerr metric",
+    "gravitational lensing", "accretion disk", "Gargantua Interstellar",
+    "photon ring", "gravitational waves", "general relativity", "WebGL",
+  ],
   alternates: {
     canonical: PAGE_URL,
     languages: { it: PAGE_URL_IT, en: PAGE_URL, "x-default": PAGE_URL_IT },
@@ -22,7 +27,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: PAGE_URL,
     siteName: site.name,
-    title: "Black Hole 3D · Real-time gravitational lensing",
+    title: "Black Hole 3D Simulator · Real-time Kerr",
     description: DESCRIPTION,
   },
   twitter: { card: "summary_large_image" },
@@ -36,8 +41,8 @@ export default function BlackHolePage() {
       {
         "@type": "WebApplication",
         "@id": PAGE_URL,
-        name: "Black Hole 3D",
-        alternateName: "Buco Nero 3D",
+        name: "Black Hole 3D Simulator",
+        alternateName: "Simulatore di Buco Nero 3D",
         description: DESCRIPTION,
         url: PAGE_URL,
         applicationCategory: "EducationalApplication",
@@ -46,7 +51,7 @@ export default function BlackHolePage() {
         offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
         author: { "@type": "Person", name: site.author.name, url: site.url },
         keywords:
-          "black hole 3D, gravitational lensing, photon geodesics, accretion disk, Doppler beaming, gravitational redshift, Schwarzschild WebGL",
+          "black hole simulator, black hole 3D, rotating black hole, Kerr metric, gravitational lensing, accretion disk, Gargantua Interstellar, photon ring, gravitational waves, general relativity, WebGL",
       },
       {
         "@type": "BreadcrumbList",
@@ -75,7 +80,7 @@ export default function BlackHolePage() {
           borderWidth: 0,
         }}
       >
-        Black Hole 3D — Schwarzschild gravitational lensing
+        Black Hole 3D Simulator — real-time Kerr gravitational lensing
       </h1>
       <Suspense fallback={<div className="bh-loading">…</div>}>
         <BlackHoleView locale="en" />

@@ -8,7 +8,7 @@ const PAGE_URL = `${site.url}/lab/buco-nero/about`;
 const PAGE_URL_EN = `${site.url}/en/lab/black-hole/about`;
 
 const DESCRIPTION =
-  "Le equazioni della simulazione del buco nero: geodetiche dei fotoni nella metrica di Schwarzschild, disco di accrescimento di Shakura–Sunyaev, redshift gravitazionale e beaming relativistico. Cosa è fisicamente corretto e cosa è artistico, con fonti e crediti.";
+  "Le equazioni del simulatore di buco nero: geodetiche nulle esatte della metrica di Kerr (rotante) ray-tracciate in tempo reale, disco di accrescimento con flusso di Page–Thorne, redshift gravitazionale e beaming relativistico, onde gravitazionali. Cosa è fisicamente corretto e cosa è artistico, con fonti e crediti.";
 
 export const metadata: Metadata = {
   title: "Buco nero: equazioni, fisica e crediti · Fosforonero Lab",
@@ -65,7 +65,7 @@ export default function BucoNeroAbout() {
           "Relatività generale",
         ],
         keywords:
-          "buco nero, metrica di Schwarzschild, geodetiche dei fotoni, lensing gravitazionale, disco di accrescimento, Shakura-Sunyaev, redshift gravitazionale, beaming relativistico, ISCO, equazione di Binet",
+          "buco nero, metrica di Kerr, metrica di Schwarzschild, geodetiche dei fotoni, lensing gravitazionale, disco di accrescimento, Page-Thorne, redshift gravitazionale, beaming relativistico, ISCO, equazione di Binet, onde gravitazionali",
         citation: [
           "Shakura & Sunyaev (1973), Astronomy & Astrophysics 24, 337",
           "James, von Tunzelmann, Franklin & Thorne (2015), Classical and Quantum Gravity 32, 065001",
