@@ -201,7 +201,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
           {t.grid}
         </button>
 
-        <label className={`bh-control bh-toolbar__hide-sm${spin > 0 ? " bh-control--active" : ""}`}>
+        <label className={`bh-control${spin > 0 ? " bh-control--active" : ""}`}>
           <span>{t.spin}</span>
           <input
             type="range"
