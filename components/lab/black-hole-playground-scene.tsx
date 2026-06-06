@@ -71,6 +71,7 @@ type Body = {
   mass: number;          // for hosting moons (planets); ~0 for test bodies
   parentId: number | null; // moon → host planet
   mesh: THREE.Mesh | null;
+  merged?: boolean;        // marked when absorbed by another body this frame
 };
 
 const STREAM_COLOR = new THREE.Color("#ffc89c"); // tidally-stripped gas (reused)
@@ -387,6 +388,43 @@ function Simulation({
           if (rr > DISK_IN && rr < DISK_OUT) a.life[k] = 0;
         }
       }
+    }
+
+    // ── Body–body collisions: overlapping primaries merge ────────────────
+    // Two bodies that run into each other must not ghost through one another.
+    // Overlapping PRIMARIES (parentId === null) coalesce into one, conserving
+    // mass and momentum; the radius combines by volume (R³ = R₁³ + R₂³) and the
+    // survivor keeps the more massive body's kind and colour. Moons stay bound
+    // to their host and are skipped here, so they never merge with their planet.
+    {
+      const bs = bodies.current;
+      let anyMerged = false;
+      for (let i = 0; i < bs.length; i++) {
+        const A = bs[i]!;
+        if (A.parentId !== null || A.merged) continue;
+        for (let j = i + 1; j < bs.length; j++) {
+          const B = bs[j]!;
+          if (B.parentId !== null || B.merged) continue;
+          if (A.pos.distanceTo(B.pos) >= (A.radius + B.radius) * 0.85) continue;
+          const big = A.mass >= B.mass ? A : B;
+          const small = big === A ? B : A;
+          const mA = big.mass, mB = small.mass, m = mA + mB;
+          big.vel.multiplyScalar(mA).addScaledVector(small.vel, mB).multiplyScalar(1 / Math.max(m, 1e-9));
+          big.pos.multiplyScalar(mA).addScaledVector(small.pos, mB).multiplyScalar(1 / Math.max(m, 1e-9));
+          const newR = Math.cbrt(big.radius ** 3 + small.radius ** 3);
+          if (big.mesh) big.mesh.scale.multiplyScalar(newR / Math.max(big.radius, 1e-6));
+          big.radius = newR;
+          big.mass = m;
+          // (the small body's moons keep a now-stale parentId — harmless: it is
+          // only ever tested against null, so they stay 'moons' and simply orbit
+          // the merged body via the N-body gravity.)
+          burst(big); // bright flash at the impact
+          small.merged = true;
+          anyMerged = true;
+          if (A.merged) break; // A was the absorbed one — stop pairing it
+        }
+      }
+      if (anyMerged) bodies.current = bs.filter((b) => !b.merged);
     }
 
     // ── Body classification (after integrating this frame) ───────────────
