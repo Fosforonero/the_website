@@ -14,6 +14,16 @@ const BlackHoleScene = dynamic(() => import("./black-hole-scene"), {
 
 type Locale = "it" | "en";
 
+// Real-sky photo sources. NASA "Deep Star Maps 2020" (public domain) at 8k/16k,
+// and ESO's all-sky panorama by S. Brunier (CC BY 4.0 — credited in the about).
+// 16k and ESO are offered as desktop-only options (heavier downloads).
+const SKY_SOURCES = {
+  nasa8k: "/sky/starmap_8k.jpg",
+  nasa16k: "/sky/starmap_16k.jpg",
+  eso: "/sky/eso_panorama.jpg",
+} as const;
+type SkySource = keyof typeof SKY_SOURCES;
+
 // ── compact number formatting for the real-scale panel ──────────────────────
 const SUP: Record<string, string> = {
   "-": "⁻", "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴",
@@ -69,6 +79,7 @@ const COPY = {
     eht: "EHT",
     starless: "Cielo reale",
     pureBlack: "Nero puro",
+    skySrc: "Sorgente cielo",
     phys: {
       title: "Scala reale", mass: "Massa", close: "Chiudi",
       note: "I preset impostano massa e spin di un oggetto reale. La massa fissa il colore del disco (il trend reale); le dimensioni in scena restano compresse per visibilità.",
@@ -109,6 +120,7 @@ const COPY = {
     eht: "EHT",
     starless: "Real sky",
     pureBlack: "Pure black",
+    skySrc: "Sky source",
     phys: {
       title: "Real scale", mass: "Mass", close: "Close",
       note: "The presets set a real object's mass and spin. Mass sets the disk colour (the real trend); on-scene sizes stay compressed for visibility.",
@@ -146,6 +158,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
   const [ehtOn, setEhtOn] = useState(false);
   const [starlessOn, setStarlessOn] = useState(false);
   const [pureBlackOn, setPureBlackOn] = useState(false);
+  const [skySource, setSkySource] = useState<SkySource>("nasa8k");
   const onMass = (m: number) => { setMassSolar(m); setDiskTemp(diskColorTempForMass(m)); };
   // Capture the WebGL canvas (preserveDrawingBuffer is on) and share/download it.
   const onShare = () => {
@@ -298,6 +311,20 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
           {t.starless}
         </button>
 
+        {starlessOn && (
+          <select
+            className="bh-control bh-toolbar__hide-sm"
+            value={skySource}
+            onChange={(e) => setSkySource(e.target.value as SkySource)}
+            aria-label={t.skySrc}
+            title={t.skySrc}
+          >
+            <option value="nasa8k">NASA 8k</option>
+            <option value="nasa16k">NASA 16k</option>
+            <option value="eso">ESO (Brunier)</option>
+          </select>
+        )}
+
         <button
           className={`bh-control${pureBlackOn ? " bh-control--active" : ""}`}
           onClick={() => setPureBlackOn((v) => !v)}
@@ -332,7 +359,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
       </div>
 
       <div className={`bh-canvas-wrap${ehtOn ? " bh-eht" : ""}`}>
-        <BlackHoleScene quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn} gridOn={gridOn} diskTemp={effTemp} diskBright={diskBright} diskOuter={diskOuter} eht={ehtOn} starless={starlessOn} pureBlack={pureBlackOn} />
+        <BlackHoleScene quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn} gridOn={gridOn} diskTemp={effTemp} diskBright={diskBright} diskOuter={diskOuter} eht={ehtOn} starless={starlessOn} pureBlack={pureBlackOn} skyUrl={SKY_SOURCES[skySource]} />
         <p className="bh-hint">{t.hint}</p>
 
         {controlsOpen && (

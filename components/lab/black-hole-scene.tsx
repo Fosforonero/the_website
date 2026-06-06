@@ -50,6 +50,7 @@ export function BlackHoleQuad({
   const matRef = useRef<THREE.ShaderMaterial>(null);
   const camBasis = useRef(new THREE.Matrix3());
   const skyReady = useRef(false);
+  const glCaps = useThree((s) => s.gl.capabilities);
   // 1×1 black placeholder so the sampler is always bound (some drivers warn on an
   // unbound sampler even when the branch using it is disabled).
   const placeholder = useMemo(() => {
@@ -67,6 +68,10 @@ export function BlackHoleQuad({
       skyUrl,
       (tex) => {
         if (cancelled) { tex.dispose(); return; }
+        // Guard against textures larger than the GPU can upload (the 16k photo is
+        // 16384px — at/above the cap on some GPUs): fall back to procedural.
+        const w = (tex.image as { width?: number } | undefined)?.width ?? 0;
+        if (w > glCaps.maxTextureSize) { tex.dispose(); skyReady.current = false; return; }
         tex.colorSpace = THREE.SRGBColorSpace;
         tex.wrapS = THREE.RepeatWrapping;       // longitude wraps seamlessly
         tex.wrapT = THREE.ClampToEdgeWrapping;  // poles
@@ -82,7 +87,7 @@ export function BlackHoleQuad({
       () => { skyReady.current = false; },
     );
     return () => { cancelled = true; };
-  }, [skyUrl]);
+  }, [skyUrl, glCaps]);
 
   // Uniforms are created once; values are mutated each frame.
   const uniforms = useMemo(
@@ -200,6 +205,7 @@ export default function BlackHoleScene({
   eht = false,
   starless = false,
   pureBlack = false,
+  skyUrl,
 }: BlackHoleSceneProps) {
   const dprCap = QUALITY_PRESETS[quality].dprCap;
 
@@ -212,7 +218,7 @@ export default function BlackHoleScene({
     >
       <BlackHoleQuad
         quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn}
-        diskTemp={diskTemp} diskBright={diskBright} diskOuter={diskOuter} starless={starless} pureBlack={pureBlack}
+        diskTemp={diskTemp} diskBright={diskBright} diskOuter={diskOuter} starless={starless} pureBlack={pureBlack} skyUrl={skyUrl}
       />
       <BlackHoleGrid visible={gridOn} spin={spin} />
 
