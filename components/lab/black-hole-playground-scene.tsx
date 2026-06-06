@@ -80,10 +80,13 @@ const DISK_OUT = 16.0;    // accretion-disk outer radius
 const MASS_TRANSFER_RADIUS = 11.0; // bodies inside this shed matter toward the BH
 const C_CAP = 0.985;     // speed-of-light cap (c = 1 in geometric units)
 const MAX_PARTICLES = 14000; // large pool → dense, continuous streams
-// Gravitational-wave radiation-reaction strength. The real effect is ~(v/c)⁵
-// tiny; this amplifies it so the inspiral is visible on playground timescales,
-// exactly like the time speed-up. Tunable.
-const GW_STR = 150.0;
+// Gravitational-wave radiation-reaction strength. The real Peters luminosity is
+// ~(v/c)⁵ tiny AND ∝ 1/r⁵, so at the radii where bodies are dropped the inspiral
+// is imperceptible without a large amplification (otherwise GW on/off look
+// identical). This factor scales it so a star placed at r ≈ 8–15 r_s visibly
+// spirals in and is disrupted over a few seconds — the miniature EMRI "chirp" —
+// while GW off leaves it on a stable (eccentric) orbit. Tunable.
+const GW_STR = 2600.0;
 
 type Body = {
   id: number;
