@@ -201,7 +201,13 @@ void main() {
   bool hitDisk = false; // the opaque disk occludes the photon ring behind it
   float outDepth = 1.0; // far by default (background → no occlusion)
   vec3 jetAccum = vec3(0.0); // optically-thin jet emission accumulated along the ray
-  vec3 diskGlow = vec3(0.0); // optically-thin outer-disk emission (semi-transparent)
+  // Front-to-back compositing of the disk as an emissive/absorbing medium: the
+  // opacity grows with local brightness (optical depth), so the bright inner
+  // disk is opaque and the faint outskirts are semi-transparent — a SMOOTH
+  // radial transition (no hard ring) that also self-limits the edge-on band.
+  vec3  accCol = vec3(0.0);
+  float accA   = 0.0;
+  bool  depthSet = false;
 
   // Far from the hole spacetime is essentially flat, so a distant camera ray
   // travels in a straight line. Analytically advance it to the hole's
@@ -230,12 +236,16 @@ void main() {
     if (i >= uSteps) break;
     float r = kerrR(pos, kerrA);
 
-    // Event horizon → absorbed.
-    if (r < rHor + 0.02) { color = vec3(0.0); outDepth = depthFromWorld(pos); done = true; break; }
+    // Event horizon → absorbed (any disk already composited stays in front).
+    if (r < rHor + 0.02) {
+      color = accCol;
+      outDepth = depthSet ? outDepth : depthFromWorld(pos);
+      done = true; break;
+    }
 
-    // Escaped to infinity → background.
+    // Escaped to infinity → composite the disk over the background.
     if (r > 60.0 && dot(pos, ps) > 0.0) {
-      color = starField(normalize(ps));
+      color = accCol + (1.0 - accA) * starField(normalize(ps));
       done = true; break;
     }
 
@@ -362,17 +372,15 @@ void main() {
         bright *= 0.20 + 1.7 * turb;               // lower floor → darker lanes, more contrast
 
         vec3 dcol = blackbody(Tobs) * bright;
-        if (bright >= 0.5) {
-          // Optically THICK inner disk → opaque photosphere (occludes).
-          color = dcol;
-          outDepth = depthFromWorld(hit);
-          hitDisk = true; done = true; break;
-        } else if (cross) {
-          // Optically THIN outskirts → emissive and semi-transparent: add its
-          // faint glow and let the ray pass through to the bright lensed image
-          // behind, so the dim outer disk seen edge-on is NOT a black seam.
-          diskGlow += dcol;
-        }
+        // Local opacity from brightness (optical-depth proxy): bright inner disk
+        // → opaque, faint outskirts → translucent. Front-to-back composite; the
+        // ray keeps going until the accumulated disk is opaque, giving a smooth
+        // radial transition and a self-limited edge-on band (no streaks/ring).
+        float alpha = clamp(bright * 1.6, 0.0, 1.0);
+        accCol += (1.0 - accA) * alpha * dcol;
+        if (!depthSet && alpha > 0.25) { outDepth = depthFromWorld(hit); depthSet = true; hitDisk = true; }
+        accA += (1.0 - accA) * alpha;
+        if (accA > 0.97) { color = accCol; done = true; break; }
       }
     }
 
@@ -380,11 +388,11 @@ void main() {
     dir = normalize(vel);
   }
 
-  // Ray still in flight when steps ran out → fall back to background.
-  if (!done) color = starField(normalize(dir));
+  // Ray still in flight when steps ran out → composite disk over the background.
+  if (!done) color = accCol + (1.0 - accA) * starField(normalize(dir));
 
   // Jet emission accumulated along the (lensed) ray.
-  color += jetAccum + diskGlow;
+  color += jetAccum;
 
   // The photon ring is no longer drawn analytically: it now emerges physically
   // from the returning radiation (higher-order disk images piling up near the
