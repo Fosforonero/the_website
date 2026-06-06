@@ -17,11 +17,12 @@
 // which reproduces the exact light-bending of the Schwarzschild metric
 // (Einstein ring, photon sphere) via velocity-Verlet integration.
 //
-// DISCLOSURE: this is a real GR-lensing approximation for a *non-rotating*
-// black hole. It is NOT the Kerr (rotating) ray-traced render used for
-// Interstellar's Gargantua, which was computed offline. The accretion-disk
-// emission model is artistic (Shakura–Sunyaev-inspired), not a radiative
-// transfer solution.
+// DISCLOSURE: this is real GR lensing. At spin a = 0 it is Schwarzschild; with
+// the Spin slider it integrates the EXACT Kerr null geodesics (Kerr–Schild
+// Hamiltonian, see below) in real time — the same metric used for Interstellar's
+// Gargantua (which was ray-traced offline). Still approximate: the disk's
+// colour/Doppler and radial flux are computed for a = 0, and the gaseous
+// turbulence is procedural (not a GRMHD radiative-transfer solution).
 // ---------------------------------------------------------------------------
 
 export const blackHoleVertexShader = /* glsl */ `
@@ -156,6 +157,33 @@ float depthFromWorld(vec3 wp) {
   return (c.z / c.w) * 0.5 + 0.5;
 }
 
+// ── Kerr metric in Kerr–Schild Cartesian form (spin axis +Y, M = RS/2 = 0.5) ──
+// We ray-trace the EXACT Kerr null geodesics, not an approximation. Kerr–Schild
+// is chosen because it has no Boyer–Lindquist coordinate singularity and is
+// asymptotically Minkowski, so a distant camera ray's 4-momentum is simply its
+// flat-space direction (E = 1, p_i = dir_i) — no observer tetrad to get wrong.
+// At a = 0 it reduces exactly to Schwarzschild.
+//
+// Boyer–Lindquist radius r at Cartesian p:  (x²+z²)/(r²+a²) + y²/r² = 1.
+float kerrR(vec3 p, float a) {
+  float t  = dot(p, p) - a * a;
+  float r2 = 0.5 * (t + sqrt(t * t + 4.0 * a * a * p.y * p.y));
+  return sqrt(max(r2, 1e-8));
+}
+// Null Hamiltonian quadratic  Hq = gᵘᵛ pᵤ pᵥ  with conserved p_t = −E = −1.
+// gᵘᵛ = ηᵘᵛ − f kᵘ kᵛ (η = diag(−1,1,1,1); k raised: kᵗ = −1), so
+//   Hq = (|p_s|² − 1) − f·κ²,   κ = 1 + k_s·p_s,
+// with f = 2M r³/(r⁴ + a²y²) and k_s = ((rx+az)/(r²+a²), y/r, (rz−ax)/(r²+a²)).
+float kerrHq(vec3 p, vec3 ps, float a) {
+  float r   = kerrR(p, a);
+  float r2  = r * r;
+  float f   = (r2 * r) / (r2 * r2 + a * a * p.y * p.y);  // 2M = 1
+  float inv = 1.0 / (r2 + a * a);
+  vec3  ks  = vec3((r * p.x + a * p.z) * inv, p.y / r, (r * p.z - a * p.x) * inv);
+  float kap = 1.0 + dot(ks, ps);
+  return dot(ps, ps) - 1.0 - f * kap * kap;
+}
+
 void main() {
   // Reconstruct the world-space camera ray for this pixel.
   vec2 ndc = vUv * 2.0 - 1.0;
@@ -193,16 +221,20 @@ void main() {
     }
   }
 
+  float kerrA = uSpin * 0.5;                                            // a = χ·M, χ = uSpin ∈ [0,1]
+  float rHor  = 0.5 * (1.0 + sqrt(max(1.0 - uSpin * uSpin, 0.0)));      // outer horizon r₊
+  vec3  ps    = dir;                                                    // photon momentum (E=1, far→flat)
+
   for (int i = 0; i < MAX_STEPS && !done; i++) {
     if (i >= uSteps) break;
-    float r = length(pos);
+    float r = kerrR(pos, kerrA);
 
     // Event horizon → absorbed.
-    if (r < RS) { color = vec3(0.0); outDepth = depthFromWorld(pos); done = true; break; }
+    if (r < rHor + 0.02) { color = vec3(0.0); outDepth = depthFromWorld(pos); done = true; break; }
 
     // Escaped to infinity → background.
-    if (r > 60.0 && dot(pos, dir) > 0.0) {
-      color = starField(normalize(dir));
+    if (r > 60.0 && dot(pos, ps) > 0.0) {
+      color = starField(normalize(ps));
       done = true; break;
     }
 
@@ -227,27 +259,28 @@ void main() {
       }
     }
 
-    // Geodesic (Binet) acceleration — bends the ray toward the mass.
-    vec3 acc     = -1.5 * h2 * pos / pow(dot(pos, pos), 2.5);
-
-    // APPROXIMATE frame dragging (Lense-Thirring gravitomagnetic dipole, spin
-    // along +Y). This is NOT the full Kerr metric: it is a physically-motivated
-    // approximation that drags photon paths azimuthally around the spin axis.
-    if (uSpin > 0.001) {
-      vec3  rh = pos / r;
-      vec3  J  = vec3(0.0, uSpin, 0.0);
-      vec3  Bg = (3.0 * dot(J, rh) * rh - J) / (r * r * r);
-      acc += 1.5 * cross(dir, Bg);
-    }
-
-    vec3 posNext = pos + dir * dt + 0.5 * acc * dt * dt;
-    vec3 dirNext = dir + acc * dt;
+    // Exact Kerr geodesic step — symplectic Euler on the null Hamiltonian Hq.
+    // Kick: dp_i/dλ = −½ ∂_i Hq (central differences of Hq w.r.t. position).
+    // Drift: dx^i/dλ = ∂H/∂p_i = g^{iμ}p_μ = p_i − f·κ·k_i.
+    float e = 1.0e-3;
+    vec3 gH;
+    gH.x = kerrHq(pos + vec3(e, 0.0, 0.0), ps, kerrA) - kerrHq(pos - vec3(e, 0.0, 0.0), ps, kerrA);
+    gH.y = kerrHq(pos + vec3(0.0, e, 0.0), ps, kerrA) - kerrHq(pos - vec3(0.0, e, 0.0), ps, kerrA);
+    gH.z = kerrHq(pos + vec3(0.0, 0.0, e), ps, kerrA) - kerrHq(pos - vec3(0.0, 0.0, e), ps, kerrA);
+    ps -= (0.25 / e) * gH * dt;                       // Δp = −½∇Hq·dt  (central diff = gH/2e)
+    float r2   = r * r;
+    float kf   = (r2 * r) / (r2 * r2 + kerrA * kerrA * pos.y * pos.y);
+    float kinv = 1.0 / (r2 + kerrA * kerrA);
+    vec3  ks   = vec3((r * pos.x + kerrA * pos.z) * kinv, pos.y / r, (r * pos.z - kerrA * pos.x) * kinv);
+    float kap  = 1.0 + dot(ks, ps);
+    vec3  vel  = ps - kf * kap * ks;                  // coordinate velocity dx/dλ
+    vec3 posNext = pos + vel * dt;
 
     // Accretion-disk crossing in the equatorial (y = 0) plane.
     if (uDiskOn > 0.5 && pos.y * posNext.y < 0.0) {
       float tt  = pos.y / (pos.y - posNext.y);          // crossing fraction
       vec3  hit = mix(pos, posNext, tt);
-      float rd  = length(hit.xz);                       // in-plane radius
+      float rd  = kerrR(hit, kerrA);                    // Boyer–Lindquist radius in the disk plane
 
       if (rd > uDiskInner && rd < uDiskOuter) {
         // Physical optically-thick relativistic thin disk: exact Page–Thorne
@@ -328,7 +361,7 @@ void main() {
     }
 
     pos = posNext;
-    dir = dirNext;
+    dir = normalize(vel);
   }
 
   // Ray still in flight when steps ran out → fall back to background.
