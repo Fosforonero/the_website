@@ -534,6 +534,15 @@ function Simulation({
         const tA = new THREE.Vector3().crossVectors(radial, up).normalize();
         const tB = new THREE.Vector3().crossVectors(radial, tA).normalize();
         const capR = b.radius * (0.5 + 0.5 * frac); // exposed cap widens as it sinks
+        // Orbital (tangential) direction of the star — the stream inherits this so
+        // it WRAPS around the hole instead of falling straight in. Gas lifted from
+        // the BH-facing face sits deeper in the potential, so it carries slightly
+        // LESS specific angular momentum: shedding a few % of v_tan drops it onto a
+        // tighter orbit and it spirals inward (a curved accretion stream, the way a
+        // real Roche-overflow stream curves by Coriolis), rather than a radial spoke.
+        const vTan = b.vel.clone().addScaledVector(radial, -b.vel.dot(radial));
+        const vTanLen = vTan.length();
+        const vTanHat = vTanLen > 1e-6 ? vTan.multiplyScalar(1 / vTanLen) : tA;
         for (let sIdx = 0; sIdx < nShed; sIdx++) {
           const ang = Math.random() * Math.PI * 2;
           const rad = Math.sqrt(Math.random()) * capR;        // uniform over the cap disk
@@ -543,7 +552,10 @@ function Simulation({
             .addScaledVector(tA, Math.cos(ang) * rad)
             .addScaledVector(tB, Math.sin(ang) * rad);
           const vv = b.vel.clone()
-            .addScaledVector(radial, -0.05 * (0.4 + frac))    // pulled toward the hole
+            // shed ~8–20% of the orbital speed (loses angular momentum → spirals in)
+            .addScaledVector(vTanHat, -(0.08 + 0.12 * frac) * vTanLen)
+            // a much gentler radial nudge, just to break it off the surface
+            .addScaledVector(radial, -0.012 * (0.4 + frac))
             .addScaledVector(tA, (Math.random() - 0.5) * 0.012)
             .addScaledVector(tB, (Math.random() - 0.5) * 0.012);
           emit(p, vv, STREAM_COLOR, 8.0);
