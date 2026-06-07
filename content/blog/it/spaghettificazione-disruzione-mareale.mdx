@@ -1,12 +1,12 @@
 ---
 title: "Spaghettificazione: la fisica di come un buco nero fa a pezzi una stella"
-excerpt: "Perché una stella che si avvicina troppo a un buco nero viene stirata in un filamento? Dalla forza di marea al raggio mareale, dallo spread di energia alla legge di ricaduta t⁻⁵ᐟ³ — con le equazioni, e cosa modella (e cosa no) il Playground."
+excerpt: "Perché una stella che si avvicina troppo a un buco nero viene stirata in un filamento? Dalla forza di marea al raggio mareale, dallo spread di energia alla legge di ricaduta t⁻⁵ᐟ³, con le equazioni, e cosa modella (e cosa no) il Playground."
 date: "2026-06-06"
 tag: "Dev"
 draft: false
 ---
 
-Avvicina una stella a un buco nero e, oltre una certa soglia, non orbita più: viene **stirata in un filamento di gas** e in parte divorata. Il nome tecnico è disruzione mareale (_tidal disruption event_, TDE); quello informale, attribuito a Stephen Hawking, è **spaghettificazione**. Nel [Playground](/lab/buco-nero/playground) lo vedi in diretta — qui derivo la fisica che c'è sotto, passo per passo.
+Avvicina una stella a un buco nero e, oltre una certa soglia, non orbita più: viene **stirata in un filamento di gas** e in parte divorata. Il nome tecnico è disruzione mareale (_tidal disruption event_, TDE); quello informale, attribuito a Stephen Hawking, è **spaghettificazione**. Nel [Playground](/lab/buco-nero/playground) lo vedi in diretta: qui derivo la fisica che c'è sotto, passo per passo.
 
 ## Le forze di marea: la gravità non è uniforme
 
@@ -33,7 +33,7 @@ Più il buco nero è grande, più la disruzione è «discreta». Il raggio marea
 - attorno a un buco nero **stellare** o di massa intermedia <Mi tex="r_t \gg r_s" />: la stella si disgrega ben fuori dall'orizzonte e vediamo il fuoco d'artificio;
 - attorno a uno **supermassiccio** abbastanza grande (oltre ~10⁸ masse solari) <Mi tex="r_t < r_s" />: la stella varca l'orizzonte **intera**, inghiottita senza spettacolo.
 
-C'è un intervallo d'oro di masse — i buchi neri da milioni di masse solari, come Sgr A\* — in cui la disruzione avviene proprio fuori dall'orizzonte ed è osservabile.
+C'è un intervallo d'oro di masse (i buchi neri da milioni di masse solari, come Sgr A\*) in cui la disruzione avviene proprio fuori dall'orizzonte ed è osservabile.
 
 ## Lo spread di energia: metà torna, metà fugge
 
@@ -57,11 +57,11 @@ Quella pendenza <Mi tex="-5/3" /> è la firma osservativa dei TDE reali: i brill
 
 ## Cosa fa il Playground (e cosa no)
 
-La simulazione non risolve l'idrodinamica del gas — sarebbe un calcolo da supercomputer. Usa un modello a particelle sopra il potenziale pseudo-newtoniano di **Paczyński–Wiita**:
+La simulazione non risolve l'idrodinamica del gas, sarebbe un calcolo da supercomputer. Usa un modello a particelle sopra il potenziale pseudo-newtoniano di **Paczyński–Wiita**:
 
 <Math tex="\Phi(r) \;=\; -\frac{G M_\bullet}{r - r_s}" />
 
-Quel <Mi tex="-r_s" /> al denominatore è un trucco notevole: riproduce l'ISCO a <Mi tex="3\,r_s" /> e il tuffo finale — gli effetti di campo forte che mancano a Newton — restando abbastanza leggero da girare in tempo reale con decine di corpi.
+Quel <Mi tex="-r_s" /> al denominatore è un trucco notevole: riproduce l'ISCO a <Mi tex="3\,r_s" /> e il tuffo finale (gli effetti di campo forte che mancano a Newton) restando abbastanza leggero da girare in tempo reale con decine di corpi.
 
 Quando una stella entra nel raggio mareale, la sciolgo in detriti con lo spread di energia <Mi tex="\Delta\varepsilon" /> di sopra: metà ricade e alimenta il disco, metà fugge. La disgregazione è **graduale** (circa mezzo secondo, non istantanea) e la **massa della stella cala** mentre viene divorata, così la sua attrazione sugli altri corpi svanisce in modo realistico. Quello che _non_ c'è: gli shock, il riscaldamento per compressione al periastro, la vera dinamica del fluido. È un modello dinamico onesto, non una soluzione idrodinamica.
 
