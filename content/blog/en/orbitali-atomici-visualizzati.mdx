@@ -16,7 +16,7 @@ It doesn't.
 
 An orbital is the solution of the Schrödinger equation for an electron bound to a nucleus. It does not describe *where the electron is*: it describes *where it might be*, and with what probability.
 
-Formally, an orbital is a wavefunction ψ(r, θ, φ). The square of its modulus — |ψ|² — is the probability density: it tells you the probability per unit volume of finding the electron at that point in space.
+Formally, an orbital is a wavefunction ψ(r, θ, φ). The square of its modulus (|ψ|²) is the probability density: it tells you the probability per unit volume of finding the electron at that point in space.
 
 What you see in the [periodic table's orbital inspector](/en/lab/tavola-periodica) is a cloud of points sampled with probability proportional to |ψ|². More points in a region → more likely to find the electron there. Fewer points → less likely.
 
@@ -32,7 +32,7 @@ Phase becomes relevant in chemical bonding: two wavefunctions add (constructive 
 
 ## Nodes: where the electron cannot be
 
-A node is a surface where ψ = 0 — and therefore where the probability of finding the electron is exactly zero.
+A node is a surface where ψ = 0, and therefore where the probability of finding the electron is exactly zero.
 
 There are two kinds:
 
@@ -58,14 +58,14 @@ As l rises, the angular structure gets richer: more nodes, more lobes, more poss
 
 The orbitals shown in the Fosforonero inspector are **hydrogenic** (Z=1): computed for a single electron around one proton. They are exact solutions of the Schrödinger equation for that specific case.
 
-In multi-electron atoms — that is, all the others — each electron feels not only the nucleus but also the repulsion of the other electrons. Exact closed-form solutions don't exist. Approximate methods are used: Hartree–Fock, DFT, post-HF.
+In multi-electron atoms (that is, all the others) each electron feels not only the nucleus but also the repulsion of the other electrons. Exact closed-form solutions don't exist. Approximate methods are used: Hartree–Fock, DFT, post-HF.
 
 Hydrogenic orbitals stay useful because they:
 - give the right qualitative structure (lobes, nodes, spherical symmetry for s)
 - explain the filling rules (Aufbau principle, Hund's rule, Pauli exclusion)
 - are the basis of the 1s²2s²2p⁶… notation used everywhere
 
-But they are not an exact simulation of real atoms. They are a teaching model — precise in the principles, simplified when applied to heavy elements. The table states this explicitly in the inspector: "hydrogenic (Z=1): exact for hydrogen, indicative for the rest."
+But they are not an exact simulation of real atoms. They are a teaching model: precise in the principles, simplified when applied to heavy elements. The table states this explicitly in the inspector: "hydrogenic (Z=1): exact for hydrogen, indicative for the rest."
 
 ## How the visualizer works
 
@@ -75,6 +75,6 @@ The result is a cloud of ~9000 points (3500 on mobile) whose density faithfully 
 
 The random-number generator is deterministic (mulberry32 with a fixed per-orbital seed): the cloud is the same on every load, reproducible and comparable across sessions.
 
-The cloud rotates slowly about the y axis to give the three-dimensional structure depth. Nodes appear as empty regions — zones where no point is accepted because the probability is zero.
+The cloud rotates slowly about the y axis to give the three-dimensional structure depth. Nodes appear as empty regions, zones where no point is accepted because the probability is zero.
 
 It is not decorative graphics. It is a quantitative visualization of the hydrogen wavefunction.
