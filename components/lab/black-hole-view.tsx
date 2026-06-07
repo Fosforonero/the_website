@@ -89,7 +89,7 @@ const COPY = {
       entropy: "Entropia (S/k_B)", evap: "Tempo di evaporazione",
     },
     closeInfo: "Chiudi",
-    openInfo: "ⓘ Info",
+    openInfo: "Info",
     discTitle: "Cosa stai guardando (e cosa no)",
     disc: [
       "Lensing gravitazionale reale di un buco nero di Schwarzschild (non rotante): per ogni pixel si integra la geodetica del fotone nello spazio-tempo curvo.",
@@ -131,7 +131,7 @@ const COPY = {
       entropy: "Entropy (S/k_B)", evap: "Evaporation time",
     },
     closeInfo: "Close",
-    openInfo: "ⓘ Info",
+    openInfo: "Info",
     discTitle: "What you are seeing (and what you are not)",
     disc: [
       "Real gravitational lensing of a Schwarzschild (non-rotating) black hole: each pixel integrates the photon geodesic through curved spacetime.",
@@ -514,8 +514,10 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
             className="bh-disclosure__reopen"
             onClick={() => setInfoOpen(true)}
             title={t.discTitle}
+            aria-label={t.openInfo}
           >
-            {t.openInfo}
+            <span className="bh-disclosure__reopen-icon" aria-hidden="true">ⓘ</span>
+            <span className="bh-disclosure__reopen-label">{t.openInfo}</span>
           </button>
         )}
       </div>

@@ -696,3 +696,12 @@
   .bh-readout { top: 8px; right: 8px; gap: 1px; padding: 0; width: 92px; }
   .bh-readout > div { font-size: 0.56rem; }
 }
+
+/* Info reopen button: icon + label inline on desktop; on mobile it is a 40px
+   circle (see the max-width block above) showing only the icon. */
+@media (min-width: 681px) {
+  .bh-disclosure__reopen { display: inline-flex; align-items: center; gap: 6px; }
+}
+@media (max-width: 680px) {
+  .bh-disclosure__reopen-label { display: none; }
+}

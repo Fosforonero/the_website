@@ -128,7 +128,14 @@ vec3 starField(vec3 d) {
     float lon = atan(d.z, d.x);
     float lat = asin(clamp(d.y, -1.0, 1.0));
     vec2  uv  = vec2(lon * 0.15915494 + 0.5, 0.5 - lat * 0.31830989); // /(2π), /π
-    return texture(uSkyTex, uv).rgb * uSkyBright;
+    vec3  sky = texture(uSkyTex, uv).rgb;
+    // The NASA map is a soft grey-brown wash; crush the low-mids (darker, blacker
+    // sky, more contrast) and boost saturation so the dust lanes and nebulae read
+    // in colour instead of grey.
+    sky = pow(sky, vec3(1.4));
+    float lum = dot(sky, vec3(0.299, 0.587, 0.114));
+    sky = max(mix(vec3(lum), sky, 1.5), 0.0);          // +50% saturation
+    return sky * uSkyBright;
   }
   vec3 col = vec3(0.00012, 0.00014, 0.00022);        // ~black sky floor
   bool sl = uStyle > 0.5;

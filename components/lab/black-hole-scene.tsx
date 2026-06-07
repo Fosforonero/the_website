@@ -135,7 +135,7 @@ export function BlackHoleQuad({
       uPureBlack: { value: pureBlack ? 1 : 0 },
       uSkyTex: { value: placeholder },
       uSkyOn: { value: 0 },
-      uSkyBright: { value: 1.3 },
+      uSkyBright: { value: 1.7 },
       uVolDisk: { value: volDisk ? 1 : 0 },
       uVolThick: { value: 0.10 },
       uVolOpacity: { value: 6.0 },
