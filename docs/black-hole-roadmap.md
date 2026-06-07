@@ -162,6 +162,58 @@ perché la integri nel gioco. Con quale tecnologia, e a che punto della roadmap.
 
 ---
 
+## 7. Modulo scientifico / valore per la ricerca (DA FARE — sprint domani)
+
+**Contesto**: il progetto NON è e non sarà research-grade (niente GRMHD, niente trasporto
+radiativo del plasma, GLSL a precisione singola, nessuna barra d'errore). Il suo contributo reale
+alla scienza è come **strumento di didattica, divulgazione e intuizione**. Questi 6 punti alzano il
+valore scientifico **onestamente**: lo rendono *verificabile* e *agganciato alle osservazioni reali*,
+senza fingere capacità di ricerca. Ordine consigliato di esecuzione: 1 → 2 → 3, poi 4/6, poi 5.
+
+### 7.1 — Layer quantitativo / validazione (priorità massima)
+- Mostrare i **numeri**, non solo le immagini: diametro dell'ombra, raggio del photon ring, ISCO,
+  angolo di deflessione, al variare di spin e inclinazione.
+- Confrontarli **dal vivo** con i valori analitici noti (Bardeen) e con le misure EHT, dichiarando
+  lo scarto: «shadow a spin 0 = X, analitico = 2·3√3 M, scarto Y%».
+- Una pagina/pannello «Validazione» è il modo «fail loud» di essere credibili.
+- **Base già pronta**: i 4 grafici SVG calcolati aggiunti all'about (`black-hole-about-figures.tsx`)
+  e la verifica numerica della deflessione (campo debole 4M/b + 15π/4·(M/b)², forte = Bozza).
+- Output: tabella/pannello con i valori vivi + colonna «atteso (analitico/EHT)» + scarto.
+
+### 7.2 — Modalità a parametri reali (ombra in µas)
+- Far inserire M e distanza di oggetti veri e calcolare la **dimensione angolare apparente
+  dell'ombra in microarcosecondi**, confrontabile con l'EHT.
+- Preset: **M87\*** (M = 6,5×10⁹ M☉, D = 16,8 Mpc → ombra ~42 µas misurata) e
+  **Sgr A\*** (M = 4,1×10⁶ M☉, D = 8,1 kpc → ~52 µas).
+- Formula: θ_shadow = 2·b_c·(GM/c²)/D (con b_c = 3√3 per Schwarzschild, dipendente da spin/inclinazione per Kerr).
+- Collega il giocattolo all'osservazione reale.
+
+### 7.3 — Confronto fianco a fianco con le immagini reali
+- Mostrare le immagini EHT reali (M87\* 2019, Sgr A\* 2022, **pubblico dominio**) accanto al nostro
+  render, e a un esempio ipole/GRMHD, **spiegando il divario** (perché il nostro è più «pulito»/analitico).
+- Didattico proprio sui limiti del nostro modello. Asset: scaricare le immagini ufficiali EHT/ESO,
+  citarle, mai spacciarle per nostre.
+
+### 7.4 — Permalink e preset condivisibili + embeddabile
+- URL che codifica lo stato (spin, inclinazione, modalità, preset) → un docente linka una
+  configurazione precisa.
+- Versione **embeddabile** (iframe) per slide/lezioni.
+- Utilità reale e concreta per l'insegnamento; basso sforzo, alto ritorno.
+
+### 7.5 — Polarizzazione stilizzata (overlay)
+- Overlay dei vettori di polarizzazione sul disco (schematico, **dichiarato come tale**).
+- Attualissimo: l'EHT ha pubblicato l'immagine **polarizzata** di M87\* nel 2021.
+- NON un calcolo di trasporto polarizzato vero (sarebbe research-grade): è un overlay didattico.
+
+### 7.6 — Open-source + export riproducibile
+- Pubblicare lo **shader** e le derivazioni dell'about (auditabilità = ciò che la scienza chiede).
+- **Export** delle geodetiche / dei dati in CSV, così i risultati sono riproducibili e confrontabili.
+
+**Regola trasversale (fail loud, never fake)**: niente «GRMHD-lite» che sembri vero. Se si aggiunge
+plasma o polarizzazione, dichiararli schematici come già si fa per la turbolenza procedurale.
+
+---
+
 ## Nota ambiente
 Il container cloud si è resettato più volte a un commit vecchio durante la sessione: il lavoro è
 sempre **salvo su `origin` (branch `claude/black-hole-solar-system-NWdiX` e `init`)**. In caso di
