@@ -10,6 +10,8 @@ export type Project = {
   /** Short visible identifier under the project card header. */
   handle: string;
   status: "LIVE" | "ACTIVE" | "BETA" | "WIP";
+  /** Hidden from the public site (homepage, coming-soon, JSON-LD) when true. */
+  draft?: boolean;
   year: number;
   stack: string[];
   brand: string; // accent colour
@@ -23,7 +25,7 @@ export type Project = {
   >;
 };
 
-export const projects: Project[] = [
+const allProjects: Project[] = [
   {
     id: "fitmesh",
     name: "FitMesh Sync",
@@ -118,6 +120,8 @@ export const projects: Project[] = [
     url: "/sitebrain",
     handle: "sitebrain.ai",
     status: "WIP",
+    draft: true, // temporarily hidden from the public site
+
     year: 2026,
     stack: ["PHP", "WordPress", "OpenAI", "Anthropic", "OpenRouter", "GPLv2+"],
     brand: "#f59e0b",
@@ -135,3 +139,6 @@ export const projects: Project[] = [
     },
   },
 ];
+
+// Public list: drafts (e.g. SiteBrain AI, temporarily pulled) are hidden.
+export const projects: Project[] = allProjects.filter((p) => !p.draft);

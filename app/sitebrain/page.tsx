@@ -11,6 +11,8 @@ import { site } from "@/lib/site";
 export const revalidate = 0;
 
 export const metadata: Metadata = {
+  // Temporarily pulled from the public site → keep it out of search indexes.
+  robots: { index: false, follow: false },
   title: "SiteBrain AI — Chatbot RAG per WordPress",
   description:
     "Plugin WordPress gratuito con RAG engine self-hosted. Risponde ai visitatori usando i tuoi contenuti. OpenAI, Anthropic, OpenRouter. Zero lock-in, GDPR-ready.",

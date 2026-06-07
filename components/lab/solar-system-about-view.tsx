@@ -67,16 +67,6 @@ export function SolarSystemAboutView({ locale }: SolarAboutViewProps) {
       status: "LIVE",
     },
     {
-      name: "SiteBrain AI",
-      handle: "sitebrain.ai",
-      url: isIT ? "/sitebrain" : "/en/sitebrain",
-      desc: isIT
-        ? "Plugin WordPress con RAG engine self-hosted. Indicizza i tuoi contenuti e risponde ai visitatori con OpenAI, Anthropic o OpenRouter. Privacy-first, GDPR-ready."
-        : "WordPress plugin with self-hosted RAG engine. Index your content and answer visitors using OpenAI, Anthropic or OpenRouter. Privacy-first, GDPR-ready.",
-      brand: "#f59e0b",
-      status: "LIVE",
-    },
-    {
       name: isIT ? "Tavola Periodica" : "Periodic Table",
       handle: "lab/tavola-periodica",
       url: isIT ? "/lab/tavola-periodica" : "/en/lab/periodic-table",

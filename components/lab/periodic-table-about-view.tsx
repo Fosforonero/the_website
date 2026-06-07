@@ -34,16 +34,6 @@ export function PeriodicTableAboutView({ locale }: AboutViewProps) {
       brand: "#c084fc",
       status: "LIVE",
     },
-    {
-      name: "SiteBrain AI",
-      handle: "sitebrain.ai",
-      url: locale === "it" ? "/sitebrain" : "/en/sitebrain",
-      desc: locale === "it"
-        ? "Plugin WordPress con RAG engine self-hosted. Indicizza i tuoi contenuti e risponde ai visitatori con OpenAI, Anthropic o OpenRouter. Privacy-first, GDPR-ready."
-        : "WordPress plugin with self-hosted RAG engine. Index your content and answer visitors using OpenAI, Anthropic or OpenRouter. Privacy-first, GDPR-ready.",
-      brand: "#f59e0b",
-      status: "LIVE",
-    },
   ];
 
   const jsonLd = {
