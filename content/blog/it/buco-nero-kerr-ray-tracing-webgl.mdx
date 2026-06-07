@@ -6,11 +6,11 @@ tag: "Dev"
 draft: false
 ---
 
-La parte facile di un simulatore di buco nero sono i dati. La parte difficile è far girare la **relatività generale** dentro i ~16 millisecondi a fotogramma di un fragment shader WebGL — su un telefono. Queste sono le note tecniche di come ci sono riuscito per un [buco nero di Kerr](/lab/buco-nero).
+La parte facile di un simulatore di buco nero sono i dati. La parte difficile è far girare la **relatività generale** dentro i ~16 millisecondi a fotogramma di un fragment shader WebGL, su un telefono. Queste sono le note tecniche di come ci sono riuscito per un [buco nero di Kerr](/lab/buco-nero).
 
 ## L'idea: sparare la luce all'indietro
 
-Per ogni pixel dello schermo sparo un raggio **dalla** camera e lo seguo nello spazio-tempo curvo. Sembra al contrario — la luce va verso l'occhio, non da esso — ma in relatività generale i cammini dei fotoni sono reversibili: tracciare all'indietro dà la stessa identica immagine. È il trucco che ci risparmia di simulare miliardi di fotoni che non colpiranno mai lo schermo. Ne lanciamo uno solo per pixel, esattamente quello che serve.
+Per ogni pixel dello schermo sparo un raggio **dalla** camera e lo seguo nello spazio-tempo curvo. Sembra al contrario (la luce va verso l'occhio, non da esso), ma in relatività generale i cammini dei fotoni sono reversibili: tracciare all'indietro dà la stessa identica immagine. È il trucco che ci risparmia di simulare miliardi di fotoni che non colpiranno mai lo schermo. Ne lanciamo uno solo per pixel, esattamente quello che serve.
 
 ## La metrica: dove vive la geometria
 
@@ -18,7 +18,7 @@ Qui la gravità non è una forza, è la **forma** dello spazio-tempo, scritta ne
 
 <Math tex="g_{\mu\nu} = \eta_{\mu\nu} + f\,k_\mu k_\nu, \qquad f = \frac{2 M r^{3}}{r^{4} + a^{2} z^{2}}" />
 
-dove <Mi tex="\eta" /> è lo spazio-tempo piatto di Minkowski, <Mi tex="k" /> un vettore nullo e <Mi tex="a = J/M" /> lo spin. Perché questa forma e non le solite coordinate di Boyer–Lindquist? Perché non ha la singolarità di coordinate all'orizzonte ed è asintoticamente piatta: così il fotone, alla camera lontana, parte con un momento banale (energia <Mi tex="E=1" />, impulso spaziale uguale alla direzione del raggio) e non devo costruire la tetrade dell'osservatore — uno dei punti dove è facilissimo sbagliarsi. A spin nullo (<Mi tex="a=0" />) si riduce esattamente a Schwarzschild.
+dove <Mi tex="\eta" /> è lo spazio-tempo piatto di Minkowski, <Mi tex="k" /> un vettore nullo e <Mi tex="a = J/M" /> lo spin. Perché questa forma e non le solite coordinate di Boyer–Lindquist? Perché non ha la singolarità di coordinate all'orizzonte ed è asintoticamente piatta: così il fotone, alla camera lontana, parte con un momento banale (energia <Mi tex="E=1" />, impulso spaziale uguale alla direzione del raggio) e non devo costruire la tetrade dell'osservatore, uno dei punti dove è facilissimo sbagliarsi. A spin nullo (<Mi tex="a=0" />) si riduce esattamente a Schwarzschild.
 
 ## L'integrazione: hamiltoniana
 
@@ -26,7 +26,7 @@ Un fotone viaggia su una geodetica nulla. La tratto come il flusso di un'hamilto
 
 <Math tex="H = \tfrac{1}{2}\,g^{\mu\nu} p_\mu p_\nu = 0, \qquad \dot x^{\mu} = \frac{\partial H}{\partial p_\mu}, \quad \dot p_\mu = -\frac{\partial H}{\partial x^{\mu}}" />
 
-Il _drift_ (<Mi tex="\dot x" />, come si muove la posizione) ha forma chiusa; il _kick_ (<Mi tex="\dot p" />, come cambia l'impulso) lo calcolo per differenze finite del gradiente di <Mi tex="H" />. Il passo è adattivo: fine vicino al buco — dove la curvatura conta e si forma il photon ring — e grosso lontano, dopo un avanzamento analitico in linea retta fino alla sfera d'influenza, per non bruciare passi nel vuoto.
+Il _drift_ (<Mi tex="\dot x" />, come si muove la posizione) ha forma chiusa; il _kick_ (<Mi tex="\dot p" />, come cambia l'impulso) lo calcolo per differenze finite del gradiente di <Mi tex="H" />. Il passo è adattivo: fine vicino al buco (dove la curvatura conta e si forma il photon ring) e grosso lontano, dopo un avanzamento analitico in linea retta fino alla sfera d'influenza, per non bruciare passi nel vuoto.
 
 ## Tre integratori per tre esigenze
 
@@ -46,7 +46,7 @@ Il disco emette come un corpo nero: ogni anello ha una temperatura, da cui ricav
 
 <Math tex="g = \frac{1}{u^{t}\,(1 - \Omega\,\lambda)}" />
 
-con <Mi tex="\Omega" /> velocità angolare del gas, <Mi tex="u^{t}" /> la componente temporale della sua 4-velocità (la dilatazione del tempo) e <Mi tex="\lambda" /> il momento angolare assiale conservato del fotone. La cosa elegante: non devo «trasportare» il colore lungo il raggio. La quantità <Mi tex="I_\nu/\nu^{3}" /> è un invariante (teorema di Liouville: i fotoni nel loro spazio delle fasi non si accalcano né si diradano), quindi un corpo nero visto con fattore <Mi tex="g" /> resta un corpo nero a temperatura <Mi tex="g\,T" />. Niente palette arbitrarie — e un lato del disco diventa abbagliante e bluastro, l'altro cupo e rosso.
+con <Mi tex="\Omega" /> velocità angolare del gas, <Mi tex="u^{t}" /> la componente temporale della sua 4-velocità (la dilatazione del tempo) e <Mi tex="\lambda" /> il momento angolare assiale conservato del fotone. La cosa elegante: non devo «trasportare» il colore lungo il raggio. La quantità <Mi tex="I_\nu/\nu^{3}" /> è un invariante (teorema di Liouville: i fotoni nel loro spazio delle fasi non si accalcano né si diradano), quindi un corpo nero visto con fattore <Mi tex="g" /> resta un corpo nero a temperatura <Mi tex="g\,T" />. Niente palette arbitrarie, e un lato del disco diventa abbagliante e bluastro, l'altro cupo e rosso.
 
 ## La battaglia col compilatore shader mobile
 
@@ -56,11 +56,11 @@ L'errore più istruttivo. Avevo messo l'integratore Yoshida-6 (Tao) dentro lo sh
 
 Three.js + React Three Fiber, GLSL3, pipeline a 16-bit con dithering anti-banding, KaTeX per le equazioni. Ogni approssimazione è dichiarata: il disco è un modello (non una soluzione GRMHD), i getti sono stilizzati, i corpi del playground non sono lensati. La derivazione completa, con le fonti accademiche, è nella [pagina delle equazioni](/lab/buco-nero/about).
 
-## In sintesi — cosa porto a casa
+## In sintesi: cosa porto a casa
 
 - **La fisica è calcolabile, l'emissione no.** Il lensing di Kerr gira in tempo reale; il plasma magnetizzato del disco (GRMHD) no → lo si modella e lo si dichiara.
 - **Kerr–Schild evita la tetrade.** Alla camera lontana il momento del fotone è semplicemente la direzione del raggio: un classico punto d'errore in meno.
 - **Il colore non si sceglie.** L'invariante Iᵥ/ν³ (teorema di Liouville) porta un corpo nero da T a g·T senza trasportare nulla lungo il raggio.
-- **Su WebGL mobile conta la _dimensione_ dello shader, non solo la velocità.** L'integratore Ultra vive dietro un `#define`, compilato solo quando serve — altrimenti su telefono falliva l'intero rettangolo.
+- **Su WebGL mobile conta la _dimensione_ dello shader, non solo la velocità.** L'integratore Ultra vive dietro un `#define`, compilato solo quando serve, altrimenti su telefono falliva l'intero rettangolo.
 
 [Apri la simulazione →](/lab/buco-nero) · [Le equazioni →](/lab/buco-nero/about)

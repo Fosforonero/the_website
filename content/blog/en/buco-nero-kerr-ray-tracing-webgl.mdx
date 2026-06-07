@@ -6,11 +6,11 @@ tag: "Dev"
 draft: false
 ---
 
-The easy part of a black hole simulator is the data. The hard part is running **general relativity** inside the ~16 milliseconds per frame of a WebGL fragment shader — on a phone. These are the technical notes on how I did it for a [Kerr black hole](/en/lab/black-hole).
+The easy part of a black hole simulator is the data. The hard part is running **general relativity** inside the ~16 milliseconds per frame of a WebGL fragment shader, on a phone. These are the technical notes on how I did it for a [Kerr black hole](/en/lab/black-hole).
 
 ## The idea: shoot light backwards
 
-For every pixel I shoot a ray **from** the camera and follow it through curved spacetime. It sounds backwards — light travels toward the eye, not from it — but in general relativity photon paths are reversible: tracing backwards gives the exact same image. That's the trick that spares us from simulating billions of photons that will never hit the screen. We launch one per pixel, exactly the ones we need.
+For every pixel I shoot a ray **from** the camera and follow it through curved spacetime. It sounds backwards (light travels toward the eye, not from it), but in general relativity photon paths are reversible: tracing backwards gives the exact same image. That's the trick that spares us from simulating billions of photons that will never hit the screen. We launch one per pixel, exactly the ones we need.
 
 ## The metric: where the geometry lives
 
@@ -18,7 +18,7 @@ Here gravity is not a force, it's the **shape** of spacetime, written in the met
 
 <Math tex="g_{\mu\nu} = \eta_{\mu\nu} + f\,k_\mu k_\nu, \qquad f = \frac{2 M r^{3}}{r^{4} + a^{2} z^{2}}" />
 
-where <Mi tex="\eta" /> is flat Minkowski spacetime, <Mi tex="k" /> a null vector and <Mi tex="a = J/M" /> the spin. Why this form and not the usual Boyer–Lindquist coordinates? Because it has no coordinate singularity at the horizon and is asymptotically flat: so at the distant camera the photon starts with a trivial momentum (energy <Mi tex="E=1" />, spatial momentum equal to the ray direction) and I never have to build the observer's tetrad — one of the easiest places to get it wrong. At zero spin (<Mi tex="a=0" />) it reduces exactly to Schwarzschild.
+where <Mi tex="\eta" /> is flat Minkowski spacetime, <Mi tex="k" /> a null vector and <Mi tex="a = J/M" /> the spin. Why this form and not the usual Boyer–Lindquist coordinates? Because it has no coordinate singularity at the horizon and is asymptotically flat: so at the distant camera the photon starts with a trivial momentum (energy <Mi tex="E=1" />, spatial momentum equal to the ray direction) and I never have to build the observer's tetrad, one of the easiest places to get it wrong. At zero spin (<Mi tex="a=0" />) it reduces exactly to Schwarzschild.
 
 ## The integration: Hamiltonian
 
@@ -26,7 +26,7 @@ A photon travels on a null geodesic. I treat it as the flow of a Hamiltonian, be
 
 <Math tex="H = \tfrac{1}{2}\,g^{\mu\nu} p_\mu p_\nu = 0, \qquad \dot x^{\mu} = \frac{\partial H}{\partial p_\mu}, \quad \dot p_\mu = -\frac{\partial H}{\partial x^{\mu}}" />
 
-The _drift_ (<Mi tex="\dot x" />, how the position moves) is closed-form; the _kick_ (<Mi tex="\dot p" />, how the momentum changes) I get from finite differences of the gradient of <Mi tex="H" />. The step is adaptive: fine near the hole — where curvature matters and the photon ring forms — and coarse far away, after an analytic straight-line advance to the influence sphere, so I don't burn steps in empty space.
+The _drift_ (<Mi tex="\dot x" />, how the position moves) is closed-form; the _kick_ (<Mi tex="\dot p" />, how the momentum changes) I get from finite differences of the gradient of <Mi tex="H" />. The step is adaptive: fine near the hole (where curvature matters and the photon ring forms) and coarse far away, after an analytic straight-line advance to the influence sphere, so I don't burn steps in empty space.
 
 ## Three integrators for three needs
 
@@ -46,7 +46,7 @@ The disk radiates as a blackbody: each ring has a temperature, from which I get 
 
 <Math tex="g = \frac{1}{u^{t}\,(1 - \Omega\,\lambda)}" />
 
-with <Mi tex="\Omega" /> the gas angular velocity, <Mi tex="u^{t}" /> the time component of its 4-velocity (the time dilation) and <Mi tex="\lambda" /> the photon's conserved axial angular momentum. The elegant part: I don't have to "carry" the colour along the ray. The quantity <Mi tex="I_\nu/\nu^{3}" /> is an invariant (Liouville's theorem: photons neither bunch up nor thin out in phase space), so a blackbody seen with factor <Mi tex="g" /> stays a blackbody at temperature <Mi tex="g\,T" />. No arbitrary palettes — and one side of the disk turns blinding and blue, the other dim and red.
+with <Mi tex="\Omega" /> the gas angular velocity, <Mi tex="u^{t}" /> the time component of its 4-velocity (the time dilation) and <Mi tex="\lambda" /> the photon's conserved axial angular momentum. The elegant part: I don't have to "carry" the colour along the ray. The quantity <Mi tex="I_\nu/\nu^{3}" /> is an invariant (Liouville's theorem: photons neither bunch up nor thin out in phase space), so a blackbody seen with factor <Mi tex="g" /> stays a blackbody at temperature <Mi tex="g\,T" />. No arbitrary palettes, and one side of the disk turns blinding and blue, the other dim and red.
 
 ## The fight with the mobile shader compiler
 
@@ -56,11 +56,11 @@ The most instructive bug. I had put the Yoshida-6 (Tao) integrator inside the sh
 
 Three.js + React Three Fiber, GLSL3, a 16-bit pipeline with anti-banding dithering, KaTeX for the equations. Every approximation is declared: the disk is a model (not a GRMHD solution), the jets are stylized, the playground bodies are not lensed. The full derivation, with academic sources, is on the [equations page](/en/lab/black-hole/about).
 
-## In short — what I take away
+## In short: what I take away
 
 - **The physics is computable, the emission isn't.** Kerr lensing runs in real time; the disk's magnetized plasma (GRMHD) doesn't → you model it and declare it.
 - **Kerr–Schild avoids the tetrad.** At the distant camera the photon's momentum is simply the ray direction: one classic place to slip, removed.
 - **You don't choose the colour.** The invariant Iᵥ/ν³ (Liouville) carries a blackbody from T to g·T without transporting anything along the ray.
-- **On mobile WebGL it's the shader's _size_ that bites, not just its speed.** The Ultra integrator lives behind a `#define`, compiled only when needed — otherwise the whole quad failed on phones.
+- **On mobile WebGL it's the shader's _size_ that bites, not just its speed.** The Ultra integrator lives behind a `#define`, compiled only when needed, otherwise the whole quad failed on phones.
 
 [Open the simulation →](/en/lab/black-hole) · [The equations →](/en/lab/black-hole/about)
