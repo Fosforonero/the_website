@@ -142,7 +142,7 @@ export function BlackHoleQuad({
       uSkyBright: { value: 1.7 },
       uVolDisk: { value: volDisk ? 1 : 0 },
       uVolThick: { value: 0.10 },
-      uVolOpacity: { value: 6.0 },
+      uVolOpacity: { value: 1.8 },
     }),
     // Intentionally created once — toggle changes are applied in useFrame.
     // eslint-disable-next-line react-hooks/exhaustive-deps

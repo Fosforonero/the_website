@@ -307,7 +307,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
         </button>
 
         <button
-          className={`bh-control bh-toolbar__hide-sm${starlessOn ? " bh-control--active" : ""}`}
+          className={`bh-control${starlessOn ? " bh-control--active" : ""}`}
           onClick={() => setStarlessOn((v) => !v)}
           title={locale === "it" ? "Cielo reale — foto NASA Deep Star Maps lensata dal buco nero" : "Real sky — NASA Deep Star Maps photo, lensed by the black hole"}
         >
@@ -329,7 +329,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
         )}
 
         <button
-          className={`bh-control bh-toolbar__hide-sm${pureBlackOn ? " bh-control--active" : ""}`}
+          className={`bh-control${pureBlackOn ? " bh-control--active" : ""}`}
           onClick={() => setPureBlackOn((v) => !v)}
           title={locale === "it" ? "Nero puro — cielo spento, disco arancio saturo (look NASA)" : "Pure black — sky off, saturated-orange disk (NASA look)"}
         >
@@ -419,10 +419,6 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
               <span>{t.jets}</span>
               <input type="checkbox" checked={jetsOn} onChange={(e) => setJetsOn(e.target.checked)} />
             </label>
-            <label className="bh-controls__toggle">
-              <span>{t.starless}</span>
-              <input type="checkbox" checked={starlessOn} onChange={(e) => setStarlessOn(e.target.checked)} />
-            </label>
             {starlessOn && (
               <label>
                 <span>{t.skySrc}</span>
@@ -433,10 +429,6 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
                 </select>
               </label>
             )}
-            <label className="bh-controls__toggle">
-              <span>{t.pureBlack}</span>
-              <input type="checkbox" checked={pureBlackOn} onChange={(e) => setPureBlackOn(e.target.checked)} />
-            </label>
             <label className="bh-controls__toggle">
               <span>{t.volDisk}</span>
               <input type="checkbox" checked={volDiskOn} onChange={(e) => setVolDiskOn(e.target.checked)} />

@@ -632,7 +632,9 @@ void main() {
           float ds   = dt * length(vel);                   // path length of this step
           float emis = pow(Tobs / uDiskTemp, 4.0) * dens * tb;   // emission coefficient (beaming ∝ T_obs⁴)
           float dtau = uVolOpacity * dens * ds;            // optical depth of this segment
-          vec3  j    = blackbody(Tobs) * (uDiskBright * 0.05 * emis * ds);
+          // Emission must dominate absorption or the volume reads as a dark, muddy
+          // blob (it absorbs the background but barely glows). Strong emission gain.
+          vec3  j    = blackbody(Tobs) * (uDiskBright * 0.9 * emis * ds);
           accCol += (1.0 - accA) * j;                      // emission, attenuated by gas already in front
           accA   += (1.0 - accA) * (1.0 - exp(-dtau));     // accumulate opacity (self-occlusion)
           if (!depthSet && accA > 0.30) { outDepth = depthFromWorld(mid); depthSet = true; hitDisk = true; }
