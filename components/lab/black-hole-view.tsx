@@ -506,6 +506,11 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
             <Link href={aboutHref} className="bh-disclosure__more">
               {t.about} →
             </Link>
+            {gpu && (
+              <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid var(--color-rule, #1c2742)", fontSize: "0.7rem", color: "#6f86b5", lineHeight: 1.45, wordBreak: "break-word" }}>
+                GPU: {gpu.renderer || "—"} · {locale === "it" ? "profilo" : "profile"} {gpu.tier}
+              </div>
+            )}
           </div>
         ) : (
           <button
