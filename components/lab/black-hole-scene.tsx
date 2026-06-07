@@ -95,10 +95,14 @@ export function BlackHoleQuad({
         tex.colorSpace = THREE.SRGBColorSpace;
         tex.wrapS = THREE.RepeatWrapping;       // longitude wraps seamlessly
         tex.wrapT = THREE.ClampToEdgeWrapping;  // poles
-        tex.minFilter = THREE.LinearMipmapLinearFilter;
+        // NO mipmaps: near the hole the lensed ray directions diverge wildly, so the
+        // GPU's auto-LOD (from screen-space uv derivatives, made worse by the
+        // equirectangular seam) picks coarse mips in concentric rings — the grey
+        // "wireframe sphere" artifact. LinearFilter + RepeatWrapping samples the
+        // full-res texture seamlessly and lets the real lensing show.
+        tex.minFilter = THREE.LinearFilter;
         tex.magFilter = THREE.LinearFilter;
-        tex.generateMipmaps = true;
-        tex.anisotropy = 4;
+        tex.generateMipmaps = false;
         const mat = matRef.current;
         if (mat) (mat.uniforms as { uSkyTex: { value: THREE.Texture } }).uSkyTex.value = tex;
         skyReady.current = true;
