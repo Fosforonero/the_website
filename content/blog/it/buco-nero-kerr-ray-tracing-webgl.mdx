@@ -56,4 +56,11 @@ L'errore più istruttivo. Avevo messo l'integratore Yoshida-6 (Tao) dentro lo sh
 
 Three.js + React Three Fiber, GLSL3, pipeline a 16-bit con dithering anti-banding, KaTeX per le equazioni. Ogni approssimazione è dichiarata: il disco è un modello (non una soluzione GRMHD), i getti sono stilizzati, i corpi del playground non sono lensati. La derivazione completa, con le fonti accademiche, è nella [pagina delle equazioni](/lab/buco-nero/about).
 
+## In sintesi — cosa porto a casa
+
+- **La fisica è calcolabile, l'emissione no.** Il lensing di Kerr gira in tempo reale; il plasma magnetizzato del disco (GRMHD) no → lo si modella e lo si dichiara.
+- **Kerr–Schild evita la tetrade.** Alla camera lontana il momento del fotone è semplicemente la direzione del raggio: un classico punto d'errore in meno.
+- **Il colore non si sceglie.** L'invariante Iᵥ/ν³ (teorema di Liouville) porta un corpo nero da T a g·T senza trasportare nulla lungo il raggio.
+- **Su WebGL mobile conta la _dimensione_ dello shader, non solo la velocità.** L'integratore Ultra vive dietro un `#define`, compilato solo quando serve — altrimenti su telefono falliva l'intero rettangolo.
+
 [Apri la simulazione →](/lab/buco-nero) · [Le equazioni →](/lab/buco-nero/about)

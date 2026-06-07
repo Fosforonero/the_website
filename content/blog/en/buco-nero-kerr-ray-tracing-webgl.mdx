@@ -56,4 +56,11 @@ The most instructive bug. I had put the Yoshida-6 (Tao) integrator inside the sh
 
 Three.js + React Three Fiber, GLSL3, a 16-bit pipeline with anti-banding dithering, KaTeX for the equations. Every approximation is declared: the disk is a model (not a GRMHD solution), the jets are stylized, the playground bodies are not lensed. The full derivation, with academic sources, is on the [equations page](/en/lab/black-hole/about).
 
+## In short — what I take away
+
+- **The physics is computable, the emission isn't.** Kerr lensing runs in real time; the disk's magnetized plasma (GRMHD) doesn't → you model it and declare it.
+- **Kerr–Schild avoids the tetrad.** At the distant camera the photon's momentum is simply the ray direction: one classic place to slip, removed.
+- **You don't choose the colour.** The invariant Iᵥ/ν³ (Liouville) carries a blackbody from T to g·T without transporting anything along the ray.
+- **On mobile WebGL it's the shader's _size_ that bites, not just its speed.** The Ultra integrator lives behind a `#define`, compiled only when needed — otherwise the whole quad failed on phones.
+
 [Open the simulation →](/en/lab/black-hole) · [The equations →](/en/lab/black-hole/about)
