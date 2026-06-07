@@ -10,10 +10,11 @@ import {
   blackHoleFragmentShader,
   QUALITY_PRESETS,
   detectGpu,
-  autoQuality,
+  effectiveProfile,
   type BlackHoleQuality,
   type QualityChoice,
   type GpuInfo,
+  type RenderProfile,
 } from "./black-hole/black-hole-shader";
 import { BlackHoleGrid } from "./black-hole-grid";
 import { DitherEffect } from "./black-hole/dither-effect";
@@ -68,8 +69,8 @@ function fitNasaUrl(requested: string, maxTex: number): string {
 export function BlackHoleQuad({
   quality, diskOn, dopplerOn, spin, jetsOn,
   diskTemp = 10500, diskBright = 24, diskOuter = 16, starless = false, pureBlack = false,
-  skyUrl = DEFAULT_SKY_URL, volDisk = false, autoBase = "high",
-}: BlackHoleSceneProps & { autoBase?: BlackHoleQuality }) {
+  skyUrl = DEFAULT_SKY_URL, volDisk = false, profile,
+}: BlackHoleSceneProps & { profile?: RenderProfile }) {
   const matRef = useRef<THREE.ShaderMaterial>(null);
   const camBasis = useRef(new THREE.Matrix3());
   const skyReady = useRef(false);
@@ -81,10 +82,13 @@ export function BlackHoleQuad({
   const fpsEma = useRef(60);
   const sinceCheck = useRef(0);
   const stepScale = useRef(1);
-  // Effective concrete preset: "auto" → the GPU-detected tier; manual passes
-  // through. In auto the volumetric disk follows the top tier.
-  const effTier: BlackHoleQuality = quality === "auto" ? autoBase : quality;
-  const effVol = quality === "auto" ? effTier === "ultra" : volDisk;
+  // Effective render profile: GPU-tuned in Auto (passed from the parent), else the
+  // chosen manual preset. In Auto the volumetric disk follows the profile.
+  const prof: RenderProfile = profile ?? {
+    ...QUALITY_PRESETS[quality === "auto" ? "medium" : quality],
+    vol: false,
+  };
+  const effVol = quality === "auto" ? prof.vol : volDisk;
   // 1×1 black placeholder so the sampler is always bound (some drivers warn on an
   // unbound sampler even when the branch using it is disabled).
   const placeholder = useMemo(() => {
@@ -138,7 +142,7 @@ export function BlackHoleQuad({
       uTanFov: { value: 0.5 },
       uAspect: { value: 1 },
       uTime: { value: 0 },
-      uSteps: { value: QUALITY_PRESETS[effTier].steps },
+      uSteps: { value: prof.steps },
       uDiskInner: { value: 3.0 }, // ISCO for a non-rotating (Schwarzschild) BH
       uDiskOuter: { value: diskOuter },
       uDiskOn: { value: diskOn ? 1 : 0 },
@@ -149,8 +153,8 @@ export function BlackHoleQuad({
       uJets: { value: jetsOn ? 1 : 0 },
       uJetStr: { value: 0.7 },
       uExposure: { value: 1.15 },
-      uHighOrder: { value: QUALITY_PRESETS[effTier].rk4 ? 1 : 0 },
-      uUltra: { value: QUALITY_PRESETS[effTier].tao ? 1 : 0 },
+      uHighOrder: { value: prof.rk4 ? 1 : 0 },
+      uUltra: { value: prof.tao ? 1 : 0 },
       uStyle: { value: starless ? 1 : 0 },
       uPureBlack: { value: pureBlack ? 1 : 0 },
       uSkyTex: { value: placeholder },
@@ -194,7 +198,7 @@ export function BlackHoleQuad({
     } else {
       stepScale.current = 1.0;
     }
-    const preset = QUALITY_PRESETS[effTier];
+    const preset = prof;
     u.uSteps.value = Math.max(60, Math.round(preset.steps * stepScale.current));
     u.uHighOrder.value = preset.rk4 ? 1 : 0;
     u.uUltra.value = preset.tao ? 1 : 0;
@@ -220,7 +224,7 @@ export function BlackHoleQuad({
   useEffect(() => {
     const mat = matRef.current;
     if (!mat) return;
-    const want = QUALITY_PRESETS[effTier].tao;
+    const want = prof.tao;
     const defs = (mat.defines ?? {}) as Record<string, string>;
     const has = defs.BH_ULTRA !== undefined;
     if (want !== has) {
@@ -229,7 +233,7 @@ export function BlackHoleQuad({
       mat.defines = defs;
       mat.needsUpdate = true; // force GLSL recompile of the correct variant
     }
-  }, [effTier]);
+  }, [prof.tao]);
 
   // The volumetric disk is likewise compiled into a SEPARATE variant
   // (#define BH_VOLDISK), so the default/mobile shader never carries the heavier
@@ -291,10 +295,9 @@ export default function BlackHoleScene({
     () => typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches === true,
     [],
   );
-  const autoBase = autoQuality(gpu.tier, isMobile);
+  const profile = effectiveProfile(quality, gpu, isMobile);
   useEffect(() => { onGpu?.(gpu); }, [gpu, onGpu]);
-  const resolved: BlackHoleQuality = quality === "auto" ? autoBase : quality;
-  const dprCap = QUALITY_PRESETS[resolved].dprCap;
+  const dprCap = profile.dprCap;
 
   return (
     <Canvas
@@ -304,7 +307,7 @@ export default function BlackHoleScene({
       style={{ background: "#000003" }}
     >
       <BlackHoleQuad
-        quality={quality} autoBase={autoBase} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn}
+        quality={quality} profile={profile} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn}
         diskTemp={diskTemp} diskBright={diskBright} diskOuter={diskOuter} starless={starless} pureBlack={pureBlack} skyUrl={skyUrl} volDisk={volDisk}
       />
       <BlackHoleGrid visible={gridOn} spin={spin} />

@@ -714,7 +714,8 @@ export type GpuTier = "high" | "mid" | "low";
 export type GpuInfo = { tier: GpuTier; renderer: string };
 
 export function detectGpu(): GpuInfo {
-  if (typeof document === "undefined") return { tier: "mid", renderer: "" };
+  if (typeof document === "undefined" || typeof navigator === "undefined")
+    return { tier: "mid", renderer: "" };
   try {
     const c = document.createElement("canvas");
     const gl = (c.getContext("webgl2") || c.getContext("webgl")) as WebGLRenderingContext | null;
@@ -722,22 +723,59 @@ export function detectGpu(): GpuInfo {
     const ext = gl.getExtension("WEBGL_debug_renderer_info");
     const renderer = ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : "";
     const s = renderer.toLowerCase();
+    // Extra signals — mobile GPUs are coarsely (or not at all) identified by the
+    // renderer string (iOS reports a generic "Apple GPU" for every iPhone), so we
+    // also use deviceMemory (Chrome) and core count; the FPS governor corrects.
+    const nav = navigator as Navigator & { deviceMemory?: number };
+    const mem = nav.deviceMemory ?? 0;          // GB, Chrome/Android only
+    const cores = navigator.hardwareConcurrency ?? 0;
+    const strong = mem >= 6 || cores >= 8;
+    const decent = mem >= 4 || cores >= 6;
+
     let tier: GpuTier = "mid";
     if (/swiftshader|llvmpipe|software|basic render/.test(s)) tier = "low";
-    else if (/mali|adreno|powervr|apple gpu/.test(s)) tier = "low"; // mobile GPUs
-    else if (/apple m\d|geforce|nvidia|rtx|gtx|radeon rx|radeon pro|radeon vii|quadro|tesla|\brx \d/.test(s)) tier = "high";
+    // Desktop discrete / Apple-Silicon Macs.
+    else if (/apple m\d|geforce|nvidia|\brtx\b|\bgtx\b|radeon rx|radeon pro|radeon vii|quadro|tesla|\brx \d{3}/.test(s))
+      tier = "high";
+    // Qualcomm Adreno (Android): clean numbering — 7xx/8xx flagship, 6xx mid.
+    else if (/adreno/.test(s)) {
+      const n = parseInt((s.match(/adreno[^\d]*(\d{3,})/) || [])[1] || "0", 10);
+      tier = n >= 700 ? "high" : n >= 640 ? "mid" : "low";
+    }
+    // ARM Mali / Immortalis (Android): numbering is messy → lean on device signals.
+    else if (/mali|immortalis/.test(s)) {
+      tier = /immortalis/.test(s) ? "high" : strong ? "high" : decent ? "mid" : "low";
+    }
+    else if (/powervr/.test(s)) tier = decent ? "mid" : "low";
+    // iOS hides the model as "Apple GPU": use device signals + the FPS governor.
+    else if (/apple gpu|apple a\d/.test(s)) tier = strong ? "high" : decent ? "mid" : "low";
     else if (/intel|iris|uhd|hd graphics|\barc\b/.test(s)) tier = "mid";
+    else tier = mem && mem <= 2 ? "low" : "mid";
     return { tier, renderer };
   } catch {
     return { tier: "mid", renderer: "" };
   }
 }
 
-// Map the detected GPU tier + form factor to a concrete preset.
-export function autoQuality(tier: GpuTier, isMobile: boolean): BlackHoleQuality {
-  if (isMobile) return tier === "low" ? "low" : "medium";
-  if (tier === "high") return "ultra"; // NVIDIA/Radeon/Apple-Silicon desktop
-  if (tier === "mid") return "high";   // Intel/Iris/Arc and the like
-  return "medium";
+// Full render profile (decoupled from the manual preset names so desktop and
+// mobile can be tuned independently). On mobile the bottleneck is fill-rate, so
+// we cap the device-pixel-ratio and favour the cheap symplectic-Euler integrator
+// with more steps over RK4/Yoshida; the heavy extras (supersampling, volumetric
+// disk, Ultra integrator) are desktop-only.
+export type RenderProfile = { steps: number; dprCap: number; rk4: boolean; tao: boolean; vol: boolean };
+
+export function effectiveProfile(choice: QualityChoice, gpu: GpuInfo, isMobile: boolean): RenderProfile {
+  if (choice !== "auto") {
+    return { ...QUALITY_PRESETS[choice], vol: false }; // manual: the 3D-disk toggle controls vol
+  }
+  if (isMobile) {
+    if (gpu.tier === "high") return { steps: 280, dprCap: 1.7, rk4: false, tao: false, vol: false }; // flagship
+    if (gpu.tier === "mid")  return { steps: 200, dprCap: 1.3, rk4: false, tao: false, vol: false };
+    return { steps: 120, dprCap: 1.0, rk4: false, tao: false, vol: false };                          // weak phone
+  }
+  // Desktop.
+  if (gpu.tier === "high") return { steps: 300, dprCap: 2.0, rk4: false, tao: true,  vol: true };  // NVIDIA/Radeon/Apple-Silicon
+  if (gpu.tier === "mid")  return { steps: 320, dprCap: 2.0, rk4: true,  tao: false, vol: false }; // Intel/Iris/Arc
+  return { steps: 240, dprCap: 1.4, rk4: false, tao: false, vol: false };
 }
 
