@@ -69,19 +69,21 @@ function fitNasaUrl(requested: string, maxTex: number): string {
 export function BlackHoleQuad({
   quality, diskOn, dopplerOn, spin, jetsOn,
   diskTemp = 10500, diskBright = 24, diskOuter = 16, starless = false, pureBlack = false,
-  skyUrl = DEFAULT_SKY_URL, volDisk = false, profile,
-}: BlackHoleSceneProps & { profile?: RenderProfile }) {
+  skyUrl = DEFAULT_SKY_URL, volDisk = false, profile, isMobile = false, eht = false,
+}: BlackHoleSceneProps & { profile?: RenderProfile; isMobile?: boolean }) {
   const matRef = useRef<THREE.ShaderMaterial>(null);
   const camBasis = useRef(new THREE.Matrix3());
   const skyReady = useRef(false);
   const glCaps = useThree((s) => s.gl.capabilities);
-  // FPS governor (Auto mode): a smooth 0.5..1 multiplier on the step count, so a
-  // weak GPU (or a masked renderer string) self-throttles without touching the
-  // resolution (no canvas realloc). Resolution/integrator/volumetric come from the
-  // detected tier below.
+  const setDpr = useThree((s) => s.setDpr);
+  // FPS governor (Auto mode). DESKTOP: scale the step count (resolution is fixed).
+  // MOBILE: the bottleneck is fill-rate, and the photon ring needs its steps, so
+  // we keep steps fixed and scale the RESOLUTION (DPR) instead — slow phones get
+  // fluid without a broken ring.
   const fpsEma = useRef(60);
   const sinceCheck = useRef(0);
   const stepScale = useRef(1);
+  const resScale = useRef(1);
   // Effective render profile: GPU-tuned in Auto (passed from the parent), else the
   // chosen manual preset. In Auto the volumetric disk follows the profile.
   const prof: RenderProfile = profile ?? {
@@ -183,23 +185,34 @@ export function BlackHoleQuad({
     u.uAspect.value = size.width / Math.max(1, size.height);
     const fov = (camera as THREE.PerspectiveCamera).fov ?? 50;
     u.uTanFov.value = Math.tan((fov * Math.PI) / 360);
-    // Live toggles / quality. In Auto, an FPS governor scales the step count to
-    // hold a smooth frame rate (cheap — no resolution change); manual quality is
-    // fixed.
-    if (quality === "auto") {
+    // Live toggles / quality. In Auto, an FPS governor holds a smooth frame rate:
+    // desktop scales the step count, mobile scales the resolution (keeping steps,
+    // so the photon ring stays resolved). Manual quality is fixed.
+    if (quality === "auto" && !eht) {
       const fps = 1.0 / Math.max(delta, 1e-3);
       fpsEma.current = fpsEma.current * 0.92 + fps * 0.08;
       sinceCheck.current += delta;
       if (sinceCheck.current > 1.0) {
         sinceCheck.current = 0;
-        if (fpsEma.current < 38 && stepScale.current > 0.5) stepScale.current = Math.max(0.5, stepScale.current - 0.12);
-        else if (fpsEma.current > 56 && stepScale.current < 1.0) stepScale.current = Math.min(1.0, stepScale.current + 0.08);
+        if (isMobile) {
+          const before = resScale.current;
+          if (fpsEma.current < 40 && resScale.current > 0.55) resScale.current = Math.max(0.55, resScale.current - 0.12);
+          else if (fpsEma.current > 56 && resScale.current < 1.0) resScale.current = Math.min(1.0, resScale.current + 0.1);
+          if (resScale.current !== before) {
+            const dprMax = (typeof window !== "undefined" ? window.devicePixelRatio : 1) || 1;
+            setDpr(Math.min(dprMax, prof.dprCap * resScale.current));
+          }
+        } else {
+          if (fpsEma.current < 38 && stepScale.current > 0.5) stepScale.current = Math.max(0.5, stepScale.current - 0.12);
+          else if (fpsEma.current > 56 && stepScale.current < 1.0) stepScale.current = Math.min(1.0, stepScale.current + 0.08);
+        }
       }
-    } else {
+    } else if (quality !== "auto") {
       stepScale.current = 1.0;
     }
     const preset = prof;
-    u.uSteps.value = Math.max(60, Math.round(preset.steps * stepScale.current));
+    // Mobile keeps full steps (ring); desktop scales steps with the governor.
+    u.uSteps.value = isMobile ? preset.steps : Math.max(60, Math.round(preset.steps * stepScale.current));
     u.uHighOrder.value = preset.rk4 ? 1 : 0;
     u.uUltra.value = preset.tao ? 1 : 0;
     u.uStyle.value = starless ? 1 : 0;
@@ -307,7 +320,7 @@ export default function BlackHoleScene({
       style={{ background: "#000003" }}
     >
       <BlackHoleQuad
-        quality={quality} profile={profile} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn}
+        quality={quality} profile={profile} isMobile={isMobile} eht={eht} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn}
         diskTemp={diskTemp} diskBright={diskBright} diskOuter={diskOuter} starless={starless} pureBlack={pureBlack} skyUrl={skyUrl} volDisk={volDisk}
       />
       <BlackHoleGrid visible={gridOn} spin={spin} />

@@ -769,9 +769,13 @@ export function effectiveProfile(choice: QualityChoice, gpu: GpuInfo, isMobile: 
     return { ...QUALITY_PRESETS[choice], vol: false }; // manual: the 3D-disk toggle controls vol
   }
   if (isMobile) {
-    if (gpu.tier === "high") return { steps: 280, dprCap: 1.7, rk4: false, tao: false, vol: false }; // flagship
-    if (gpu.tier === "mid")  return { steps: 200, dprCap: 1.3, rk4: false, tao: false, vol: false };
-    return { steps: 120, dprCap: 1.0, rk4: false, tao: false, vol: false };                          // weak phone
+    // Mobile is fill-rate (DPR) bound, NOT step bound — and the photon ring needs
+    // enough steps to resolve. So keep steps high (~240, the value that resolved
+    // the ring fine before) on every tier and use the DPR as the perf knob; the
+    // governor on mobile scales resolution, not steps, so the ring never breaks.
+    if (gpu.tier === "high") return { steps: 240, dprCap: 1.4, rk4: false, tao: false, vol: false };
+    if (gpu.tier === "mid")  return { steps: 240, dprCap: 1.2, rk4: false, tao: false, vol: false };
+    return { steps: 230, dprCap: 1.0, rk4: false, tao: false, vol: false };
   }
   // Desktop.
   if (gpu.tier === "high") return { steps: 300, dprCap: 2.0, rk4: false, tao: true,  vol: true };  // NVIDIA/Radeon/Apple-Silicon
