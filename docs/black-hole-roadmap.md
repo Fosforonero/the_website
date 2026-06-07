@@ -124,6 +124,44 @@ temporale, stima di lavoro).
 
 ---
 
+## 6. Pitch a studi e collaborazioni (No Man's Sky & co.)
+
+**Domanda (Matteo)**: mandare la demo a uno studio (es. Hello Games / No Man's Sky)
+perché la integri nel gioco. Con quale tecnologia, e a che punto della roadmap.
+
+**Valutazione onesta:**
+- Come «integratela nel gioco» l'hit rate è ~zero, e non è un difetto della demo.
+  NMS gira su un **motore C++ proprietario** (non Unity): integrare codice di rendering
+  esterno significa IP, legale, lavoro sul motore, manutenzione. Hello Games è ~30 persone,
+  testa bassa; i loro buchi neri sono **warp gate per scelta narrativa**, non una feature mancante.
+- Ha invece valore reale come **credibilità / visibilità / networking**: l'esito realistico è
+  feedback, un contatto, interesse verso **di te** (contratto/lavoro), non l'integrazione.
+- **Target più adatti di Hello Games** per il real-time GR: **Giant Army (Universe Sandbox)**
+  è il match migliore (il loro prodotto È simulazione fisica); poi Frontier (Elite), CIG
+  (Star Citizen), studi di space-sim. E soprattutto i **graphics programmer dove guardano davvero**:
+  Shadertoy, r/GraphicsProgramming, community grafica su X/Bluesky, demoscene. Più occhi rilevanti
+  di una mail fredda a un inbox di studio.
+- **Cosa spedire** (non la codebase): un **video catturato 60–90s** (render offline ad alta qualità)
+  + link live + l'articolo di metodologia + due righe su di te. Uno studio guarda una clip corta
+  prima di cliccare qualunque cosa.
+
+**Con quale tecnologia, se si puntasse all'integrazione:**
+- Non si spedisce WebGL dentro un gioco. L'asset portabile è il **core matematico** (integratore
+  hamiltoniano di geodetiche Kerr–Schild), **agnostico rispetto al motore** → si porta in un
+  **compute/HLSL shader**.
+- Engine realistici: **Unreal** (post-process material + compute) è il default per visual spaziali
+  AAA; **Unity HDRP** (custom render feature + compute) è quello già previsto per Steam (sez. 3).
+  L'unità di integrazione è «un compute shader + una piccola libreria documentata», non il sito.
+
+**Quando farlo (timing):**
+- **NON adesso.** Il punto debole attuale è «lento su mobile, WebGL»: pitchare così ci sottovende.
+- Sequenza: **(1) fix bug ring → (2) WebGPU con accumulo temporale** (è ciò che lo fa sembrare
+  professionale e toglie la critica performance) **→ (3) video demo HQ + articolo pronti →
+  (4) outreach**. Si pitcha dalla forza, con un artefatto rifinito.
+- Posizione in roadmap: **step ~3.5**, dopo la WebGPU (sez. 2), in parallelo/prima di Unity (sez. 3).
+
+---
+
 ## Nota ambiente
 Il container cloud si è resettato più volte a un commit vecchio durante la sessione: il lavoro è
 sempre **salvo su `origin` (branch `claude/black-hole-solar-system-NWdiX` e `init`)**. In caso di
