@@ -430,3 +430,4 @@ pnpm gen:icons                                       # rigenera apple-icon.png d
 - `.claude/agents/seo-auditor.md` — subagent SEO on-demand
 - `.github/workflows/seo-audit.yml` — daily audit (cron 06:00 UTC, apre issue su regression)
 - `_design_reference/Fosforonero.html` — mockup approvato V6 Cool Studio (da consultare quando in dubbio)
+- `docs/black-hole-roadmap.md` — roadmap simulatore buco nero: bug aperto (photon ring), rifiniture in sospeso, versione WebGPU separata, C#/Unity Steam, articolo blog da scrivere
