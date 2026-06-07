@@ -154,9 +154,9 @@ vec3 starField(vec3 d) {
     // Diffuse Milky-Way glow — brighter than before so the band actually reads,
     // but still structured (filaments carved by dark dust lanes), not a flat fog.
     vec3 mwCol = mix(vec3(0.020, 0.024, 0.040), vec3(0.075, 0.060, 0.045), band);
-    col += mwCol * band2 * 0.9;
+    col += mwCol * band2 * 0.45;                            // lower diffuse → less beige fog
     float core = exp(-pow(az * 0.8, 2.0)) * band;          // warm bulge toward the centre
-    col += vec3(0.090, 0.066, 0.046) * core * (1.0 - 0.6 * dust) * 1.5;
+    col += vec3(0.090, 0.066, 0.046) * core * (1.0 - 0.6 * dust) * 0.8;
     // Nebulae: sparse coloured emission/reflection patches along the plane — a
     // second, lower-frequency fBm picks bright clumps, tinted between reddish HII
     // and bluish reflection. Adds the colour/depth that reads as "more detailed".
@@ -166,7 +166,7 @@ vec3 starField(vec3 d) {
     neb = pow(clamp(neb, 0.0, 1.0), 3.0);                   // sparse, bright clumps (less haze)
     float tint = gnoise(vec2(az * 0.7, d.y * 1.6) + 7.0);
     vec3  nebCol = mix(vec3(0.16, 0.04, 0.07), vec3(0.04, 0.07, 0.16), tint); // HII red ↔ reflection blue
-    col += nebCol * neb * band * (1.0 - 0.55 * dust) * 1.8;
+    col += nebCol * neb * band * (1.0 - 0.55 * dust) * 1.1;
   }
 
   // Discrete stars. In Starless mode two extra layers (k=2,3) are dense, faint
@@ -542,11 +542,9 @@ void main() {
         turb = pow(clamp(turb, 0.0, 1.0), 1.25);  // contrast → bands ride under churning grain
         bright *= 0.20 + 1.7 * turb;               // lower floor → darker lanes, more contrast
 
-        // Photon-ring contrast: the returning-radiation images (2nd, 3rd disk
-        // crossing) are intrinsically much fainter; lift them a little so the
-        // secondary image / ring actually reads (a declared legibility boost,
-        // not new physics — the ring still emerges from the real returning light).
-        if (diskXings >= 2) bright *= 1.0 + 0.7 * float(min(diskXings - 1, 3));
+        // (No discrete per-crossing brightness boost: it left a hard seam where a
+        // ray's crossing count steps 1→2, very visible on a black background. The
+        // photon ring / secondary image still emerge from the real returning light.)
 
         vec3 dcol = blackbody(Tobs) * bright;
         // "Pure black" preset: monochromatic saturated orange (NASA/Schnittman
@@ -569,7 +567,7 @@ void main() {
     // integrated along the ray, so the razor-thin disk gains a soft vertical
     // "thickness" (Interstellar's wispy halo) without a real 3D gas model. Cheap:
     // a fixed warm tint × the analytic flux, gated to steps actually near the plane.
-    if (uDiskOn > 0.5 && uVolDisk < 0.5) {
+    if (uDiskOn > 0.5 && uVolDisk < 0.5 && uPureBlack < 0.5) {
       float ya = abs(pos.y);
       if (ya < 0.55) {
         float rv = kerrR(pos, kerrA);
@@ -577,8 +575,8 @@ void main() {
           float vfl  = diskFlux(rv, rIn);
           float vert = exp(-(ya * ya) / 0.040);            // scale height ≈ 0.14
           float ov   = 1.0 - smoothstep(uDiskOuter * 0.32, uDiskOuter, rv);
-          vec3  vcol = (uPureBlack > 0.5 ? vec3(1.0, 0.42, 0.12) : vec3(1.0, 0.62, 0.32)) * (vfl * ov * ov);
-          accCol += (1.0 - accA) * vcol * vert * dt * uDiskBright * 0.035;
+          vec3  vcol = vec3(1.0, 0.62, 0.32) * (vfl * ov * ov);
+          accCol += (1.0 - accA) * vcol * vert * dt * uDiskBright * 0.020;
         }
       }
     }
