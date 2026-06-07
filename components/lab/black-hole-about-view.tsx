@@ -2,6 +2,16 @@
 
 import Link from "next/link";
 import katex from "katex";
+import { AboutFigure, type FigureId } from "./black-hole-about-figures";
+
+// Charts attached to specific sections (0-based index into the sections array).
+// Both languages share the same ordering, so one map covers IT and EN.
+const FIG_BY_SECTION: Record<number, FigureId> = {
+  0: "deflection", // 1. null geodesics, photon sphere, shadow
+  1: "potential", // 2. timelike geodesics, ISCO
+  3: "doppler", // 4. radiative transfer, Doppler beaming
+  5: "kerrShadow", // 6. Kerr, frame dragging
+};
 
 // ---------------------------------------------------------------------------
 // Black-hole lab, methodology page (bilingual, in depth).
@@ -578,6 +588,7 @@ export function BlackHoleAboutView({ locale = "it" }: { locale?: Locale }) {
                 ))}
               </div>
             )}
+            {FIG_BY_SECTION[i] && <AboutFigure id={FIG_BY_SECTION[i]!} locale={locale} />}
           </section>
         ))}
 
