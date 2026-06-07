@@ -391,6 +391,27 @@
 }
 .bh-controls__toggle { justify-content: space-between; }
 .bh-controls__toggle input { width: 20px; height: 20px; }
+.bh-controls__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 10px;
+  margin-top: 2px;
+  border-top: 1px solid #1c2742;
+}
+.bh-controls__links button,
+.bh-controls__links a {
+  flex: 1 1 40%;
+  text-align: center;
+  background: #0c1326;
+  color: #cdd6e6;
+  border: 1px solid #1c2742;
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 0.78rem;
+  text-decoration: none;
+  cursor: pointer;
+}
 
 /* Ko-fi support block */
 .bh-kofi {

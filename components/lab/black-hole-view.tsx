@@ -233,7 +233,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
         </button>
 
         <button
-          className={`bh-control${dopplerOn ? " bh-control--active" : ""}`}
+          className={`bh-control bh-toolbar__hide-sm${dopplerOn ? " bh-control--active" : ""}`}
           onClick={() => setDopplerOn((v) => !v)}
         >
           {t.doppler}
@@ -247,13 +247,13 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
         </button>
 
         <button
-          className={`bh-control${gridOn ? " bh-control--active" : ""}`}
+          className={`bh-control bh-toolbar__hide-sm${gridOn ? " bh-control--active" : ""}`}
           onClick={() => setGridOn((v) => !v)}
         >
           {t.grid}
         </button>
 
-        <label className={`bh-control${spin > 0 ? " bh-control--active" : ""}`}>
+        <label className={`bh-control bh-toolbar__hide-sm${spin > 0 ? " bh-control--active" : ""}`}>
           <span>{t.spin}</span>
           <input
             type="range"
@@ -285,7 +285,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
         </label>
 
         <button
-          className={`bh-control${physOpen ? " bh-control--active" : ""}`}
+          className={`bh-control bh-toolbar__hide-sm${physOpen ? " bh-control--active" : ""}`}
           onClick={() => setPhysOpen((v) => !v)}
         >
           {t.physics}
@@ -307,7 +307,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
         </button>
 
         <button
-          className={`bh-control${starlessOn ? " bh-control--active" : ""}`}
+          className={`bh-control bh-toolbar__hide-sm${starlessOn ? " bh-control--active" : ""}`}
           onClick={() => setStarlessOn((v) => !v)}
           title={locale === "it" ? "Cielo reale — foto NASA Deep Star Maps lensata dal buco nero" : "Real sky — NASA Deep Star Maps photo, lensed by the black hole"}
         >
@@ -329,7 +329,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
         )}
 
         <button
-          className={`bh-control${pureBlackOn ? " bh-control--active" : ""}`}
+          className={`bh-control bh-toolbar__hide-sm${pureBlackOn ? " bh-control--active" : ""}`}
           onClick={() => setPureBlackOn((v) => !v)}
           title={locale === "it" ? "Nero puro — cielo spento, disco arancio saturo (look NASA)" : "Pure black — sky off, saturated-orange disk (NASA look)"}
         >
@@ -344,10 +344,10 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
           {t.volDisk}
         </button>
 
-        <button className="bh-control" onClick={onShare}>📷 {t.share}</button>
+        <button className="bh-control bh-toolbar__hide-sm" onClick={onShare}>📷 {t.share}</button>
 
         <div className="bh-toolbar__sep" />
-        <Link href={playgroundHref} className="bh-control">
+        <Link href={playgroundHref} className="bh-control bh-toolbar__hide-sm">
           {t.playground}
         </Link>
         <Link href={locale === "it" ? "/lab/buco-nero/orbite" : "/en/lab/black-hole/orbit"} className="bh-control bh-toolbar__hide-sm">
@@ -402,10 +402,56 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
               <input type="range" min={8} max={26} step={0.5} value={diskOuter}
                 onChange={(e) => setDiskOuter(parseFloat(e.target.value))} />
             </label>
+            <label>
+              <span>{t.spin}</span>
+              <input type="range" min={0} max={0.95} step={0.02} value={spin}
+                onChange={(e) => setSpin(parseFloat(e.target.value))} />
+            </label>
+            <label className="bh-controls__toggle">
+              <span>{t.doppler}</span>
+              <input type="checkbox" checked={dopplerOn} onChange={(e) => setDopplerOn(e.target.checked)} />
+            </label>
+            <label className="bh-controls__toggle">
+              <span>{t.grid}</span>
+              <input type="checkbox" checked={gridOn} onChange={(e) => setGridOn(e.target.checked)} />
+            </label>
             <label className="bh-controls__toggle">
               <span>{t.jets}</span>
               <input type="checkbox" checked={jetsOn} onChange={(e) => setJetsOn(e.target.checked)} />
             </label>
+            <label className="bh-controls__toggle">
+              <span>{t.starless}</span>
+              <input type="checkbox" checked={starlessOn} onChange={(e) => setStarlessOn(e.target.checked)} />
+            </label>
+            {starlessOn && (
+              <label>
+                <span>{t.skySrc}</span>
+                <select value={skySource} onChange={(e) => setSkySource(e.target.value as SkySource)}>
+                  <option value="nasa8k">NASA 8k</option>
+                  <option value="nasa16k">NASA 16k</option>
+                  <option value="eso">ESO (Brunier)</option>
+                </select>
+              </label>
+            )}
+            <label className="bh-controls__toggle">
+              <span>{t.pureBlack}</span>
+              <input type="checkbox" checked={pureBlackOn} onChange={(e) => setPureBlackOn(e.target.checked)} />
+            </label>
+            <label className="bh-controls__toggle">
+              <span>{t.volDisk}</span>
+              <input type="checkbox" checked={volDiskOn} onChange={(e) => setVolDiskOn(e.target.checked)} />
+            </label>
+            <label className="bh-controls__toggle">
+              <span>{t.eht}</span>
+              <input type="checkbox" checked={ehtOn} onChange={(e) => setEhtOn(e.target.checked)} />
+            </label>
+            <div className="bh-controls__links">
+              <button onClick={() => { setControlsOpen(false); setPhysOpen(true); }}>{t.physics}</button>
+              <button onClick={onShare}>📷 {t.share}</button>
+              <Link href={playgroundHref}>{t.playground}</Link>
+              <Link href={locale === "it" ? "/lab/buco-nero/orbite" : "/en/lab/black-hole/orbit"}>{t.orbits}</Link>
+              <Link href={aboutHref}>{t.about}</Link>
+            </div>
           </div>
         )}
 
