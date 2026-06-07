@@ -8,7 +8,7 @@ import { Nav } from "@/components/parts/nav";
 import { Footer } from "@/components/parts/footer";
 import { Pill } from "@/components/parts/pill";
 import { PostNav } from "@/components/parts/post-nav";
-import { getAdjacentPosts, getAllSlugs, getPost, getRelatedPosts } from "@/lib/blog";
+import { alternateSlug, getAdjacentPosts, getAllSlugs, getPost, getRelatedPosts } from "@/lib/blog";
 import { blogPostingLd, breadcrumbLd } from "@/lib/jsonld";
 import { getDictionary } from "@/lib/i18n";
 import { site } from "@/lib/site";
@@ -36,7 +36,7 @@ export async function generateMetadata({
     alternates: {
       canonical: `/en/blog/${post.slug}`,
       languages: {
-        it: `/blog/${post.slug}`,
+        it: `/blog/${alternateSlug(post.slug)}`,
         en: `/en/blog/${post.slug}`,
       },
     },

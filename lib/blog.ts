@@ -32,6 +32,17 @@ const ROOT = path.join(process.cwd(), "content", "blog");
 // remain visible so the author can review them in-context.
 const HIDE_DRAFTS = process.env.NODE_ENV === "production";
 
+// Articles whose IT and EN slugs differ (localized URLs). Maps a slug to its
+// counterpart in the other language so hreflang / canonical alternates point to
+// the page that actually exists (most articles share one slug across languages).
+const SLUG_ALTERNATES: Record<string, string> = {
+  "splitvote-account-opzionali": "splitvote-optional-accounts",
+  "splitvote-optional-accounts": "splitvote-account-opzionali",
+};
+export function alternateSlug(slug: string): string {
+  return SLUG_ALTERNATES[slug] ?? slug;
+}
+
 async function safeReadDir(dir: string): Promise<string[]> {
   try {
     return await fs.readdir(dir);
