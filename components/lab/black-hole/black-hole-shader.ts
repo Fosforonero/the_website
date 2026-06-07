@@ -604,10 +604,10 @@ void main() {
         float flux = diskFlux(rho, rIn);
         float T    = uDiskTemp * pow(flux, 0.25);
         // H/r ≈ c_s/v_φ ∝ sqrt(T·r): a flared slim disk, clamped to a sane range.
-        float HoR  = clamp(uVolThick * sqrt(pow(flux, 0.25) * rho), 0.02, 0.35);
+        float HoR  = clamp(uVolThick * sqrt(pow(flux, 0.25) * rho), 0.015, 0.11);
         float Hh   = HoR * rho;
         float zr   = mid.y / Hh;
-        if (abs(zr) < 4.0) {
+        if (abs(zr) < 3.0) {
           float dens = exp(-0.5 * zr * zr);                // hydrostatic vertical profile
           float radial = 1.0 - smoothstep(uDiskOuter * 0.32, uDiskOuter, rho);
           dens *= radial * radial;                         // soft outer taper

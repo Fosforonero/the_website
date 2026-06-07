@@ -141,7 +141,7 @@ export function BlackHoleQuad({
       uSkyOn: { value: 0 },
       uSkyBright: { value: 1.7 },
       uVolDisk: { value: volDisk ? 1 : 0 },
-      uVolThick: { value: 0.10 },
+      uVolThick: { value: 0.06 },
       uVolOpacity: { value: 1.8 },
     }),
     // Intentionally created once — toggle changes are applied in useFrame.
