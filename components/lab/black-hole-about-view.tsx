@@ -4,11 +4,11 @@ import Link from "next/link";
 import katex from "katex";
 
 // ---------------------------------------------------------------------------
-// Black-hole lab — methodology page (bilingual, in depth).
+// Black-hole lab, methodology page (bilingual, in depth).
 // A rigorous account of the mathematics and physics implemented in the
 // renderer: metric, geodesics (null & timelike), accretion disk, invariant
 // radiative transfer, returning radiation / photon ring, frame dragging, the
-// spatial embedding, the playground dynamics and the numerical methods — with
+// spatial embedding, the playground dynamics and the numerical methods, with
 // citations to international university sources, per the project's
 // "fail loud, never fake" rule. Equations typeset with KaTeX.
 // ---------------------------------------------------------------------------
@@ -179,7 +179,7 @@ const COPY: Record<Locale, Copy> = {
           "Quanto è affidabile l'integrazione? La demo «Orbite» mostra dal vivo il drift dell'invariante di energia C dell'orbita (il primo integrale dell'equazione, legato a E): con il passo simplettico di Yoshida al 6° ordine resta dell'ordine di 10⁻¹³ e oscillante, non cresce: la prova numerica che l'energia non si disperde e le orbite legate restano legate. (Il leapfrog/Yoshida richiede un'hamiltoniana separabile come questa; per il lensing, hamiltoniana non-separabile, usiamo invece RK4.)",
         ],
         eqs: [
-          { label: "Geodetica nulla di Kerr — flusso hamiltoniano integrato", tex: "\\dot x^{i} = \\frac{\\partial H}{\\partial p_i}, \\quad \\dot p_i = -\\frac{\\partial H}{\\partial x^{i}}, \\qquad H = \\tfrac{1}{2}\\,g^{\\mu\\nu}p_\\mu p_\\nu = \\tfrac{1}{2}\\,\\mathcal H_q" },
+          { label: "Geodetica nulla di Kerr, flusso hamiltoniano integrato", tex: "\\dot x^{i} = \\frac{\\partial H}{\\partial p_i}, \\quad \\dot p_i = -\\frac{\\partial H}{\\partial x^{i}}, \\qquad H = \\tfrac{1}{2}\\,g^{\\mu\\nu}p_\\mu p_\\nu = \\tfrac{1}{2}\\,\\mathcal H_q" },
           { label: "Passo Runge–Kutta del 4° ordine (qualità Alta)", tex: "y_{n+1} = y_{n} + \\tfrac{h}{6}\\left(k_1 + 2k_2 + 2k_3 + k_4\\right), \\quad y=(x^{i},p_i)" },
           { label: "Passo a stabilità garantita (vicino all'orizzonte)", tex: "h \\le \\min\\!\\left(h_{\\max},\\; C\\,(r-r_s)\\right)" },
           { label: "Velocità circolare addolcita (lune, softening ε)", tex: "v_{\\mathrm{circ}}^{2} = \\frac{G M_p\\, r^{2}}{(r^{2}+\\varepsilon^{2})^{3/2}}" },
@@ -231,7 +231,7 @@ const COPY: Record<Locale, Copy> = {
     ],
     openHeading: "Soluzioni open: cosa possiamo (e non possiamo) integrare",
     open: [
-      "Esistono ottimi codici di ray-tracing relativistico open source — GYOTO (Observatoire de Paris), RAPTOR, ipole, grtrans, Blacklight — e l'implementazione aperta del metodo di Luminet. Sono però codici offline (C/C++/Python) che calcolano singoli fotogrammi in minuti/ore: non sono eseguibili in tempo reale in un fragment shader WebGL nel browser.",
+      "Esistono ottimi codici di ray-tracing relativistico open source, GYOTO (Observatoire de Paris), RAPTOR, ipole, grtrans, Blacklight, e l'implementazione aperta del metodo di Luminet. Sono però codici offline (C/C++/Python) che calcolano singoli fotogrammi in minuti/ore: non sono eseguibili in tempo reale in un fragment shader WebGL nel browser.",
       "Quello che integriamo davvero sono le loro formulazioni fisico-matematiche: la geodetica di Schwarzschild, il disco di Novikov–Thorne, il fattore g e l'invariante Iᵥ/ν³, il colore di corpo nero. Il nostro shader le reimplementa in GLSL e le cita; non incorpora il codice esterno. Dichiararlo è parte della regola «fail loud, never fake».",
     ],
     faqHeading: "Domande frequenti",
@@ -242,7 +242,7 @@ const COPY: Record<Locale, Copy> = {
       },
       {
         q: "Qual è la differenza tra la demo «Orbite» e il «Playground»?",
-        a: "La demo «Orbite» integra la geodetica di tipo-tempo esatta di Schwarzschild per un singolo corpo (precessione e ISCO esatti). Il playground usa il potenziale pseudo-newtoniano di Paczyński–Wiita, che riproduce gli effetti forti (ISCO, caduta) ma permette la gravità reciproca a N-corpi — un compromesso esattezza/interattività.",
+        a: "La demo «Orbite» integra la geodetica di tipo-tempo esatta di Schwarzschild per un singolo corpo (precessione e ISCO esatti). Il playground usa il potenziale pseudo-newtoniano di Paczyński–Wiita, che riproduce gli effetti forti (ISCO, caduta) ma permette la gravità reciproca a N-corpi, un compromesso esattezza/interattività.",
       },
       {
         q: "Posso integrare GYOTO o un codice GR completo?",
@@ -251,7 +251,7 @@ const COPY: Record<Locale, Copy> = {
     ],
     refsHeading: "Bibliografia e fonti",
     refs: [
-      { cite: "S. M. Carroll, «Lecture Notes on General Relativity» — geodetiche di Schwarzschild (Caltech).", url: "https://ned.ipac.caltech.edu/level5/March01/Carroll3/Carroll7.html" },
+      { cite: "S. M. Carroll, «Lecture Notes on General Relativity», geodetiche di Schwarzschild (Caltech).", url: "https://ned.ipac.caltech.edu/level5/March01/Carroll3/Carroll7.html" },
       { cite: "K. Kokkotas, «Particle Trajectories & The Classical Tests», Relatività Generale, Universität Tübingen.", url: "https://www.tat.physik.uni-tuebingen.de/~kokkotas/Teaching/GTR_files/GTR2018_3b.pdf" },
       { cite: "C. Hirata, «Geodesics in the Schwarzschild geometry», ph6820, The Ohio State University.", url: "https://hirata10.github.io/ph6820/lec17_bh_trajectories.pdf" },
       { cite: "J.-P. Luminet (1979), «Image of a spherical black hole with thin accretion disk», Astronomy & Astrophysics 75, 228.", url: "https://ui.adsabs.harvard.edu/abs/1979A%26A....75..228L/abstract" },
@@ -264,16 +264,16 @@ const COPY: Record<Locale, Copy> = {
       { cite: "M. J. Rees (1988), «Tidal disruption of stars by black holes…», Nature 333, 523.", url: "https://ui.adsabs.harvard.edu/abs/1988Natur.333..523R/abstract" },
       { cite: "P. C. Peters (1964), «Gravitational radiation and the motion of two point masses», Physical Review 136, B1224.", url: "https://journals.aps.org/pr/abstract/10.1103/PhysRev.136.B1224" },
       { cite: "J. M. Bardeen (1973), «Timelike and null geodesics in the Kerr metric», in Black Holes (Les Houches)." },
-      { cite: "H. Yoshida (1990), «Construction of higher order symplectic integrators», Physics Letters A 150, 262 — l'integratore simplettico al 6° ordine della demo Orbite.", url: "https://doi.org/10.1016/0375-9601(90)90092-3" },
-      { cite: "M. Tao (2016), «Explicit symplectic approximation of nonseparable Hamiltonians», Physical Review E 94, 043303 — il metodo della modalità Ultra (Yoshida-6 simplettico per il lensing).", url: "https://arxiv.org/abs/1609.02212" },
-      { cite: "L. Flamm (1916), «Beiträge zur Einsteinschen Gravitationstheorie», Physikalische Zeitschrift 17, 448 — il paraboloide." },
+      { cite: "H. Yoshida (1990), «Construction of higher order symplectic integrators», Physics Letters A 150, 262, l'integratore simplettico al 6° ordine della demo Orbite.", url: "https://doi.org/10.1016/0375-9601(90)90092-3" },
+      { cite: "M. Tao (2016), «Explicit symplectic approximation of nonseparable Hamiltonians», Physical Review E 94, 043303, il metodo della modalità Ultra (Yoshida-6 simplettico per il lensing).", url: "https://arxiv.org/abs/1609.02212" },
+      { cite: "L. Flamm (1916), «Beiträge zur Einsteinschen Gravitationstheorie», Physikalische Zeitschrift 17, 448, il paraboloide." },
       { cite: "O. James, E. von Tunzelmann, P. Franklin & K. S. Thorne (2015), «Gravitational lensing by spinning black holes… Interstellar», Classical and Quantum Gravity 32, 065001.", url: "https://iopscience.iop.org/article/10.1088/0264-9381/32/6/065001" },
       { cite: "F. H. Vincent et al. (2011), «GYOTO: a new general relativistic ray-tracing code», Classical and Quantum Gravity 28, 225011.", url: "https://arxiv.org/abs/1109.4769" },
       { cite: "C. W. Misner, K. S. Thorne & J. A. Wheeler, «Gravitation» (1973); J. B. Hartle, «Gravity» (2003)." },
       { cite: "Colore di corpo nero → sRGB: approssimazione del locus planckiano di N. Bartlett (dati di M. Charity)." },
-      { cite: "Cielo reale: NASA/Goddard SVS, «Deep Star Maps 2020» — mappa equirettangolare di tutto il cielo da cataloghi Gaia/Tycho (dominio pubblico).", url: "https://svs.gsfc.nasa.gov/4851" },
-      { cite: "Cielo reale (alternativo): ESO/S. Brunier, GigaGalaxy Zoom — panoramica di tutto il cielo (CC BY 4.0).", url: "https://www.eso.org/public/images/eso0932a/" },
-      { cite: "Stack: Three.js, React Three Fiber, @react-three/drei, @react-three/postprocessing, KaTeX. Sviluppo: Fosforonero — Matteo Pizzi (Roma)." },
+      { cite: "Cielo reale: NASA/Goddard SVS, «Deep Star Maps 2020», mappa equirettangolare di tutto il cielo da cataloghi Gaia/Tycho (dominio pubblico).", url: "https://svs.gsfc.nasa.gov/4851" },
+      { cite: "Cielo reale (alternativo): ESO/S. Brunier, GigaGalaxy Zoom, panoramica di tutto il cielo (CC BY 4.0).", url: "https://www.eso.org/public/images/eso0932a/" },
+      { cite: "Stack: Three.js, React Three Fiber, @react-three/drei, @react-three/postprocessing, KaTeX. Sviluppo: Fosforonero, Matteo Pizzi (Roma)." },
     ],
     backToLab: "← Torna al Lab",
     openSim: "Apri la simulazione →",
@@ -415,7 +415,7 @@ const COPY: Record<Locale, Copy> = {
           "How trustworthy is the integration? The «Orbits» demo shows, live, the drift of the orbit's energy invariant C (the first integral of the equation, tied to E): with the 6th-order Yoshida symplectic step it stays around 10⁻¹³ and oscillating rather than growing: the numerical proof that energy is not leaking and that bound orbits stay bound. (Leapfrog/Yoshida needs a separable Hamiltonian like this one; for the lensing, whose Hamiltonian is non-separable, we use RK4 instead.)",
         ],
         eqs: [
-          { label: "Kerr null geodesic — integrated Hamiltonian flow", tex: "\\dot x^{i} = \\frac{\\partial H}{\\partial p_i}, \\quad \\dot p_i = -\\frac{\\partial H}{\\partial x^{i}}, \\qquad H = \\tfrac{1}{2}\\,g^{\\mu\\nu}p_\\mu p_\\nu = \\tfrac{1}{2}\\,\\mathcal H_q" },
+          { label: "Kerr null geodesic, integrated Hamiltonian flow", tex: "\\dot x^{i} = \\frac{\\partial H}{\\partial p_i}, \\quad \\dot p_i = -\\frac{\\partial H}{\\partial x^{i}}, \\qquad H = \\tfrac{1}{2}\\,g^{\\mu\\nu}p_\\mu p_\\nu = \\tfrac{1}{2}\\,\\mathcal H_q" },
           { label: "4th-order Runge–Kutta step (High quality)", tex: "y_{n+1} = y_{n} + \\tfrac{h}{6}\\left(k_1 + 2k_2 + 2k_3 + k_4\\right), \\quad y=(x^{i},p_i)" },
           { label: "Stability-limited step (near the horizon)", tex: "h \\le \\min\\!\\left(h_{\\max},\\; C\\,(r-r_s)\\right)" },
           { label: "Softened circular speed (moons, softening ε)", tex: "v_{\\mathrm{circ}}^{2} = \\frac{G M_p\\, r^{2}}{(r^{2}+\\varepsilon^{2})^{3/2}}" },
@@ -467,7 +467,7 @@ const COPY: Record<Locale, Copy> = {
     ],
     openHeading: "Open solutions: what we can (and cannot) integrate",
     open: [
-      "Excellent open-source relativistic ray-tracing codes exist — GYOTO (Observatoire de Paris), RAPTOR, ipole, grtrans, Blacklight — and an open implementation of Luminet's method. But they are offline codes (C/C++/Python) computing single frames in minutes/hours: they cannot run in real time inside a WebGL fragment shader in the browser.",
+      "Excellent open-source relativistic ray-tracing codes exist, GYOTO (Observatoire de Paris), RAPTOR, ipole, grtrans, Blacklight, and an open implementation of Luminet's method. But they are offline codes (C/C++/Python) computing single frames in minutes/hours: they cannot run in real time inside a WebGL fragment shader in the browser.",
       "What we genuinely integrate are their physical–mathematical formulations: the Schwarzschild geodesic, the Novikov–Thorne disk, the g factor and the Iᵥ/ν³ invariant, the blackbody color. Our shader reimplements them in GLSL and cites them; it does not embed the external code. Stating this is part of the \"fail loud, never fake\" rule.",
     ],
     faqHeading: "Frequently asked questions",
@@ -478,7 +478,7 @@ const COPY: Record<Locale, Copy> = {
       },
       {
         q: "What is the difference between the «Orbits» demo and the «Playground»?",
-        a: "The «Orbits» demo integrates the exact Schwarzschild timelike geodesic for a single body (exact precession and ISCO). The playground uses the Paczyński–Wiita pseudo-Newtonian potential, which reproduces the strong-field effects (ISCO, plunge) but allows mutual N-body gravity — an exactness/interactivity trade-off.",
+        a: "The «Orbits» demo integrates the exact Schwarzschild timelike geodesic for a single body (exact precession and ISCO). The playground uses the Paczyński–Wiita pseudo-Newtonian potential, which reproduces the strong-field effects (ISCO, plunge) but allows mutual N-body gravity, an exactness/interactivity trade-off.",
       },
       {
         q: "Can I integrate GYOTO or a full GR code?",
@@ -487,7 +487,7 @@ const COPY: Record<Locale, Copy> = {
     ],
     refsHeading: "References & sources",
     refs: [
-      { cite: "S. M. Carroll, “Lecture Notes on General Relativity” — Schwarzschild geodesics (Caltech).", url: "https://ned.ipac.caltech.edu/level5/March01/Carroll3/Carroll7.html" },
+      { cite: "S. M. Carroll, “Lecture Notes on General Relativity”, Schwarzschild geodesics (Caltech).", url: "https://ned.ipac.caltech.edu/level5/March01/Carroll3/Carroll7.html" },
       { cite: "K. Kokkotas, “Particle Trajectories & The Classical Tests”, General Relativity, Universität Tübingen.", url: "https://www.tat.physik.uni-tuebingen.de/~kokkotas/Teaching/GTR_files/GTR2018_3b.pdf" },
       { cite: "C. Hirata, “Geodesics in the Schwarzschild geometry”, ph6820, The Ohio State University.", url: "https://hirata10.github.io/ph6820/lec17_bh_trajectories.pdf" },
       { cite: "J.-P. Luminet (1979), “Image of a spherical black hole with thin accretion disk”, Astronomy & Astrophysics 75, 228.", url: "https://ui.adsabs.harvard.edu/abs/1979A%26A....75..228L/abstract" },
@@ -500,16 +500,16 @@ const COPY: Record<Locale, Copy> = {
       { cite: "M. J. Rees (1988), “Tidal disruption of stars by black holes…”, Nature 333, 523.", url: "https://ui.adsabs.harvard.edu/abs/1988Natur.333..523R/abstract" },
       { cite: "P. C. Peters (1964), “Gravitational radiation and the motion of two point masses”, Physical Review 136, B1224.", url: "https://journals.aps.org/pr/abstract/10.1103/PhysRev.136.B1224" },
       { cite: "J. M. Bardeen (1973), “Timelike and null geodesics in the Kerr metric”, in Black Holes (Les Houches)." },
-      { cite: "H. Yoshida (1990), “Construction of higher order symplectic integrators”, Physics Letters A 150, 262 — the 6th-order symplectic integrator in the Orbits demo.", url: "https://doi.org/10.1016/0375-9601(90)90092-3" },
-      { cite: "M. Tao (2016), “Explicit symplectic approximation of nonseparable Hamiltonians”, Physical Review E 94, 043303 — the method behind the Ultra mode (6th-order symplectic Yoshida for the lensing).", url: "https://arxiv.org/abs/1609.02212" },
-      { cite: "L. Flamm (1916), “Beiträge zur Einsteinschen Gravitationstheorie”, Physikalische Zeitschrift 17, 448 — the paraboloid." },
+      { cite: "H. Yoshida (1990), “Construction of higher order symplectic integrators”, Physics Letters A 150, 262, the 6th-order symplectic integrator in the Orbits demo.", url: "https://doi.org/10.1016/0375-9601(90)90092-3" },
+      { cite: "M. Tao (2016), “Explicit symplectic approximation of nonseparable Hamiltonians”, Physical Review E 94, 043303, the method behind the Ultra mode (6th-order symplectic Yoshida for the lensing).", url: "https://arxiv.org/abs/1609.02212" },
+      { cite: "L. Flamm (1916), “Beiträge zur Einsteinschen Gravitationstheorie”, Physikalische Zeitschrift 17, 448, the paraboloid." },
       { cite: "O. James, E. von Tunzelmann, P. Franklin & K. S. Thorne (2015), “Gravitational lensing by spinning black holes… Interstellar”, Classical and Quantum Gravity 32, 065001.", url: "https://iopscience.iop.org/article/10.1088/0264-9381/32/6/065001" },
       { cite: "F. H. Vincent et al. (2011), “GYOTO: a new general relativistic ray-tracing code”, Classical and Quantum Gravity 28, 225011.", url: "https://arxiv.org/abs/1109.4769" },
       { cite: "C. W. Misner, K. S. Thorne & J. A. Wheeler, “Gravitation” (1973); J. B. Hartle, “Gravity” (2003)." },
       { cite: "Blackbody color → sRGB: N. Bartlett's Planckian-locus approximation (data by M. Charity)." },
-      { cite: "Real sky: NASA/Goddard SVS, “Deep Star Maps 2020” — an all-sky equirectangular map from the Gaia/Tycho catalogs (public domain).", url: "https://svs.gsfc.nasa.gov/4851" },
-      { cite: "Real sky (alternative): ESO/S. Brunier, GigaGalaxy Zoom — an all-sky panorama (CC BY 4.0).", url: "https://www.eso.org/public/images/eso0932a/" },
-      { cite: "Stack: Three.js, React Three Fiber, @react-three/drei, @react-three/postprocessing, KaTeX. Development: Fosforonero — Matteo Pizzi (Rome, Italy)." },
+      { cite: "Real sky: NASA/Goddard SVS, “Deep Star Maps 2020”, an all-sky equirectangular map from the Gaia/Tycho catalogs (public domain).", url: "https://svs.gsfc.nasa.gov/4851" },
+      { cite: "Real sky (alternative): ESO/S. Brunier, GigaGalaxy Zoom, an all-sky panorama (CC BY 4.0).", url: "https://www.eso.org/public/images/eso0932a/" },
+      { cite: "Stack: Three.js, React Three Fiber, @react-three/drei, @react-three/postprocessing, KaTeX. Development: Fosforonero, Matteo Pizzi (Rome, Italy)." },
     ],
     backToLab: "← Back to Lab",
     openSim: "Open the simulation →",
