@@ -9,7 +9,11 @@ import {
   blackHoleVertexShader,
   blackHoleFragmentShader,
   QUALITY_PRESETS,
+  detectGpu,
+  autoQuality,
   type BlackHoleQuality,
+  type QualityChoice,
+  type GpuInfo,
 } from "./black-hole/black-hole-shader";
 import { BlackHoleGrid } from "./black-hole-grid";
 import { DitherEffect } from "./black-hole/dither-effect";
@@ -19,7 +23,7 @@ import { DitherEffect } from "./black-hole/dither-effect";
 // ---------------------------------------------------------------------------
 
 export type BlackHoleSceneProps = {
-  quality: BlackHoleQuality;
+  quality: QualityChoice;
   diskOn: boolean;
   dopplerOn: boolean;
   spin: number; // 0..1 — approximate frame dragging
@@ -33,6 +37,7 @@ export type BlackHoleSceneProps = {
   pureBlack?: boolean; // "Pure black" preset: sky off, saturated-orange disk (NASA look)
   skyUrl?: string;     // equirectangular real-sky photo (default: NASA Deep Star Maps 8k)
   volDisk?: boolean;   // volumetric 3D disk (radiative transfer through an analytic plasma)
+  onGpu?: (g: GpuInfo) => void; // report the detected GPU (for the UI to show)
 };
 
 // Default real-sky photo: NASA/Goddard SVS "Deep Star Maps 2020" (public domain),
@@ -63,12 +68,23 @@ function fitNasaUrl(requested: string, maxTex: number): string {
 export function BlackHoleQuad({
   quality, diskOn, dopplerOn, spin, jetsOn,
   diskTemp = 10500, diskBright = 24, diskOuter = 16, starless = false, pureBlack = false,
-  skyUrl = DEFAULT_SKY_URL, volDisk = false,
-}: BlackHoleSceneProps) {
+  skyUrl = DEFAULT_SKY_URL, volDisk = false, autoBase = "high",
+}: BlackHoleSceneProps & { autoBase?: BlackHoleQuality }) {
   const matRef = useRef<THREE.ShaderMaterial>(null);
   const camBasis = useRef(new THREE.Matrix3());
   const skyReady = useRef(false);
   const glCaps = useThree((s) => s.gl.capabilities);
+  // FPS governor (Auto mode): a smooth 0.5..1 multiplier on the step count, so a
+  // weak GPU (or a masked renderer string) self-throttles without touching the
+  // resolution (no canvas realloc). Resolution/integrator/volumetric come from the
+  // detected tier below.
+  const fpsEma = useRef(60);
+  const sinceCheck = useRef(0);
+  const stepScale = useRef(1);
+  // Effective concrete preset: "auto" → the GPU-detected tier; manual passes
+  // through. In auto the volumetric disk follows the top tier.
+  const effTier: BlackHoleQuality = quality === "auto" ? autoBase : quality;
+  const effVol = quality === "auto" ? effTier === "ultra" : volDisk;
   // 1×1 black placeholder so the sampler is always bound (some drivers warn on an
   // unbound sampler even when the branch using it is disabled).
   const placeholder = useMemo(() => {
@@ -122,7 +138,7 @@ export function BlackHoleQuad({
       uTanFov: { value: 0.5 },
       uAspect: { value: 1 },
       uTime: { value: 0 },
-      uSteps: { value: QUALITY_PRESETS[quality].steps },
+      uSteps: { value: QUALITY_PRESETS[effTier].steps },
       uDiskInner: { value: 3.0 }, // ISCO for a non-rotating (Schwarzschild) BH
       uDiskOuter: { value: diskOuter },
       uDiskOn: { value: diskOn ? 1 : 0 },
@@ -133,8 +149,8 @@ export function BlackHoleQuad({
       uJets: { value: jetsOn ? 1 : 0 },
       uJetStr: { value: 0.7 },
       uExposure: { value: 1.15 },
-      uHighOrder: { value: QUALITY_PRESETS[quality].rk4 ? 1 : 0 },
-      uUltra: { value: QUALITY_PRESETS[quality].tao ? 1 : 0 },
+      uHighOrder: { value: QUALITY_PRESETS[effTier].rk4 ? 1 : 0 },
+      uUltra: { value: QUALITY_PRESETS[effTier].tao ? 1 : 0 },
       uStyle: { value: starless ? 1 : 0 },
       uPureBlack: { value: pureBlack ? 1 : 0 },
       uSkyTex: { value: placeholder },
@@ -149,7 +165,7 @@ export function BlackHoleQuad({
     []
   );
 
-  useFrame(({ camera, size, clock }) => {
+  useFrame(({ camera, size, clock }, delta) => {
     // Mutate via the live material instance (not the memoised object) so the
     // React compiler immutability rule is satisfied.
     const mat = matRef.current;
@@ -163,16 +179,31 @@ export function BlackHoleQuad({
     u.uAspect.value = size.width / Math.max(1, size.height);
     const fov = (camera as THREE.PerspectiveCamera).fov ?? 50;
     u.uTanFov.value = Math.tan((fov * Math.PI) / 360);
-    // Live toggles / quality.
-    u.uSteps.value = QUALITY_PRESETS[quality].steps;
-    u.uHighOrder.value = QUALITY_PRESETS[quality].rk4 ? 1 : 0;
-    u.uUltra.value = QUALITY_PRESETS[quality].tao ? 1 : 0;
+    // Live toggles / quality. In Auto, an FPS governor scales the step count to
+    // hold a smooth frame rate (cheap — no resolution change); manual quality is
+    // fixed.
+    if (quality === "auto") {
+      const fps = 1.0 / Math.max(delta, 1e-3);
+      fpsEma.current = fpsEma.current * 0.92 + fps * 0.08;
+      sinceCheck.current += delta;
+      if (sinceCheck.current > 1.0) {
+        sinceCheck.current = 0;
+        if (fpsEma.current < 38 && stepScale.current > 0.5) stepScale.current = Math.max(0.5, stepScale.current - 0.12);
+        else if (fpsEma.current > 56 && stepScale.current < 1.0) stepScale.current = Math.min(1.0, stepScale.current + 0.08);
+      }
+    } else {
+      stepScale.current = 1.0;
+    }
+    const preset = QUALITY_PRESETS[effTier];
+    u.uSteps.value = Math.max(60, Math.round(preset.steps * stepScale.current));
+    u.uHighOrder.value = preset.rk4 ? 1 : 0;
+    u.uUltra.value = preset.tao ? 1 : 0;
     u.uStyle.value = starless ? 1 : 0;
     u.uPureBlack.value = pureBlack ? 1 : 0;
     // Real photo when the toggle is on AND the texture has loaded; otherwise the
     // procedural starless sky (uStyle) shows as the fallback.
     u.uSkyOn.value = starless && skyReady.current ? 1 : 0;
-    u.uVolDisk.value = volDisk ? 1 : 0;
+    u.uVolDisk.value = effVol ? 1 : 0;
     u.uExposure.value = starless ? 1.12 : 1.15; // keep brightness ~constant so the toggle is instant, not a fade
     u.uDiskOn.value = diskOn ? 1 : 0;
     u.uDoppler.value = dopplerOn ? 1 : 0;
@@ -189,7 +220,7 @@ export function BlackHoleQuad({
   useEffect(() => {
     const mat = matRef.current;
     if (!mat) return;
-    const want = QUALITY_PRESETS[quality].tao;
+    const want = QUALITY_PRESETS[effTier].tao;
     const defs = (mat.defines ?? {}) as Record<string, string>;
     const has = defs.BH_ULTRA !== undefined;
     if (want !== has) {
@@ -198,7 +229,7 @@ export function BlackHoleQuad({
       mat.defines = defs;
       mat.needsUpdate = true; // force GLSL recompile of the correct variant
     }
-  }, [quality]);
+  }, [effTier]);
 
   // The volumetric disk is likewise compiled into a SEPARATE variant
   // (#define BH_VOLDISK), so the default/mobile shader never carries the heavier
@@ -208,13 +239,13 @@ export function BlackHoleQuad({
     if (!mat) return;
     const defs = (mat.defines ?? {}) as Record<string, string>;
     const has = defs.BH_VOLDISK !== undefined;
-    if (volDisk !== has) {
-      if (volDisk) defs.BH_VOLDISK = "";
+    if (effVol !== has) {
+      if (effVol) defs.BH_VOLDISK = "";
       else delete defs.BH_VOLDISK;
       mat.defines = defs;
       mat.needsUpdate = true;
     }
-  }, [volDisk]);
+  }, [effVol]);
 
   return (
     <mesh frustumCulled={false} renderOrder={-1}>
@@ -251,8 +282,19 @@ export default function BlackHoleScene({
   pureBlack = false,
   skyUrl,
   volDisk = false,
+  onGpu,
 }: BlackHoleSceneProps) {
-  const dprCap = QUALITY_PRESETS[quality].dprCap;
+  // Detect the GPU once (before the Canvas mounts) so "Auto" can pick the initial
+  // resolution/integrator/volumetric profile; the FPS governor refines it after.
+  const gpu = useMemo(() => detectGpu(), []);
+  const isMobile = useMemo(
+    () => typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches === true,
+    [],
+  );
+  const autoBase = autoQuality(gpu.tier, isMobile);
+  useEffect(() => { onGpu?.(gpu); }, [gpu, onGpu]);
+  const resolved: BlackHoleQuality = quality === "auto" ? autoBase : quality;
+  const dprCap = QUALITY_PRESETS[resolved].dprCap;
 
   return (
     <Canvas
@@ -262,7 +304,7 @@ export default function BlackHoleScene({
       style={{ background: "#000003" }}
     >
       <BlackHoleQuad
-        quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn}
+        quality={quality} autoBase={autoBase} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn}
         diskTemp={diskTemp} diskBright={diskBright} diskOuter={diskOuter} starless={starless} pureBlack={pureBlack} skyUrl={skyUrl} volDisk={volDisk}
       />
       <BlackHoleGrid visible={gridOn} spin={spin} />

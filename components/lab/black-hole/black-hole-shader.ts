@@ -682,6 +682,9 @@ void main() {
 // ---------------------------------------------------------------------------
 
 export type BlackHoleQuality = "ultra" | "high" | "medium" | "low";
+// The UI also offers "Auto", which is resolved to one of the concrete presets at
+// runtime from the detected GPU and then adapted to the measured frame rate.
+export type QualityChoice = BlackHoleQuality | "auto";
 
 export const QUALITY_PRESETS: Record<
   BlackHoleQuality,
@@ -689,10 +692,52 @@ export const QUALITY_PRESETS: Record<
 > = {
   // "ultra" → 6th-order Yoshida SYMPLECTIC step (Tao), compiled into a SEPARATE
   // shader variant (#define BH_ULTRA) used only when selected, so it never
-  // bloats the default/mobile shader. Desktop/laptop-oriented (heaviest).
-  // "high" → 4th-order RK4. medium/low → cheap symplectic Euler.
-  ultra:  { steps: 260, dprCap: 1.4, rk4: false, tao: true },
+  // bloats the default/mobile shader. Desktop/high-end-GPU target (heaviest):
+  // many steps + 2× supersampling.
+  // "high" → 4th-order RK4 + 2× supersampling. medium/low → cheap symplectic Euler.
+  ultra:  { steps: 300, dprCap: 2.0, rk4: false, tao: true },
   high:   { steps: 320, dprCap: 2.0, rk4: true,  tao: false },
   medium: { steps: 240, dprCap: 1.4, rk4: false, tao: false },
   low:    { steps: 140, dprCap: 1.1, rk4: false, tao: false },
 };
+
+// ---------------------------------------------------------------------------
+// GPU detection + "Auto" quality
+// ---------------------------------------------------------------------------
+// WebGL has no vendor-specific code paths (one GLSL for every GPU); "optimizing
+// for NVIDIA/Radeon/Apple-Silicon" means detecting the GPU and dialing quality
+// (steps, supersampling, integrator, volumetric disk) up on strong desktop GPUs
+// and down on weak/integrated/mobile ones — backed by an FPS governor for when
+// the renderer string is masked (some browsers hide it for privacy).
+
+export type GpuTier = "high" | "mid" | "low";
+export type GpuInfo = { tier: GpuTier; renderer: string };
+
+export function detectGpu(): GpuInfo {
+  if (typeof document === "undefined") return { tier: "mid", renderer: "" };
+  try {
+    const c = document.createElement("canvas");
+    const gl = (c.getContext("webgl2") || c.getContext("webgl")) as WebGLRenderingContext | null;
+    if (!gl) return { tier: "low", renderer: "" };
+    const ext = gl.getExtension("WEBGL_debug_renderer_info");
+    const renderer = ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : "";
+    const s = renderer.toLowerCase();
+    let tier: GpuTier = "mid";
+    if (/swiftshader|llvmpipe|software|basic render/.test(s)) tier = "low";
+    else if (/mali|adreno|powervr|apple gpu/.test(s)) tier = "low"; // mobile GPUs
+    else if (/apple m\d|geforce|nvidia|rtx|gtx|radeon rx|radeon pro|radeon vii|quadro|tesla|\brx \d/.test(s)) tier = "high";
+    else if (/intel|iris|uhd|hd graphics|\barc\b/.test(s)) tier = "mid";
+    return { tier, renderer };
+  } catch {
+    return { tier: "mid", renderer: "" };
+  }
+}
+
+// Map the detected GPU tier + form factor to a concrete preset.
+export function autoQuality(tier: GpuTier, isMobile: boolean): BlackHoleQuality {
+  if (isMobile) return tier === "low" ? "low" : "medium";
+  if (tier === "high") return "ultra"; // NVIDIA/Radeon/Apple-Silicon desktop
+  if (tier === "mid") return "high";   // Intel/Iris/Arc and the like
+  return "medium";
+}
+

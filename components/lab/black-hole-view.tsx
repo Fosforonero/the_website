@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import type { BlackHoleQuality } from "./black-hole/black-hole-shader";
+import type { QualityChoice, GpuInfo } from "./black-hole/black-hole-shader";
 import { bhFacts, diskColorTempForMass } from "./black-hole/physics";
 
 // WebGL Canvas must never run on the server.
@@ -60,7 +60,7 @@ const COPY = {
   it: {
     title: "Buco Nero · Lensing Schwarzschild",
     quality: "Qualità",
-    qualities: { ultra: "Ultra ✦", high: "Alta", medium: "Media", low: "Bassa" },
+    qualities: { auto: "Auto", ultra: "Ultra ✦", high: "Alta", medium: "Media", low: "Bassa" },
     disk: "Disco di accrescimento",
     doppler: "Doppler relativistico",
     jets: "Getti relativistici",
@@ -102,7 +102,7 @@ const COPY = {
   en: {
     title: "Black Hole · Schwarzschild Lensing",
     quality: "Quality",
-    qualities: { ultra: "Ultra ✦", high: "High", medium: "Medium", low: "Low" },
+    qualities: { auto: "Auto", ultra: "Ultra ✦", high: "High", medium: "Medium", low: "Low" },
     disk: "Accretion disk",
     doppler: "Relativistic Doppler",
     jets: "Relativistic jets",
@@ -145,7 +145,8 @@ const COPY = {
 
 export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
   const t = COPY[locale];
-  const [quality, setQuality] = useState<BlackHoleQuality>("medium");
+  const [quality, setQuality] = useState<QualityChoice>("auto");
+  const [gpu, setGpu] = useState<GpuInfo | null>(null);
   const [diskOn, setDiskOn] = useState(true);
   const [dopplerOn, setDopplerOn] = useState(true);
   const [jetsOn, setJetsOn] = useState(false);
@@ -215,9 +216,9 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
           <span>{t.quality}</span>
           <select
             value={quality}
-            onChange={(e) => setQuality(e.target.value as BlackHoleQuality)}
+            onChange={(e) => setQuality(e.target.value as QualityChoice)}
           >
-            {(["ultra", "high", "medium", "low"] as BlackHoleQuality[]).map((q) => (
+            {(["auto", "ultra", "high", "medium", "low"] as QualityChoice[]).map((q) => (
               <option key={q} value={q}>
                 {t.qualities[q]}
               </option>
@@ -370,7 +371,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
       </div>
 
       <div className={`bh-canvas-wrap${ehtOn ? " bh-eht" : ""}`}>
-        <BlackHoleScene quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn} gridOn={gridOn} diskTemp={effTemp} diskBright={diskBright} diskOuter={diskOuter} eht={ehtOn} starless={starlessOn} pureBlack={pureBlackOn} skyUrl={SKY_SOURCES[skySource]} volDisk={volDiskOn} />
+        <BlackHoleScene quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn} gridOn={gridOn} diskTemp={effTemp} diskBright={diskBright} diskOuter={diskOuter} eht={ehtOn} starless={starlessOn} pureBlack={pureBlackOn} skyUrl={SKY_SOURCES[skySource]} volDisk={volDiskOn} onGpu={setGpu} />
         <p className="bh-hint">{t.hint}</p>
 
         {controlsOpen && (
@@ -381,12 +382,17 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
             </div>
             <label>
               <span>{t.quality}</span>
-              <select value={quality} onChange={(e) => setQuality(e.target.value as BlackHoleQuality)}>
-                {(["ultra", "high", "medium", "low"] as BlackHoleQuality[]).map((q) => (
+              <select value={quality} onChange={(e) => setQuality(e.target.value as QualityChoice)}>
+                {(["auto", "ultra", "high", "medium", "low"] as QualityChoice[]).map((q) => (
                   <option key={q} value={q}>{t.qualities[q]}</option>
                 ))}
               </select>
             </label>
+            {gpu && (
+              <div style={{ fontSize: "0.66rem", color: "#6f86b5", lineHeight: 1.4, marginTop: -4, wordBreak: "break-word" }}>
+                GPU: {gpu.renderer || "—"} · {locale === "it" ? "profilo" : "profile"} {gpu.tier}
+              </div>
+            )}
             <label>
               <span>{t.temp}</span>
               <input type="range" min={3000} max={20000} step={250} value={diskTemp}
