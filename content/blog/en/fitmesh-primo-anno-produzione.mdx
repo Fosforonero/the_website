@@ -9,7 +9,7 @@ FitMesh has been live for just over a year. Here's what I learned.
 
 ## What held up
 
-**The Postgres schema.** I spent one extra hour thinking it through, rather than shipping the first schema that worked — and it paid me back a hundred times over. The analytics queries and the export jobs still run today without any restructuring.
+**The Postgres schema.** I spent one extra hour thinking it through, rather than shipping the first schema that worked, and it paid me back a hundred times over. The analytics queries and the export jobs still run today without any restructuring.
 
 **The client/server separation.** The wearable talks only to the phone. The phone talks only to the backend. The backend talks only to the database. No shortcuts, no extra APIs. Every time I added a feature, I knew exactly where it belonged.
 
@@ -24,9 +24,9 @@ FitMesh has been live for just over a year. Here's what I learned.
 ## What I'd change today
 
 - I would adopt `androidx.health.connect.client` as an extra layer from day one
-- I would ship the trend charts in v1 — users have been asking for them since week one
+- I would ship the trend charts in v1: users have been asking for them since week one
 - I would invest earlier in onboarding: 40% of users drop off during the permissions setup
-- I wouldn't use Supabase Storage for avatars — overkill. A simple URL + S3 would be cheaper
+- I wouldn't use Supabase Storage for avatars, overkill. A simple URL + S3 would be cheaper
 
 ## Numbers, for context
 
