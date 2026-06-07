@@ -1,18 +1,18 @@
 ---
 title: "Our black hole vs Gargantua: same physics, render farm vs 16 milliseconds"
-excerpt: "Interstellar ray-traced the real Kerr metric offline, hours per frame, on a render farm. I run the same physics in real time in the browser. What's identical, what changes and why — with the equations: Kerr geodesics, g⁴ Doppler beaming, thin-disk flux, the photon ring, and where a phone must yield to a render farm (and where it doesn't)."
+excerpt: "Interstellar ray-traced the real Kerr metric offline, hours per frame, on a render farm. I run the same physics in real time in the browser. What's identical, what changes and why, with the equations: Kerr geodesics, g⁴ Doppler beaming, thin-disk flux, the photon ring, and where a phone must yield to a render farm (and where it doesn't)."
 date: "2026-06-06"
 tag: "Dev"
 draft: false
 ---
 
-There's a question I get a lot when I show the [black hole simulator](/en/lab/black-hole): "is it like the one in Interstellar?" The honest answer is: _the physics is the same, the rest isn't_ — and it's in the "rest" that all the interesting engineering lives. This article puts the two side by side, line by line, no cheating.
+There's a question I get a lot when I show the [black hole simulator](/en/lab/black-hole): "is it like the one in Interstellar?" The honest answer is: _the physics is the same, the rest isn't_, and it's in the "rest" that all the interesting engineering lives. This article puts the two side by side, line by line, no cheating.
 
 Gargantua, the film's black hole (2014), was computed by Double Negative with a dedicated engine, DNGR (Double Negative Gravitational Renderer), described in a genuine scientific paper (James, von Tunzelmann, Franklin & Thorne, 2015). It isn't graphics "by feel": it's integrated general relativity. The same is true of my renderer. The difference is not _what_ you compute, but _how much time_ you're allowed to take.
 
 ## What's identical: the metric and the geodesics
 
-Both start from the same geometry — the Kerr metric, the spacetime of a rotating black hole. I use it in Cartesian Kerr–Schild form:
+Both start from the same geometry, the Kerr metric, the spacetime of a rotating black hole. I use it in Cartesian Kerr–Schild form:
 
 <Math tex="g_{\mu\nu} = \eta_{\mu\nu} + f\,k_\mu k_\nu, \qquad f = \frac{2 M r^{3}}{r^{4} + a^{2} z^{2}}" />
 
@@ -20,7 +20,7 @@ where <Mi tex="\eta" /> is flat spacetime, <Mi tex="k" /> a null vector and <Mi 
 
 <Math tex="H = \tfrac{1}{2}\,g^{\mu\nu} p_\mu p_\nu = 0" />
 
-For each pixel I shoot a ray from the camera and integrate this equation backwards through curved spacetime. DNGR does exactly the same: ray-tracing the _exact_ Kerr null geodesics. From this — not from a drawing — emerge the shadow, the bent light, the disk arcs passing above and below the hole. The edge of the shadow falls in precisely the same place for both:
+For each pixel I shoot a ray from the camera and integrate this equation backwards through curved spacetime. DNGR does exactly the same: ray-tracing the _exact_ Kerr null geodesics. From this, not from a drawing, emerge the shadow, the bent light, the disk arcs passing above and below the hole. The edge of the shadow falls in precisely the same place for both:
 
 <Math tex="b_c = 3\sqrt{3}\,M \approx 2.6\,r_s \quad (\text{Schwarzschild})" />
 
@@ -32,7 +32,7 @@ Here a chasm opens. DNGR ran **offline**, on a render farm: up to **hours per fr
 
 That gap doesn't change _which_ equations you solve, but _how much care_ you can put in. Three concrete consequences:
 
-- **Ray bundles vs one ray per pixel.** DNGR didn't trace a ray but whole _bundles_ of rays, propagating their cross-section. That let it accurately filter and anti-alias the razor-thin features — the thread of the photon ring, the disk edges. I have one ray per pixel; in their place I use supersampling, noise band-limiting and dithering. My edges are a touch more "alive", theirs surgical.
+- **Ray bundles vs one ray per pixel.** DNGR didn't trace a ray but whole _bundles_ of rays, propagating their cross-section. That let it accurately filter and anti-alias the razor-thin features: the thread of the photon ring, the disk edges. I have one ray per pixel; in their place I use supersampling, noise band-limiting and dithering. My edges are a touch more "alive", theirs surgical.
 - **Aggressive adaptive stepping.** To stay within 16 ms I refine steps only where curvature matters (near the photon sphere) and advance in a straight line through empty space. They could afford to be generous everywhere.
 - **No second pass.** They refined offline; I have to nail everything in a single shading pass.
 
@@ -42,17 +42,17 @@ This is my favourite, because it's a case where the film cheated _on purpose_ an
 
 <Math tex="I_{\rm obs} = g^{4}\,I_{\rm em}, \qquad g = \frac{\nu_{\rm obs}}{\nu_{\rm em}}" />
 
-A little is enough for one side to turn blinding and the other to dim. In _Interstellar_ the disk is instead almost **symmetric**: Christopher Nolan and Kip Thorne chose to **suppress** the asymmetry, because such a lopsided image would confuse the audience. A legitimate narrative choice. I do the opposite: there's a switch to **turn on the real Doppler asymmetry** and watch the disk lopside the way the physics demands. The goal here is educational, not cinematic — so I show what the film hid.
+A little is enough for one side to turn blinding and the other to dim. In _Interstellar_ the disk is instead almost **symmetric**: Christopher Nolan and Kip Thorne chose to **suppress** the asymmetry, because such a lopsided image would confuse the audience. A legitimate narrative choice. I do the opposite: there's a switch to **turn on the real Doppler asymmetry** and watch the disk lopside the way the physics demands. The goal here is educational, not cinematic, so I show what the film hid.
 
 ## The disk: two different models, neither is GRMHD
 
-Here's a point few people know: **neither disk is a simulation of the plasma**. A full solution — general-relativistic magnetohydrodynamics (GRMHD), with the magnetic fields, the magnetorotational turbulence and synchrotron — costs minutes to hours per frame on a supercomputer. Neither the film nor I can afford it in those settings.
+Here's a point few people know: **neither disk is a simulation of the plasma**. A full solution, general-relativistic magnetohydrodynamics (GRMHD) with the magnetic fields, the magnetorotational turbulence and synchrotron, costs minutes to hours per frame on a supercomputer. Neither the film nor I can afford it in those settings.
 
 Their disk was a bespoke **artistic-volumetric** model built by hand by the artists (textures, thickness, swirls). Mine is an optically-thick surface with **real blackbody emission** and a relativistic thin-disk flux profile (Shakura–Sunyaev):
 
 <Math tex="F(r) \propto \left(\frac{r_{\rm in}}{r}\right)^{3}\left(1 - \sqrt{\frac{r_{\rm in}}{r}}\,\right)" />
 
-with the inner edge <Mi tex="r_{\rm in}" /> pinned to the Kerr ISCO. From that flux I get each ring's temperature and hence its **true Planckian colour** — no arbitrary palettes. They are two models of the gas, both honest about what they are not. I recently added a volumetric veil too, to give my thin disk a hint of the "soft" halo that, in the film, comes from real volume.
+with the inner edge <Mi tex="r_{\rm in}" /> pinned to the Kerr ISCO. From that flux I get each ring's temperature and hence its **true Planckian colour**, no arbitrary palettes. They are two models of the gas, both honest about what they are not. I recently added a volumetric veil too, to give my thin disk a hint of the "soft" halo that, in the film, comes from real volume.
 
 ## The photon ring: neither of us draws it
 
@@ -64,15 +64,15 @@ Each successive ring is ~23 times thinner and fainter than the last. With ray bu
 
 ## The sky: real stars at last
 
-For a long time my background was a procedural starfield. Not anymore: the "Real sky" toggle projects a **genuine photograph of the whole sky** — NASA's "Deep Star Maps 2020" map, built from the real Gaia/Tycho star catalogs — onto the celestial sphere, and samples it with the **already-bent** ray direction. The trick is elegant: because the lensing is already inside the ray direction, the real Milky Way is **smeared and curved** around the shadow with no extra effort. It's the same idea by which a film puts real star plates behind the hole, only computed in real time, here and now.
+For a long time my background was a procedural starfield. Not anymore: the "Real sky" toggle projects a **genuine photograph of the whole sky**, NASA's "Deep Star Maps 2020" map, built from the real Gaia/Tycho star catalogs, onto the celestial sphere, and samples it with the **already-bent** ray direction. The trick is elegant: because the lensing is already inside the ray direction, the real Milky Way is **smeared and curved** around the shadow with no extra effort. It's the same idea by which a film puts real star plates behind the hole, only computed in real time, here and now.
 
 ## The spin: they're fixed on Gargantua, I have a slider
 
-Gargantua spins almost maximally, <Mi tex="a/M \approx 0.999" />, and not for aesthetics: it serves the plot. Extreme spin pulls the innermost stable orbit (ISCO) almost to the horizon —
+Gargantua spins almost maximally, <Mi tex="a/M \approx 0.999" />, and not for aesthetics: it serves the plot. Extreme spin pulls the innermost stable orbit (ISCO) almost to the horizon:
 
 <Math tex="r_{\rm ISCO}:\quad 6\,\frac{GM}{c^{2}}\ (a=0)\ \longrightarrow\ \frac{GM}{c^{2}}\ (a\to M)" />
 
-— and it's this that lets Miller's planet orbit so close and survive, with the famous time dilation
+And it's this that lets Miller's planet orbit so close and survive, with the famous time dilation
 
 <Math tex="\frac{\Delta t_{\rm far}}{\Delta\tau_{\rm planet}} \approx 6.1\times 10^{4}\quad (7\ \text{years} = 1\ \text{hour})" />
 
@@ -80,6 +80,6 @@ In the film the spin is nailed to that value. With me it's a **slider**: move it
 
 ## In one line
 
-Same Kerr metric, same null geodesics. Them: offline, photorealistic, with artistic licences in service of the story. Me: real time, interactive, with the real physics laid bare and **every approximation declared**. The gap isn't in the physics — it's all in the five orders of magnitude between a render farm and a phone's 16 milliseconds. And maybe the best part is exactly this: the same general relativity that needed a render farm for a film now runs in the browser in your pocket.
+Same Kerr metric, same null geodesics. Them: offline, photorealistic, with artistic licences in service of the story. Me: real time, interactive, with the real physics laid bare and **every approximation declared**. The gap isn't in the physics: it's all in the five orders of magnitude between a render farm and a phone's 16 milliseconds. And maybe the best part is exactly this: the same general relativity that needed a render farm for a film now runs in the browser in your pocket.
 
 [Open the simulation →](/en/lab/black-hole) · [The full equations →](/en/lab/black-hole/about) · ["Is Interstellar's black hole real?" →](/en/blog/buco-nero-interstellar-cosa-e-vero)
