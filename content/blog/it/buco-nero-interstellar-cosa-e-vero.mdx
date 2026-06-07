@@ -1,18 +1,18 @@
 ---
 title: "Il buco nero di Interstellar è reale? La fisica, le equazioni e cosa è cinema"
-excerpt: "Gargantua è stato calcolato con la vera metrica di Kerr, da un premio Nobel. Ma il film ha barato di proposito. Spin quasi estremo, ISCO che si stringe, la dilatazione del tempo da 1 ora = 7 anni, l'asimmetria Doppler soppressa — con le equazioni — e cosa puoi vedere tu nel simulatore."
+excerpt: "Gargantua è stato calcolato con la vera metrica di Kerr, da un premio Nobel. Ma il film ha barato di proposito. Spin quasi estremo, ISCO che si stringe, la dilatazione del tempo da 1 ora = 7 anni, l'asimmetria Doppler soppressa (con le equazioni) e cosa puoi vedere tu nel simulatore."
 date: "2026-06-06"
 tag: "Dev"
 draft: false
 ---
 
-Gargantua, il buco nero di _Interstellar_, è una delle immagini di fantascienza più discusse di sempre — anche perché dietro non c'è un grafico qualsiasi, ma un fisico premio Nobel. Quindi: è reale?
+Gargantua, il buco nero di _Interstellar_, è una delle immagini di fantascienza più discusse di sempre, anche perché dietro non c'è un grafico qualsiasi, ma un fisico premio Nobel. Quindi: è reale?
 
 Risposta breve: la **fisica** è reale, l'**immagine** ha qualche licenza poetica voluta. Vale la pena separarle, perché sono esattamente le scelte che ho dovuto affrontare anch'io costruendo il [simulatore di buco nero](/lab/buco-nero).
 
 ## Cosa è vero: la metrica di Kerr
 
-Kip Thorne scrisse le equazioni; lo studio di effetti Double Negative costruì un motore apposito, il DNGR, e ne uscì pure un [articolo scientifico](/lab/buco-nero/about) (James, von Tunzelmann, Franklin & Thorne, 2015). Hanno ray-tracciato le **geodetiche nulle esatte della metrica di Kerr** — la stessa identica fisica che giro in tempo reale nel browser. La luce piegata, l'ombra, l'anello luminoso sopra e sotto (il famoso «cappello») non sono disegnati: emergono dall'integrazione.
+Kip Thorne scrisse le equazioni; lo studio di effetti Double Negative costruì un motore apposito, il DNGR, e ne uscì pure un [articolo scientifico](/lab/buco-nero/about) (James, von Tunzelmann, Franklin & Thorne, 2015). Hanno ray-tracciato le **geodetiche nulle esatte della metrica di Kerr**, la stessa identica fisica che giro in tempo reale nel browser. La luce piegata, l'ombra, l'anello luminoso sopra e sotto (il famoso «cappello») non sono disegnati: emergono dall'integrazione.
 
 ## Lo spin quasi estremo, e perché conta
 
@@ -28,7 +28,7 @@ L'effetto centrale del film. Vicino a una grande massa il tempo scorre più lent
 
 <Math tex="\frac{\Delta t_{\rm lontano}}{\Delta\tau_{\rm pianeta}} = \frac{7\ \text{anni}}{1\ \text{ora}} \approx 6{,}1 \times 10^{4}" />
 
-Un fattore sessantamila richiede di stare a un soffio dall'orizzonte di un buco nero gigante e quasi estremo — di nuovo, è lo spin a renderlo possibile senza essere fatti a pezzi dalle maree. Nella demo [«Orbite»](/lab/buco-nero/orbite) vedi la velocità misurata e il redshift legati proprio a questo, e all'orizzonte un corpo che sembra «congelarsi».
+Un fattore sessantamila richiede di stare a un soffio dall'orizzonte di un buco nero gigante e quasi estremo: di nuovo, è lo spin a renderlo possibile senza essere fatti a pezzi dalle maree. Nella demo [«Orbite»](/lab/buco-nero/orbite) vedi la velocità misurata e il redshift legati proprio a questo, e all'orizzonte un corpo che sembra «congelarsi».
 
 ## Cosa è cinema (di proposito)
 
@@ -38,11 +38,11 @@ La chicca che pochi conoscono: nel film il disco è quasi **simmetrico** in lumi
 
 Basta poco: il lato del disco che ci viene incontro diventa accecante, quello che fugge si spegne. Nolan e Thorne scelsero di **attenuare** questa asimmetria, perché un'immagine così sbilanciata avrebbe confuso il pubblico. Una scelta narrativa, non un errore.
 
-E il disco stesso? Un modello artistico-volumetrico costruito dagli artisti, non una simulazione del plasma magnetizzato ([GRMHD](/lab/buco-nero/about)) — come il nostro: la magnetoidrodinamica completa costa ore di calcolo per fotogramma. Infine il DNGR girava **offline**, fino a ore per fotogramma a risoluzione IMAX, tracciando interi fasci di raggi per anti-aliasare i bordi sottili. Io ho un solo raggio per pixel e ~16 millisecondi.
+E il disco stesso? Un modello artistico-volumetrico costruito dagli artisti, non una simulazione del plasma magnetizzato ([GRMHD](/lab/buco-nero/about)), come il nostro: la magnetoidrodinamica completa costa ore di calcolo per fotogramma. Infine il DNGR girava **offline**, fino a ore per fotogramma a risoluzione IMAX, tracciando interi fasci di raggi per anti-aliasare i bordi sottili. Io ho un solo raggio per pixel e ~16 millisecondi.
 
 ## Cosa puoi vedere tu
 
-Nel [simulatore](/lab/buco-nero) puoi fare quello che il film non poteva: **accendere l'asimmetria Doppler vera** e vedere il disco sbilanciarsi davvero; **muovere lo slider dello spin** invece di restare fissi su Gargantua, e guardare l'ISCO e l'ombra cambiare; ruotare attorno al buco in tempo reale. Stessa metrica di Kerr, ma interattiva — e con ogni approssimazione dichiarata.
+Nel [simulatore](/lab/buco-nero) puoi fare quello che il film non poteva: **accendere l'asimmetria Doppler vera** e vedere il disco sbilanciarsi davvero; **muovere lo slider dello spin** invece di restare fissi su Gargantua, e guardare l'ISCO e l'ombra cambiare; ruotare attorno al buco in tempo reale. Stessa metrica di Kerr, ma interattiva, e con ogni approssimazione dichiarata.
 
 In una frase: _Interstellar_ è fisica vera al servizio di una storia; questo è la stessa fisica, messa a nudo e nelle tue mani.
 

@@ -1,22 +1,22 @@
 ---
 title: "Is Interstellar's black hole real? The physics, the equations, and what's cinema"
-excerpt: "Gargantua was computed with the real Kerr metric, by a Nobel laureate. But the film cheated on purpose. Near-extremal spin, a shrinking ISCO, the 1 hour = 7 years time dilation, the suppressed Doppler asymmetry — with the equations — and what you can see for yourself in the simulator."
+excerpt: "Gargantua was computed with the real Kerr metric, by a Nobel laureate. But the film cheated on purpose. Near-extremal spin, a shrinking ISCO, the 1 hour = 7 years time dilation, the suppressed Doppler asymmetry (with the equations) and what you can see for yourself in the simulator."
 date: "2026-06-06"
 tag: "Dev"
 draft: false
 ---
 
-Gargantua, the black hole in _Interstellar_, is one of the most talked-about sci-fi images ever — partly because behind it there isn't just an artist, but a Nobel-laureate physicist. So: is it real?
+Gargantua, the black hole in _Interstellar_, is one of the most talked-about sci-fi images ever, partly because behind it there isn't just an artist, but a Nobel-laureate physicist. So: is it real?
 
 Short answer: the **physics** is real, the **image** takes a few deliberate liberties. Worth separating them, because they are exactly the choices I had to face building the [black hole simulator](/en/lab/black-hole).
 
 ## What's true: the Kerr metric
 
-Kip Thorne wrote the equations; the VFX house Double Negative built a dedicated engine, DNGR, and it even produced a [scientific paper](/en/lab/black-hole/about) (James, von Tunzelmann, Franklin & Thorne, 2015). They ray-traced the **exact null geodesics of the Kerr metric** — the very same physics I run in real time in the browser. The bent light, the shadow, the bright arc above and below (the famous "hat") are not drawn: they emerge from the integration.
+Kip Thorne wrote the equations; the VFX house Double Negative built a dedicated engine, DNGR, and it even produced a [scientific paper](/en/lab/black-hole/about) (James, von Tunzelmann, Franklin & Thorne, 2015). They ray-traced the **exact null geodesics of the Kerr metric**, the very same physics I run in real time in the browser. The bent light, the shadow, the bright arc above and below (the famous "hat") are not drawn: they emerge from the integration.
 
 ## The near-extremal spin, and why it matters
 
-Gargantua spins almost maximally: <Mi tex="a/M \approx 0.999" />, where <Mi tex="a = J/Mc" /> is the spin and the physical limit is <Mi tex="a = M" />. It's not an aesthetic flourish, it serves the plot. Spin pulls the innermost stable circular orbit (ISCO) — the edge beyond which you can no longer orbit — inward. For a non-spinning hole (Schwarzschild) it sits at <Mi tex="6\,GM/c^{2}" />; for a maximally spinning one, prograde, it collapses almost to the horizon:
+Gargantua spins almost maximally: <Mi tex="a/M \approx 0.999" />, where <Mi tex="a = J/Mc" /> is the spin and the physical limit is <Mi tex="a = M" />. It's not an aesthetic flourish, it serves the plot. Spin pulls the innermost stable circular orbit (ISCO), the edge beyond which you can no longer orbit, inward. For a non-spinning hole (Schwarzschild) it sits at <Mi tex="6\,GM/c^{2}" />; for a maximally spinning one, prograde, it collapses almost to the horizon:
 
 <Math tex="r_{\rm ISCO}: \quad 6\,\frac{GM}{c^{2}}\ (a=0) \;\longrightarrow\; \frac{GM}{c^{2}}\ (a \to M)" />
 
@@ -28,7 +28,7 @@ The film's central effect. Near a large mass, time runs slower. For an orbiting 
 
 <Math tex="\frac{\Delta t_{\rm far}}{\Delta\tau_{\rm planet}} = \frac{7\ \text{years}}{1\ \text{hour}} \approx 6.1 \times 10^{4}" />
 
-A factor of sixty-thousand requires sitting a hair's breadth from the horizon of a giant, near-extremal hole — again, it's the spin that makes it possible without being torn apart by tides. In the [«Orbits»](/en/lab/black-hole/orbit) demo you see the measured speed and the redshift tied to exactly this, and a body appearing to "freeze" at the horizon.
+A factor of sixty-thousand requires sitting a hair's breadth from the horizon of a giant, near-extremal hole: again, it's the spin that makes it possible without being torn apart by tides. In the [«Orbits»](/en/lab/black-hole/orbit) demo you see the measured speed and the redshift tied to exactly this, and a body appearing to "freeze" at the horizon.
 
 ## What's cinema (on purpose)
 
@@ -38,11 +38,11 @@ The detail few people know: in the film the disk is almost **symmetric** in brig
 
 A little is enough: the side coming toward us turns blinding, the receding side dims. Nolan and Thorne chose to **suppress** that asymmetry, because such a lopsided image would have confused the audience. A narrative choice, not a mistake.
 
-And the disk itself? A bespoke artistic-volumetric model built by the artists, not a simulation of magnetised plasma ([GRMHD](/en/lab/black-hole/about)) — like ours: full magnetohydrodynamics costs hours per frame. Finally DNGR ran **offline**, up to hours per frame at IMAX resolution, tracing whole bundles of rays to anti-alias the razor-thin edges. I have one ray per pixel and ~16 milliseconds.
+And the disk itself? A bespoke artistic-volumetric model built by the artists, not a simulation of magnetised plasma ([GRMHD](/en/lab/black-hole/about)), like ours: full magnetohydrodynamics costs hours per frame. Finally DNGR ran **offline**, up to hours per frame at IMAX resolution, tracing whole bundles of rays to anti-alias the razor-thin edges. I have one ray per pixel and ~16 milliseconds.
 
 ## What you can see for yourself
 
-In the [simulator](/en/lab/black-hole) you can do what the film couldn't: **turn on the real Doppler asymmetry** and watch the disk genuinely lopside; **drag the spin slider** instead of being stuck on Gargantua, and watch the ISCO and shadow change; orbit the hole in real time. Same Kerr metric, but interactive — and with every approximation declared.
+In the [simulator](/en/lab/black-hole) you can do what the film couldn't: **turn on the real Doppler asymmetry** and watch the disk genuinely lopside; **drag the spin slider** instead of being stuck on Gargantua, and watch the ISCO and shadow change; orbit the hole in real time. Same Kerr metric, but interactive, and with every approximation declared.
 
 In one line: _Interstellar_ is real physics in service of a story; this is the same physics, laid bare and in your hands.
 
