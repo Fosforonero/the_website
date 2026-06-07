@@ -604,10 +604,13 @@ void main() {
         float flux = diskFlux(rho, rIn);
         float T    = uDiskTemp * pow(flux, 0.25);
         // H/r ≈ c_s/v_φ ∝ sqrt(T·r): a flared slim disk, clamped to a sane range.
-        float HoR  = clamp(uVolThick * sqrt(pow(flux, 0.25) * rho), 0.015, 0.11);
+        // Keep the slim disk genuinely THIN: a high H/r cap makes Hh=HoR·rho
+        // balloon at large radius into a fat torus that, seen edge-on, fills the
+        // frame and (once it clips to white) blooms into a diffuse haze.
+        float HoR  = clamp(uVolThick * sqrt(pow(flux, 0.25) * rho), 0.012, 0.05);
         float Hh   = HoR * rho;
         float zr   = mid.y / Hh;
-        if (abs(zr) < 3.0) {
+        if (abs(zr) < 2.2) {
           float dens = exp(-0.5 * zr * zr);                // hydrostatic vertical profile
           float radial = 1.0 - smoothstep(uDiskOuter * 0.32, uDiskOuter, rho);
           dens *= radial * radial;                         // soft outer taper
@@ -632,9 +635,10 @@ void main() {
           float ds   = dt * length(vel);                   // path length of this step
           float emis = pow(Tobs / uDiskTemp, 4.0) * dens * tb;   // emission coefficient (beaming ∝ T_obs⁴)
           float dtau = uVolOpacity * dens * ds;            // optical depth of this segment
-          // Emission must dominate absorption or the volume reads as a dark, muddy
-          // blob (it absorbs the background but barely glows). Strong emission gain.
-          vec3  j    = blackbody(Tobs) * (uDiskBright * 0.9 * emis * ds);
+          // Emission must dominate absorption (or the volume reads as a dark, muddy
+          // blob), but not so much it clips to white and feeds the bloom a screen-
+          // filling halo. Moderate gain now that the slab is thin.
+          vec3  j    = blackbody(Tobs) * (uDiskBright * 0.6 * emis * ds);
           accCol += (1.0 - accA) * j;                      // emission, attenuated by gas already in front
           accA   += (1.0 - accA) * (1.0 - exp(-dtau));     // accumulate opacity (self-occlusion)
           if (!depthSet && accA > 0.30) { outDepth = depthFromWorld(mid); depthSet = true; hitDisk = true; }
