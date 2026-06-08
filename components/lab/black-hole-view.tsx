@@ -407,7 +407,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
             {gpu && (
               <div style={{ fontSize: "0.66rem", color: "#6f86b5", lineHeight: 1.4, marginTop: -4, wordBreak: "break-word" }}>
                 GPU: {gpu.renderer || "—"} · {locale === "it" ? "profilo" : "profile"} {gpu.tier}
-                {fps !== null && quality === "auto" && (
+                {fps !== null && (
                   <span style={{ marginLeft: 6, color: fps >= 50 ? "#5fbf6f" : fps >= 30 ? "#c8a83a" : "#c84040" }}>
                     · {fps} fps
                   </span>
@@ -530,7 +530,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
             {gpu && (
               <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid var(--color-rule, #1c2742)", fontSize: "0.7rem", color: "#6f86b5", lineHeight: 1.45, wordBreak: "break-word" }}>
                 GPU: {gpu.renderer || "—"} · {locale === "it" ? "profilo" : "profile"} {gpu.tier}
-                {fps !== null && quality === "auto" && (
+                {fps !== null && (
                   <span style={{ marginLeft: 6, color: fps >= 50 ? "#5fbf6f" : fps >= 30 ? "#c8a83a" : "#c84040" }}>
                     · {fps} fps
                   </span>

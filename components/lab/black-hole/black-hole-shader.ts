@@ -613,8 +613,10 @@ void main() {
         float zr   = mid.y / Hh;
         if (abs(zr) < 2.2) {
           float dens = exp(-0.5 * zr * zr);                // hydrostatic vertical profile
-          float radial = 1.0 - smoothstep(uDiskOuter * 0.32, uDiskOuter, rho);
-          dens *= radial * radial;                         // soft outer taper
+          // Taper starts at 60% of outer radius (was 32%) so the disk stays at
+          // full density further out, then drops sharply — no diffuse outer haze.
+          float radial = 1.0 - smoothstep(uDiskOuter * 0.60, uDiskOuter * 0.95, rho);
+          dens *= radial * radial * radial;               // cubic: crisp outer edge
           // Exact Kerr Doppler/redshift for the local circular orbit (as thin disk).
           float g = 1.0;
           if (uDoppler > 0.5) {

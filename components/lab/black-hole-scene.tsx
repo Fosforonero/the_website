@@ -189,16 +189,18 @@ export function BlackHoleQuad({
     u.uAspect.value = size.width / Math.max(1, size.height);
     const fov = (camera as THREE.PerspectiveCamera).fov ?? 50;
     u.uTanFov.value = Math.tan((fov * Math.PI) / 360);
-    // Live toggles / quality. In Auto, an FPS governor holds a smooth frame rate:
-    // desktop scales the step count, mobile scales the resolution (keeping steps,
-    // so the photon ring stays resolved). Manual quality is fixed.
+    // FPS EMA runs for every quality level so the counter stays live.
+    // The governor (step/resolution scaling) only activates in Auto mode.
+    const fpsSample = 1.0 / Math.max(delta, 1e-3);
+    fpsEma.current = fpsEma.current * 0.92 + fpsSample * 0.08;
+    sinceCheck.current += delta;
+    const ticked = sinceCheck.current > 1.0;
+    if (ticked) {
+      sinceCheck.current = 0;
+      onFps?.(Math.round(fpsEma.current));
+    }
     if (quality === "auto" && !eht) {
-      const fps = 1.0 / Math.max(delta, 1e-3);
-      fpsEma.current = fpsEma.current * 0.92 + fps * 0.08;
-      sinceCheck.current += delta;
-      if (sinceCheck.current > 1.0) {
-        sinceCheck.current = 0;
-        onFps?.(Math.round(fpsEma.current));
+      if (ticked) {
         if (isMobile) {
           const before = resScale.current;
           if (fpsEma.current < 40 && resScale.current > 0.55) resScale.current = Math.max(0.55, resScale.current - 0.12);
