@@ -607,7 +607,8 @@ void main() {
         // Keep the slim disk genuinely THIN: a high H/r cap makes Hh=HoR·rho
         // balloon at large radius into a fat torus that, seen edge-on, fills the
         // frame and (once it clips to white) blooms into a diffuse haze.
-        float HoR  = clamp(uVolThick * sqrt(pow(flux, 0.25) * rho), 0.012, 0.05);
+        // Upper clamp 0.035 (was 0.05) keeps the disk a narrow equatorial band.
+        float HoR  = clamp(uVolThick * sqrt(pow(flux, 0.25) * rho), 0.012, 0.035);
         float Hh   = HoR * rho;
         float zr   = mid.y / Hh;
         if (abs(zr) < 2.2) {
@@ -786,9 +787,11 @@ export function effectiveProfile(choice: QualityChoice, gpu: GpuInfo, isMobile: 
   }
   // Desktop.
   // Apple Silicon (M-series integrated GPU): powerful but not a discrete card — skip
-  // the 6th-order Tao integrator and cap DPR at 1.5; the FPS governor scales up.
+  // the 6th-order Tao integrator and cap DPR at 1.5; use more steps than the Tao
+  // profile (380 vs 300) because: (a) DPR savings make fillrate ~44% cheaper, and
+  // (b) the photon ring needs ~177 steps/orbit at r=3 — budget must cover it.
   if (gpu.tier === "high" && gpu.isAppleSilicon)
-    return { steps: 260, dprCap: 1.5, rk4: false, tao: false, vol: true };
+    return { steps: 380, dprCap: 1.5, rk4: false, tao: false, vol: true };
   if (gpu.tier === "high") return { steps: 300, dprCap: 2.0, rk4: false, tao: true,  vol: true };  // NVIDIA/Radeon discrete
   if (gpu.tier === "mid")  return { steps: 320, dprCap: 2.0, rk4: true,  tao: false, vol: false }; // Intel/Iris/Arc
   return { steps: 240, dprCap: 1.4, rk4: false, tao: false, vol: false };

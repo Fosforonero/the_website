@@ -83,11 +83,11 @@ export function BlackHoleQuad({
   // fluid without a broken ring.
   const fpsEma = useRef(60);
   const sinceCheck = useRef(0);
-  // Start at 70% quality so the first frames are light; the FPS governor scales up
-  // within ~10 s if the GPU can handle more. Prevents the hard freeze on first open
-  // that occurs when the initial EMA has no data and fires at 100% immediately.
-  const stepScale = useRef(0.7);
-  const resScale = useRef(0.8);
+  // Desktop starts at 85% steps so the photon ring (~177 steps/orbit at r=3) is
+  // visible from frame 1; mobile starts at 70% resolution (step count stays fixed).
+  // Both scale toward 100% as the FPS governor confirms the GPU can handle it.
+  const stepScale = useRef(isMobile ? 0.7 : 0.85);
+  const resScale  = useRef(isMobile ? 0.7 : 1.0);
   // Effective render profile: GPU-tuned in Auto (passed from the parent), else the
   // chosen manual preset. In Auto the volumetric disk follows the profile.
   const prof: RenderProfile = profile ?? {
@@ -167,8 +167,8 @@ export function BlackHoleQuad({
       uSkyOn: { value: 0 },
       uSkyBright: { value: 1.7 },
       uVolDisk: { value: volDisk ? 1 : 0 },
-      uVolThick: { value: 0.06 },
-      uVolOpacity: { value: 1.8 },
+      uVolThick: { value: 0.03 },
+      uVolOpacity: { value: 0.9 },
     }),
     // Intentionally created once — toggle changes are applied in useFrame.
     // eslint-disable-next-line react-hooks/exhaustive-deps

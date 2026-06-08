@@ -164,6 +164,13 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
   const [pureBlackOn, setPureBlackOn] = useState(false);
   const [skySource, setSkySource] = useState<SkySource>("nasa8k");
   const [volDiskOn, setVolDiskOn] = useState(false);
+  // Ultra needs the 6th-order Tao integrator: only discrete desktop GPUs support
+  // it without freezing. Apple Silicon and mobile get it disabled.
+  const ultraAvailable = !gpu || (gpu.tier === "high" && !gpu.isAppleSilicon);
+  useEffect(() => {
+    if (quality === "ultra" && !ultraAvailable) setQuality("auto");
+  }, [quality, ultraAvailable]);
+
   const onMass = (m: number) => { setMassSolar(m); setDiskTemp(diskColorTempForMass(m)); };
   // Capture the WebGL canvas (preserveDrawingBuffer is on) and share/download it.
   const onShare = () => {
@@ -219,11 +226,14 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
             value={quality}
             onChange={(e) => setQuality(e.target.value as QualityChoice)}
           >
-            {(["auto", "ultra", "high", "medium", "low"] as QualityChoice[]).map((q) => (
-              <option key={q} value={q}>
-                {t.qualities[q]}
-              </option>
-            ))}
+            {(["auto", "ultra", "high", "medium", "low"] as QualityChoice[]).map((q) => {
+              const disabled = q === "ultra" && !ultraAvailable;
+              return (
+                <option key={q} value={q} disabled={disabled}>
+                  {disabled ? `${t.qualities[q]} (${locale === "it" ? "non supportato" : "not supported"})` : t.qualities[q]}
+                </option>
+              );
+            })}
           </select>
         </label>
 
@@ -384,9 +394,14 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
             <label>
               <span>{t.quality}</span>
               <select value={quality} onChange={(e) => setQuality(e.target.value as QualityChoice)}>
-                {(["auto", "ultra", "high", "medium", "low"] as QualityChoice[]).map((q) => (
-                  <option key={q} value={q}>{t.qualities[q]}</option>
-                ))}
+                {(["auto", "ultra", "high", "medium", "low"] as QualityChoice[]).map((q) => {
+                  const disabled = q === "ultra" && !ultraAvailable;
+                  return (
+                    <option key={q} value={q} disabled={disabled}>
+                      {disabled ? `${t.qualities[q]} (${locale === "it" ? "non supportato" : "not supported"})` : t.qualities[q]}
+                    </option>
+                  );
+                })}
               </select>
             </label>
             {gpu && (
