@@ -1,0 +1,46 @@
+---
+title: "Il vento di Sagittarius A*: cosa possiamo simulare"
+excerpt: "ALMA e Chandra hanno trovato un vento attivo dal buco nero della Via Lattea. Cos'è, perché conta e cosa possiamo davvero riprodurre nel simulatore — e cosa no."
+date: "2026-06-08"
+tag: "Science"
+image: "/blog/buco-nero/buco-nero-kerr-disco-accrescimento.jpg"
+imageAlt: "Buco nero di Kerr ray-tracciato in tempo reale: disco di accrescimento lensato, photon ring e beaming Doppler, dal simulatore Fosforonero"
+draft: false
+---
+
+Dopo oltre cinquant'anni di ricerche, **Sagittarius A\***, il buco nero supermassiccio al centro della Via Lattea, è stato colto a fare una cosa che si sospettava da tempo ma non si era mai vista lì: **soffiare un vento**. Lo studio è di Mark Gorski e Lena Murchikova ([*The Astrophysical Journal Letters*, 2026](https://www.media.inaf.it/2026/06/08/vento-sagittarius-a-star/)). Colgo l'occasione per spiegare che cos'è un vento di buco nero, perché conta, e — onestamente — cosa di tutto questo possiamo davvero mostrare nel nostro [simulatore](/lab/buco-nero) e cosa no.
+
+![Buco nero di Kerr ray-tracciato in tempo reale: disco di accrescimento lensato, photon ring e beaming Doppler](/blog/buco-nero/buco-nero-kerr-disco-accrescimento.jpg "Buco nero di Kerr nel simulatore Fosforonero")
+*Il nostro buco nero di Kerr, ray-tracciato in tempo reale nel browser: disco di accrescimento piegato dal lensing, photon ring e beaming Doppler (il lato che avanza è più brillante). Render: Fosforonero.*
+
+## La scoperta
+
+Combinando cinque anni di dati di **ALMA** (il gas molecolare freddo, tracciato dal monossido di carbonio) con osservazioni in raggi X di **Chandra**, il team ha trovato attorno a Sgr A\* una **cavità conica** lunga circa un parsec (~3 anni luce) e larga ~45°, completamente svuotata di gas freddo. È l'impronta di un vento caldo: un flusso così energetico da spazzare via il materiale circostante, o da scaldarlo tanto da renderlo invisibile a quelle lunghezze d'onda. I calcoli escludono che possano essere state le stelle vicine a fornire l'energia: l'origine è il buco nero. Il vento dura da almeno 20.000 anni. Le immagini ALMA e il composito con Chandra sono nella [copertura di Media INAF](https://www.media.inaf.it/2026/06/08/vento-sagittarius-a-star/) (crediti ESO/NAOJ/NRAO/ALMA; NASA/CXC/Northwestern/M. Gorski).
+
+## Vento o getto? Non sono la stessa cosa
+
+Nel nostro simulatore esistono già i **getti**: fasci stretti, collimati, relativistici, lanciati lungo l'asse di rotazione. Il **vento** è un'altra cosa: un deflusso più **largo** (decine di gradi di apertura), più lento e diffuso, che parte dal disco invece che dai poli. È la differenza tra un idrante e un ventilatore.
+
+Interessante: l'analisi più recente dei dati dell'Event Horizon Telescope con reti neurali bayesiane ([Janssen et al. 2025, *A&A* 698, A60–A62](https://doi.org/10.1051/0004-6361/202553786)) indica che l'emissione di Sgr A\* è dominata da **elettroni caldi del disco**, non da un getto potente — al contrario di M87\*. Un buco nero che alimenta un vento dal disco, più che un getto, è perfettamente coerente con questo quadro.
+
+## Si può scrivere un'equazione?
+
+Per la *forma e la velocità* del vento, sì. Il modello canonico di lancio è quello **magneto-centrifugo** di Blandford & Payne (1982): il gas ionizzato, agganciato alle linee di campo magnetico inclinate del disco, viene scagliato verso l'esterno come una pallina su una fionda. Esiste anche il vento **guidato dalla radiazione** (Castor, Abbott & Klein 1975), dove a spingere è la pressione dei fotoni. In entrambi i casi la velocità terminale scala con la velocità di fuga al raggio da cui il vento parte:
+
+<Math tex="v_\infty \sim v_{\rm esc}(r_0) = \sqrt{\frac{2GM}{r_0}}" />
+
+dove <Mi tex="r_0" /> è il raggio di lancio: più il gas parte vicino al buco, più va veloce. Questo è ciò che si può *mettere in un'equazione semplice*.
+
+Quello che **non** si può fare in tempo reale è la fisica completa: come il vento riscalda e scava il gas molecolare, l'interazione radiazione–magnetoidrodinamica che decide quanto materiale viene espulso. È lo stesso muro della turbolenza del disco: una soluzione GRMHD/radiativa costa minuti–ore per fotogramma su un supercomputer, incompatibile con i ~16 millisecondi di uno shader nel browser.
+
+## Cosa mostreremmo (e cosa no)
+
+Se aggiungiamo un vento al simulatore, sarà un **deflusso biconico stilizzato**: cono ad ampio angolo, turbolenza procedurale, densità che sfuma col raggio — esattamente come i getti, e **dichiarato come modello artistico**, non come simulazione fisica. La forma e la cinematica seguiranno i modelli citati (la velocità ~ velocità di fuga); la micro-fisica no. Il lensing e il Doppler attorno restano invece reali, calcolati dalla metrica di Kerr. È la regola di sempre: *fail loud, never fake* — ogni approssimazione dichiarata.
+
+## In sintesi
+
+- Il vento di Sgr A\* è **reale** e appena confermato (ALMA + Chandra).
+- Possiamo **mostrarne** una versione stilizzata, non **simularlo** — e lo diciamo.
+- Le nostre scelte (spin di Kerr quasi massimale, emissione da elettroni caldi) sono coerenti con i dati più recenti.
+
+[Apri il simulatore →](/lab/buco-nero) · [Le equazioni →](/lab/buco-nero/about) · [La scoperta su Media INAF →](https://www.media.inaf.it/2026/06/08/vento-sagittarius-a-star/)

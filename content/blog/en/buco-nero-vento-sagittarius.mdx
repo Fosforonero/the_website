@@ -1,0 +1,46 @@
+---
+title: "The wind from Sagittarius A*: what we can simulate"
+excerpt: "ALMA and Chandra found an active wind from the Milky Way's black hole. What it is, why it matters, and what we can really reproduce in the simulator — and what we can't."
+date: "2026-06-08"
+tag: "Science"
+image: "/blog/buco-nero/buco-nero-kerr-disco-accrescimento.jpg"
+imageAlt: "Real-time ray-traced Kerr black hole: lensed accretion disk, photon ring and Doppler beaming, from the Fosforonero simulator"
+draft: false
+---
+
+After more than fifty years of searching, **Sagittarius A\***, the supermassive black hole at the centre of the Milky Way, has been caught doing something long suspected but never seen there: **blowing a wind**. The study is by Mark Gorski and Lena Murchikova ([*The Astrophysical Journal Letters*, 2026](https://www.media.inaf.it/2026/06/08/vento-sagittarius-a-star/)). I'll take the chance to explain what a black-hole wind is, why it matters, and — honestly — how much of it we can actually show in our [simulator](/en/lab/black-hole), and how much we can't.
+
+![Real-time ray-traced Kerr black hole: lensed accretion disk, photon ring and Doppler beaming](/blog/buco-nero/buco-nero-kerr-disco-accrescimento.jpg "Kerr black hole in the Fosforonero simulator")
+*Our Kerr black hole, ray-traced in real time in the browser: the accretion disk bent by lensing, the photon ring, and Doppler beaming (the approaching side is brighter). Render: Fosforonero.*
+
+## The discovery
+
+Combining five years of **ALMA** data (cold molecular gas, traced by carbon monoxide) with **Chandra** X-ray observations, the team found around Sgr A\* a **conical cavity** about one parsec long (~3 light years) and ~45° wide, completely emptied of cold gas. It's the fingerprint of a hot wind: an outflow energetic enough to sweep away the surrounding material, or to heat it so much it becomes invisible at those wavelengths. The calculations rule out nearby stars as the energy source: the origin is the black hole. The wind has lasted at least 20,000 years. The ALMA images and the Chandra composite are in the [Media INAF coverage](https://www.media.inaf.it/2026/06/08/vento-sagittarius-a-star/) (credits ESO/NAOJ/NRAO/ALMA; NASA/CXC/Northwestern/M. Gorski).
+
+## Wind or jet? Not the same thing
+
+Our simulator already has **jets**: narrow, collimated, relativistic beams launched along the spin axis. A **wind** is something else: a **wider** outflow (tens of degrees of opening angle), slower and more diffuse, launched from the disk rather than the poles. It's the difference between a fire hose and a fan.
+
+Interestingly, the latest analysis of Event Horizon Telescope data with Bayesian neural networks ([Janssen et al. 2025, *A&A* 698, A60–A62](https://doi.org/10.1051/0004-6361/202553786)) finds that Sgr A\*'s emission is dominated by **hot disk electrons**, not a powerful jet — unlike M87\*. A black hole feeding a disk wind, rather than a jet, fits that picture perfectly.
+
+## Can you write an equation?
+
+For the *shape and speed* of the wind, yes. The canonical launching model is the **magneto-centrifugal** one of Blandford & Payne (1982): ionised gas, hooked onto the disk's inclined magnetic field lines, is flung outward like a ball on a sling. There's also the **radiation-driven** wind (Castor, Abbott & Klein 1975), where photon pressure does the pushing. In both cases the terminal velocity scales with the escape velocity at the radius the wind launches from:
+
+<Math tex="v_\infty \sim v_{\rm esc}(r_0) = \sqrt{\frac{2GM}{r_0}}" />
+
+where <Mi tex="r_0" /> is the launch radius: the closer to the hole the gas starts, the faster it goes. That's what you can *put in a simple equation*.
+
+What you **can't** do in real time is the full physics: how the wind heats and carves the molecular gas, the radiation–magnetohydrodynamic interplay that sets how much material is expelled. It's the same wall as the disk turbulence: a GRMHD/radiative solution costs minutes-to-hours per frame on a supercomputer, incompatible with the ~16 milliseconds of a browser shader.
+
+## What we'd show (and what we wouldn't)
+
+If we add a wind to the simulator, it will be a **stylized biconical outflow**: a wide-angle cone, procedural turbulence, density fading with radius — exactly like the jets, and **declared as an artistic model**, not a physical simulation. The shape and kinematics will follow the cited models (speed ~ escape velocity); the micro-physics won't. The lensing and Doppler around it stay real, computed from the Kerr metric. Same rule as always: *fail loud, never fake* — every approximation stated.
+
+## In short
+
+- Sgr A\*'s wind is **real** and newly confirmed (ALMA + Chandra).
+- We can **show** a stylized version, not **simulate** it — and we say so.
+- Our choices (near-maximal Kerr spin, emission from hot electrons) are consistent with the latest data.
+
+[Open the simulator →](/en/lab/black-hole) · [The equations →](/en/lab/black-hole/about) · [The discovery on Media INAF →](https://www.media.inaf.it/2026/06/08/vento-sagittarius-a-star/)
