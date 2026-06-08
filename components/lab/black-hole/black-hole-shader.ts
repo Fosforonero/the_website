@@ -392,7 +392,9 @@ void main() {
     // outside the photon sphere lets a ray wind several times and hit the disk
     // on later crossings — the RETURNING RADIATION that builds the photon ring
     // from the disk's own light (higher-order images), not an analytic fake.
-    float dt = clamp(r * 0.10, 0.02, 0.6);
+    // dt_max raised to 0.9: far-field rays (r>6) take fewer steps, freeing
+    // ~8 more steps for the photon-ring region (r<6) on step-limited mobile GPUs.
+    float dt = clamp(r * 0.10, 0.02, 0.9);
     if (r < 6.0) dt = min(dt, 0.016 + 0.045 * (r - 1.0));
 
     // Relativistic jets: optically-thin, collimated emission along the spin
@@ -780,12 +782,13 @@ export function effectiveProfile(choice: QualityChoice, gpu: GpuInfo, isMobile: 
   }
   if (isMobile) {
     // Mobile is fill-rate (DPR) bound, NOT step bound — and the photon ring needs
-    // enough steps to resolve. So keep steps high (~240, the value that resolved
-    // the ring fine before) on every tier and use the DPR as the perf knob; the
-    // governor on mobile scales resolution, not steps, so the ring never breaks.
-    if (gpu.tier === "high") return { steps: 240, dprCap: 1.4, rk4: false, tao: false, vol: false };
-    if (gpu.tier === "mid")  return { steps: 240, dprCap: 1.2, rk4: false, tao: false, vol: false };
-    return { steps: 230, dprCap: 1.0, rk4: false, tao: false, vol: false };
+    // enough steps to resolve. Keep steps high and use DPR as the perf knob; the
+    // governor scales resolution, not steps, so the ring budget stays intact.
+    // Steps raised from 240→260 (combined with dt_max 0.6→0.9, this gives ~18
+    // extra steps for the ring region on low-end devices, fixing "artigli").
+    if (gpu.tier === "high") return { steps: 260, dprCap: 1.4, rk4: false, tao: false, vol: false };
+    if (gpu.tier === "mid")  return { steps: 260, dprCap: 1.2, rk4: false, tao: false, vol: false };
+    return { steps: 250, dprCap: 1.0, rk4: false, tao: false, vol: false };
   }
   // Desktop.
   // Apple Silicon (M-series integrated GPU): powerful but not a discrete card.
