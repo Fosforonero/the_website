@@ -1,0 +1,119 @@
+---
+title: "Due bug nascosti nel port WebGPU del buco nero: colonna maggiore e disco nero"
+excerpt: "Porting da WebGL a WebGPU: una macchia ciana impossibile e un disco volumetrico completamente nero. Radici causa: una matrice trasposta nel calcolo del corpo nero planckiano e un'opacity troppo alta che spegneva l'emissione. Cosa insegnano sulla differenza tra WGSL e GLSL."
+date: "2026-06-08"
+tag: "Dev"
+draft: false
+---
+
+Fare il port di un renderer WebGL in WebGPU dovrebbe essere un lavoro meccanico: traduci la sintassi GLSL in WGSL, adatti i binding, rilasci. Invece ho trovato due bug silenziosi che hanno richiesto ore di debug — uno nel calcolo del colore di corpo nero planckiano e uno nell'equazione del trasporto radiativo del disco volumetrico. Li documento perché entrambi rivelano differenze sottili tra i due sistemi di shader che non sono documentate in modo evidente.
+
+## Contesto: la simulazione
+
+Il [simulatore WebGPU](/lab/buco-nero/webgpu) traccia geodetiche nulle esatte nella metrica di Kerr–Schild, integra il trasferimento radiativo del disco di accrezione e calcola il colore da una funzione di corpo nero planckiana con fattore Doppler relativistico. La versione WebGL funzionava perfettamente. Il port ha introdotto due regressioni invisibili al primo lancio.
+
+## Bug 1: la macchia ciana — una matrice trasposta
+
+### Sintomo
+
+In modalità thin disk (non volumetrica), il ring luminoso del disco mostrava una macchia ciana localizzata sul lato che si avvicina all'osservatore. Il lato opposto era corretto (caldo, arancio-rosso). La macchia compariva solo con Doppler attivo e solo su valori alti di `disk_temp`.
+
+### Prima ipotesi sbagliata
+
+Ho subito pensato a un overflow numerico: il fattore Doppler relativistico amplifica la temperatura osservata sul lato avvicinante fino a 3–4×. Se `Tobs` sale a 15.000 K, i valori RGB escono dall'intervallo [0,1] e ACES filmic — che fa la tonemapping per canale — può produrre hue shift se il canale rosso satura in modo diverso dai canali G e B. Ho aggiunto un cap sul Doppler. Non ha risolto nulla.
+
+### Radice causa
+
+La funzione `blackbody(kelvin)` converte una temperatura in un colore RGB via un polinomio razionale a tratti, con un branch a T = 6500 K. Ogni branch usa una matrice 3×3 per il mapping colore.
+
+In GLSL il costruttore `mat3` accetta i valori **per righe**:
+```glsl
+mat3(a,b,c,  d,e,f,  g,h,i) // riga 0: a,b,c — riga 1: d,e,f — riga 2: g,h,i
+```
+
+In WGSL il costruttore `mat3x3f` accetta i valori **per colonne**:
+```wgsl
+mat3x3f(vec3f(a,d,g), vec3f(b,e,h), vec3f(c,f,i))
+// colonna 0: a,d,g — colonna 1: b,e,h — colonna 2: c,f,i
+```
+
+Avevo trascritto la matrice del branch alto (T > 6500 K) copiando i valori nell'ordine riga-per-riga, ottenendo una matrice trasposta. Il risultato: per qualsiasi temperatura sopra 6500 K il canale rosso diventava zero, il verde e il blu restavano positivi → ciano puro.
+
+Il branch basso (T ≤ 6500 K) aveva per coincidenza i coefficienti rosso tutti nella stessa posizione sia nella forma originale che nella trasposta, quindi funzionava correttamente — nascondendo il bug finché il Doppler non spingeva `Tobs` oltre la soglia dei 6500 K.
+
+### Fix
+
+Trasposizione della matrice nel branch alto: ogni `vec3f(r, g, b)` ora contiene i coefficienti dello stesso grado polinomiale per i tre canali (layout column-major corretto per WGSL).
+
+```wgsl
+// PRIMA — layout riga-per-riga (sbagliato in WGSL):
+m = mat3x3f(
+  vec3f( 1745.04, -2666.35,  0.56),  // NON è una colonna
+  ...
+);
+
+// DOPO — layout colonna-per-colonna (corretto):
+m = mat3x3f(
+  vec3f( 1745.04,  1216.62, -8257.80),  // colonna 0: coeff. grado 0 per R, G, B
+  vec3f(-2666.35, -2173.10,  2575.28),  // colonna 1: coeff. grado 1
+  vec3f(  0.560,   0.704,   1.899));    // colonna 2: coeff. grado 2
+```
+
+### Lezione
+
+WGSL e GLSL hanno convenzioni di costruzione delle matrici **opposte**. Non basta riscrivere la sintassi: ogni matrice va trasposta. E i bug che si manifestano solo sopra una soglia sono i più difficili da trovare perché richiedono condizioni precise.
+
+---
+
+## Bug 2: il disco volumetrico completamente nero
+
+### Sintomo
+
+Con la modalità disco volumetrico attiva, il disco non emetteva nulla: campo nero, ombra del buco nero, stelle lensate — il disco era invisibile come se fosse spento.
+
+### Come funziona il trasporto radiativo
+
+Il disco volumetrico usa un'equazione di trasferimento radiativo semplificata. Ad ogni passo di integrazione lungo il raggio:
+
+<Math tex="\Delta I = j_\nu \cdot \Delta s, \qquad \Delta \tau = \kappa \cdot \rho^2 \cdot \Delta s" />
+
+dove <Mi tex="j_\nu" /> è l'emissività (luce aggiunta), <Mi tex="\Delta \tau" /> l'opacità ottica (luce sottratta), <Mi tex="\rho^2" /> la densità locale del disco e <Mi tex="\Delta s" /> il cammino percorso. Se <Mi tex="\Delta \tau" /> cresce veloce, il disco diventa opaco. Se <Mi tex="j_\nu" /> è piccolo, il disco è opaco ma scuro.
+
+### Radice causa
+
+Nel codice portato da WebGL avevo due parametri di default:
+- `vol_opacity = 0.65` (opacità alta)
+- Emissività: `emis = pow(Tobs / disk_temp, 4) × dens² × tb`
+
+Il termine `pow(Tobs/disk_temp, 4)` serve a modellare come la luminosità cresce con la quarta potenza della temperatura. Ma nella pratica, con `Tobs ≈ disk_temp` (temperatura osservata vicina alla temperatura di riferimento del disco), il fattore vale circa 1. Il problema era `vol_opacity = 0.65`: in ogni passo di integrazione `Δτ = 0.65 × dens² × Δs`, e dopo pochi passi l'opacità accumulata si avvicinava a 1 → il disco diventava un **solido opaco ma buio**, con l'emissività soffocata prima che potesse contribuire al colore finale.
+
+Il risultato visivo: il disco assorbiva la luce di sfondo (stelle, glow) ma non ne emetteva abbastanza da compensare. Un buco grigio-nero dove doveva esserci un anello incandescente.
+
+### Fix
+
+Due cambiamenti separati:
+
+1. **Opacità**: ridotta da `0.65` a `0.08`. Il disco è ora per lo più traslucente, e l'accumulo lungo il raggio raggiunge τ ≈ 0.4–0.5 nel punto più denso invece di saturare a 1.
+
+2. **Emissività**: rimosso il fattore `pow(T/Tdisk, 4)` e ridefinita come:
+```wgsl
+jv = blackbody(Tobs) × disk_bright × 0.12 × tb × dens² × Δs
+```
+Il corpo nero planckiano già contiene la dipendenza dalla temperatura: `blackbody(Tobs)` è più luminoso a temperature più alte. Il fattore `pow(T/Tdisk,4)` lo sopprimeva quasi a zero quando la temperatura era vicina a `disk_temp`.
+
+### Lezione
+
+Opacità e emissività sono grandezze fisicamente indipendenti. Nelle equazioni del trasporto radiativo, legarle indirettamente (alta opacità + bassa emissività) produce un disco che assorbe tutto e non emette nulla. In un ray marcher volumetrico bisogna calibrarle separatamente e verificare che entrambe contribuiscano al valore atteso prima di combinare i risultati.
+
+---
+
+## In sintesi
+
+| Bug | Causa | Fix |
+|---|---|---|
+| Macchia ciana | `mat3x3f` in WGSL è column-major, GLSL è row-major | Trasposta la matrice nel branch T > 6500 K |
+| Disco nero | `vol_opacity = 0.65` + emissività quasi zero | Opacità → 0.08, emissività decoupled da opacity |
+
+Entrambi i bug erano invisibili nella versione WebGL (uno era nascosto dalla soglia di temperatura, l'altro da parametri diversi di default) e non hanno prodotto errori runtime. Solo immagini sbagliate.
+
+[Apri il simulatore WebGPU →](/lab/buco-nero/webgpu) · [Versione WebGL →](/lab/buco-nero)

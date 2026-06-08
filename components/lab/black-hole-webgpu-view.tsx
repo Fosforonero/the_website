@@ -301,8 +301,6 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
         writeUniforms(core.uniformData, {
           w: canvas.width, h: canvas.height, time,
           spin: ctrl.spin, diskOn: ctrl.diskOn,
-          // Volumetric mode integrates along the full disk path (~5–8× more path than thin disk),
-          // so its diskBright must be much lower than the thin-disk WebGL-calibrated value of 14.
           diskBright: ctrl.volDisk
             ? 2.5 * (ctrl.dopplerOn ? 1.0 : 0.38)
             : 14  * (ctrl.dopplerOn ? 1.0 : 0.38),
@@ -310,7 +308,7 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
           exposure: ctrl.exposure, steps: ctrl.steps,
           style: ctrl.starless ? 1 : 0,
           pureBlack: ctrl.pureBlack, jets: ctrl.jetsOn, jetStr: 0.5,
-          volDisk: ctrl.volDisk, volThick: 1.0, volOpacity: 0.65,
+          volDisk: ctrl.volDisk, volThick: 0.1, volOpacity: 0.08,
           skyOn: ctrl.skyOn, skyBright: 1.2,
           az: azRef.current, el: elRef.current, dist: distRef.current,
         });

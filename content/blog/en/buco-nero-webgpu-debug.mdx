@@ -1,0 +1,119 @@
+---
+title: "Two hidden bugs in the WebGPU black hole port: column-major and a black disk"
+excerpt: "Porting from WebGL to WebGPU: an impossible cyan stain and a completely black volumetric disk. Root causes: a transposed matrix in the Planck blackbody calculation and an opacity so high it killed all emission. What they teach about the difference between WGSL and GLSL."
+date: "2026-06-08"
+tag: "Dev"
+draft: false
+---
+
+Porting a WebGL renderer to WebGPU should be mechanical work: translate GLSL syntax to WGSL, adapt the bindings, ship. Instead I found two silent bugs that took hours to debug — one in the Planck blackbody colour calculation and one in the radiative transfer equation of the volumetric disk. I'm documenting them because both reveal subtle differences between the two shader systems that aren't prominently documented.
+
+## Context: the simulation
+
+The [WebGPU simulator](/en/lab/black-hole/webgpu) traces exact null geodesics in the Kerr–Schild metric, integrates radiative transfer through the accretion disk, and computes colour from a Planckian blackbody function with a relativistic Doppler factor. The WebGL version worked perfectly. The port introduced two regressions invisible on first launch.
+
+## Bug 1: the cyan stain — a transposed matrix
+
+### Symptom
+
+In thin-disk (non-volumetric) mode, the bright disk ring showed a cyan spot localised on the side approaching the observer. The opposite side was correct (warm, orange-red). The stain appeared only with Doppler enabled and only at high `disk_temp` values.
+
+### First (wrong) hypothesis
+
+My first thought was a numeric overflow: the relativistic Doppler factor amplifies the observed temperature on the approaching side by 3–4×. If `Tobs` reaches 15,000 K, the RGB values leave [0,1] and ACES filmic tone mapping — which operates per channel — can produce hue shifts if the red channel saturates differently from G and B. I added a Doppler cap. Nothing changed.
+
+### Root cause
+
+The `blackbody(kelvin)` function converts a temperature to an RGB colour via a piecewise rational polynomial, with a branch at T = 6500 K. Each branch uses a 3×3 matrix for colour mapping.
+
+In GLSL the `mat3` constructor accepts values **row by row**:
+```glsl
+mat3(a,b,c,  d,e,f,  g,h,i) // row 0: a,b,c — row 1: d,e,f — row 2: g,h,i
+```
+
+In WGSL the `mat3x3f` constructor accepts values **column by column**:
+```wgsl
+mat3x3f(vec3f(a,d,g), vec3f(b,e,h), vec3f(c,f,i))
+// column 0: a,d,g — column 1: b,e,h — column 2: c,f,i
+```
+
+I had transcribed the high branch (T > 6500 K) matrix by copying values row-by-row, producing a transposed matrix. The result: for any temperature above 6500 K the red channel became zero while green and blue stayed positive → pure cyan.
+
+The low branch (T ≤ 6500 K) happened to have the red coefficients in the same position in both the original and transposed forms, so it worked correctly — hiding the bug until Doppler pushed `Tobs` above the 6500 K threshold.
+
+### Fix
+
+Transposing the high-branch matrix: each `vec3f(r, g, b)` now holds the same-degree polynomial coefficients for all three channels (correct column-major layout for WGSL).
+
+```wgsl
+// BEFORE — row-by-row layout (wrong in WGSL):
+m = mat3x3f(
+  vec3f( 1745.04, -2666.35,  0.56),  // NOT a column
+  ...
+);
+
+// AFTER — column-by-column layout (correct):
+m = mat3x3f(
+  vec3f( 1745.04,  1216.62, -8257.80),  // column 0: degree-0 coeffs for R, G, B
+  vec3f(-2666.35, -2173.10,  2575.28),  // column 1: degree-1 coeffs
+  vec3f(  0.560,   0.704,   1.899));    // column 2: degree-2 coeffs
+```
+
+### Lesson
+
+WGSL and GLSL have **opposite** matrix construction conventions. Rewriting the syntax isn't enough: every matrix needs to be transposed. And bugs that only manifest above a threshold are the hardest to find because they require specific conditions.
+
+---
+
+## Bug 2: the completely black volumetric disk
+
+### Symptom
+
+With volumetric disk mode active, the disk emitted nothing: black field, black hole shadow, lensed stars — the disk was invisible as if switched off.
+
+### How radiative transfer works here
+
+The volumetric disk uses a simplified radiative transfer equation. At each integration step along the ray:
+
+<Math tex="\Delta I = j_\nu \cdot \Delta s, \qquad \Delta \tau = \kappa \cdot \rho^2 \cdot \Delta s" />
+
+where <Mi tex="j_\nu" /> is emissivity (light added), <Mi tex="\Delta \tau" /> is optical depth (light subtracted), <Mi tex="\rho^2" /> is local disk density, and <Mi tex="\Delta s" /> is the path length. If <Mi tex="\Delta \tau" /> grows fast, the disk becomes opaque. If <Mi tex="j_\nu" /> is small, the disk is opaque but dark.
+
+### Root cause
+
+The code ported from WebGL had two default parameters:
+- `vol_opacity = 0.65` (high opacity)
+- Emissivity: `emis = pow(Tobs / disk_temp, 4) × dens² × tb`
+
+The `pow(Tobs/disk_temp, 4)` term models how luminosity scales with the fourth power of temperature. But with `Tobs ≈ disk_temp`, the factor is approximately 1. The problem was `vol_opacity = 0.65`: each integration step accumulated `Δτ = 0.65 × dens² × Δs`, and after a few steps the total optical depth approached 1 → the disk became an **opaque but dark solid**, with emissivity quenched before it could contribute to the final colour.
+
+The visual result: the disk absorbed background light (stars, glow) but didn't emit enough to compensate. A dark grey hole where a glowing ring should have been.
+
+### Fix
+
+Two separate changes:
+
+1. **Opacity**: reduced from `0.65` to `0.08`. The disk is now mostly translucent, and the accumulated optical depth reaches τ ≈ 0.4–0.5 at the densest point instead of saturating to 1.
+
+2. **Emissivity**: removed the `pow(T/Tdisk, 4)` factor and redefined as:
+```wgsl
+jv = blackbody(Tobs) × disk_bright × 0.12 × tb × dens² × Δs
+```
+The Planck blackbody function already encodes the temperature dependence: `blackbody(Tobs)` is brighter at higher temperatures. The `pow(T/Tdisk,4)` factor was suppressing it to near-zero when the temperature was close to `disk_temp`.
+
+### Lesson
+
+Opacity and emissivity are physically independent quantities. In radiative transfer equations, linking them indirectly (high opacity + low emissivity) produces a disk that absorbs everything and emits nothing. In a volumetric ray marcher, calibrate them separately and verify that both contribute the expected amount before combining the results.
+
+---
+
+## Summary
+
+| Bug | Cause | Fix |
+|---|---|---|
+| Cyan stain | `mat3x3f` in WGSL is column-major, GLSL is row-major | Transposed the matrix in the T > 6500 K branch |
+| Black disk | `vol_opacity = 0.65` + near-zero emissivity | Opacity → 0.08, emissivity decoupled from opacity |
+
+Both bugs were invisible in the WebGL version (one was hidden by the temperature threshold, the other by different default parameters) and produced no runtime errors. Only wrong images.
+
+[Open the WebGPU simulator →](/en/lab/black-hole/webgpu) · [WebGL version →](/en/lab/black-hole)

@@ -173,9 +173,9 @@ fn blackbody(kelvin: f32) -> vec3f {
       vec3f(1.,                   1.3302673723350029, 1.8993753891711275));
   } else {
     m = mat3x3f(
-      vec3f( 1745.0425298314172,-2666.3474220535695, 0.55995389139931482),
-      vec3f( 1216.6168361476490,-2173.1012343082230, 0.70381203140554553),
-      vec3f(-8257.7997278925690, 2575.2827530017594, 1.8993753891711275));
+      vec3f( 1745.0425298314172, 1216.6168361476490,-8257.7997278925690),
+      vec3f(-2666.3474220535695,-2173.1012343082230, 2575.2827530017594),
+      vec3f( 0.55995389139931482, 0.70381203140554553, 1.8993753891711275));
   }
   let c = clamp(m[0] / (vec3f(t) + m[1]) + m[2], vec3f(0.), vec3f(1.));
   return mix(c, vec3f(1.), smoothstep(1000., 0., t));
@@ -308,7 +308,7 @@ fn kerrDoppler(rd: f32, ps_at_hit: vec3f, hit: vec3f) -> f32 {
         if (rd > rIn && rd < u.disk_outer) {
           let flux = diskFlux(rd, rIn);
           let T    = u.disk_temp * pow(flux, .25);
-          let g    = select(1., kerrDoppler(rd, ps, hit), u.doppler_on > .5);
+          let g    = select(1., min(kerrDoppler(rd, ps, hit), 3.0), u.doppler_on > .5);
           let Tobs = T*g;
           var bright = u.disk_bright * pow(Tobs/u.disk_temp, 4.);
           let outer  = 1.-smoothstep(u.disk_outer*.28, u.disk_outer*.82, rd);
@@ -350,9 +350,9 @@ fn kerrDoppler(rd: f32, ps_at_hit: vec3f, hit: vec3f) -> f32 {
           let HoR   = clamp(u.vol_thick*sqrt(pow(flux,.25)*rho)*0.22, 0.008, 0.18);
           let Hh    = HoR*rho;
           let zr    = mid.y/Hh;
-          if (abs(zr) < 2.2) {
+          if (abs(zr) < 1.5) {
             let dens   = exp(-.5*zr*zr);
-            let radial = 1.-smoothstep(u.disk_outer*.60, u.disk_outer*.95, rho);
+            let radial = 1.-smoothstep(u.disk_outer*.28, u.disk_outer*.82, rho);
             let dens2  = dens*radial*radial*radial;
             // Project mid to equatorial plane for Doppler: off-plane lam gives extreme values
             let g      = select(1., min(kerrDoppler(rho, ps, vec3f(mid.x, 0., mid.z)), 3.0), u.doppler_on > .5);
@@ -360,28 +360,24 @@ fn kerrDoppler(rd: f32, ps_at_hit: vec3f, hit: vec3f) -> f32 {
             let om2   = u.time*1.4/pow(rho,1.5);
             let ca2=cos(om2); let sa2=sin(om2);
             let rotm2 = mat2x2f(vec2f(0.80,-0.60),vec2f(0.60,0.80));
-            let qd    = mat2x2f(vec2f(ca2,-sa2),vec2f(sa2,ca2)) * mid.xz * 0.55;
-            // Domain warp → spiral accretion streams
-            let wv  = vec2f(gnoise(qd+3.1),gnoise(qd+7.7))-0.5;
-            var pv  = qd + 0.8*wv;
-            // FBM: 4 octaves
+            // Low spatial frequency (0.30) keeps blobs broad → no fine rings when lensed
+            var pv    = mat2x2f(vec2f(ca2,-sa2),vec2f(sa2,ca2)) * mid.xz * 0.30;
+            // Gentle domain warp — large streaks, no high-freq ripples
+            let wv  = vec2f(gnoise(pv+3.1), gnoise(pv+7.7)) - 0.5;
+            pv += 0.30*wv;
+            // FBM: 2 octaves only (fine octaves cause lensed ring artifacts)
             var turb2 = 0.;
-            turb2 += 0.50*gnoise(pv);                                                pv = rotm2*pv*2.03+11.5;
-            turb2 += 0.25*gnoise(pv);                                                pv = rotm2*pv*2.03+4.7;
-            turb2 += 0.14*gnoise(pv+vec2f(u.time*0.07,-u.time*0.05));               pv = rotm2*pv*2.03+19.2;
-            turb2 += 0.10*gnoise(pv+vec2f(-u.time*0.11,u.time*0.09));
-            // azimuthal density wave (spiral arm)
-            let phi2  = atan2(mid.z, mid.x);
-            let wave  = 0.5+0.5*sin(phi2*2.-rho*0.65+u.time*0.25);
-            // z-shear: bright accretion lanes at ±Hh/2
-            let zlane = 0.25*(1.-clamp(abs(zr)-0.4,0.,1.));
-            let tb    = clamp(0.25+1.5*turb2*mix(0.6,1.,wave)+zlane, 0., 1.9);
-            let ds  = dt*length(vel);
-            let emis = pow(Tobs/u.disk_temp,4.)*dens2*tb;
+            turb2 += 0.60*gnoise(pv);                pv = rotm2*pv*2.03+11.5;
+            turb2 += 0.40*gnoise(pv);
+            // Mild azimuthal asymmetry via cos of orbital phase (no atan2 singularity)
+            let orb_x  = ca2*mid.x + sa2*mid.z;
+            let wave   = 0.75 + 0.25 * (select(0., orb_x/rho, rho > 0.05));
+            let tb     = clamp(0.30 + 0.90*turb2*wave, 0., 1.60);
+            let ds   = dt*length(vel);
             let dtau = u.vol_opacity*dens2*ds;
             var jv: vec3f;
-            if (u.pure_black > .5) { jv = vec3f(1.,0.42,0.12)*(u.disk_bright*.08*emis*ds); }
-            else                   { jv = blackbody(Tobs)*(u.disk_bright*.08*emis*ds); }
+            if (u.pure_black > .5) { jv = vec3f(1.,0.42,0.12)*(u.disk_bright*0.12*tb*dens2*ds); }
+            else                   { jv = blackbody(Tobs)*(u.disk_bright*0.12*tb*dens2*ds); }
             accCol += (1.-accA)*jv;
             accA   += (1.-accA)*(1.-exp(-dtau));
             if (accA > .99) { color=accCol; done=true; }
