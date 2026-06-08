@@ -8,7 +8,7 @@ const PAGE_URL = `${site.url}/en/lab/black-hole/playground`;
 const PAGE_URL_IT = `${site.url}/lab/buco-nero/playground`;
 
 const DESCRIPTION =
-  "Black hole playground: drop in planets, stars and comets and watch the black hole capture them. Stars within the tidal radius are torn into a debris stream. Paczyński–Wiita pseudo-Newtonian dynamics, WebGL.";
+  "Black hole playground: drop in planets, stars and comets and watch it capture them. Stars within the tidal radius are torn into a debris stream. Paczyński–Wiita dynamics.";
 
 export const metadata: Metadata = {
   title: "Black Hole · Gravitational playground · Fosforonero Lab",

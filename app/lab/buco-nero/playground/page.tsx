@@ -8,7 +8,7 @@ const PAGE_URL = `${site.url}/lab/buco-nero/playground`;
 const PAGE_URL_EN = `${site.url}/en/lab/black-hole/playground`;
 
 const DESCRIPTION =
-  "Playground del buco nero: lancia pianeti, stelle e comete e guarda il buco nero catturarli. Le stelle entro il raggio mareale vengono disgregate in uno stream di detriti. Dinamica pseudo-newtoniana di Paczyński–Wiita, WebGL.";
+  "Playground del buco nero: lancia pianeti, stelle e comete e guardalo catturarli. Le stelle entro il raggio mareale vengono disgregate in detriti. Modello di Paczyński–Wiita.";
 
 export const metadata: Metadata = {
   title: "Buco Nero · Playground gravitazionale · Fosforonero Lab",

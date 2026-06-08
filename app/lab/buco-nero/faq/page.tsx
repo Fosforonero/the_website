@@ -8,7 +8,7 @@ const PAGE_URL = `${site.url}/lab/buco-nero/faq`;
 const PAGE_URL_EN = `${site.url}/en/lab/black-hole/faq`;
 
 const DESCRIPTION =
-  "Domande frequenti sulla simulazione del buco nero: è una simulazione vera? La massa influenza la griglia spazio-tempo? Lo spin è la metrica di Kerr? Le dimensioni sono in scala? C'è fisica del plasma? Risposte brevi e oneste, con link alle equazioni.";
+  "Domande frequenti sul simulatore di buco nero: è una simulazione vera? Lo spin è la metrica di Kerr? Le dimensioni sono in scala? C'è fisica del plasma? Risposte oneste.";
 
 export const metadata: Metadata = {
   title: "Buco nero · Domande frequenti (FAQ) · Fosforonero Lab",

@@ -8,7 +8,7 @@ const PAGE_URL = `${site.url}/en/lab/black-hole/faq`;
 const PAGE_URL_IT = `${site.url}/lab/buco-nero/faq`;
 
 const DESCRIPTION =
-  "Frequently asked questions about the black-hole simulation: is it a real simulation? Does mass affect the spacetime grid? Is the spin the Kerr metric? Are the sizes to scale? Is there plasma physics? Short, honest answers with links to the equations.";
+  "FAQ about the black-hole simulator: is it a real simulation? Is the spin the Kerr metric? Are the sizes to scale? Is there plasma physics? Short, honest answers.";
 
 export const metadata: Metadata = {
   title: "Black hole · Frequently asked questions (FAQ) · Fosforonero Lab",

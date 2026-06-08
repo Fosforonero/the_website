@@ -39,6 +39,7 @@ export type PlaygroundSceneProps = {
   quality: BlackHoleQuality;
   spin: number;
   diskOn: boolean;
+  dopplerOn: boolean;
   jetsOn: boolean;
   gridOn: boolean;
   gwOn: boolean;
@@ -707,7 +708,7 @@ function CameraSync({ bgRef }: { bgRef: MutableRefObject<WebGPUBgHandle | null> 
 // Public scene
 // ---------------------------------------------------------------------------
 
-export default function BlackHolePlaygroundScene({ quality, spin, diskOn, jetsOn, gridOn, gwOn, activeKind, apiRef, scaleRef, webgpuMode, bgRef }: PlaygroundSceneProps) {
+export default function BlackHolePlaygroundScene({ quality, spin, diskOn, dopplerOn, jetsOn, gridOn, gwOn, activeKind, apiRef, scaleRef, webgpuMode, bgRef }: PlaygroundSceneProps) {
   const dprCap = QUALITY_PRESETS[quality].dprCap;
   return (
     <Canvas
@@ -717,7 +718,7 @@ export default function BlackHolePlaygroundScene({ quality, spin, diskOn, jetsOn
       style={{ position: "absolute", inset: 0, background: "transparent" }}
       onCreated={({ gl }) => gl.setClearAlpha(0)}
     >
-      {!webgpuMode && <BlackHoleQuad quality={quality} diskOn={diskOn} spin={spin} dopplerOn jetsOn={jetsOn} />}
+      {!webgpuMode && <BlackHoleQuad quality={quality} diskOn={diskOn} spin={spin} dopplerOn={dopplerOn} jetsOn={jetsOn} />}
       {webgpuMode && bgRef && <CameraSync bgRef={bgRef} />}
       <BlackHoleGrid visible={gridOn} spin={spin} />
       <Simulation apiRef={apiRef} activeKind={activeKind} gwOn={gwOn} />

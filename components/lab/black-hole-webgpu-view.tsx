@@ -355,7 +355,7 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
 
       <div className="bh-canvas-wrap">
         {supported===false && (
-          <div className="bh-loading" style={{display:"flex",flexDirection:"column",gap:8,alignItems:"center",justifyContent:"center",height:"100%"}}>
+          <div className="bh-loading" role="alert" style={{display:"flex",flexDirection:"column",gap:8,alignItems:"center",justifyContent:"center",height:"100%"}}>
             <span>{t.noSupport}</span>
             <span style={{opacity:.6,fontSize:"0.9em"}}>{t.noSupportSub}</span>
             <Link href={glHref} className="bh-control" style={{marginTop:8}}>{t.noSupportLink}</Link>

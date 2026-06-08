@@ -34,6 +34,7 @@ const COPY = {
     back: "← Lab",
     sim: "Vista classica",
     webgpu: "WebGPU",
+    doppler: "Doppler",
     disk: "Disco",
     jets: "Getti",
     grid: "Griglia",
@@ -56,6 +57,7 @@ const COPY = {
     back: "← Lab",
     sim: "Classic view",
     webgpu: "WebGPU",
+    doppler: "Doppler",
     disk: "Disk",
     jets: "Jets",
     grid: "Grid",
@@ -72,6 +74,7 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
   const scaleRef = useRef(0);
   const bgRef = useRef<WebGPUBgHandle | null>(null);
   const [webgpuMode, setWebgpuMode] = useState(false);
+  const [dopplerOn, setDopplerOn] = useState(true);
   const [scaleBar, setScaleBar] = useState({ px: 0, label: "" });
   const [quality, setQuality] = useState<BlackHoleQuality>("medium");
   const [spin, setSpin] = useState(0);
@@ -125,6 +128,13 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
           onClick={() => setDiskOn((v) => !v)}
         >
           {t.disk}
+        </button>
+
+        <button
+          className={`bh-control bh-toolbar__hide-sm${dopplerOn ? " bh-control--active" : ""}`}
+          onClick={() => setDopplerOn((v) => !v)}
+        >
+          {t.doppler}
         </button>
 
         <button
@@ -183,11 +193,11 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
       <div className="bh-canvas-wrap" style={{ position: "relative", background: webgpuMode ? undefined : "#000003" }}>
         {webgpuMode && (
           <WebGPUBackground
-            spin={spin} diskOn={diskOn} dopplerOn jetsOn={jetsOn}
+            spin={spin} diskOn={diskOn} dopplerOn={dopplerOn} jetsOn={jetsOn}
             bgRef={bgRef}
           />
         )}
-        <PlaygroundScene quality={quality} spin={spin} diskOn={diskOn} jetsOn={jetsOn} gridOn={gridOn} gwOn={gwOn} activeKind={activeKind} apiRef={api} scaleRef={scaleRef} webgpuMode={webgpuMode} bgRef={bgRef} />
+        <PlaygroundScene quality={quality} spin={spin} diskOn={diskOn} dopplerOn={dopplerOn} jetsOn={jetsOn} gridOn={gridOn} gwOn={gwOn} activeKind={activeKind} apiRef={api} scaleRef={scaleRef} webgpuMode={webgpuMode} bgRef={bgRef} />
         {scaleBar.px > 0 && (
           <div className="bh-scalebar" aria-hidden>
             <span className="bh-scalebar__label">{scaleBar.label}</span>
