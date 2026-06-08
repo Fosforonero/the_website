@@ -354,7 +354,8 @@ fn kerrDoppler(rd: f32, ps_at_hit: vec3f, hit: vec3f) -> f32 {
             let dens   = exp(-.5*zr*zr);
             let radial = 1.-smoothstep(u.disk_outer*.60, u.disk_outer*.95, rho);
             let dens2  = dens*radial*radial*radial;
-            let g      = select(1., kerrDoppler(rho, ps, mid), u.doppler_on > .5);
+            // Project mid to equatorial plane for Doppler: off-plane lam gives extreme values
+            let g      = select(1., min(kerrDoppler(rho, ps, vec3f(mid.x, 0., mid.z)), 3.0), u.doppler_on > .5);
             let Tobs   = T*g;
             let om2   = u.time*1.4/pow(rho,1.5);
             let ca2=cos(om2); let sa2=sin(om2);
