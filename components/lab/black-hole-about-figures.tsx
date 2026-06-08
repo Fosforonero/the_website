@@ -16,7 +16,7 @@ type Series = { points: Pt[]; color: string; label: string; dashed?: boolean };
 type VLine = { x: number; label: string; color?: string };
 type HLine = { y: number; label?: string; color?: string };
 
-export type FigureId = "deflection" | "potential" | "doppler" | "kerrShadow";
+export type FigureId = "deflection" | "potential" | "doppler" | "kerrShadow" | "polarization";
 
 const C = {
   orange: "#ff8a3c",
@@ -270,7 +270,7 @@ function LinePlot(props: {
 
 // --- Localized figure wrappers ---------------------------------------------
 
-const TXT: Record<FigureId, Record<Locale, { x: string; y: string; cap: string; series: string[] }>> = {
+const TXT: Partial<Record<FigureId, Record<Locale, { x: string; y: string; cap: string; series: string[] }>>> = {
   deflection: {
     it: {
       x: "parametro d'impatto b / M",
@@ -329,8 +329,75 @@ const TXT: Record<FigureId, Record<Locale, { x: string; y: string; cap: string; 
   },
 };
 
+// Schematic EVPA (polarization) figure — §7.5.
+// Assumes toroidal B field viewed at inclination 75°. The E-vector (EVPA) for
+// optically-thin synchrotron is perpendicular to the projected B on the sky.
+// For toroidal B at disk azimuth φ: projected B ∝ (−sin φ, cos φ · cos i),
+// so EVPA direction ∝ (cos φ · cos i, sin φ) (normalised).
+// This is a SCHEMATIC — no GR polarization transport, no Faraday rotation.
+const POL_INCL = (75 * Math.PI) / 180;
+function PolarizationFigure({ locale }: { locale: Locale }) {
+  const W = 580, H = 320;
+  const cx = W / 2, cy = H / 2;
+  const ci = Math.cos(POL_INCL);
+  const ticks: { x: number; y: number; dx: number; dy: number; bright: number }[] = [];
+  const radii = [55, 80, 108];
+  const nPhi = 16;
+  for (const ra of radii) {
+    for (let k = 0; k < nPhi; k++) {
+      const phi = (2 * Math.PI * k) / nPhi;
+      const px = cx + ra * Math.cos(phi);
+      const py = cy + ra * Math.sin(phi) * ci;
+      // projected toroidal B direction
+      const bx = -Math.sin(phi), by = Math.cos(phi) * ci;
+      const bn = Math.sqrt(bx * bx + by * by);
+      // EVPA perpendicular to B
+      const ex = by / bn, ey = -bx / bn;
+      // Doppler factor g ≈ grav / (1 − v·sin(i)·sin(φ))
+      const vOrb = Math.sqrt(1 / (6 - 2)); // ~ ISCO speed M=1
+      const grav = Math.sqrt(1 - 3 / 6);
+      const g = grav / (1 - vOrb * Math.sin(POL_INCL) * Math.sin(phi));
+      const bright = Math.min(1, Math.max(0.15, (g * g) / 2.5));
+      ticks.push({ x: px, y: py, dx: ex, dy: ey, bright });
+    }
+  }
+  const shadow = 38;
+  const cap = locale === "it"
+    ? "Polarizzazione schematica per campo B toroidale a 75° di inclinazione. Le stanghette mostrano la direzione EVPA (vettore E). Il semitono riflette il beaming Doppler (lato sinistro più brillante). SCHEMATICO — nessun trasporto radiativo GR, nessuna rotazione di Faraday."
+    : "Schematic polarization for toroidal B field at 75° inclination. Tick marks show the EVPA (E-vector) direction. The shading reflects Doppler beaming (left side brighter). SCHEMATIC — no GR polarization transport, no Faraday rotation.";
+  return (
+    <figure className="bh-about__fig">
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Polarization EVPA schematic" className="bh-about__plot">
+        {/* disk background ellipse */}
+        <ellipse cx={cx} cy={cy} rx={120} ry={120 * ci} fill="#1a0a04" stroke="#3a1800" strokeWidth={1} />
+        {/* shadow */}
+        <ellipse cx={cx} cy={cy} rx={shadow} ry={shadow * ci} fill="#050a14" />
+        {/* EVPA ticks */}
+        {ticks.map((tk, i) => {
+          const len = 9;
+          const col = `rgba(255,200,100,${tk.bright.toFixed(2)})`;
+          return (
+            <line key={i}
+              x1={tk.x - tk.dx * len} y1={tk.y - tk.dy * len}
+              x2={tk.x + tk.dx * len} y2={tk.y + tk.dy * len}
+              stroke={col} strokeWidth={1.5} strokeLinecap="round" />
+          );
+        })}
+        {/* horizon label */}
+        <text x={cx} y={cy + 5} fill="#3a5070" fontSize={10} textAnchor="middle">horizon</text>
+        {/* B field label */}
+        <text x={cx + 130} y={cy - 12} fill={C.text} fontSize={10}>B</text>
+        <path d={`M${cx + 118},${cy - 8} Q${cx + 122},${cy - 18} ${cx + 128},${cy - 14}`}
+          fill="none" stroke={C.text} strokeWidth={1} />
+      </svg>
+      <figcaption className="bh-about__figcap">{cap}</figcaption>
+    </figure>
+  );
+}
+
 export function AboutFigure({ id, locale }: { id: FigureId; locale: Locale }) {
-  const t = TXT[id][locale];
+  if (id === "polarization") return <PolarizationFigure locale={locale} />;
+  const t = TXT[id]![locale];
   if (id === "deflection") {
     return (
       <LinePlot

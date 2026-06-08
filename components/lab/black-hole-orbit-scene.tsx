@@ -48,7 +48,10 @@ export type OrbitReadout = {
   driftE: number; // relative numerical drift of the conserved energy invariant
   status: "orbiting" | "plunged";
 };
-export type OrbitHandle = { reset: (p: OrbitParams) => void };
+export type OrbitHandle = {
+  reset: (p: OrbitParams) => void;
+  getCsv: () => string;
+};
 export type OrbitSceneProps = {
   quality: BlackHoleQuality;
   diskOn: boolean;
@@ -106,6 +109,8 @@ function OrbitBody({ params, apiRef, readoutRef }: Omit<OrbitSceneProps, "qualit
     E: specificEnergy(params.r0, params.L),
     count: 0, plunged: false, lastPeri: 0, precDeg: 0,
     c0: invariant(1 / params.r0, 0, params.L), drift: 0, incl: params.incl ?? 0,
+    csvRows: [] as [number, number, number, number][], // [phi, r, x_eq, y_eq]
+    csvTick: 0,
   });
 
   function init(p: OrbitParams) {
@@ -114,11 +119,27 @@ function OrbitBody({ params, apiRef, readoutRef }: Omit<OrbitSceneProps, "qualit
     s.E = specificEnergy(p.r0, p.L);
     s.count = 0; s.plunged = false; s.lastPeri = 0; s.precDeg = 0;
     s.c0 = invariant(s.u, 0, s.L); s.drift = 0; s.incl = p.incl ?? 0;
+    s.csvRows = []; s.csvTick = 0;
     lineObj.geometry.setDrawRange(0, 0);
   }
 
   useEffect(() => {
-    apiRef.current = { reset: (p) => init(p) };
+    apiRef.current = {
+      reset: (p) => init(p),
+      getCsv: () => {
+        const s = st.current;
+        const header = [
+          `# Schwarzschild timelike geodesic — Fosforonero Black Hole Lab`,
+          `# Units: M = 1 (gravitational radius, r_s = 2M). Angular momentum L per unit mass.`,
+          `# L=${s.L.toFixed(4)} M  E=${s.E.toFixed(6)}  incl=${(s.incl * 180 / Math.PI).toFixed(1)} deg`,
+          `phi_rad,r_M,x_M,y_M`,
+        ];
+        const rows = s.csvRows.map(([phi, r, x, y]) =>
+          `${phi.toFixed(5)},${r.toFixed(5)},${x.toFixed(5)},${y.toFixed(5)}`
+        );
+        return [...header, ...rows].join("\n");
+      },
+    };
     return () => { apiRef.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -158,6 +179,11 @@ function OrbitBody({ params, apiRef, readoutRef }: Omit<OrbitSceneProps, "qualit
     }
 
     const r = 1 / s.u;
+    // Sample CSV path every 12 frames, capped at 4000 rows (~1 orbit at typical speed).
+    s.csvTick++;
+    if (!s.plunged && s.csvTick % 12 === 0 && s.csvRows.length < 4000) {
+      s.csvRows.push([s.phi, r, r * Math.cos(s.phi), r * Math.sin(s.phi)]);
+    }
     // Schwarzschild geodesics are planar (spherical symmetry); we orient the
     // orbital plane in 3D by an inclination about the line of nodes (the x
     // axis). e1 = (1,0,0), e2 = (0, sin i, cos i); incl = 0 → equatorial.

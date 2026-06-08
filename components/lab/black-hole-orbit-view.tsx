@@ -17,7 +17,7 @@ const COPY = {
   it: {
     title: "Buco Nero · Orbite relativistiche",
     L: "Momento angolare L", r0: "Raggio iniziale r₀", reset: "Riavvia", disk: "Disco", incl: "Inclinazione",
-    about: "Equazioni", back: "← Lab", sim: "Vista classica", presets: "Preset",
+    about: "Equazioni", back: "← Lab", sim: "Vista classica", presets: "Preset", csv: "CSV",
     pPrec: "Precessione", pIsco: "ISCO", pPlunge: "Caduta",
     hint: "Geodetica di tipo-tempo esatta di Schwarzschild (non l'approssimazione del playground). L'orbita precede formando una rosetta — la stessa fisica della precessione del perielio di Mercurio. Sotto L = √3 non esistono orbite stabili → caduta. Clicca nella scena per rilasciare la particella nel punto scelto. Anello arancio = ISCO (r = 6M), anello chiaro = sfera fotonica.",
     rLbl: "r", vLbl: "v", eLbl: "E", precLbl: "Δφ", driftLbl: "drift E", status: "stato",
@@ -26,7 +26,7 @@ const COPY = {
   en: {
     title: "Black Hole · Relativistic orbits",
     L: "Angular momentum L", r0: "Initial radius r₀", reset: "Restart", disk: "Disk", incl: "Inclination",
-    about: "Equations", back: "← Lab", sim: "Classic view", presets: "Presets",
+    about: "Equations", back: "← Lab", sim: "Classic view", presets: "Presets", csv: "CSV",
     pPrec: "Precession", pIsco: "ISCO", pPlunge: "Plunge",
     hint: "Exact Schwarzschild timelike geodesic (not the playground's approximation). The orbit precesses into a rosette — the same physics as Mercury's perihelion precession. Below L = √3 there are no stable orbits → plunge. Click in the scene to release the particle at the chosen point. Orange ring = ISCO (r = 6M), light ring = photon sphere.",
     rLbl: "r", vLbl: "v", eLbl: "E", precLbl: "Δφ", driftLbl: "E drift", status: "status",
@@ -74,6 +74,17 @@ export function BlackHoleOrbitView({ locale = "it" }: { locale?: Locale }) {
     return () => clearInterval(id);
   }, []);
 
+  function handleCsv() {
+    const csv = api.current?.getCsv();
+    if (!csv) return;
+    const blob = new Blob([csv], { type: "text/csv" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `bh-geodesic-L${params.L.toFixed(2)}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
   const aboutHref = locale === "it" ? "/lab/buco-nero/about" : "/en/lab/black-hole/about";
   const simHref = locale === "it" ? "/lab/buco-nero" : "/en/lab/black-hole";
   const E = Math.sqrt(Math.max(1 - 1.0 / params.r0, 0) * (1 + (params.L * params.L) / (params.r0 * params.r0)));
@@ -114,6 +125,7 @@ export function BlackHoleOrbitView({ locale = "it" }: { locale?: Locale }) {
         <button className={`bh-control bh-toolbar__hide-sm${diskOn ? " bh-control--active" : ""}`} onClick={() => setDiskOn((v) => !v)}>{t.disk}</button>
 
         <div className="bh-toolbar__sep" />
+        <button className="bh-control bh-toolbar__hide-sm" onClick={handleCsv} title="Download geodesic path as CSV">{t.csv}</button>
         <Link href={simHref} className="bh-control bh-toolbar__hide-sm">{t.sim}</Link>
         <Link href={aboutHref} className="bh-control bh-toolbar__hide-sm">{t.about}</Link>
         <Link href={locale === "it" ? "/en/lab/black-hole/orbit" : "/lab/buco-nero/orbite"} className="bh-control" hrefLang={locale === "it" ? "en" : "it"} aria-label={locale === "it" ? "English version" : "Versione italiana"}>{locale === "it" ? "EN" : "IT"}</Link>
