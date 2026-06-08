@@ -5,6 +5,12 @@ import { useRef, useState, useEffect } from "react";
 import Link from "next/link";
 import type { BlackHoleQuality } from "./black-hole/black-hole-shader";
 import type { PlaygroundHandle, BodyKind } from "./black-hole-playground-scene";
+import type { WebGPUBgHandle } from "./black-hole-webgpu-background";
+
+const WebGPUBackground = dynamic(
+  () => import("./black-hole-webgpu-background").then(m => ({ default: m.BlackHoleWebGPUBackground })),
+  { ssr: false, loading: () => null }
+);
 
 const PlaygroundScene = dynamic(() => import("./black-hole-playground-scene"), {
   ssr: false,
@@ -27,6 +33,7 @@ const COPY = {
     about: "Equazioni",
     back: "← Lab",
     sim: "Vista classica",
+    webgpu: "WebGPU",
     disk: "Disco",
     jets: "Getti",
     grid: "Griglia",
@@ -48,6 +55,7 @@ const COPY = {
     about: "Equations",
     back: "← Lab",
     sim: "Classic view",
+    webgpu: "WebGPU",
     disk: "Disk",
     jets: "Jets",
     grid: "Grid",
@@ -62,6 +70,8 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
   const t = COPY[locale];
   const api = useRef<PlaygroundHandle | null>(null);
   const scaleRef = useRef(0);
+  const bgRef = useRef<WebGPUBgHandle | null>(null);
+  const [webgpuMode, setWebgpuMode] = useState(false);
   const [scaleBar, setScaleBar] = useState({ px: 0, label: "" });
   const [quality, setQuality] = useState<BlackHoleQuality>("medium");
   const [spin, setSpin] = useState(0);
@@ -159,14 +169,25 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
         </label>
 
         <div className="bh-toolbar__sep" />
+        <button
+          className={`bh-control bh-toolbar__hide-sm${webgpuMode ? " bh-control--active" : ""}`}
+          onClick={() => setWebgpuMode(v => !v)}
+          title={webgpuMode ? "Switch to WebGL renderer" : "Switch to WebGPU renderer"}
+        >{t.webgpu}</button>
         <Link href={simHref} className="bh-control bh-toolbar__hide-sm">{t.sim}</Link>
         <Link href={aboutHref} className="bh-control bh-toolbar__hide-sm">{t.about}</Link>
         <Link href={locale === "it" ? "/en/lab/black-hole/playground" : "/lab/buco-nero/playground"} className="bh-control" hrefLang={locale === "it" ? "en" : "it"} aria-label={locale === "it" ? "English version" : "Versione italiana"}>{locale === "it" ? "EN" : "IT"}</Link>
         <Link href={locale === "it" ? "/lab" : "/en/lab"} className="bh-control">{t.back}</Link>
       </div>
 
-      <div className="bh-canvas-wrap">
-        <PlaygroundScene quality={quality} spin={spin} diskOn={diskOn} jetsOn={jetsOn} gridOn={gridOn} gwOn={gwOn} activeKind={activeKind} apiRef={api} scaleRef={scaleRef} />
+      <div className="bh-canvas-wrap" style={{ position: "relative" }}>
+        {webgpuMode && (
+          <WebGPUBackground
+            spin={spin} diskOn={diskOn} dopplerOn jetsOn={jetsOn}
+            bgRef={bgRef}
+          />
+        )}
+        <PlaygroundScene quality={quality} spin={spin} diskOn={diskOn} jetsOn={jetsOn} gridOn={gridOn} gwOn={gwOn} activeKind={activeKind} apiRef={api} scaleRef={scaleRef} webgpuMode={webgpuMode} bgRef={bgRef} />
         {scaleBar.px > 0 && (
           <div className="bh-scalebar" aria-hidden>
             <span className="bh-scalebar__label">{scaleBar.label}</span>

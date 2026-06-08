@@ -9,6 +9,7 @@ import { BlackHoleQuad } from "./black-hole-scene";
 import { BlackHoleGrid } from "./black-hole-grid";
 import { DitherEffect } from "./black-hole/dither-effect";
 import { QUALITY_PRESETS, type BlackHoleQuality } from "./black-hole/black-hole-shader";
+import type { WebGPUBgHandle } from "./black-hole-webgpu-background";
 
 // ---------------------------------------------------------------------------
 // Black-hole PLAYGROUND
@@ -44,6 +45,8 @@ export type PlaygroundSceneProps = {
   activeKind: BodyKind;
   apiRef: MutableRefObject<PlaygroundHandle | null>;
   scaleRef?: MutableRefObject<number>; // px on screen per 1 r_s (for the scale bar)
+  webgpuMode?: boolean;
+  bgRef?: MutableRefObject<WebGPUBgHandle | null>;
 };
 
 // Reports how many screen pixels one Schwarzschild radius spans at the centre,
@@ -684,19 +687,37 @@ function Simulation({
 }
 
 // ---------------------------------------------------------------------------
+// Camera sync: reads Three.js camera position each frame and pushes az/el/dist
+// to the WebGPU background canvas so both renderers stay in sync.
+// ---------------------------------------------------------------------------
+function CameraSync({ bgRef }: { bgRef: MutableRefObject<WebGPUBgHandle | null> }) {
+  const { camera } = useThree();
+  useFrame(() => {
+    const bg = bgRef.current;
+    if (!bg) return;
+    const dist = camera.position.length() || 1;
+    const el   = Math.asin(Math.max(-1, Math.min(1, camera.position.y / dist)));
+    const az   = Math.atan2(camera.position.x, camera.position.z);
+    bg.setCamera(az, el, dist);
+  });
+  return null;
+}
+
+// ---------------------------------------------------------------------------
 // Public scene
 // ---------------------------------------------------------------------------
 
-export default function BlackHolePlaygroundScene({ quality, spin, diskOn, jetsOn, gridOn, gwOn, activeKind, apiRef, scaleRef }: PlaygroundSceneProps) {
+export default function BlackHolePlaygroundScene({ quality, spin, diskOn, jetsOn, gridOn, gwOn, activeKind, apiRef, scaleRef, webgpuMode, bgRef }: PlaygroundSceneProps) {
   const dprCap = QUALITY_PRESETS[quality].dprCap;
   return (
     <Canvas
       camera={{ fov: 50, near: 0.01, far: 5000, position: [0, 6, 22] }}
       dpr={[1, dprCap]}
-      gl={{ antialias: false, alpha: false, preserveDrawingBuffer: true }}
-      style={{ background: "#000003" }}
+      gl={{ antialias: false, alpha: !!webgpuMode, preserveDrawingBuffer: true }}
+      style={webgpuMode ? { background: "transparent", position: "absolute", inset: 0 } : { background: "#000003" }}
     >
-      <BlackHoleQuad quality={quality} diskOn={diskOn} spin={spin} dopplerOn jetsOn={jetsOn} />
+      {!webgpuMode && <BlackHoleQuad quality={quality} diskOn={diskOn} spin={spin} dopplerOn jetsOn={jetsOn} />}
+      {webgpuMode && bgRef && <CameraSync bgRef={bgRef} />}
       <BlackHoleGrid visible={gridOn} spin={spin} />
       <Simulation apiRef={apiRef} activeKind={activeKind} gwOn={gwOn} />
       <ScaleProbe scaleRef={scaleRef} />
