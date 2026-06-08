@@ -1,10 +1,10 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import type { QualityChoice, GpuInfo } from "./black-hole/black-hole-shader";
-import { bhFacts, diskColorTempForMass } from "./black-hole/physics";
+import { bhFacts, diskColorTempForMass, shadowAngleMuAs, EHT_TARGETS } from "./black-hole/physics";
 
 // WebGL Canvas must never run on the server.
 const BlackHoleScene = dynamic(() => import("./black-hole-scene"), {
@@ -166,6 +166,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
   const [pureBlackOn, setPureBlackOn] = useState(false);
   const [skySource, setSkySource] = useState<SkySource>("nasa8k");
   const [volDiskOn, setVolDiskOn] = useState(false);
+  const [distKpc, setDistKpc] = useState(8.1); // distance for shadow angle calc (kpc)
   // Ultra needs the 6th-order Tao integrator: only discrete desktop GPUs support
   // it without freezing. Apple Silicon and mobile get it disabled.
   const ultraAvailable = !gpu || (gpu.tier === "high" && !gpu.isAppleSilicon);
@@ -182,6 +183,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
   useEffect(() => { setHdrMode(isHdrDisplay); }, [isHdrDisplay]);
 
   const onMass = (m: number) => { setMassSolar(m); setDiskTemp(diskColorTempForMass(m)); };
+  const applyPreset = (m: number, s: number, kpc?: number) => { onMass(m); setSpin(s); if (kpc !== undefined) setDistKpc(kpc); };
   // Capture the WebGL canvas (preserveDrawingBuffer is on) and share/download it.
   const onShare = () => {
     const canvas = document.querySelector(".bh-canvas-wrap canvas") as HTMLCanvasElement | null;
@@ -203,8 +205,9 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
     }, "image/png");
   };
   // Scenario presets: set a representative mass AND spin for a famous object.
-  const applyScenario = (m: number, s: number) => { onMass(m); setSpin(s); };
+  const applyScenario = applyPreset;
   const facts = bhFacts(massSolar);
+  const shadowMuAs = useMemo(() => shadowAngleMuAs(massSolar, distKpc), [massSolar, distKpc]);
   // Accretion rate Ṁ physically raises BOTH luminosity (∝ Ṁ) and temperature
   // (∝ Ṁ¼): so the accretion control also shifts the colour (hotter/bluer when
   // higher), not just the brightness. The temperature slider is the base colour.
@@ -221,6 +224,42 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
     window.addEventListener("orientationchange", onRot);
     return () => window.removeEventListener("orientationchange", onRot);
   }, []);
+  // ── §7.4 Shareable permalink ─────────────────────────────────────────────
+  // Restore state from URL params on mount, then keep URL in sync.
+  const restoredRef = useRef(false);
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+    if (p.has("s")) setSpin(clamp(parseFloat(p.get("s")!), 0, 0.95));
+    if (p.has("q")) { const qv = p.get("q"); if (["auto","ultra","high","medium","low"].includes(qv!)) setQuality(qv as QualityChoice); }
+    if (p.has("b")) setDiskBright(clamp(parseFloat(p.get("b")!), 5, 60));
+    if (p.has("t")) setDiskTemp(clamp(parseFloat(p.get("t")!), 3000, 20000));
+    if (p.has("r")) setDiskOuter(clamp(parseFloat(p.get("r")!), 8, 26));
+    if (p.has("d")) setDopplerOn(p.get("d") !== "0");
+    if (p.has("j")) setJetsOn(p.get("j") === "1");
+    if (p.has("v")) setVolDiskOn(p.get("v") === "1");
+    if (p.has("g")) setGridOn(p.get("g") === "1");
+    if (p.has("dist")) setDistKpc(clamp(parseFloat(p.get("dist")!), 0.1, 1e6));
+    queueMicrotask(() => { restoredRef.current = true; });
+  }, []);
+  useEffect(() => {
+    if (!restoredRef.current) return;
+    const p = new URLSearchParams();
+    if (spin !== 0) p.set("s", spin.toFixed(2));
+    if (quality !== "auto") p.set("q", quality);
+    if (diskBright !== 14) p.set("b", diskBright.toFixed(0));
+    if (diskTemp !== 10500) p.set("t", diskTemp.toFixed(0));
+    if (diskOuter !== 16) p.set("r", diskOuter.toFixed(1));
+    if (!dopplerOn) p.set("d", "0");
+    if (jetsOn) p.set("j", "1");
+    if (volDiskOn) p.set("v", "1");
+    if (gridOn) p.set("g", "1");
+    if (distKpc !== 8.1) p.set("dist", distKpc.toFixed(1));
+    const qs = p.toString();
+    window.history.replaceState(null, "", qs ? `?${qs}` : window.location.pathname);
+  }, [spin, quality, diskBright, diskTemp, diskOuter, dopplerOn, jetsOn, volDiskOn, gridOn, distKpc]);
+  // ─────────────────────────────────────────────────────────────────────────
+
   const aboutHref = locale === "it" ? "/lab/buco-nero/about" : "/en/lab/black-hole/about";
   const playgroundHref = locale === "it" ? "/lab/buco-nero/playground" : "/en/lab/black-hole/playground";
 
@@ -511,8 +550,8 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
             </label>
             <div className="bh-physpanel__presets">
               <button onClick={() => applyScenario(10, 0)}>10 M☉</button>
-              <button onClick={() => applyScenario(4.3e6, 0.5)}>Sgr A*</button>
-              <button onClick={() => applyScenario(6.5e9, 0.9)}>M87*</button>
+              <button onClick={() => applyScenario(4.3e6, 0.5, 8.1)}>Sgr A*</button>
+              <button onClick={() => applyScenario(6.5e9, 0.9, 16800)}>M87*</button>
               <button onClick={() => applyScenario(1e8, 0.95)}>Gargantua</button>
             </div>
             <div className="bh-physpanel__grid">
@@ -525,6 +564,61 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
               <div><span>{t.phys.evap}</span><b>{sci(facts.evapYears)} yr</b></div>
             </div>
             <p className="bh-physpanel__note">{t.phys.note}</p>
+
+            {/* ── Shadow / EHT validation section ── */}
+            <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid #1c2742" }}>
+              <div style={{ fontSize: "0.60rem", color: "#8fa3cc", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>
+                {locale === "it" ? "Ombra & confronto EHT" : "Shadow & EHT comparison"}
+              </div>
+
+              {/* Distance control */}
+              <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.63rem", marginBottom: 8 }}>
+                <span style={{ color: "#6f86ad", minWidth: 60 }}>{locale === "it" ? "Distanza" : "Distance"}</span>
+                <input type="range" min={-1} max={4.5} step={0.05}
+                  value={Math.log10(distKpc)}
+                  onChange={(e) => setDistKpc(10 ** parseFloat(e.target.value))}
+                  style={{ flex: 1, minWidth: 0 }} />
+                <b style={{ color: "#dfe8f5", minWidth: 72, textAlign: "right", fontSize: "0.63rem" }}>
+                  {distKpc < 1000 ? `${distKpc < 10 ? distKpc.toFixed(2) : distKpc.toFixed(0)} kpc` : `${(distKpc / 1000).toFixed(1)} Mpc`}
+                </b>
+              </label>
+
+              {/* Computed + analytical row */}
+              <div className="bh-physpanel__grid" style={{ marginBottom: 8 }}>
+                <div>
+                  <span>b_crit (a=0)</span>
+                  <b>3√3 ≈ 5.196 GM/c²</b>
+                </div>
+                <div>
+                  <span>{locale === "it" ? "Diametro angolare ombra" : "Shadow angular diameter"}</span>
+                  <b>{shadowMuAs.toFixed(1)} µas</b>
+                </div>
+              </div>
+
+              {/* EHT reference table */}
+              <div style={{ display: "grid", gridTemplateColumns: "auto 1fr 1fr 1fr", gap: "3px 8px", fontSize: "0.58rem", alignItems: "baseline" }}>
+                <span style={{ color: "#4a5e80" }}></span>
+                <span style={{ color: "#4a5e80" }}>{locale === "it" ? "stimato" : "computed"}</span>
+                <span style={{ color: "#4a5e80" }}>EHT {locale === "it" ? "misurato" : "measured"}</span>
+                <span style={{ color: "#4a5e80" }}>{locale === "it" ? "scarto" : "error"}</span>
+                {EHT_TARGETS.map((tgt) => {
+                  const comp = shadowAngleMuAs(tgt.mSolar, tgt.distKpc);
+                  const errPct = Math.abs(comp - tgt.measuredMuAs) / tgt.measuredMuAs * 100;
+                  return [
+                    <b key={tgt.name + "n"} style={{ color: "#dfe8f5" }}>{tgt.name}</b>,
+                    <span key={tgt.name + "c"} style={{ color: "#c8d8f0" }}>{comp.toFixed(0)} µas</span>,
+                    <span key={tgt.name + "e"} style={{ color: "#5fbf6f" }}>{tgt.measuredMuAs} µas</span>,
+                    <span key={tgt.name + "d"} style={{ color: errPct < 15 ? "#5fbf6f" : "#c8a83a" }}>{errPct.toFixed(0)}%</span>,
+                  ];
+                })}
+              </div>
+
+              <p className="bh-physpanel__note" style={{ marginTop: 6 }}>
+                {locale === "it"
+                  ? `Formula Schwarzschild (a=0): esatta al limite non-rotante; varia ±~10% con lo spin (Kerr). Distanza Sgr A*: 8,1 kpc (GRAVITY 2022); M87*: 16,8 Mpc (EHT 2019). Rif: Bardeen 1973, EHT 2019/2022.`
+                  : `Schwarzschild formula (a=0): exact in the non-rotating limit; varies ±~10% with spin (Kerr). Sgr A* dist: 8.1 kpc (GRAVITY 2022); M87*: 16.8 Mpc (EHT 2019). Ref: Bardeen 1973, EHT 2019/2022.`}
+              </p>
+            </div>
           </div>
         )}
 

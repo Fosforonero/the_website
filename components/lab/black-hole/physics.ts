@@ -157,6 +157,34 @@ export function kerrFluxProfile(uSpin: number): number[] {
 // Default (a = 0) profile for the initial uniform value.
 export const DISK_FLUX_LUT = kerrFluxProfile(0);
 
+// ---------------------------------------------------------------------------
+// Shadow size — EHT-comparable quantities (§7.1–7.2 of roadmap)
+// ---------------------------------------------------------------------------
+
+// Critical impact parameter for photon capture (Schwarzschild, a=0 exact):
+//   b_crit = 3√3 M  (in geometric units: M = GM/c², so dimensionless here)
+// For Kerr (a≠0): same order of magnitude, varies ±~10% with spin.
+export const SHADOW_B_CRIT = 3 * Math.sqrt(3); // ≈ 5.196
+
+const KPC_M = 3.0857e19; // metres per kiloparsec
+
+// Shadow angular DIAMETER in microarcseconds (Schwarzschild limit).
+// Formula: θ = 2·b_crit·(GM/c²)/D,  converted to µas.
+// Accurate to ±~10% for spinning (Kerr) holes — adequate for educational validation.
+export function shadowAngleMuAs(mSolar: number, distKpc: number): number {
+  const rg = G * mSolar * M_SUN / (C * C); // gravitational radius (m)
+  const D = distKpc * KPC_M;               // distance (m)
+  return 2 * SHADOW_B_CRIT * rg / D * 206.265e9; // µas
+}
+
+// Known EHT targets: mass/distance used by the view presets, measured shadow.
+// Refs: EHT Collaboration 2019 (M87*), 2022 (Sgr A*).
+export const EHT_TARGETS = [
+  { name: "M87*",   mSolar: 6.5e9, distKpc: 16800, measuredMuAs: 42, ref: "EHT 2019" },
+  { name: "Sgr A*", mSolar: 4.3e6, distKpc: 8.1,   measuredMuAs: 50, ref: "EHT 2022" },
+] as const;
+
+// ---------------------------------------------------------------------------
 // Map the mass to the disk's *colour* temperature for the renderer (shader
 // range ≈ 3000–30000 K). This is a trend, not the literal peak temperature
 // (which is far hotter): low-mass holes have hot, X-ray/UV disks → blue-white;
