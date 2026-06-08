@@ -49,8 +49,9 @@ struct Uniforms {
 // ── vertex: fullscreen triangle ───────────────────────────────────────────────
 struct VOut { @builtin(position) pos: vec4f }
 @vertex fn vs(@builtin(vertex_index) vid: u32) -> VOut {
-  let p = array<vec2f, 3>(vec2f(-1.,-1.), vec2f(3.,-1.), vec2f(-1.,3.));
-  return VOut(vec4f(p[vid], 0., 1.));
+  let x = select(-1.0, 3.0, vid == 1u);
+  let y = select(-1.0, 3.0, vid == 2u);
+  return VOut(vec4f(x, y, 0., 1.));
 }
 
 // ── disk flux (Novikov–Thorne) ────────────────────────────────────────────────
@@ -110,10 +111,10 @@ fn starField(d: vec3f) -> vec3f {
   if (sl) {
     // Structured galactic plane: FBM filaments + dark dust lanes
     let az  = atan2(d.z, d.x);
-    var gv  = vec2f(az * 2.4, d.y * 7.);
+    var galV = vec2f(az * 2.4, d.y * 7.);
     let rr  = mat2x2f(vec2f(0.80,-0.60), vec2f(0.60,0.80));
     var n   = 0.; var amp = 0.5;
-    for (var o: i32 = 0; o < 5; o++) { n += amp*gnoise(gv); gv = rr*gv*2.03+5.1; amp *= .5; }
+    for (var o: i32 = 0; o < 5; o++) { n += amp*gnoise(galV); galV = rr*galV*2.03+5.1; amp *= .5; }
     n = pow(clamp(n, 0., 1.), 1.35);
     let dust  = smoothstep(0.40, 0.80, gnoise(vec2f(az*3.3, d.y*5.5)+23.));
     band2     = band * n * (1. - 0.85*dust);

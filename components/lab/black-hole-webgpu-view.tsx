@@ -18,6 +18,7 @@ const COPY = {
     spin: "Spin a", disk: "Disco", doppler: "Doppler", exposure: "Esposizione",
     quality: "Steps", jets: "Getti", volDisk: "Vol disk", starless: "Starless",
     pureBlack: "Puro nero", sky: "Cielo reale", skySrc: "Sorgente",
+    controls: "Controlli",
     back: "← Lab", gl: "WebGL", about: "Equazioni", lang: "EN",
     noSupport: "Il tuo browser non supporta WebGPU.",
     noSupportSub: "Prova Chrome 113+ o Edge 113+ su desktop.",
@@ -25,12 +26,14 @@ const COPY = {
     loading: "Inizializzazione WebGPU…",
     badge: "WebGPU",
     hint: "Trascina per orbitare · Scroll per zoom",
+    hintTouch: "Trascina per orbitare · Pizzica per zoom",
   },
   en: {
     title: "Black Hole · WebGPU",
     spin: "Spin a", disk: "Disk", doppler: "Doppler", exposure: "Exposure",
     quality: "Steps", jets: "Jets", volDisk: "Vol disk", starless: "Starless",
     pureBlack: "Pure black", sky: "Real sky", skySrc: "Source",
+    controls: "Controls",
     back: "← Lab", gl: "WebGL", about: "Equations", lang: "IT",
     noSupport: "Your browser does not support WebGPU.",
     noSupportSub: "Try Chrome 113+ or Edge 113+ on desktop.",
@@ -38,6 +41,7 @@ const COPY = {
     loading: "Initialising WebGPU…",
     badge: "WebGPU",
     hint: "Drag to orbit · Scroll to zoom",
+    hintTouch: "Drag to orbit · Pinch to zoom",
   },
 } as const;
 
@@ -137,6 +141,7 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
   const [skyOn,      setSkyOn]      = useState(false);
   const [skySource,  setSkySource]  = useState<SkySource>("nasa8k");
   const [steps,      setSteps]      = useState(260);
+  const [showControls, setShowControls] = useState(false);
 
   // Support: null=loading, true=ok, false=unsupported
   const [supported, setSupported] = useState<boolean | null>(null);
@@ -236,6 +241,13 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
       });
 
       const shaderModule = device.createShaderModule({ code: BH_WGSL });
+      const compInfo = await shaderModule.getCompilationInfo();
+      const shaderErrors = compInfo.messages.filter((m) => m.type === "error");
+      if (shaderErrors.length > 0) {
+        console.error("[BH-WebGPU] WGSL compilation errors:\n" +
+          shaderErrors.map((m) => `  line ${m.lineNum}: ${m.message}`).join("\n"));
+        setSupported(false); device.destroy(); return;
+      }
       const pipeline = await device.createRenderPipelineAsync({
         layout: "auto",
         vertex:   { module: shaderModule, entryPoint: "vs" },
@@ -351,17 +363,33 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
     distRef.current = Math.max(6,Math.min(50,distRef.current+e.deltaY*0.02));
   }, []);
   const touchRef = useRef<{x:number;y:number}|null>(null);
+  const pinchRef = useRef<number|null>(null);
   const onTouchStart = useCallback((e: React.TouchEvent) => {
-    const t0=e.touches[0]; if(t0) touchRef.current={x:t0.clientX,y:t0.clientY};
+    if (e.touches.length === 2) {
+      const t0=e.touches[0]!; const t1=e.touches[1]!;
+      const dx=t0.clientX-t1.clientX; const dy=t0.clientY-t1.clientY;
+      pinchRef.current = Math.sqrt(dx*dx+dy*dy);
+      touchRef.current = null;
+    } else {
+      const t0=e.touches[0]; if(t0) touchRef.current={x:t0.clientX,y:t0.clientY};
+      pinchRef.current = null;
+    }
   }, []);
   const onTouchMove  = useCallback((e: React.TouchEvent) => {
-    if(!touchRef.current) return;
-    const t0=e.touches[0]; if(!t0) return;
-    azRef.current -= (t0.clientX-touchRef.current.x)*0.008;
-    elRef.current  = Math.max(-1.3,Math.min(1.3,elRef.current+(t0.clientY-touchRef.current.y)*0.008));
-    touchRef.current={x:t0.clientX,y:t0.clientY};
+    if (e.touches.length === 2 && pinchRef.current !== null) {
+      const t0=e.touches[0]!; const t1=e.touches[1]!;
+      const dx=t0.clientX-t1.clientX; const dy=t0.clientY-t1.clientY;
+      const d=Math.sqrt(dx*dx+dy*dy);
+      distRef.current = Math.max(6,Math.min(50,distRef.current*(pinchRef.current/d)));
+      pinchRef.current = d;
+    } else if (e.touches.length === 1 && touchRef.current) {
+      const t0=e.touches[0]!;
+      azRef.current -= (t0.clientX-touchRef.current.x)*0.008;
+      elRef.current  = Math.max(-1.3,Math.min(1.3,elRef.current+(t0.clientY-touchRef.current.y)*0.008));
+      touchRef.current={x:t0.clientX,y:t0.clientY};
+    }
   }, []);
-  const onTouchEnd   = useCallback(() => { touchRef.current=null; }, []);
+  const onTouchEnd   = useCallback(() => { touchRef.current=null; pinchRef.current=null; }, []);
 
   const glHref    = locale==="it" ? "/lab/buco-nero"        : "/en/lab/black-hole";
   const aboutHref = locale==="it" ? "/lab/buco-nero/about"  : "/en/lab/black-hole/about";
@@ -426,6 +454,13 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
           </select>
         )}
 
+        {/* Mobile settings button */}
+        <button
+          className={`bh-control bh-toolbar__only-sm${showControls?" bh-control--active":""}`}
+          onClick={() => setShowControls(v=>!v)}
+          aria-label={t.controls}
+        >⚙</button>
+
         <div className="bh-toolbar__sep" />
         <Link href={glHref}    className="bh-control bh-toolbar__hide-sm">{t.gl}</Link>
         <Link href={aboutHref} className="bh-control bh-toolbar__hide-sm">{t.about}</Link>
@@ -452,6 +487,91 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
           onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}
         />
         {supported===true && <p className="bh-hint bh-hint--hide-sm">{t.hint}</p>}
+
+        {/* Mobile controls sheet */}
+        {showControls && (
+          <div className="bh-controls">
+            <div className="bh-controls__head">
+              <span>{t.controls}</span>
+              <button onClick={() => setShowControls(false)}>×</button>
+            </div>
+
+            {/* Spin */}
+            <label>
+              <span>{t.spin}</span>
+              <input type="range" min={0} max={0.998} step={0.001} value={spin}
+                onChange={e => setSpin(parseFloat(e.target.value))} />
+              <span style={{minWidth:36,textAlign:"right"}}>{spin.toFixed(3)}</span>
+            </label>
+
+            {/* Exposure */}
+            <label>
+              <span>{t.exposure}</span>
+              <input type="range" min={0.2} max={4.0} step={0.05} value={exposure}
+                onChange={e => setExposure(parseFloat(e.target.value))} />
+              <span style={{minWidth:30,textAlign:"right"}}>{exposure.toFixed(2)}</span>
+            </label>
+
+            {/* Quality */}
+            <label>
+              <span>{t.quality}</span>
+              <select value={steps} onChange={e => setSteps(parseInt(e.target.value, 10))}>
+                <option value={140}>Low</option>
+                <option value={240}>Med</option>
+                <option value={300}>High</option>
+              </select>
+            </label>
+
+            {/* Toggles */}
+            <label className="bh-controls__toggle">
+              <span>{t.disk}</span>
+              <input type="checkbox" checked={diskOn}    onChange={() => setDiskOn(v=>!v)} />
+            </label>
+            <label className="bh-controls__toggle">
+              <span>{t.doppler}</span>
+              <input type="checkbox" checked={dopplerOn} onChange={() => setDopplerOn(v=>!v)} />
+            </label>
+            <label className="bh-controls__toggle">
+              <span>{t.starless}</span>
+              <input type="checkbox" checked={starless}  onChange={() => setStarless(v=>!v)} />
+            </label>
+            <label className="bh-controls__toggle">
+              <span>{t.pureBlack}</span>
+              <input type="checkbox" checked={pureBlack} onChange={() => setPureBlack(v=>!v)} />
+            </label>
+            <label className="bh-controls__toggle">
+              <span>{t.jets}</span>
+              <input type="checkbox" checked={jetsOn}    onChange={() => setJetsOn(v=>!v)} />
+            </label>
+            <label className="bh-controls__toggle">
+              <span>{t.volDisk}</span>
+              <input type="checkbox" checked={volDisk}   onChange={() => setVolDisk(v=>!v)} />
+            </label>
+            <label className="bh-controls__toggle">
+              <span>{t.sky}</span>
+              <input type="checkbox" checked={skyOn}     onChange={() => setSkyOn(v=>!v)} />
+            </label>
+            {skyOn && (
+              <label>
+                <span>{t.skySrc}</span>
+                <select value={skySource} onChange={e => setSkySource(e.target.value as SkySource)}>
+                  <option value="nasa8k">NASA 8k</option>
+                  <option value="nasa16k">NASA 16k</option>
+                </select>
+              </label>
+            )}
+
+            <p className="bh-hint" style={{position:"static",transform:"none",
+              background:"transparent",padding:"4px 0",marginTop:4}}>
+              {t.hintTouch}
+            </p>
+
+            <div className="bh-controls__links">
+              <Link href={glHref}>{t.gl}</Link>
+              <Link href={aboutHref}>{t.about}</Link>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
