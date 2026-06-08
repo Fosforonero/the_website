@@ -147,6 +147,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
   const t = COPY[locale];
   const [quality, setQuality] = useState<QualityChoice>("auto");
   const [gpu, setGpu] = useState<GpuInfo | null>(null);
+  const [fps, setFps] = useState<number | null>(null);
   const [diskOn, setDiskOn] = useState(true);
   const [dopplerOn, setDopplerOn] = useState(true);
   const [jetsOn, setJetsOn] = useState(false);
@@ -371,7 +372,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
       </div>
 
       <div className={`bh-canvas-wrap${ehtOn ? " bh-eht" : ""}`}>
-        <BlackHoleScene quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn} gridOn={gridOn} diskTemp={effTemp} diskBright={diskBright} diskOuter={diskOuter} eht={ehtOn} starless={starlessOn} pureBlack={pureBlackOn} skyUrl={SKY_SOURCES[skySource]} volDisk={volDiskOn} onGpu={setGpu} />
+        <BlackHoleScene quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn} gridOn={gridOn} diskTemp={effTemp} diskBright={diskBright} diskOuter={diskOuter} eht={ehtOn} starless={starlessOn} pureBlack={pureBlackOn} skyUrl={SKY_SOURCES[skySource]} volDisk={volDiskOn} onGpu={setGpu} onFps={setFps} />
         <p className="bh-hint">{t.hint}</p>
 
         {controlsOpen && (
@@ -391,6 +392,11 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
             {gpu && (
               <div style={{ fontSize: "0.66rem", color: "#6f86b5", lineHeight: 1.4, marginTop: -4, wordBreak: "break-word" }}>
                 GPU: {gpu.renderer || "—"} · {locale === "it" ? "profilo" : "profile"} {gpu.tier}
+                {fps !== null && quality === "auto" && (
+                  <span style={{ marginLeft: 6, color: fps >= 50 ? "#5fbf6f" : fps >= 30 ? "#c8a83a" : "#c84040" }}>
+                    · {fps} fps
+                  </span>
+                )}
               </div>
             )}
             <label>
@@ -509,6 +515,11 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
             {gpu && (
               <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid var(--color-rule, #1c2742)", fontSize: "0.7rem", color: "#6f86b5", lineHeight: 1.45, wordBreak: "break-word" }}>
                 GPU: {gpu.renderer || "—"} · {locale === "it" ? "profilo" : "profile"} {gpu.tier}
+                {fps !== null && quality === "auto" && (
+                  <span style={{ marginLeft: 6, color: fps >= 50 ? "#5fbf6f" : fps >= 30 ? "#c8a83a" : "#c84040" }}>
+                    · {fps} fps
+                  </span>
+                )}
               </div>
             )}
           </div>

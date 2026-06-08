@@ -39,6 +39,7 @@ export type BlackHoleSceneProps = {
   skyUrl?: string;     // equirectangular real-sky photo (default: NASA Deep Star Maps 8k)
   volDisk?: boolean;   // volumetric 3D disk (radiative transfer through an analytic plasma)
   onGpu?: (g: GpuInfo) => void; // report the detected GPU (for the UI to show)
+  onFps?: (fps: number) => void; // report the EMA frame rate once per second
 };
 
 // Default real-sky photo: NASA/Goddard SVS "Deep Star Maps 2020" (public domain),
@@ -69,7 +70,7 @@ function fitNasaUrl(requested: string, maxTex: number): string {
 export function BlackHoleQuad({
   quality, diskOn, dopplerOn, spin, jetsOn,
   diskTemp = 10500, diskBright = 24, diskOuter = 16, starless = false, pureBlack = false,
-  skyUrl = DEFAULT_SKY_URL, volDisk = false, profile, isMobile = false, eht = false,
+  skyUrl = DEFAULT_SKY_URL, volDisk = false, profile, isMobile = false, eht = false, onFps,
 }: BlackHoleSceneProps & { profile?: RenderProfile; isMobile?: boolean }) {
   const matRef = useRef<THREE.ShaderMaterial>(null);
   const camBasis = useRef(new THREE.Matrix3());
@@ -82,8 +83,11 @@ export function BlackHoleQuad({
   // fluid without a broken ring.
   const fpsEma = useRef(60);
   const sinceCheck = useRef(0);
-  const stepScale = useRef(1);
-  const resScale = useRef(1);
+  // Start at 70% quality so the first frames are light; the FPS governor scales up
+  // within ~10 s if the GPU can handle more. Prevents the hard freeze on first open
+  // that occurs when the initial EMA has no data and fires at 100% immediately.
+  const stepScale = useRef(0.7);
+  const resScale = useRef(0.8);
   // Effective render profile: GPU-tuned in Auto (passed from the parent), else the
   // chosen manual preset. In Auto the volumetric disk follows the profile.
   const prof: RenderProfile = profile ?? {
@@ -194,6 +198,7 @@ export function BlackHoleQuad({
       sinceCheck.current += delta;
       if (sinceCheck.current > 1.0) {
         sinceCheck.current = 0;
+        onFps?.(Math.round(fpsEma.current));
         if (isMobile) {
           const before = resScale.current;
           if (fpsEma.current < 40 && resScale.current > 0.55) resScale.current = Math.max(0.55, resScale.current - 0.12);
@@ -300,6 +305,7 @@ export default function BlackHoleScene({
   skyUrl,
   volDisk = false,
   onGpu,
+  onFps,
 }: BlackHoleSceneProps) {
   // Detect the GPU once (before the Canvas mounts) so "Auto" can pick the initial
   // resolution/integrator/volumetric profile; the FPS governor refines it after.
@@ -322,6 +328,7 @@ export default function BlackHoleScene({
       <BlackHoleQuad
         quality={quality} profile={profile} isMobile={isMobile} eht={eht} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn}
         diskTemp={diskTemp} diskBright={diskBright} diskOuter={diskOuter} starless={starless} pureBlack={pureBlack} skyUrl={skyUrl} volDisk={volDisk}
+        onFps={onFps}
       />
       <BlackHoleGrid visible={gridOn} spin={spin} />
 

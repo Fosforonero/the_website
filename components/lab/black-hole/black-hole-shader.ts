@@ -715,15 +715,15 @@ export const QUALITY_PRESETS: Record<
 // the renderer string is masked (some browsers hide it for privacy).
 
 export type GpuTier = "high" | "mid" | "low";
-export type GpuInfo = { tier: GpuTier; renderer: string };
+export type GpuInfo = { tier: GpuTier; renderer: string; isAppleSilicon: boolean };
 
 export function detectGpu(): GpuInfo {
   if (typeof document === "undefined" || typeof navigator === "undefined")
-    return { tier: "mid", renderer: "" };
+    return { tier: "mid", renderer: "", isAppleSilicon: false };
   try {
     const c = document.createElement("canvas");
     const gl = (c.getContext("webgl2") || c.getContext("webgl")) as WebGLRenderingContext | null;
-    if (!gl) return { tier: "low", renderer: "" };
+    if (!gl) return { tier: "low", renderer: "", isAppleSilicon: false };
     const ext = gl.getExtension("WEBGL_debug_renderer_info");
     const renderer = ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : "";
     const s = renderer.toLowerCase();
@@ -735,11 +735,14 @@ export function detectGpu(): GpuInfo {
     const cores = navigator.hardwareConcurrency ?? 0;
     const strong = mem >= 6 || cores >= 8;
     const decent = mem >= 4 || cores >= 6;
+    // Apple Silicon Mac: Chrome/ANGLE reports "Apple M1/M2/M3…" in the renderer.
+    // iOS always reports "Apple GPU" or "Apple A<n>" — that branch is separate below.
+    const isAppleSilicon = /apple m\d/.test(s);
 
     let tier: GpuTier = "mid";
     if (/swiftshader|llvmpipe|software|basic render/.test(s)) tier = "low";
-    // Desktop discrete / Apple-Silicon Macs.
-    else if (/apple m\d|geforce|nvidia|\brtx\b|\bgtx\b|radeon rx|radeon pro|radeon vii|quadro|tesla|\brx \d{3}/.test(s))
+    // Apple Silicon Mac detected above, or discrete GPU (NVIDIA/Radeon).
+    else if (isAppleSilicon || /geforce|nvidia|\brtx\b|\bgtx\b|radeon rx|radeon pro|radeon vii|quadro|tesla|\brx \d{3}/.test(s))
       tier = "high";
     // Qualcomm Adreno (Android): clean numbering — 7xx/8xx flagship, 6xx mid.
     else if (/adreno/.test(s)) {
@@ -755,9 +758,9 @@ export function detectGpu(): GpuInfo {
     else if (/apple gpu|apple a\d/.test(s)) tier = strong ? "high" : decent ? "mid" : "low";
     else if (/intel|iris|uhd|hd graphics|\barc\b/.test(s)) tier = "mid";
     else tier = mem && mem <= 2 ? "low" : "mid";
-    return { tier, renderer };
+    return { tier, renderer, isAppleSilicon };
   } catch {
-    return { tier: "mid", renderer: "" };
+    return { tier: "mid", renderer: "", isAppleSilicon: false };
   }
 }
 
@@ -782,7 +785,11 @@ export function effectiveProfile(choice: QualityChoice, gpu: GpuInfo, isMobile: 
     return { steps: 230, dprCap: 1.0, rk4: false, tao: false, vol: false };
   }
   // Desktop.
-  if (gpu.tier === "high") return { steps: 300, dprCap: 2.0, rk4: false, tao: true,  vol: true };  // NVIDIA/Radeon/Apple-Silicon
+  // Apple Silicon (M-series integrated GPU): powerful but not a discrete card — skip
+  // the 6th-order Tao integrator and cap DPR at 1.5; the FPS governor scales up.
+  if (gpu.tier === "high" && gpu.isAppleSilicon)
+    return { steps: 260, dprCap: 1.5, rk4: false, tao: false, vol: true };
+  if (gpu.tier === "high") return { steps: 300, dprCap: 2.0, rk4: false, tao: true,  vol: true };  // NVIDIA/Radeon discrete
   if (gpu.tier === "mid")  return { steps: 320, dprCap: 2.0, rk4: true,  tao: false, vol: false }; // Intel/Iris/Arc
   return { steps: 240, dprCap: 1.4, rk4: false, tao: false, vol: false };
 }
