@@ -20,6 +20,7 @@ const COPY = {
     pureBlack: "Puro nero", sky: "Cielo reale", skySrc: "Sorgente",
     controls: "Controlli",
     back: "← Lab", gl: "WebGL", about: "Equazioni", lang: "EN",
+    playground: "Playground", orbits: "Orbite",
     noSupport: "Il tuo browser non supporta WebGPU.",
     noSupportSub: "Prova Chrome 113+ o Edge 113+ su desktop.",
     noSupportLink: "Usa la versione WebGL →",
@@ -38,6 +39,7 @@ const COPY = {
     pureBlack: "Pure black", sky: "Real sky", skySrc: "Source",
     controls: "Controls",
     back: "← Lab", gl: "WebGL", about: "Equations", lang: "IT",
+    playground: "Playground", orbits: "Orbits",
     noSupport: "Your browser does not support WebGPU.",
     noSupportSub: "Try Chrome 113+ or Edge 113+ on desktop.",
     noSupportLink: "Use the WebGL version →",
@@ -397,9 +399,11 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
   }, []);
   const onTouchEnd   = useCallback(() => { touchRef.current=null; pinchRef.current=null; }, []);
 
-  const glHref    = locale==="it" ? "/lab/buco-nero"        : "/en/lab/black-hole";
-  const aboutHref = locale==="it" ? "/lab/buco-nero/about"  : "/en/lab/black-hole/about";
-  const langHref  = locale==="it" ? "/en/lab/black-hole/webgpu" : "/lab/buco-nero/webgpu";
+  const glHref         = locale==="it" ? "/lab/buco-nero"             : "/en/lab/black-hole";
+  const aboutHref      = locale==="it" ? "/lab/buco-nero/about"       : "/en/lab/black-hole/about";
+  const playgroundHref = locale==="it" ? "/lab/buco-nero/playground"  : "/en/lab/black-hole/playground";
+  const orbitsHref     = locale==="it" ? "/lab/buco-nero/orbite"      : "/en/lab/black-hole/orbit";
+  const langHref       = locale==="it" ? "/en/lab/black-hole/webgpu"  : "/lab/buco-nero/webgpu";
 
   return (
     <div className="bh-root">
@@ -468,8 +472,10 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
         >⚙</button>
 
         <div className="bh-toolbar__sep" />
-        <Link href={glHref}    className="bh-control bh-toolbar__hide-sm">{t.gl}</Link>
-        <Link href={aboutHref} className="bh-control bh-toolbar__hide-sm">{t.about}</Link>
+        <Link href={playgroundHref} className="bh-control bh-toolbar__hide-sm">{t.playground}</Link>
+        <Link href={orbitsHref}     className="bh-control bh-toolbar__hide-sm">{t.orbits}</Link>
+        <Link href={glHref}         className="bh-control bh-toolbar__hide-sm">{t.gl}</Link>
+        <Link href={aboutHref}      className="bh-control bh-toolbar__hide-sm">{t.about}</Link>
         <Link href={langHref}  hrefLang={locale==="it"?"en":"it"} className="bh-control">{t.lang}</Link>
         <Link href={locale==="it"?"/lab":"/en/lab"} className="bh-control">{t.back}</Link>
       </div>

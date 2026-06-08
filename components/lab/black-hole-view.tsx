@@ -73,6 +73,7 @@ const COPY = {
     about: "Equazioni e crediti",
     playground: "Playground",
     orbits: "Orbite",
+    webgpu: "WebGPU",
     physics: "Scala reale",
     controls: "Controlli",
     share: "Condividi",
@@ -116,6 +117,7 @@ const COPY = {
     about: "Equations & credits",
     playground: "Playground",
     orbits: "Orbits",
+    webgpu: "WebGPU",
     physics: "Real scale",
     controls: "Controls",
     share: "Share",
@@ -421,6 +423,9 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
         </Link>
         <Link href={locale === "it" ? "/lab/buco-nero/orbite" : "/en/lab/black-hole/orbit"} className="bh-control bh-toolbar__hide-sm">
           {t.orbits}
+        </Link>
+        <Link href={locale === "it" ? "/lab/buco-nero/webgpu" : "/en/lab/black-hole/webgpu"} className="bh-control bh-toolbar__hide-sm">
+          {t.webgpu}
         </Link>
         <Link href={aboutHref} className="bh-control bh-toolbar__hide-sm">
           {t.about}
