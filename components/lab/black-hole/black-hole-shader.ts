@@ -786,12 +786,13 @@ export function effectiveProfile(choice: QualityChoice, gpu: GpuInfo, isMobile: 
     return { steps: 230, dprCap: 1.0, rk4: false, tao: false, vol: false };
   }
   // Desktop.
-  // Apple Silicon (M-series integrated GPU): powerful but not a discrete card — skip
-  // the 6th-order Tao integrator and cap DPR at 1.5; use more steps than the Tao
-  // profile (380 vs 300) because: (a) DPR savings make fillrate ~44% cheaper, and
-  // (b) the photon ring needs ~177 steps/orbit at r=3 — budget must cover it.
+  // Apple Silicon (M-series integrated GPU): powerful but not a discrete card.
+  // Skip Tao integrator and volumetric disk (vol adds per-step work for every ray
+  // and tanks fps to ~11 on M2 Pro); 340 steps at DPR 1.5 gives the photon ring
+  // (needs ~177 steps/orbit at r=3) while keeping fps acceptable. Vol disk is
+  // still available as a manual toggle for users who accept the fps hit.
   if (gpu.tier === "high" && gpu.isAppleSilicon)
-    return { steps: 380, dprCap: 1.5, rk4: false, tao: false, vol: true };
+    return { steps: 340, dprCap: 1.5, rk4: false, tao: false, vol: false };
   if (gpu.tier === "high") return { steps: 300, dprCap: 2.0, rk4: false, tao: true,  vol: true };  // NVIDIA/Radeon discrete
   if (gpu.tier === "mid")  return { steps: 320, dprCap: 2.0, rk4: true,  tao: false, vol: false }; // Intel/Iris/Arc
   return { steps: 240, dprCap: 1.4, rk4: false, tao: false, vol: false };
