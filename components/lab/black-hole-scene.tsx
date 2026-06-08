@@ -210,7 +210,10 @@ export function BlackHoleQuad({
             setDpr(Math.min(dprMax, prof.dprCap * resScale.current));
           }
         } else {
-          if (fpsEma.current < 38 && stepScale.current > 0.5) stepScale.current = Math.max(0.5, stepScale.current - 0.12);
+          // Floor: keep enough steps for the photon ring (~200 min: 40 approach
+          // + 133 half-orbit at r=3 + 40 departure). Below this the ring vanishes.
+          const minScale = Math.max(0.5, 200 / prof.steps);
+          if (fpsEma.current < 38 && stepScale.current > minScale) stepScale.current = Math.max(minScale, stepScale.current - 0.12);
           else if (fpsEma.current > 56 && stepScale.current < 1.0) stepScale.current = Math.min(1.0, stepScale.current + 0.08);
         }
       }
