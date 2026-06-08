@@ -621,6 +621,27 @@
   color: #8ba0c4;
 }
 
+.bh-about__eht-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 16px 0 6px;
+}
+@media (max-width: 520px) {
+  .bh-about__eht-grid { grid-template-columns: 1fr; }
+}
+.bh-about__eht-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+.bh-about__eht-credit {
+  font-size: 0.72rem;
+  color: #5a6b86;
+  margin: 2px 0 0;
+}
+
 .bh-about__faq h3 {
   font-size: 0.92rem;
   color: #cfe0ff;

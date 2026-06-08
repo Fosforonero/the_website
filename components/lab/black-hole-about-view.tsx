@@ -4,6 +4,30 @@ import Link from "next/link";
 import katex from "katex";
 import { AboutFigure, type FigureId } from "./black-hole-about-figures";
 
+// EHT real-image comparison section (§7.3) — static, outside the sections loop.
+const EHT_COPY = {
+  it: {
+    heading: "Le immagini reali: M87* e Sgr A*",
+    body: [
+      "Le immagini dell'Event Horizon Telescope non sono fotografie in senso ordinario: sono mappe di interferometria radio a bassissima lunghezza d'onda (1,3 mm, 230 GHz), costruite combinando i segnali di telescopi sparsi su tutto il pianeta per simulare un radiotelescopio grande come la Terra. Il risultato è una risoluzione angolare di ~20 microarcosecondi per M87* e ~25 per Sgr A* — appena sufficiente a risolvere l'ombra del buco nero.",
+      "L'anello arancione non è una fiamma: è la luce millimetrica del plasma caldo intorno al buco, amplificata dal lensing gravitazionale. La luminosità asimmetrica (più brillante a sinistra per M87*, variabile nel tempo per Sgr A*) è esattamente il beaming Doppler che mostriamo nel nostro render. L'ombra centrale corrisponde al parametro b_crit della formula nel pannello Scala reale — il confronto quantitativo in microarcosecondi è disponibile lì.",
+    ],
+    m87cap: "M87* — EHT Collaboration, 2019 (eso1907a). Prima immagine diretta di un buco nero. Massa ~6,5×10⁹ M☉, distanza ~16,8 Mpc. Ombra misurata: 42 µas.",
+    sgrcap: "Sgr A* — EHT Collaboration, 2022 (eso2208-eht-mwa). Il buco nero al centro della Via Lattea. Massa ~4,3×10⁶ M☉, distanza ~8,1 kpc. Ombra misurata: 50 µas.",
+    credit: "EHT Collaboration / ESO · CC BY 4.0 · eso1907a (M87*, 2019), eso2208-eht-mwa (Sgr A*, 2022)",
+  },
+  en: {
+    heading: "The real images: M87* and Sgr A*",
+    body: [
+      "Event Horizon Telescope images are not photographs in the ordinary sense: they are radio-interferometry maps at very short wavelength (1.3 mm, 230 GHz), assembled by combining signals from telescopes spread across the planet to simulate an Earth-sized radio dish. The result is an angular resolution of ~20 microarcseconds for M87* and ~25 for Sgr A* — just enough to resolve the shadow.",
+      "The orange ring is not a flame: it is the millimetre-wavelength light of hot plasma around the hole, amplified by gravitational lensing. The asymmetric brightness (brighter on the left for M87*, time-variable for Sgr A*) is exactly the Doppler beaming shown in our render. The dark central region corresponds to the b_crit parameter in the Real Scale panel formula — the quantitative comparison in microarcseconds is available there.",
+    ],
+    m87cap: "M87* — EHT Collaboration, 2019 (eso1907a). First direct image of a black hole. Mass ~6.5×10⁹ M☉, distance ~16.8 Mpc. Measured shadow: 42 µas.",
+    sgrcap: "Sgr A* — EHT Collaboration, 2022 (eso2208-eht-mwa). The black hole at the centre of the Milky Way. Mass ~4.3×10⁶ M☉, distance ~8.1 kpc. Measured shadow: 50 µas.",
+    credit: "EHT Collaboration / ESO · CC BY 4.0 · eso1907a (M87*, 2019), eso2208-eht-mwa (Sgr A*, 2022)",
+  },
+} as const;
+
 // Charts attached to specific sections (0-based index into the sections array).
 // Both languages share the same ordering, so one map covers IT and EN.
 const FIG_BY_SECTION: Record<number, FigureId> = {
@@ -591,6 +615,24 @@ export function BlackHoleAboutView({ locale = "it" }: { locale?: Locale }) {
             {FIG_BY_SECTION[i] && <AboutFigure id={FIG_BY_SECTION[i]!} locale={locale} />}
           </section>
         ))}
+
+        <section className="bh-about__section" id="s-eht">
+          <h2>{EHT_COPY[locale].heading}</h2>
+          {EHT_COPY[locale].body.map((p, i) => <p key={i}>{p}</p>)}
+          <div className="bh-about__eht-grid">
+            <figure className="bh-about__fig">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/lab/black-hole/eht-m87-2019.jpg" alt="M87* EHT 2019" className="bh-about__eht-img" loading="lazy" />
+              <figcaption className="bh-about__figcap">{EHT_COPY[locale].m87cap}</figcaption>
+            </figure>
+            <figure className="bh-about__fig">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/lab/black-hole/eht-sgra-2022.jpg" alt="Sgr A* EHT 2022" className="bh-about__eht-img" loading="lazy" />
+              <figcaption className="bh-about__figcap">{EHT_COPY[locale].sgrcap}</figcaption>
+            </figure>
+          </div>
+          <p className="bh-about__eht-credit">{EHT_COPY[locale].credit}</p>
+        </section>
 
         <section className="bh-about__section">
           <h2>{t.openHeading}</h2>
