@@ -180,7 +180,7 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
         <Link href={locale === "it" ? "/lab" : "/en/lab"} className="bh-control">{t.back}</Link>
       </div>
 
-      <div className="bh-canvas-wrap" style={{ position: "relative" }}>
+      <div className="bh-canvas-wrap" style={{ position: "relative", background: webgpuMode ? undefined : "#000003" }}>
         {webgpuMode && (
           <WebGPUBackground
             spin={spin} diskOn={diskOn} dopplerOn jetsOn={jetsOn}
