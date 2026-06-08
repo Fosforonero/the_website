@@ -237,9 +237,10 @@ export function BlackHoleQuad({
     u.uSpin.value = spin;
     u.uJets.value = jetsOn ? 1 : 0;
     u.uDiskTemp.value = diskTemp;
-    // Without Doppler the entire disk emits at full unbeamed brightness, which
-    // blows out to white. Scale down to ~65% to match the average beamed level.
-    u.uDiskBright.value = diskBright * (dopplerOn ? 1.0 : 0.65);
+    // Without Doppler every orbit position emits at full unbeamed T⁴, saturating
+    // the tonemapper. Scale to ~38% so the disk shows colour gradient and texture
+    // instead of clipping to white. Doppler ON is unchanged.
+    u.uDiskBright.value = diskBright * (dopplerOn ? 1.0 : 0.38);
     u.uDiskOuter.value = diskOuter;
   });
 
