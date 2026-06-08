@@ -75,6 +75,9 @@ importers:
       '@types/react-dom':
         specifier: ^19.2.3
         version: 19.2.3(@types/react@19.2.15)
+      '@webgpu/types':
+        specifier: ^0.1.70
+        version: 0.1.70
       cheerio:
         specifier: ^1.2.0
         version: 1.2.0
@@ -1105,6 +1108,9 @@ packages:
     resolution: {integrity: sha512-Yy19y6O2GJq8f7CHf7L0nxL8bf4PZCPaVOCgJrusOeFHY1LvHgYXnmnXg6N5iwAnbgbZCDjo60SiM6IPJi9C5g==}
     peerDependencies:
       react: '>= 16.8.0'
+
+  '@webgpu/types@0.1.70':
+    resolution: {integrity: sha512-LFiNHHKMvmAEvwVew3JLJmTdShhbdwRFSImUshGhE2mGE8ybQzIo63l5uRp+YKnNx+8Qno8Kf6gN+DKMreIJCA==}
 
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -3917,6 +3923,8 @@ snapshots:
     dependencies:
       '@use-gesture/core': 10.3.1
       react: 19.2.6
+
+  '@webgpu/types@0.1.70': {}
 
   acorn-jsx@5.3.2(acorn@8.16.0):
     dependencies:
