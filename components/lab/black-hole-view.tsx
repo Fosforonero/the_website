@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import type { QualityChoice, GpuInfo } from "./black-hole/black-hole-shader";
 import { bhFacts, diskColorTempForMass } from "./black-hole/physics";
@@ -81,6 +81,7 @@ const COPY = {
     pureBlack: "Nero puro",
     skySrc: "Sorgente cielo",
     volDisk: "Disco 3D",
+    hdr: "HDR",
     phys: {
       title: "Scala reale", mass: "Massa", close: "Chiudi",
       note: "I preset impostano massa e spin di un oggetto reale. La massa fissa il colore del disco (il trend reale); le dimensioni in scena restano compresse per visibilità.",
@@ -123,6 +124,7 @@ const COPY = {
     pureBlack: "Pure black",
     skySrc: "Sky source",
     volDisk: "3D disk",
+    hdr: "HDR",
     phys: {
       title: "Real scale", mass: "Mass", close: "Close",
       note: "The presets set a real object's mass and spin. Mass sets the disk colour (the real trend); on-scene sizes stay compressed for visibility.",
@@ -154,7 +156,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
   const [gridOn, setGridOn] = useState(false);
   const [spin, setSpin] = useState(0);
   const [diskTemp, setDiskTemp] = useState(10500);
-  const [diskBright, setDiskBright] = useState(24);
+  const [diskBright, setDiskBright] = useState(14);
   const [diskOuter, setDiskOuter] = useState(16);
   const [massSolar, setMassSolar] = useState(10);
   const [physOpen, setPhysOpen] = useState(false);
@@ -170,6 +172,14 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
   useEffect(() => {
     if (quality === "ultra" && !ultraAvailable) setQuality("auto");
   }, [quality, ultraAvailable]);
+
+  // HDR display detection — initialised after mount to avoid SSR mismatch.
+  const isHdrDisplay = useMemo(
+    () => typeof window !== "undefined" && window.matchMedia?.("(dynamic-range: high)").matches === true,
+    [],
+  );
+  const [hdrMode, setHdrMode] = useState(false);
+  useEffect(() => { setHdrMode(isHdrDisplay); }, [isHdrDisplay]);
 
   const onMass = (m: number) => { setMassSolar(m); setDiskTemp(diskColorTempForMass(m)); };
   // Capture the WebGL canvas (preserveDrawingBuffer is on) and share/download it.
@@ -236,6 +246,14 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
             })}
           </select>
         </label>
+
+        <button
+          className={`bh-control bh-toolbar__hide-sm${hdrMode ? " bh-control--active" : ""}`}
+          onClick={() => setHdrMode((v) => !v)}
+          title={locale === "it" ? "Modalità HDR: esposizione ottimizzata per display ad ampia gamma dinamica" : "HDR mode: exposure tuned for wide dynamic range displays"}
+        >
+          {t.hdr}
+        </button>
 
         <button
           className={`bh-control${diskOn ? " bh-control--active" : ""}`}
@@ -382,7 +400,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
       </div>
 
       <div className={`bh-canvas-wrap${ehtOn ? " bh-eht" : ""}`}>
-        <BlackHoleScene quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn} gridOn={gridOn} diskTemp={effTemp} diskBright={diskBright} diskOuter={diskOuter} eht={ehtOn} starless={starlessOn} pureBlack={pureBlackOn} skyUrl={SKY_SOURCES[skySource]} volDisk={volDiskOn} onGpu={setGpu} onFps={setFps} />
+        <BlackHoleScene quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn} gridOn={gridOn} diskTemp={effTemp} diskBright={diskBright} diskOuter={diskOuter} eht={ehtOn} starless={starlessOn} pureBlack={pureBlackOn} skyUrl={SKY_SOURCES[skySource]} volDisk={volDiskOn} hdrMode={hdrMode} onGpu={setGpu} onFps={setFps} />
         <p className="bh-hint">{t.hint}</p>
 
         {controlsOpen && (
@@ -441,6 +459,10 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
             <label className="bh-controls__toggle">
               <span>{t.grid}</span>
               <input type="checkbox" checked={gridOn} onChange={(e) => setGridOn(e.target.checked)} />
+            </label>
+            <label className="bh-controls__toggle">
+              <span>{t.hdr}</span>
+              <input type="checkbox" checked={hdrMode} onChange={(e) => setHdrMode(e.target.checked)} />
             </label>
             <label className="bh-controls__toggle">
               <span>{t.jets}</span>

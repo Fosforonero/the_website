@@ -38,6 +38,7 @@ export type BlackHoleSceneProps = {
   pureBlack?: boolean; // "Pure black" preset: sky off, saturated-orange disk (NASA look)
   skyUrl?: string;     // equirectangular real-sky photo (default: NASA Deep Star Maps 8k)
   volDisk?: boolean;   // volumetric 3D disk (radiative transfer through an analytic plasma)
+  hdrMode?: boolean;   // HDR display detected: use wider exposure curve
   onGpu?: (g: GpuInfo) => void; // report the detected GPU (for the UI to show)
   onFps?: (fps: number) => void; // report the EMA frame rate once per second
 };
@@ -69,8 +70,8 @@ function fitNasaUrl(requested: string, maxTex: number): string {
 
 export function BlackHoleQuad({
   quality, diskOn, dopplerOn, spin, jetsOn,
-  diskTemp = 10500, diskBright = 24, diskOuter = 16, starless = false, pureBlack = false,
-  skyUrl = DEFAULT_SKY_URL, volDisk = false, profile, isMobile = false, eht = false, onFps,
+  diskTemp = 10500, diskBright = 14, diskOuter = 16, starless = false, pureBlack = false,
+  skyUrl = DEFAULT_SKY_URL, volDisk = false, hdrMode = false, profile, isMobile = false, eht = false, onFps,
 }: BlackHoleSceneProps & { profile?: RenderProfile; isMobile?: boolean }) {
   const matRef = useRef<THREE.ShaderMaterial>(null);
   const camBasis = useRef(new THREE.Matrix3());
@@ -231,7 +232,9 @@ export function BlackHoleQuad({
     // procedural starless sky (uStyle) shows as the fallback.
     u.uSkyOn.value = starless && skyReady.current ? 1 : 0;
     u.uVolDisk.value = effVol ? 1 : 0;
-    u.uExposure.value = starless ? 1.12 : 1.15; // keep brightness ~constant so the toggle is instant, not a fade
+    // HDR displays can render more dynamic range before clipping — give the
+    // tonemapper extra headroom; on SDR reduce exposure to avoid ACES saturation.
+    u.uExposure.value = hdrMode ? (starless ? 1.12 : 1.1) : (starless ? 0.82 : 0.85);
     u.uDiskOn.value = diskOn ? 1 : 0;
     u.uDoppler.value = dopplerOn ? 1 : 0;
     u.uSpin.value = spin;
@@ -312,6 +315,7 @@ export default function BlackHoleScene({
   pureBlack = false,
   skyUrl,
   volDisk = false,
+  hdrMode = false,
   onGpu,
   onFps,
 }: BlackHoleSceneProps) {
@@ -336,7 +340,7 @@ export default function BlackHoleScene({
       <BlackHoleQuad
         quality={quality} profile={profile} isMobile={isMobile} eht={eht} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn}
         diskTemp={diskTemp} diskBright={diskBright} diskOuter={diskOuter} starless={starless} pureBlack={pureBlack} skyUrl={skyUrl} volDisk={volDisk}
-        onFps={onFps}
+        hdrMode={hdrMode} onFps={onFps}
       />
       <BlackHoleGrid visible={gridOn} spin={spin} />
 
