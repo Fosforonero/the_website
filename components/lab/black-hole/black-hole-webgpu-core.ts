@@ -38,11 +38,12 @@ export type UniformOpts = {
   volDisk: boolean; volThick: number; volOpacity: number;
   skyOn: boolean; skyBright: number;
   az: number; el: number; dist: number;
+  fov?: number; // vertical FOV in degrees (default 45; playground passes 50 to match R3F)
 };
 
 export function writeUniforms(buf: Float32Array, opts: UniformOpts) {
   const { camPos, right, up, backward } = orbitCamera(opts.az, opts.el, opts.dist);
-  const tanFov = Math.tan((45 * Math.PI) / 360);
+  const tanFov = Math.tan(((opts.fov ?? 45) * Math.PI) / 360);
   const aspect = opts.w / opts.h;
 
   buf[U.CAM_PX]=camPos[0]; buf[U.CAM_PY]=camPos[1]; buf[U.CAM_PZ]=camPos[2];

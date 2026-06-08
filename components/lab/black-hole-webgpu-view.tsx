@@ -112,12 +112,15 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
         usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST |
                GPUTextureUsage.RENDER_ATTACHMENT,
       });
-      core.device.queue.copyExternalImageToTexture(
-        { source: bitmap },
-        { texture: tex },
-        [bitmap.width, bitmap.height],
-      );
-      bitmap.close();
+      try {
+        core.device.queue.copyExternalImageToTexture(
+          { source: bitmap },
+          { texture: tex },
+          [bitmap.width, bitmap.height],
+        );
+      } finally {
+        bitmap.close();
+      }
       skyTexRef.current?.destroy();
       skyTexRef.current  = tex;
       needsBGUpdate.current = true;

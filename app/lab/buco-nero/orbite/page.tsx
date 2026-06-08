@@ -14,6 +14,7 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   alternates: { canonical: PAGE_URL, languages: { it: PAGE_URL, en: PAGE_URL_EN, "x-default": PAGE_URL } },
   openGraph: { type: "website", locale: "it_IT", url: PAGE_URL, siteName: site.name, title: "Orbite relativistiche attorno a un buco nero", description: DESCRIPTION },
+  twitter: { card: "summary_large_image" },
   robots: { index: true, follow: true },
 };
 

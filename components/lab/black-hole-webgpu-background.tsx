@@ -77,6 +77,7 @@ export function BlackHoleWebGPUBackground({ spin, diskOn, dopplerOn, jetsOn, bgR
           volDisk: false, volThick: 0.1, volOpacity: 0.08,
           skyOn: false, skyBright: 1.2,
           az, el, dist,
+          fov: 50, // match the R3F Canvas camera so lensing scale aligns with the 3D bodies
         });
         core.device.queue.writeBuffer(core.uniformBuf, 0, core.uniformData);
 

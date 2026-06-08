@@ -8,7 +8,7 @@ const PAGE_URL = `${site.url}/en/lab/black-hole`;
 const PAGE_URL_IT = `${site.url}/lab/buco-nero`;
 
 const DESCRIPTION =
-  "Real-time rotating (Kerr) black hole simulator in the browser: real gravitational lensing, an accretion disk with relativistic Doppler and redshift, the shadow and the photon ring. The same physics as Interstellar's Gargantua, but interactive and free.";
+  "Real-time rotating (Kerr) black hole simulator: real gravitational lensing, an accretion disk with relativistic Doppler and redshift, the shadow and photon ring. Interstellar's Gargantua physics, interactive and free.";
 
 export const metadata: Metadata = {
   title: "Black Hole 3D Simulator · Real-time Kerr · Fosforonero Lab",
@@ -47,7 +47,7 @@ export default function BlackHolePage() {
         url: PAGE_URL,
         applicationCategory: "EducationalApplication",
         operatingSystem: "Web",
-        inLanguage: ["en", "it"],
+        inLanguage: ["en"],
         offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
         author: { "@type": "Person", name: site.author.name, url: site.url },
         keywords:

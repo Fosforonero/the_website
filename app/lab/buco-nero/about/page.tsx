@@ -8,7 +8,7 @@ const PAGE_URL = `${site.url}/lab/buco-nero/about`;
 const PAGE_URL_EN = `${site.url}/en/lab/black-hole/about`;
 
 const DESCRIPTION =
-  "Le equazioni del simulatore di buco nero: geodetiche nulle esatte della metrica di Kerr (rotante) ray-tracciate in tempo reale, disco di accrescimento con flusso di Page–Thorne, redshift gravitazionale e beaming relativistico, onde gravitazionali. Cosa è fisicamente corretto e cosa è artistico, con fonti e crediti.";
+  "Le equazioni del simulatore di buco nero: geodetiche nulle esatte di Kerr, disco di accrescimento con flusso di Page–Thorne, redshift gravitazionale e beaming. Cosa è fisica e cosa è artistico, con fonti.";
 
 export const metadata: Metadata = {
   title: "Buco nero: equazioni, fisica e crediti · Fosforonero Lab",

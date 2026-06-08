@@ -14,6 +14,7 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   alternates: { canonical: PAGE_URL, languages: { it: PAGE_URL_IT, en: PAGE_URL, "x-default": PAGE_URL_IT } },
   openGraph: { type: "website", locale: "en_US", url: PAGE_URL, siteName: site.name, title: "Relativistic orbits around a black hole", description: DESCRIPTION },
+  twitter: { card: "summary_large_image" },
   robots: { index: true, follow: true },
 };
 
