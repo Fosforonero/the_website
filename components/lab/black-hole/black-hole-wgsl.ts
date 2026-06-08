@@ -95,7 +95,7 @@ fn starField(d: vec3f) -> vec3f {
     let lon = atan2(d.z, d.x);
     let lat = asin(clamp(d.y, -1., 1.));
     let uv  = vec2f(lon * 0.15915494 + 0.5, 0.5 - lat * 0.31830989);
-    var sky = textureSample(sky_tex, sky_samp, uv).rgb;
+    var sky = textureSampleLevel(sky_tex, sky_samp, uv, 0.0).rgb;
     sky     = pow(sky, vec3f(1.4));
     let lum = dot(sky, vec3f(0.299, 0.587, 0.114));
     sky     = max(mix(vec3f(lum), sky, 1.5), vec3f(0.));
