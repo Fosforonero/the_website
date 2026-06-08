@@ -25,6 +25,11 @@ export const FAQ: Record<FaqLocale, FaqItem[]> = {
       sec: 1,
     },
     {
+      q: "Perché ci sono anelli circolari nitidi nel campo stellare attorno al buco nero?",
+      a: "Sono fisicamente corretti, non artefatti. Ogni stella sullo sfondo ha in realtà infinite immagini distinte: quella primaria (raggi che non orbitano), quella secondaria (raggi che orbitano una volta), la terziaria, e così via. Il confine tra un ordine e il successivo è una caustica matematica precisa — il raggio appena fuori non orbita, quello appena dentro orbita una volta — e genera un anello netto nel campo stellare. Gli anelli si stringono verso l'ombra con passo geometrico e^{−π} ≈ 1/23 per giro: il primo è visibile, il secondo a malapena. Li vedi in ogni ray tracer GR corretto, incluso il DNGR che ha prodotto Gargantua in Interstellar.",
+      sec: 5,
+    },
+    {
       q: "La massa del buco nero influenza la griglia spazio-tempo?",
       a: "No, ed è corretto che non la influenzi. La geometria, misurata in unità di raggio di Schwarzschild rₛ, è identica per ogni massa: i buchi neri sono scale-invariant. La massa cambia solo la scala assoluta (rₛ vale 30 km o un'unità astronomica) e il colore del disco. A deformare la griglia è invece lo spin: il frame-dragging la attorciglia.",
       sec: 7,
@@ -117,6 +122,11 @@ export const FAQ: Record<FaqLocale, FaqItem[]> = {
       q: "Is it a real simulation or a graphical effect?",
       a: "It is a real simulation. For every pixel we numerically solve the metric's exact null geodesic (Schwarzschild, and Kerr with spin): gravitational lensing, the photon sphere, the shadow and the photon ring all emerge from the general-relativity calculation, not from tricks. We trace rays from the camera backwards, but light paths in GR are reversible, so the image is exactly the one real light would produce.",
       sec: 1,
+    },
+    {
+      q: "Why are there sharp circular rings in the background star field around the black hole?",
+      a: "They are physically correct, not artifacts. Every background star actually has infinitely many distinct images: the primary (rays that do not orbit), the secondary (rays that orbit once), the tertiary, and so on. The boundary between successive orders is a precise mathematical caustic — a ray just outside does not orbit, a ray just inside orbits exactly once — and it generates a sharp ring in the star field. The rings close in toward the shadow by a geometric factor of e^{−π} ≈ 1/23 per order: the first ring is visible, the second barely so. They appear in every correct GR ray tracer, including the DNGR system that produced Gargantua for Interstellar.",
+      sec: 5,
     },
     {
       q: "Does the black hole's mass affect the spacetime grid?",

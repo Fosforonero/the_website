@@ -495,8 +495,10 @@ void main() {
         // letting the outer disk fall through the visible range into the
         // background — Interstellar's luminous core with fading arms. The inner
         // edge stays genuinely sharp (ISCO zero-stress boundary, flux → 0).
-        float outer = 1.0 - smoothstep(uDiskOuter * 0.32, uDiskOuter, rd);
-        bright *= outer * outer;
+        // End the fade at 0.82× uDiskOuter so the hard geometric cutoff (rd < uDiskOuter)
+        // is invisible — brightness reaches zero before the boundary is ever crossed.
+        float outer = 1.0 - smoothstep(uDiskOuter * 0.28, uDiskOuter * 0.82, rd);
+        bright *= outer * outer * outer;
         // Hot inner lip (Interstellar look): flare toward the ISCO where the flux
         // peaks, so the inner edge glows white-hot. The flux already → 0 exactly
         // at rIn (zero-torque boundary), so the sharp inner edge is preserved.
