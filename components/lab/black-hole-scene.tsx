@@ -356,8 +356,8 @@ export default function BlackHoleScene({
       <EffectComposer frameBufferType={THREE.HalfFloatType}>
         <Bloom
           intensity={1.35}
-          luminanceThreshold={0.55}
-          luminanceSmoothing={0.82}
+          luminanceThreshold={0.75}
+          luminanceSmoothing={0.45}
           mipmapBlur
         />
         <DitherEffect />
