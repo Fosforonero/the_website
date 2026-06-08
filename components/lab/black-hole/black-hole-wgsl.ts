@@ -347,7 +347,7 @@ fn kerrDoppler(rd: f32, ps_at_hit: vec3f, hit: vec3f) -> f32 {
         if (rho > rIn && rho < u.disk_outer) {
           let flux  = diskFlux(rho, rIn);
           let T     = u.disk_temp*pow(flux,.25);
-          let HoR   = clamp(u.vol_thick*sqrt(pow(flux,.25)*rho), 0.012, 0.035);
+          let HoR   = clamp(u.vol_thick*sqrt(pow(flux,.25)*rho)*0.22, 0.008, 0.18);
           let Hh    = HoR*rho;
           let zr    = mid.y/Hh;
           if (abs(zr) < 2.2) {
@@ -356,16 +356,31 @@ fn kerrDoppler(rd: f32, ps_at_hit: vec3f, hit: vec3f) -> f32 {
             let dens2  = dens*radial*radial*radial;
             let g      = select(1., kerrDoppler(rho, ps, mid), u.doppler_on > .5);
             let Tobs   = T*g;
-            let om2    = u.time*1.4/pow(rho,1.5);
+            let om2   = u.time*1.4/pow(rho,1.5);
             let ca2=cos(om2); let sa2=sin(om2);
-            let qd  = mat2x2f(vec2f(ca2,-sa2),vec2f(sa2,ca2)) * mid.xz * .6;
-            let tb  = clamp(.45+1.1*(.6*gnoise(qd)+.4*gnoise(qd*2.03+vec2f(u.time*.1,5.1))), 0., 1.7);
+            let rotm2 = mat2x2f(vec2f(0.80,-0.60),vec2f(0.60,0.80));
+            let qd    = mat2x2f(vec2f(ca2,-sa2),vec2f(sa2,ca2)) * mid.xz * 0.55;
+            // Domain warp → spiral accretion streams
+            let wv  = vec2f(gnoise(qd+3.1),gnoise(qd+7.7))-0.5;
+            var pv  = qd + 0.8*wv;
+            // FBM: 4 octaves
+            var turb2 = 0.;
+            turb2 += 0.50*gnoise(pv);                                                pv = rotm2*pv*2.03+11.5;
+            turb2 += 0.25*gnoise(pv);                                                pv = rotm2*pv*2.03+4.7;
+            turb2 += 0.14*gnoise(pv+vec2f(u.time*0.07,-u.time*0.05));               pv = rotm2*pv*2.03+19.2;
+            turb2 += 0.10*gnoise(pv+vec2f(-u.time*0.11,u.time*0.09));
+            // azimuthal density wave (spiral arm)
+            let phi2  = atan2(mid.z, mid.x);
+            let wave  = 0.5+0.5*sin(phi2*2.-rho*0.65+u.time*0.25);
+            // z-shear: bright accretion lanes at ±Hh/2
+            let zlane = 0.25*(1.-clamp(abs(zr)-0.4,0.,1.));
+            let tb    = clamp(0.25+1.5*turb2*mix(0.6,1.,wave)+zlane, 0., 1.9);
             let ds  = dt*length(vel);
             let emis = pow(Tobs/u.disk_temp,4.)*dens2*tb;
             let dtau = u.vol_opacity*dens2*ds;
             var jv: vec3f;
-            if (u.pure_black > .5) { jv = vec3f(1.,0.42,0.12)*(u.disk_bright*.6*emis*ds); }
-            else                   { jv = blackbody(Tobs)*(u.disk_bright*.6*emis*ds); }
+            if (u.pure_black > .5) { jv = vec3f(1.,0.42,0.12)*(u.disk_bright*.08*emis*ds); }
+            else                   { jv = blackbody(Tobs)*(u.disk_bright*.08*emis*ds); }
             accCol += (1.-accA)*jv;
             accA   += (1.-accA)*(1.-exp(-dtau));
             if (accA > .99) { color=accCol; done=true; }

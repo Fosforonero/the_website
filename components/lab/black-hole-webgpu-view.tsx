@@ -23,6 +23,9 @@ const COPY = {
     noSupport: "Il tuo browser non supporta WebGPU.",
     noSupportSub: "Prova Chrome 113+ o Edge 113+ su desktop.",
     noSupportLink: "Usa la versione WebGL →",
+    shaderErr: "Errore di compilazione shader WebGPU.",
+    shaderErrSub: "Ricarica la pagina (⌘⇧R). Se il problema persiste, apri la console.",
+    shaderErrLink: "Usa la versione WebGL →",
     loading: "Inizializzazione WebGPU…",
     badge: "WebGPU",
     hint: "Trascina per orbitare · Scroll per zoom",
@@ -133,11 +136,11 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
   const [spin,       setSpin]       = useState(0.0);
   const [diskOn,     setDiskOn]     = useState(true);
   const [dopplerOn,  setDopplerOn]  = useState(true);
-  const [exposure,   setExposure]   = useState(1.2);
+  const [exposure,   setExposure]   = useState(0.85);
   const [starless,   setStarless]   = useState(false);
   const [pureBlack,  setPureBlack]  = useState(false);
   const [jetsOn,     setJetsOn]     = useState(false);
-  const [volDisk,    setVolDisk]    = useState(false);
+  const [volDisk,    setVolDisk]    = useState(true);
   const [skyOn,      setSkyOn]      = useState(false);
   const [skySource,  setSkySource]  = useState<SkySource>("nasa8k");
   const [steps,      setSteps]      = useState(260);
@@ -297,12 +300,13 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
         const ctrl = ctrlRef.current;
         writeUniforms(core.uniformData, {
           w: canvas.width, h: canvas.height, time,
-          spin: ctrl.spin, diskOn: ctrl.diskOn, diskBright: 1.6,
-          diskTemp: 6400, diskOuter: 12, dopplerOn: ctrl.dopplerOn,
+          spin: ctrl.spin, diskOn: ctrl.diskOn,
+          diskBright: 14 * (ctrl.dopplerOn ? 1.0 : 0.38),
+          diskTemp: 10500, diskOuter: 16, dopplerOn: ctrl.dopplerOn,
           exposure: ctrl.exposure, steps: ctrl.steps,
           style: ctrl.starless ? 1 : 0,
           pureBlack: ctrl.pureBlack, jets: ctrl.jetsOn, jetStr: 0.5,
-          volDisk: ctrl.volDisk, volThick: 0.6, volOpacity: 0.6,
+          volDisk: ctrl.volDisk, volThick: 1.0, volOpacity: 0.85,
           skyOn: ctrl.skyOn, skyBright: 1.2,
           az: azRef.current, el: elRef.current, dist: distRef.current,
         });
@@ -360,7 +364,7 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
   }, []);
   const onMouseUp   = useCallback(() => { dragRef.current=null; }, []);
   const onWheel     = useCallback((e: React.WheelEvent) => {
-    distRef.current = Math.max(6,Math.min(50,distRef.current+e.deltaY*0.02));
+    distRef.current = Math.max(4,Math.min(60,distRef.current*(1+e.deltaY*0.001)));
   }, []);
   const touchRef = useRef<{x:number;y:number}|null>(null);
   const pinchRef = useRef<number|null>(null);
@@ -380,7 +384,7 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
       const t0=e.touches[0]!; const t1=e.touches[1]!;
       const dx=t0.clientX-t1.clientX; const dy=t0.clientY-t1.clientY;
       const d=Math.sqrt(dx*dx+dy*dy);
-      distRef.current = Math.max(6,Math.min(50,distRef.current*(pinchRef.current/d)));
+      distRef.current = Math.max(4,Math.min(60,distRef.current*(pinchRef.current/d)));
       pinchRef.current = d;
     } else if (e.touches.length === 1 && touchRef.current) {
       const t0=e.touches[0]!;
