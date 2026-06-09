@@ -42,7 +42,7 @@ export function ScrollFade() {
         }
       }
       // Fallback: first section colour (before any scrolling).
-      return resolvedBg(sections[0]);
+      return resolvedBg(sections[0] as Element);
     }
 
     function update() {
