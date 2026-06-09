@@ -29,6 +29,7 @@ export type BlackHoleSceneProps = {
   dopplerOn: boolean;
   spin: number; // 0..1 — approximate frame dragging
   jetsOn: boolean; // relativistic jets along the spin axis
+  windOn?: boolean; // stylized biconical disk wind along the spin axis
   gridOn?: boolean; // spacetime-fabric grid (Flamm's paraboloid)
   diskTemp?: number;   // disk colour-temperature scale (K)
   diskBright?: number; // accretion-rate / brightness scale
@@ -69,7 +70,7 @@ function fitNasaUrl(requested: string, maxTex: number): string {
 // ---------------------------------------------------------------------------
 
 export function BlackHoleQuad({
-  quality, diskOn, dopplerOn, spin, jetsOn,
+  quality, diskOn, dopplerOn, spin, jetsOn, windOn = false,
   diskTemp = 10500, diskBright = 14, diskOuter = 16, starless = false, pureBlack = false,
   skyUrl = DEFAULT_SKY_URL, volDisk = false, hdrMode = false, profile, isMobile = false, eht = false, onFps,
 }: BlackHoleSceneProps & { profile?: RenderProfile; isMobile?: boolean }) {
@@ -159,6 +160,8 @@ export function BlackHoleQuad({
       uDiskBright: { value: diskBright }, // bright, white-hot inner disk (ACES rolls highlights)
       uJets: { value: jetsOn ? 1 : 0 },
       uJetStr: { value: 0.7 },
+      uWind: { value: windOn ? 1 : 0 },
+      uWindStr: { value: 0.6 },
       uExposure: { value: 1.15 },
       uHighOrder: { value: prof.rk4 ? 1 : 0 },
       uUltra: { value: prof.tao ? 1 : 0 },
@@ -239,6 +242,7 @@ export function BlackHoleQuad({
     u.uDoppler.value = dopplerOn ? 1 : 0;
     u.uSpin.value = spin;
     u.uJets.value = jetsOn ? 1 : 0;
+    u.uWind.value = windOn ? 1 : 0;
     u.uDiskTemp.value = diskTemp;
     // Without Doppler every orbit position emits at full unbeamed T⁴, saturating
     // the tonemapper. Scale to ~38% so the disk shows colour gradient and texture

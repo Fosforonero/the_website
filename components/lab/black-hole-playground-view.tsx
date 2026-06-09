@@ -37,6 +37,7 @@ const COPY = {
     doppler: "Doppler",
     disk: "Disco",
     jets: "Getti",
+    wind: "Vento",
     grid: "Griglia",
     gw: "Onde grav.",
     hint: "Scegli un tipo e clicca nella scena per posizionare il corpo · trascina per ruotare. Le stelle entro il raggio mareale vengono disgregate in uno stream.",
@@ -60,6 +61,7 @@ const COPY = {
     doppler: "Doppler",
     disk: "Disk",
     jets: "Jets",
+    wind: "Wind",
     grid: "Grid",
     gw: "GW inspiral",
     hint: "Pick a type and click in the scene to place the body · drag to rotate. Stars within the tidal radius are torn into a debris stream.",
@@ -80,6 +82,7 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
   const [spin, setSpin] = useState(0);
   const [diskOn, setDiskOn] = useState(true);
   const [jetsOn, setJetsOn] = useState(false);
+  const [windOn, setWindOn] = useState(false);
   const [gridOn, setGridOn] = useState(false);
   const [gwOn, setGwOn] = useState(false);
   const [activeKind, setActiveKind] = useState<BodyKind>("star");
@@ -145,6 +148,13 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
         </button>
 
         <button
+          className={`bh-control bh-toolbar__hide-sm${windOn ? " bh-control--active" : ""}`}
+          onClick={() => setWindOn((v) => !v)}
+        >
+          {t.wind}
+        </button>
+
+        <button
           className={`bh-control${gridOn ? " bh-control--active" : ""}`}
           onClick={() => setGridOn((v) => !v)}
         >
@@ -197,7 +207,7 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
             bgRef={bgRef}
           />
         )}
-        <PlaygroundScene quality={quality} spin={spin} diskOn={diskOn} dopplerOn={dopplerOn} jetsOn={jetsOn} gridOn={gridOn} gwOn={gwOn} activeKind={activeKind} apiRef={api} scaleRef={scaleRef} webgpuMode={webgpuMode} bgRef={bgRef} />
+        <PlaygroundScene quality={quality} spin={spin} diskOn={diskOn} dopplerOn={dopplerOn} jetsOn={jetsOn} windOn={windOn} gridOn={gridOn} gwOn={gwOn} activeKind={activeKind} apiRef={api} scaleRef={scaleRef} webgpuMode={webgpuMode} bgRef={bgRef} />
         {scaleBar.px > 0 && (
           <div className="bh-scalebar" aria-hidden>
             <span className="bh-scalebar__label">{scaleBar.label}</span>

@@ -41,6 +41,7 @@ export type PlaygroundSceneProps = {
   diskOn: boolean;
   dopplerOn: boolean;
   jetsOn: boolean;
+  windOn?: boolean;
   gridOn: boolean;
   gwOn: boolean;
   activeKind: BodyKind;
@@ -708,7 +709,7 @@ function CameraSync({ bgRef }: { bgRef: MutableRefObject<WebGPUBgHandle | null> 
 // Public scene
 // ---------------------------------------------------------------------------
 
-export default function BlackHolePlaygroundScene({ quality, spin, diskOn, dopplerOn, jetsOn, gridOn, gwOn, activeKind, apiRef, scaleRef, webgpuMode, bgRef }: PlaygroundSceneProps) {
+export default function BlackHolePlaygroundScene({ quality, spin, diskOn, dopplerOn, jetsOn, windOn, gridOn, gwOn, activeKind, apiRef, scaleRef, webgpuMode, bgRef }: PlaygroundSceneProps) {
   const dprCap = QUALITY_PRESETS[quality].dprCap;
   return (
     <Canvas
@@ -718,8 +719,26 @@ export default function BlackHolePlaygroundScene({ quality, spin, diskOn, dopple
       style={{ position: "absolute", inset: 0, background: "transparent" }}
       onCreated={({ gl }) => gl.setClearAlpha(0)}
     >
-      {!webgpuMode && <BlackHoleQuad quality={quality} diskOn={diskOn} spin={spin} dopplerOn={dopplerOn} jetsOn={jetsOn} />}
+      {!webgpuMode && <BlackHoleQuad quality={quality} diskOn={diskOn} spin={spin} dopplerOn={dopplerOn} jetsOn={jetsOn} windOn={windOn} />}
       {webgpuMode && bgRef && <CameraSync bgRef={bgRef} />}
+      {/* In WebGPU mode the R3F canvas is composited over the WebGPU background.
+          The point light at the BH centre barely reaches bodies at r > 19 rs
+          (decay=1.5), so planet meshes appear near-black against the bright disk.
+          A hemisphere light (warm disk equator / cool zenith) gives diffuse fill
+          that reads as "lit by the accretion disk environment" without blowing
+          out the bloom on nearby objects. */}
+      {webgpuMode && <hemisphereLight args={["#ffd2a0", "#1a0a00", 0.55]} />}
+      {/* Depth-only occluder: the photon-capture shadow radius ≈ 3√3/2 ≈ 2.6 rs.
+          colorWrite=false means it writes only to the depth buffer — no pixels
+          are painted, so the R3F canvas stays transparent here and the WebGPU
+          background (which correctly renders the black shadow) shows through.
+          Objects whose 3D depth exceeds the sphere's near face are culled. */}
+      {webgpuMode && (
+        <mesh renderOrder={-1}>
+          <sphereGeometry args={[2.6, 24, 16]} />
+          <meshBasicMaterial colorWrite={false} side={THREE.FrontSide} depthWrite />
+        </mesh>
+      )}
       <BlackHoleGrid visible={gridOn} spin={spin} />
       <Simulation apiRef={apiRef} activeKind={activeKind} gwOn={gwOn} />
       <ScaleProbe scaleRef={scaleRef} />

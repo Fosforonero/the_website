@@ -58,6 +58,8 @@ uniform float uDiskTemp;   // emitted colour-temperature scale (Kelvin)
 uniform float uDiskBright; // disk brightness scale
 uniform float uJets;       // 0 / 1 — relativistic jets along the spin axis
 uniform float uJetStr;     // jet emission strength
+uniform float uWind;       // 0 / 1 — stylized biconical disk wind (Blandford–Payne look)
+uniform float uWindStr;    // wind emission strength
 uniform float uExposure;
 uniform float uHighOrder;  // 0/1 — use 4th-order RK4 geodesic step (high quality)
 uniform float uUltra;      // 0/1 — 6th-order Yoshida symplectic (only compiled when BH_ULTRA is defined)
@@ -335,6 +337,7 @@ void main() {
   bool hitDisk = false; // the opaque disk occludes the photon ring behind it
   float outDepth = 1.0; // far by default (background → no occlusion)
   vec3 jetAccum = vec3(0.0); // optically-thin jet emission accumulated along the ray
+  vec3 windAccum = vec3(0.0); // optically-thin biconical wind emission accumulated along the ray
   // Front-to-back compositing of the disk as an emissive/absorbing medium: the
   // opacity grows with local brightness (optical depth), so the bright inner
   // disk is opaque and the faint outskirts are semi-transparent — a SMOOTH
@@ -408,6 +411,27 @@ void main() {
         float prof  = exp(-(rho * rho) / (coneR * coneR));
         float fade  = exp(-ay * 0.085) * (1.0 - exp(-(ay - 1.4) * 1.5));
         jetAccum += vec3(0.45, 0.65, 1.0) * (prof * fade * uJetStr * dt);
+      }
+    }
+
+    // Stylized biconical disk wind: a wide (~30° half-angle) warm outflow along
+    // the spin axis (±Y), with a hollow cone — brighter walls than centre, like
+    // the gas-cleared cavity ALMA sees around Sgr A*. Optically-thin and
+    // procedurally turbulent; declared artistic, not a radiation-MHD solution.
+    // (Blandford & Payne 1982; terminal speed ~ escape velocity at launch.)
+    if (uWind > 0.5) {
+      float wrho = length(pos.xz);
+      float way  = abs(pos.y);
+      if (way > 0.7 && way < 18.0) {
+        float coneR = 0.45 + 0.55 * way;                          // wide bicone
+        float wall  = exp(-pow((wrho - 0.75 * coneR) / (0.42 * coneR), 2.0));
+        float core  = exp(-(wrho * wrho) / (coneR * coneR));
+        float shell = max(0.45 * core, wall);                     // hollow cone walls
+        float wazc  = atan(pos.z, pos.x);
+        vec2  wq    = vec2(wazc * 1.7, way * 0.45 - uTime * 0.22); // advected upward
+        float wturb = (0.5 + 0.5 * gnoise(wq)) * (0.6 + 0.5 * gnoise(wq * 2.3 + 7.0));
+        float wfade = exp(-way * 0.17) * (1.0 - exp(-(way - 0.7) * 1.4));
+        windAccum += vec3(1.0, 0.6, 0.36) * (shell * wturb * wfade * uWindStr * dt);
       }
     }
 
@@ -663,8 +687,9 @@ void main() {
   // Ray still in flight when steps ran out → composite disk over the background.
   if (!done) color = accCol + (1.0 - accA) * starField(normalize(dir));
 
-  // Jet emission accumulated along the (lensed) ray.
+  // Jet + wind emission accumulated along the (lensed) ray.
   color += jetAccum;
+  color += windAccum;
 
   // The photon ring is no longer drawn analytically: it now emerges physically
   // from the returning radiation (higher-order disk images piling up near the
