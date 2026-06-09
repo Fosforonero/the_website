@@ -29,23 +29,27 @@ export function MobileNav({
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const firstLinkRef = useRef<HTMLAnchorElement | null>(null);
   const dialogId = useId();
+  // Tracks whether the menu was closed via keyboard (Escape). On touch/click,
+  // restoring focus to the trigger button can fire a synthetic click on iOS,
+  // causing the menu to immediately reopen. Only keyboard users need this.
+  const closedByKeyboard = useRef(false);
 
   const close = useCallback(() => setOpen(false), []);
 
   // Esc to close + lock body scroll while open + restore focus on close.
   useEffect(() => {
     if (!open) return;
-    // Snapshot the trigger so the cleanup doesn't read a ref that React may
-    // have already detached from the DOM by then.
     const trigger = triggerRef.current;
 
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        closedByKeyboard.current = true;
+        setOpen(false);
+      }
     };
     document.addEventListener("keydown", onKey);
     document.body.classList.add("fn-no-scroll");
 
-    // Defer focus to give the dialog time to render.
     const focusTimer = window.setTimeout(() => {
       firstLinkRef.current?.focus();
     }, 0);
@@ -54,7 +58,10 @@ export function MobileNav({
       document.removeEventListener("keydown", onKey);
       document.body.classList.remove("fn-no-scroll");
       window.clearTimeout(focusTimer);
-      trigger?.focus();
+      if (closedByKeyboard.current) {
+        trigger?.focus();
+      }
+      closedByKeyboard.current = false;
     };
   }, [open]);
 
