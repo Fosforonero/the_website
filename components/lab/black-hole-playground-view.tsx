@@ -40,6 +40,7 @@ const COPY = {
     wind: "Vento",
     grid: "Griglia",
     gw: "Onde grav.",
+    diskParticles: "Disco particelle",
     ringdown: "Ringdown",
     ringdownTitle: "Simula una perturbazione: il buco nero oscilla alle frequenze quasi-normali di Kerr (l=2) poi si quieta — lo stesso segnale che LIGO misura dopo un merger.",
     hint: "Scegli un tipo e clicca nella scena per posizionare il corpo · trascina per ruotare. Le stelle entro il raggio mareale vengono disgregate in uno stream.",
@@ -66,6 +67,7 @@ const COPY = {
     wind: "Wind",
     grid: "Grid",
     gw: "GW inspiral",
+    diskParticles: "Particle disk",
     ringdown: "Ringdown",
     ringdownTitle: "Simulate a perturbation: the black hole rings at Kerr quasi-normal mode frequencies (l=2) then settles — the same signal LIGO measures after a merger.",
     hint: "Pick a type and click in the scene to place the body · drag to rotate. Stars within the tidal radius are torn into a debris stream.",
@@ -91,6 +93,7 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
   const [windOn, setWindOn] = useState(false);
   const [gridOn, setGridOn] = useState(false);
   const [gwOn, setGwOn] = useState(false);
+  const [diskParticlesOn, setDiskParticlesOn] = useState(true);
   const [activeKind, setActiveKind] = useState<BodyKind>("star");
   // Start collapsed; open the panel only on wider (non-mobile) screens.
   const [infoOpen, setInfoOpen] = useState(false);
@@ -174,6 +177,15 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
           {t.gw}
         </button>
 
+        {webgpuMode && (
+          <button
+            className={`bh-control bh-toolbar__hide-sm${diskParticlesOn ? " bh-control--active" : ""}`}
+            onClick={() => setDiskParticlesOn((v) => !v)}
+          >
+            {t.diskParticles}
+          </button>
+        )}
+
         <button
           className="bh-control bh-toolbar__hide-sm"
           title={t.ringdownTitle}
@@ -225,7 +237,7 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
             bgRef={bgRef}
           />
         )}
-        <PlaygroundScene quality={quality} spin={spin} diskOn={diskOn} dopplerOn={dopplerOn} jetsOn={jetsOn} windOn={windOn} gridOn={gridOn} gwOn={gwOn} activeKind={activeKind} apiRef={api} scaleRef={scaleRef} webgpuMode={webgpuMode} bgRef={bgRef} ringdownStartRef={ringdownStartRef} />
+        <PlaygroundScene quality={quality} spin={spin} diskOn={diskOn} dopplerOn={dopplerOn} jetsOn={jetsOn} windOn={windOn} gridOn={gridOn} gwOn={gwOn} diskParticlesOn={diskParticlesOn} activeKind={activeKind} apiRef={api} scaleRef={scaleRef} webgpuMode={webgpuMode} bgRef={bgRef} ringdownStartRef={ringdownStartRef} />
         {scaleBar.px > 0 && (
           <div className="bh-scalebar" aria-hidden>
             <span className="bh-scalebar__label">{scaleBar.label}</span>

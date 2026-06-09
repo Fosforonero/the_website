@@ -45,6 +45,7 @@ export type PlaygroundSceneProps = {
   windOn?: boolean;
   gridOn: boolean;
   gwOn: boolean;
+  diskParticlesOn?: boolean; // background Keplerian particle disk (WebGPU mode)
   activeKind: BodyKind;
   apiRef: MutableRefObject<PlaygroundHandle | null>;
   scaleRef?: MutableRefObject<number>; // px on screen per 1 r_s (for the scale bar)
@@ -275,14 +276,14 @@ function Simulation({
     // Circular-orbit speed in the Paczyński–Wiita potential: v² = r·dΦ/dr.
     // The launch speed as a FRACTION of circular sets the eccentricity:
     //   • planet → 1.0  : (near-)circular, so it forms a stable orbiting system;
-    //   • star   → 0.86 : gently eccentric, so it visibly swings inward each
-    //     orbit, skims the tidal radius, sheds gas and is eventually
-    //     spaghettified — at the large radii where stars are usually dropped a
-    //     perfectly circular orbit is a slow uniform rotation that reads as
-    //     "immobile", whereas the radial infall is clearly dynamic;
-    //   • comet  → 0.55 : strongly eccentric, plunging.
+    //   • star   → 0.94 : mildly eccentric — visibly swings inward each orbit
+    //     but survives several passes before skimming the tidal radius (was
+    //     0.86, which plunged too soon — bodies "fell in too easily");
+    //   • comet  → 0.72 : eccentric and clearly dynamic, but with a periapsis
+    //     that no longer dives straight through the horizon on the first orbit
+    //     (was 0.55).
     const vCirc = Math.sqrt(GM * r0) / Math.max(r0 - RS, 0.1);
-    const factor = kind === "comet" ? 0.55 : kind === "star" ? 0.86 : 1.0;
+    const factor = kind === "comet" ? 0.72 : kind === "star" ? 0.94 : 1.0;
     const radial = new THREE.Vector3(point.x, 0, point.z).normalize();
     const vel = new THREE.Vector3(-radial.z, 0, radial.x).multiplyScalar(vCirc * factor);
 
@@ -775,7 +776,7 @@ function CameraSync({ bgRef }: { bgRef: MutableRefObject<WebGPUBgHandle | null> 
 // Public scene
 // ---------------------------------------------------------------------------
 
-export default function BlackHolePlaygroundScene({ quality, spin, diskOn, dopplerOn, jetsOn, windOn, gridOn, gwOn, activeKind, apiRef, scaleRef, webgpuMode, bgRef, ringdownStartRef }: PlaygroundSceneProps) {
+export default function BlackHolePlaygroundScene({ quality, spin, diskOn, dopplerOn, jetsOn, windOn, gridOn, gwOn, diskParticlesOn = true, activeKind, apiRef, scaleRef, webgpuMode, bgRef, ringdownStartRef }: PlaygroundSceneProps) {
   const dprCap = QUALITY_PRESETS[quality].dprCap;
   // Shared ringdown amplitude ref: updated by QNMHook each frame, read by BlackHoleQuad.
   const ringdownAmplRef = useRef(0);
@@ -795,7 +796,7 @@ export default function BlackHolePlaygroundScene({ quality, spin, diskOn, dopple
           exact prograde Kerr angular velocity + epicyclic perturbation so the
           inner edge shifts with the spin slider (same ISCO as the shader).
           NOT gravitationally lensed (same limitation as the 3D bodies). */}
-      {webgpuMode && (
+      {webgpuMode && diskParticlesOn && (
         <AccretionDiskParticles spin={spin} dopplerOn={dopplerOn} />
       )}
       {/* In WebGPU mode the R3F canvas is composited over the WebGPU background.
