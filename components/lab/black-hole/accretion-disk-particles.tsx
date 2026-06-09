@@ -90,9 +90,9 @@ void main() {
   float kap2 = OmK * OmK * (1.0 - 6.0/X + 8.0*a/pow(X, 1.5) - 3.0*a*a/(X*X));
   float kap  = sqrt(max(kap2, 1.0e-6));
 
-  // Clockwise prograde orbit: the approaching side is at -X (left of the
-  // default camera at +Z), matching "left side brighter" in the main shader.
-  float phi  = aPhase0 - OmK * uTime;
+  // Prograde orbit, SAME sense as the ray-marched disk's turbulence (which
+  // rotates by +omega). Earlier this used -OmK and ran counter to the disk.
+  float phi  = aPhase0 + OmK * uTime;
   float ep   = aEpicPhase0 + kap * uTime;
 
   // Epicyclic perturbation (Keplerian eccentricity in the epicycle approximation)
@@ -122,7 +122,7 @@ void main() {
   //   v·n_obs = −r·Ω·cos φ  → positive on approaching (-X) side.
   float g = 1.0;
   if (uDoppler > 0.5) {
-    float vToObs = -rEff * OmK * cos(phiE);
+    float vToObs = rEff * OmK * cos(phiE);
     float beta   = clamp(vToObs / (rEff * OmK + 1.0e-3), -1.0, 1.0);
     g = max(1.0 + 0.55 * beta, 0.1);
   }
@@ -140,7 +140,8 @@ void main() {
   vec4 mv = modelViewMatrix * vec4(pos, 1.0);
   gl_Position = projectionMatrix * mv;
   float d = max(-mv.z, 0.5);
-  gl_PointSize = clamp(380.0 / d, 0.5, 6.0);
+  // Point-like grains: small and crisp (was up to 6px → looked like blobs).
+  gl_PointSize = clamp(150.0 / d, 0.4, 2.2);
 }
 `;
 
@@ -156,7 +157,8 @@ void main() {
   vec2  uv = gl_PointCoord - 0.5;
   float d  = length(uv);
   if (d > 0.5) discard;
-  float a = vAlpha * (1.0 - smoothstep(0.25, 0.5, d));
+  // Tight core with a thin halo — reads as a pinpoint grain, not a soft blob.
+  float a = vAlpha * (1.0 - smoothstep(0.08, 0.45, d));
   gl_FragColor = vec4(vColor, a);
 }
 `;
