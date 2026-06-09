@@ -2,24 +2,17 @@ import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
-import "./globals.css";
+import "../globals.css";
 import { site } from "@/lib/site";
 import { organizationLd, personLd, websiteLd } from "@/lib/jsonld";
 import { CookieBanner } from "@/components/client/cookie-banner";
 import { ScrollFade } from "@/components/client/scroll-fade";
 
-// GA Measurement ID resolution:
-// 1) NEXT_PUBLIC_GA_ID env var wins (Vercel project setting) — lets future
-//    property swaps happen without a code change.
-// 2) In production we fall back to the hardcoded ID so the deploy keeps
-//    tracking even if the env var slot is empty.
-// 3) In local dev with no env var, GA is not loaded at all.
 const GA_ID_FALLBACK = "G-K1QTXSDVD8";
 const GA_ID =
   process.env.NEXT_PUBLIC_GA_ID ||
   (process.env.NODE_ENV === "production" ? GA_ID_FALLBACK : undefined);
 
-// Self-hosted via next/font — zero CLS, no third-party request at runtime.
 const sansGrotesk = Space_Grotesk({
   subsets: ["latin", "latin-ext"],
   display: "swap",
@@ -55,11 +48,7 @@ export const metadata: Metadata = {
   publisher: site.name,
   alternates: {
     canonical: "/",
-    languages: {
-      it: "/",
-      en: "/en",
-      "x-default": "/",
-    },
+    languages: { it: "/", en: "/en", "x-default": "/" },
   },
   openGraph: {
     type: "website",
@@ -84,26 +73,12 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  // Site-wide JSON-LD: WebSite + Organization + Person. Per-page JSON-LD
-  // (ItemList, BlogPosting, BreadcrumbList) is rendered inside each page.
+export default function ItRootLayout({ children }: { children: React.ReactNode }) {
   const ld = [websiteLd(), organizationLd(), personLd()];
 
   return (
     <html lang="it" className={`${sansGrotesk.variable} ${monoJetbrains.variable}`}>
-      {/*
-        suppressHydrationWarning on <body>: some browser extensions (ColorZilla,
-        Grammarly, Dark Reader, password managers) inject attributes on <body>
-        before React hydrates. This silences the false-positive React warning;
-        it does NOT mask real mismatches inside the tree.
-      */}
       <body suppressHydrationWarning>
-        {/*
-          Google Consent Mode v2 — default = denied for everything.
-          Runs before any gtag/Analytics script via strategy=beforeInteractive,
-          so GA4 starts in cookie-less ping mode. The CookieBanner upgrades
-          the consent state on user action.
-        */}
         <Script id="ga-consent-default" strategy="beforeInteractive">
           {`window.dataLayer = window.dataLayer || [];
             function gtag(){window.dataLayer.push(arguments);}
@@ -126,7 +101,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         <script
           type="application/ld+json"
-          // Inline JSON-LD is the documented Next.js pattern for SEO structured data.
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }}
         />
       </body>
