@@ -7,7 +7,7 @@ import "@/components/lab/lab-index.css";
 const PAGE_URL = `${site.url}/lab`;
 const PAGE_URL_EN = `${site.url}/en/lab`;
 const DESC =
-  "Esperimenti scientifici interattivi di Fosforonero: tavola periodica, sistema solare 3D e buco nero relativistico. Gratis nel browser, con dati aperti e fisica reale dichiarata.";
+  "Esperimenti interattivi di Fosforonero: tavola periodica, sistema solare 3D e buco nero relativistico in WebGL. Gratis nel browser, fisica reale dichiarata.";
 
 export const metadata: Metadata = {
   title: "Lab · Esperimenti interattivi",

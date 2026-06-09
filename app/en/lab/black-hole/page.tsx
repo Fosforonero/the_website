@@ -8,10 +8,10 @@ const PAGE_URL = `${site.url}/en/lab/black-hole`;
 const PAGE_URL_IT = `${site.url}/lab/buco-nero`;
 
 const DESCRIPTION =
-  "Real-time rotating (Kerr) black hole simulator: real gravitational lensing, an accretion disk with relativistic Doppler and redshift, the shadow and photon ring. Interstellar's Gargantua physics, interactive and free.";
+  "Real-time Kerr black hole simulator: gravitational lensing, relativistic accretion disk with Doppler, photon ring. Same physics as Interstellar's Gargantua, free in the browser.";
 
 export const metadata: Metadata = {
-  title: "Black Hole 3D Simulator · Real-time Kerr · Fosforonero Lab",
+  title: "Black Hole 3D Simulator · Real-time Kerr",
   description: DESCRIPTION,
   keywords: [
     "black hole simulator", "black hole 3D", "rotating black hole", "Kerr metric",

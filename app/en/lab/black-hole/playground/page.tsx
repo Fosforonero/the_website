@@ -11,7 +11,7 @@ const DESCRIPTION =
   "Black hole playground: drop in planets, stars and comets and watch it capture them. Stars within the tidal radius are torn into a debris stream. Paczyński–Wiita dynamics.";
 
 export const metadata: Metadata = {
-  title: "Black Hole · Gravitational playground · Fosforonero Lab",
+  title: "Black Hole · Gravitational playground",
   description: DESCRIPTION,
   alternates: {
     canonical: PAGE_URL,

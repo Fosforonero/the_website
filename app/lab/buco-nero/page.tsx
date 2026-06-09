@@ -8,9 +8,9 @@ const PAGE_URL = `${site.url}/lab/buco-nero`;
 const PAGE_URL_EN = `${site.url}/en/lab/black-hole`;
 
 export const metadata: Metadata = {
-  title: "Simulatore Buco Nero 3D · Kerr in tempo reale · Fosforonero Lab",
+  title: "Simulatore Buco Nero 3D · Kerr in tempo reale",
   description:
-    "Simulatore di buco nero rotante (Kerr) in tempo reale: lensing gravitazionale reale, disco di accrescimento con Doppler e redshift, ombra e photon ring. La fisica del Gargantua di Interstellar, interattiva e gratis.",
+    "Simulatore di buco nero Kerr in tempo reale: lensing gravitazionale reale, disco di accrescimento con Doppler, photon ring. Come il Gargantua di Interstellar, gratis nel browser.",
   keywords: [
     "simulatore buco nero", "buco nero 3D", "buco nero rotante", "metrica di Kerr",
     "lensing gravitazionale", "disco di accrescimento", "Gargantua Interstellar",

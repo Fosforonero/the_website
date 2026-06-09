@@ -7,7 +7,7 @@ const PAGE_URL    = `${site.url}/en/lab/black-hole/webgpu`;
 const PAGE_URL_IT = `${site.url}/lab/buco-nero/webgpu`;
 
 export const metadata: Metadata = {
-  title: "Black Hole WebGPU · Kerr Geodesics · Fosforonero Lab",
+  title: "Black Hole WebGPU · Kerr Geodesics",
   description:
     "Native WebGPU renderer for the Kerr black hole: exact photon geodesics ray-traced in real time on the browser's modern GPU pipeline. Same physics as the WebGL version.",
   keywords: [

@@ -7,7 +7,7 @@ import "@/components/lab/lab-index.css";
 const PAGE_URL = `${site.url}/en/lab`;
 const PAGE_URL_IT = `${site.url}/lab`;
 const DESC =
-  "Fosforonero's interactive science experiments: periodic table, 3D solar system and a relativistic black hole. Free in the browser, with open data and disclosed real physics.";
+  "Fosforonero's interactive experiments: periodic table, 3D solar system and a relativistic black hole in WebGL. Free in the browser, real physics disclosed.";
 
 export const metadata: Metadata = {
   title: "Lab · Interactive experiments",

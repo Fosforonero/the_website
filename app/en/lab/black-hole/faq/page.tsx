@@ -11,7 +11,7 @@ const DESCRIPTION =
   "FAQ about the black-hole simulator: is it a real simulation? Is the spin the Kerr metric? Are the sizes to scale? Is there plasma physics? Short, honest answers.";
 
 export const metadata: Metadata = {
-  title: "Black hole · Frequently asked questions (FAQ) · Fosforonero Lab",
+  title: "Black hole · Frequently asked questions (FAQ)",
   description: DESCRIPTION,
   alternates: {
     canonical: PAGE_URL,

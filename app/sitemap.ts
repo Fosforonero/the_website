@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { site, locales, defaultLocale, getLocalePath } from "@/lib/site";
-import { getAllSlugs } from "@/lib/blog";
+import { getAllSlugs, alternateSlug } from "@/lib/blog";
 
 export const dynamic = "force-static";
 
@@ -89,6 +89,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const identityEntry: MetadataRoute.Sitemap = [
     {
       url: `${site.url}/identita`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+      alternates: {
+        languages: {
+          it: `${site.url}/identita`,
+          en: `${site.url}/en/identity`,
+        },
+      },
+    },
+    {
+      url: `${site.url}/en/identity`,
       lastModified: now,
       changeFrequency: "monthly" as const,
       priority: 0.6,
@@ -331,11 +343,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const locale of locales) {
     const slugs = await getAllSlugs(locale);
     for (const slug of slugs) {
+      const altSlug = alternateSlug(slug);
       postEntries.push({
         url: `${site.url}${getLocalePath(locale, `/blog/${slug}`)}`,
         lastModified: now,
         changeFrequency: "yearly",
         priority: 0.5,
+        alternates: {
+          languages: {
+            it: `${site.url}/blog/${locale === "it" ? slug : altSlug}`,
+            en: `${site.url}/en/blog/${locale === "en" ? slug : altSlug}`,
+          },
+        },
       });
     }
   }

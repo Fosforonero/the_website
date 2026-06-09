@@ -11,7 +11,7 @@ const DESCRIPTION =
   "Playground del buco nero: lancia pianeti, stelle e comete e guardalo catturarli. Le stelle entro il raggio mareale vengono disgregate in detriti. Modello di Paczyński–Wiita.";
 
 export const metadata: Metadata = {
-  title: "Buco Nero · Playground gravitazionale · Fosforonero Lab",
+  title: "Buco Nero · Playground gravitazionale",
   description: DESCRIPTION,
   alternates: {
     canonical: PAGE_URL,

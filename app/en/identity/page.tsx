@@ -9,7 +9,7 @@ const PAGE_DESC =
   "The visual identity of Fosforonero: the P¹⁵ symbol, the origin of the name from black phosphorus (an allotrope of Phosphorus, element 15), palette and typography.";
 
 export const metadata: Metadata = {
-  title: "Identity",
+  title: "Visual identity · P¹⁵ symbol and brand",
   description: PAGE_DESC,
   alternates: {
     canonical: "/en/identity",

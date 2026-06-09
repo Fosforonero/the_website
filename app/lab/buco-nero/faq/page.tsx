@@ -11,7 +11,7 @@ const DESCRIPTION =
   "Domande frequenti sul simulatore di buco nero: è una simulazione vera? Lo spin è la metrica di Kerr? Le dimensioni sono in scala? C'è fisica del plasma? Risposte oneste.";
 
 export const metadata: Metadata = {
-  title: "Buco nero · Domande frequenti (FAQ) · Fosforonero Lab",
+  title: "Buco nero · Domande frequenti (FAQ)",
   description: DESCRIPTION,
   alternates: {
     canonical: PAGE_URL,

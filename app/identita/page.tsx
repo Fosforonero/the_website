@@ -15,7 +15,7 @@ const PAGE_DESC =
   "L'identità visiva di Fosforonero: il simbolo P¹⁵, l'origine del nome dal fosforo nero (allotropo del Fosforo, elemento 15), palette e tipografia.";
 
 export const metadata: Metadata = {
-  title: "Identità",
+  title: "Identità visiva · simbolo P¹⁵ e brand",
   description: PAGE_DESC,
   alternates: {
     canonical: "/identita",

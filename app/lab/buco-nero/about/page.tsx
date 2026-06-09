@@ -11,7 +11,7 @@ const DESCRIPTION =
   "Le equazioni del simulatore di buco nero: geodetiche nulle esatte di Kerr, disco di accrescimento con flusso di Page–Thorne, redshift gravitazionale e beaming. Cosa è fisica e cosa è artistico, con fonti.";
 
 export const metadata: Metadata = {
-  title: "Buco nero: equazioni, fisica e crediti · Fosforonero Lab",
+  title: "Buco nero: equazioni, fisica e crediti",
   description: DESCRIPTION,
   alternates: {
     canonical: PAGE_URL,

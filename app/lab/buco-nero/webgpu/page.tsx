@@ -7,7 +7,7 @@ const PAGE_URL    = `${site.url}/lab/buco-nero/webgpu`;
 const PAGE_URL_EN = `${site.url}/en/lab/black-hole/webgpu`;
 
 export const metadata: Metadata = {
-  title: "Buco Nero WebGPU · Geodetiche di Kerr · Fosforonero Lab",
+  title: "Buco Nero WebGPU · Geodetiche di Kerr",
   description:
     "Renderer WebGPU nativo del buco nero di Kerr: geodetiche dei fotoni ray-tracciate in tempo reale con la pipeline GPU del browser. Stessa fisica della versione WebGL.",
   keywords: [

@@ -11,7 +11,7 @@ const DESCRIPTION =
   "The equations behind the black hole simulator: exact Kerr null geodesics, an accretion disk with the Page–Thorne flux, gravitational redshift and relativistic beaming. What is physics and what is artistic, with sources.";
 
 export const metadata: Metadata = {
-  title: "Black hole: equations, physics & credits · Fosforonero Lab",
+  title: "Black hole: equations, physics & credits",
   description: DESCRIPTION,
   alternates: {
     canonical: PAGE_URL,

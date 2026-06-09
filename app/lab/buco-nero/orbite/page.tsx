@@ -10,7 +10,7 @@ const DESCRIPTION =
   "Orbite relativistiche attorno a un buco nero: geodetica di tipo-tempo esatta di Schwarzschild, precessione del periastro (come Mercurio), ISCO e caduta. WebGL interattivo.";
 
 export const metadata: Metadata = {
-  title: "Orbite relativistiche · Buco Nero · Fosforonero Lab",
+  title: "Orbite relativistiche · Buco Nero",
   description: DESCRIPTION,
   alternates: { canonical: PAGE_URL, languages: { it: PAGE_URL, en: PAGE_URL_EN, "x-default": PAGE_URL } },
   openGraph: { type: "website", locale: "it_IT", url: PAGE_URL, siteName: site.name, title: "Orbite relativistiche attorno a un buco nero", description: DESCRIPTION },
