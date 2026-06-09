@@ -42,6 +42,7 @@ export type BlackHoleSceneProps = {
   hdrMode?: boolean;   // HDR display detected: use wider exposure curve
   onGpu?: (g: GpuInfo) => void; // report the detected GPU (for the UI to show)
   onFps?: (fps: number) => void; // report the EMA frame rate once per second
+  ringdownRef?: React.MutableRefObject<number>; // QNM ringdown amplitude (mutated per-frame, no re-render)
 };
 
 // Default real-sky photo: NASA/Goddard SVS "Deep Star Maps 2020" (public domain),
@@ -73,6 +74,7 @@ export function BlackHoleQuad({
   quality, diskOn, dopplerOn, spin, jetsOn, windOn = false,
   diskTemp = 10500, diskBright = 14, diskOuter = 16, starless = false, pureBlack = false,
   skyUrl = DEFAULT_SKY_URL, volDisk = false, hdrMode = false, profile, isMobile = false, eht = false, onFps,
+  ringdownRef,
 }: BlackHoleSceneProps & { profile?: RenderProfile; isMobile?: boolean }) {
   const matRef = useRef<THREE.ShaderMaterial>(null);
   const camBasis = useRef(new THREE.Matrix3());
@@ -164,6 +166,7 @@ export function BlackHoleQuad({
       uJetStr: { value: 0.7 },
       uWind: { value: windOn ? 1 : 0 },
       uWindStr: { value: 0.6 },
+      uRingdown: { value: 0 },
       uExposure: { value: 1.15 },
       uHighOrder: { value: prof.rk4 ? 1 : 0 },
       uUltra: { value: prof.tao ? 1 : 0 },
@@ -245,6 +248,7 @@ export function BlackHoleQuad({
     u.uSpin.value = spin;
     u.uJets.value = jetsOn ? 1 : 0;
     u.uWind.value = windOn ? 1 : 0;
+    u.uRingdown.value = ringdownRef?.current ?? 0;
     u.uDiskTemp.value = diskTemp;
     // Without Doppler every orbit position emits at full unbeamed T⁴, saturating
     // the tonemapper. Scale to ~38% so the disk shows colour gradient and texture

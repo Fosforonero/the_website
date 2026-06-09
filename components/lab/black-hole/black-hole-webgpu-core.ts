@@ -37,6 +37,7 @@ export type UniformOpts = {
   style: number; pureBlack: boolean; jets: boolean; jetStr: number;
   volDisk: boolean; volThick: number; volOpacity: number;
   skyOn: boolean; skyBright: number;
+  ringdown?: number; // QNM ringdown amplitude (0 = inactive)
   az: number; el: number; dist: number;
   fov?: number; // vertical FOV in degrees (default 45; playground passes 50 to match R3F)
 };
@@ -61,6 +62,7 @@ export function writeUniforms(buf: Float32Array, opts: UniformOpts) {
   buf[U.JET_STR]=opts.jetStr; buf[U.VOL_DISK]=opts.volDisk?1:0;
   buf[U.VOL_THICK]=opts.volThick; buf[U.VOL_OPACITY]=opts.volOpacity;
   buf[U.SKY_ON]=opts.skyOn?1:0; buf[U.SKY_BRIGHT]=opts.skyBright;
+  buf[U.RINGDOWN]=opts.ringdown??0;
 }
 
 // ---------------------------------------------------------------------------

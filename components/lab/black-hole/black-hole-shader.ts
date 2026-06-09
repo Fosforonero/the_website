@@ -71,6 +71,7 @@ uniform float uSkyBright;  // brightness scale for the real sky
 uniform float uVolDisk;    // 1 = volumetric 3D disk (radiative transfer through an analytic plasma)
 uniform float uVolThick;   // disk aspect-ratio scale (sets H/r)
 uniform float uVolOpacity; // volumetric absorption coefficient
+uniform float uRingdown;   // QNM ringdown amplitude A(t) = exp(−γt)·cos(ω_R·t) — 0 when inactive
 
 const float RS = 1.0;
 const int   MAX_STEPS = 400;
@@ -695,6 +696,11 @@ void main() {
   // from the returning radiation (higher-order disk images piling up near the
   // shadow, captured by the refined stepping above) — same colour as the disk,
   // so it merges with the secondary image instead of being a separate white band.
+
+  // QNM ringdown: boost photon ring contribution (returning radiation = diskXings ≥ 2).
+  // Amplitude A(t) = exp(−γt)·cos(ω_R·t) is computed in JS from tabulated Kerr l=2
+  // quasi-normal mode frequencies; here we just modulate the ring brightness.
+  if (uRingdown != 0.0 && diskXings >= 2) { color *= 1.0 + 0.7 * uRingdown; }
 
   // Exposure + ACES filmic tone map + gamma. ACES keeps saturation and rolls
   // bright highlights to white (the luminous, cinematic look) instead of the

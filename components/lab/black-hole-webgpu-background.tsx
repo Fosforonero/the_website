@@ -12,6 +12,7 @@ import {
 // ---------------------------------------------------------------------------
 export type WebGPUBgHandle = {
   setCamera: (az: number, el: number, dist: number) => void;
+  setRingdown: (amplitude: number) => void;
 };
 
 type Props = {
@@ -30,16 +31,20 @@ export function BlackHoleWebGPUBackground({ spin, diskOn, dopplerOn, jetsOn, bgR
   const rafRef       = useRef(0);
 
   // Camera driven by CameraSync — updated every R3F frame via setCamera()
-  const camRef  = useRef({ az: 0.0, el: 0.267, dist: 22.8 });
+  const camRef      = useRef({ az: 0.0, el: 0.267, dist: 22.8 });
+  const ringdownRef = useRef(0);
 
   // Mirror latest props into a ref so the RAF closure always reads fresh values
   // without depending on stale closures.
   const ctrlRef = useRef({ spin, diskOn, dopplerOn, jetsOn });
   ctrlRef.current = { spin, diskOn, dopplerOn, jetsOn };
 
-  // Expose setCamera to parent
+  // Expose setCamera / setRingdown to parent
   useEffect(() => {
-    bgRef.current = { setCamera: (az, el, dist) => { camRef.current = { az, el, dist }; } };
+    bgRef.current = {
+      setCamera:   (az, el, dist) => { camRef.current = { az, el, dist }; },
+      setRingdown: (v)            => { ringdownRef.current = v; },
+    };
     return () => { bgRef.current = null; };
   }, [bgRef]);
 
@@ -76,6 +81,7 @@ export function BlackHoleWebGPUBackground({ spin, diskOn, dopplerOn, jetsOn, bgR
           style: 0, pureBlack: false, jets: jetsOn, jetStr: 0.5,
           volDisk: false, volThick: 0.1, volOpacity: 0.08,
           skyOn: false, skyBright: 1.2,
+          ringdown: ringdownRef.current,
           az, el, dist,
           fov: 50, // match the R3F Canvas camera so lensing scale aligns with the 3D bodies
         });

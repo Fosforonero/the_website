@@ -50,6 +50,7 @@ export type PlaygroundSceneProps = {
   scaleRef?: MutableRefObject<number>; // px on screen per 1 r_s (for the scale bar)
   webgpuMode?: boolean;
   bgRef?: MutableRefObject<WebGPUBgHandle | null>;
+  ringdownStartRef?: MutableRefObject<number | null>; // null = inactive; else = clock time of trigger
 };
 
 // Reports how many screen pixels one Schwarzschild radius spans at the centre,
@@ -690,6 +691,70 @@ function Simulation({
 }
 
 // ---------------------------------------------------------------------------
+// QNM ringdown: computes the damped-sinusoid amplitude for the l=2 photon-ring
+// quasi-normal mode and writes it to both the WebGPU bgRef and a shared ref
+// read each frame by BlackHoleQuad (WebGL mode).
+//
+// Physics: Q(a) = ω_R/(2ω_I) fits tabulated Kerr QNM values (Leaver 1985):
+//   a=0 → Q≈2.1 (~2 oscillations), a=0.9 → Q≈7.3 (~7), a=0.99 → Q≈13.
+// Visual period is fixed at T=2s; the ratio ω_R/ω_I (hence Q) is preserved.
+// ---------------------------------------------------------------------------
+function qnmAmplitude(elapsed: number, spin: number): number {
+  const Q      = 2.1 + 11.3 * Math.pow(spin, 3);
+  const omegaR = Math.PI; // = 2π / T, T = 2s
+  const omegaI = omegaR / (2 * Q);
+  return Math.exp(-omegaI * elapsed) * Math.cos(omegaR * elapsed);
+}
+
+function QNMHook({
+  spin,
+  bgRef,
+  ringdownStartRef,
+  ringdownAmplRef,
+}: {
+  spin: number;
+  bgRef?: MutableRefObject<WebGPUBgHandle | null>;
+  ringdownStartRef?: MutableRefObject<number | null>;
+  ringdownAmplRef: MutableRefObject<number>;
+}) {
+  const { clock } = useThree();
+  useFrame(() => {
+    const ref   = ringdownStartRef;
+    const start = ref?.current ?? null;
+
+    // Inactive
+    if (start === null) {
+      if (ringdownAmplRef.current !== 0) {
+        ringdownAmplRef.current = 0;
+        bgRef?.current?.setRingdown(0);
+      }
+      return;
+    }
+
+    // −1 is the trigger sentinel: latch the current clock time on this frame
+    if (start === -1) {
+      if (ref) ref.current = clock.getElapsedTime();
+      return;
+    }
+
+    const elapsed = clock.getElapsedTime() - start;
+    const ampl    = qnmAmplitude(elapsed, spin);
+    ringdownAmplRef.current = ampl;
+    bgRef?.current?.setRingdown(ampl);
+
+    // Stop when envelope < 1%:  exp(−ω_I · t) < 0.01
+    const Q      = 2.1 + 11.3 * Math.pow(spin, 3);
+    const omegaI = Math.PI / (2 * Q);
+    if (elapsed > Math.log(100) / omegaI) {
+      if (ref) ref.current = null;
+      ringdownAmplRef.current = 0;
+      bgRef?.current?.setRingdown(0);
+    }
+  });
+  return null;
+}
+
+// ---------------------------------------------------------------------------
 // Camera sync: reads Three.js camera position each frame and pushes az/el/dist
 // to the WebGPU background canvas so both renderers stay in sync.
 // ---------------------------------------------------------------------------
@@ -710,8 +775,10 @@ function CameraSync({ bgRef }: { bgRef: MutableRefObject<WebGPUBgHandle | null> 
 // Public scene
 // ---------------------------------------------------------------------------
 
-export default function BlackHolePlaygroundScene({ quality, spin, diskOn, dopplerOn, jetsOn, windOn, gridOn, gwOn, activeKind, apiRef, scaleRef, webgpuMode, bgRef }: PlaygroundSceneProps) {
+export default function BlackHolePlaygroundScene({ quality, spin, diskOn, dopplerOn, jetsOn, windOn, gridOn, gwOn, activeKind, apiRef, scaleRef, webgpuMode, bgRef, ringdownStartRef }: PlaygroundSceneProps) {
   const dprCap = QUALITY_PRESETS[quality].dprCap;
+  // Shared ringdown amplitude ref: updated by QNMHook each frame, read by BlackHoleQuad.
+  const ringdownAmplRef = useRef(0);
   return (
     <Canvas
       camera={{ fov: 50, near: 0.01, far: 5000, position: [0, 6, 22] }}
@@ -720,8 +787,9 @@ export default function BlackHolePlaygroundScene({ quality, spin, diskOn, dopple
       style={{ position: "absolute", inset: 0, background: "transparent" }}
       onCreated={({ gl }) => gl.setClearAlpha(0)}
     >
-      {!webgpuMode && <BlackHoleQuad quality={quality} diskOn={diskOn} spin={spin} dopplerOn={dopplerOn} jetsOn={jetsOn} windOn={windOn} />}
+      {!webgpuMode && <BlackHoleQuad quality={quality} diskOn={diskOn} spin={spin} dopplerOn={dopplerOn} jetsOn={jetsOn} windOn={windOn} ringdownRef={ringdownAmplRef} />}
       {webgpuMode && bgRef && <CameraSync bgRef={bgRef} />}
+      <QNMHook spin={spin} bgRef={bgRef} ringdownStartRef={ringdownStartRef} ringdownAmplRef={ringdownAmplRef} />
       {/* 300 k Keplerian particles — visible only in WebGPU mode where the
           ray-marched disk lives in the background canvas. Orbits follow the
           exact prograde Kerr angular velocity + epicyclic perturbation so the

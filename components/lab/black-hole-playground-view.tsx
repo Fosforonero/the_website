@@ -40,6 +40,8 @@ const COPY = {
     wind: "Vento",
     grid: "Griglia",
     gw: "Onde grav.",
+    ringdown: "Ringdown",
+    ringdownTitle: "Simula una perturbazione: il buco nero oscilla alle frequenze quasi-normali di Kerr (l=2) poi si quieta — lo stesso segnale che LIGO misura dopo un merger.",
     hint: "Scegli un tipo e clicca nella scena per posizionare il corpo · trascina per ruotare. Le stelle entro il raggio mareale vengono disgregate in uno stream.",
     discShort: "Dinamica con potenziale pseudo-newtoniano di Paczyński–Wiita (riproduce l'ISCO e la caduta). I corpi non sono lensati; lo stream mareale è un modello a particelle. Scala (barra in basso): rₛ = orizzonte, ISCO 3 rₛ, disco 3–16 rₛ; le dimensioni dei corpi sono compresse per visibilità (stella ≈0,4 rₛ, pianeta ≈0,15 rₛ, cometa ≈0,05 rₛ). In scala reale il rapporto stella/buco nero dipende dalla massa: attorno a un buco nero stellare (~10 M☉, rₛ≈30 km) una stella è migliaia di volte più grande dell'orizzonte; attorno a uno supermassiccio (Gargantua) l'orizzonte supera di gran lunga ogni stella.",
     infoTitle: "Come funziona",
@@ -64,6 +66,8 @@ const COPY = {
     wind: "Wind",
     grid: "Grid",
     gw: "GW inspiral",
+    ringdown: "Ringdown",
+    ringdownTitle: "Simulate a perturbation: the black hole rings at Kerr quasi-normal mode frequencies (l=2) then settles — the same signal LIGO measures after a merger.",
     hint: "Pick a type and click in the scene to place the body · drag to rotate. Stars within the tidal radius are torn into a debris stream.",
     discShort: "Dynamics use the Paczyński–Wiita pseudo-Newtonian potential (reproduces the ISCO and the plunge). Bodies are not lensed; the tidal stream is a particle model. Scale (bar, bottom): rₛ = horizon, ISCO 3 rₛ, disk 3–16 rₛ; body sizes are compressed for visibility (star ≈0.4 rₛ, planet ≈0.15 rₛ, comet ≈0.05 rₛ). At real scale the star-to-hole ratio depends on mass: around a stellar-mass hole (~10 M☉, rₛ≈30 km) a star is thousands of times larger than the horizon; around a supermassive one (Gargantua) the horizon dwarfs any star.",
     infoTitle: "How it works",
@@ -75,6 +79,8 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
   const api = useRef<PlaygroundHandle | null>(null);
   const scaleRef = useRef(0);
   const bgRef = useRef<WebGPUBgHandle | null>(null);
+  // QNM ringdown: set to the current clock time when triggered; null = inactive.
+  const ringdownStartRef = useRef<number | null>(null);
   const [webgpuMode, setWebgpuMode] = useState(false);
   const [dopplerOn, setDopplerOn] = useState(true);
   const [scaleBar, setScaleBar] = useState({ px: 0, label: "" });
@@ -168,6 +174,18 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
           {t.gw}
         </button>
 
+        <button
+          className="bh-control bh-toolbar__hide-sm"
+          title={t.ringdownTitle}
+          onClick={() => {
+            // −1 is a sentinel: "start requested". QNMHook latches clock.getElapsedTime()
+            // on the next frame and replaces −1 with the actual start time.
+            ringdownStartRef.current = -1;
+          }}
+        >
+          {t.ringdown}
+        </button>
+
         <div className="bh-toolbar__sep bh-toolbar__hide-sm" />
 
         <label className={`bh-control bh-toolbar__hide-sm${spin > 0 ? " bh-control--active" : ""}`}>
@@ -207,7 +225,7 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
             bgRef={bgRef}
           />
         )}
-        <PlaygroundScene quality={quality} spin={spin} diskOn={diskOn} dopplerOn={dopplerOn} jetsOn={jetsOn} windOn={windOn} gridOn={gridOn} gwOn={gwOn} activeKind={activeKind} apiRef={api} scaleRef={scaleRef} webgpuMode={webgpuMode} bgRef={bgRef} />
+        <PlaygroundScene quality={quality} spin={spin} diskOn={diskOn} dopplerOn={dopplerOn} jetsOn={jetsOn} windOn={windOn} gridOn={gridOn} gwOn={gwOn} activeKind={activeKind} apiRef={api} scaleRef={scaleRef} webgpuMode={webgpuMode} bgRef={bgRef} ringdownStartRef={ringdownStartRef} />
         {scaleBar.px > 0 && (
           <div className="bh-scalebar" aria-hidden>
             <span className="bh-scalebar__label">{scaleBar.label}</span>

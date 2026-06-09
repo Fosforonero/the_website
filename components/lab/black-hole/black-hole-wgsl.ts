@@ -25,7 +25,8 @@ export const U = {
   STEPS: 28,  STYLE: 29,  PURE_BLACK: 30, JETS: 31,
   JET_STR: 32, VOL_DISK: 33, VOL_THICK: 34, VOL_OPACITY: 35,
   SKY_ON: 36, SKY_BRIGHT: 37,
-  // 38-39: padding
+  RINGDOWN: 38,
+  // 39: padding
 } as const;
 
 export const BH_WGSL = /* wgsl */ `
@@ -40,7 +41,7 @@ struct Uniforms {
   disk_temp  : f32, disk_outer: f32, doppler_on : f32, exposure   : f32,
   steps      : f32, style     : f32, pure_black : f32, jets       : f32,
   jet_str    : f32, vol_disk  : f32, vol_thick  : f32, vol_opacity: f32,
-  sky_on     : f32, sky_bright: f32, _p0        : f32, _p1        : f32,
+  sky_on     : f32, sky_bright: f32, ringdown   : f32, _p1        : f32,
 }
 @group(0) @binding(0) var<uniform> u      : Uniforms;
 @group(0) @binding(1) var          sky_samp: sampler;
@@ -256,7 +257,8 @@ fn kerrDoppler(rd: f32, ps_at_hit: vec3f, hit: vec3f) -> f32 {
   var done    = false;
   var accCol  = vec3f(0.);
   var accA    = 0.;
-  var jetAccum = vec3f(0.);
+  var jetAccum  = vec3f(0.);
+  var diskXings: i32 = 0; // disk-plane crossings (≥2 = returning radiation / photon ring)
 
   // Pre-advance to the influence sphere
   let R_far = 34.;
@@ -306,6 +308,7 @@ fn kerrDoppler(rd: f32, ps_at_hit: vec3f, hit: vec3f) -> f32 {
         let hit = mix(pos, posNext, tt);
         let rd  = kerrR(hit, kerrA);
         if (rd > rIn && rd < u.disk_outer) {
+          diskXings += 1;
           let flux = diskFlux(rd, rIn);
           let T    = u.disk_temp * pow(flux, .25);
           let g    = select(1., min(kerrDoppler(rd, ps, hit), 3.0), u.doppler_on > .5);
@@ -405,6 +408,11 @@ fn kerrDoppler(rd: f32, ps_at_hit: vec3f, hit: vec3f) -> f32 {
 
   if (!done) { color = accCol+(1.-accA)*starField(normalize(dir)); }
   color += jetAccum;
+
+  // QNM ringdown: boost photon ring contribution (returning radiation = diskXings ≥ 2).
+  // The ringdown uniform carries the damped-sinusoid amplitude A(t) = exp(−γt)·cos(ω_R·t),
+  // computed in JS from tabulated Kerr l=2 quasi-normal mode frequencies.
+  if (u.ringdown != 0. && diskXings >= 2) { color *= 1. + .7 * u.ringdown; }
 
   // Exposure + ACES + gamma + dither
   var col = acesFilmic(color * u.exposure);
