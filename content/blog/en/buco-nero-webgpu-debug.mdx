@@ -1,6 +1,6 @@
 ---
 title: "Two hidden bugs in the WebGPU black hole port"
-excerpt: "From WebGL to WebGPU: an impossible cyan stain and a black disk. Two bugs from a transposed matrix and an opacity set too high — and what they reveal about WGSL."
+excerpt: "From WebGL to WebGPU: an impossible cyan stain and a black disk. Two bugs from a transposed matrix and an opacity set too high. What they reveal about WGSL."
 date: "2026-06-08"
 tag: "Dev"
 image: "/blog/buco-nero/buco-nero-kerr-disco-accrescimento.jpg"
@@ -8,16 +8,16 @@ imageAlt: "Kerr black hole ray-traced in WebGPU: correct version after fixing th
 draft: false
 ---
 
-![Kerr black hole ray-traced in WebGPU: correct warm-orange disk after the two bug fixes](/blog/buco-nero/buco-nero-kerr-disco-accrescimento.jpg "WebGPU renderer — after the fixes")
+![Kerr black hole ray-traced in WebGPU: correct warm-orange disk after the two bug fixes](/blog/buco-nero/buco-nero-kerr-disco-accrescimento.jpg "WebGPU renderer, after the fixes")
 *The WebGPU renderer after both fixes: correct blackbody colour (warm orange, not cyan) and balanced volumetric disk opacity. Render: Fosforonero.*
 
-Porting a WebGL renderer to WebGPU should be mechanical work: translate GLSL syntax to WGSL, adapt the bindings, ship. Instead I found two silent bugs that took hours to debug — one in the Planck blackbody colour calculation and one in the radiative transfer equation of the volumetric disk. I'm documenting them because both reveal subtle differences between the two shader systems that aren't prominently documented.
+Porting a WebGL renderer to WebGPU should be mechanical work: translate GLSL syntax to WGSL, adapt the bindings, ship. Instead I found two silent bugs that took hours to debug: one in the Planck blackbody colour calculation and one in the radiative transfer equation of the volumetric disk. I'm documenting them because both reveal subtle differences between the two shader systems that aren't prominently documented.
 
 ## Context: the simulation
 
 The [WebGPU simulator](/en/lab/black-hole/webgpu) traces exact null geodesics in the Kerr–Schild metric, integrates radiative transfer through the accretion disk, and computes colour from a Planckian blackbody function with a relativistic Doppler factor. The WebGL version worked perfectly. The port introduced two regressions invisible on first launch.
 
-## Bug 1: the cyan stain — a transposed matrix
+## Bug 1: the cyan stain (transposed matrix)
 
 ### Symptom
 
@@ -25,7 +25,7 @@ In thin-disk (non-volumetric) mode, the bright disk ring showed a cyan spot loca
 
 ### First (wrong) hypothesis
 
-My first thought was a numeric overflow: the relativistic Doppler factor amplifies the observed temperature on the approaching side by 3–4×. If `Tobs` reaches 15,000 K, the RGB values leave [0,1] and ACES filmic tone mapping — which operates per channel — can produce hue shifts if the red channel saturates differently from G and B. I added a Doppler cap. Nothing changed.
+My first thought was a numeric overflow: the relativistic Doppler factor amplifies the observed temperature on the approaching side by 3–4×. If `Tobs` reaches 15,000 K, the RGB values leave [0,1] and ACES filmic tone mapping (which operates per channel) can produce hue shifts if the red channel saturates differently from G and B. I added a Doppler cap. Nothing changed.
 
 ### Root cause
 
@@ -44,7 +44,7 @@ mat3x3f(vec3f(a,d,g), vec3f(b,e,h), vec3f(c,f,i))
 
 I had transcribed the high branch (T > 6500 K) matrix by copying values row-by-row, producing a transposed matrix. The result: for any temperature above 6500 K the red channel became zero while green and blue stayed positive → pure cyan.
 
-The low branch (T ≤ 6500 K) happened to have the red coefficients in the same position in both the original and transposed forms, so it worked correctly — hiding the bug until Doppler pushed `Tobs` above the 6500 K threshold.
+The low branch (T ≤ 6500 K) happened to have the red coefficients in the same position in both the original and transposed forms, so it worked correctly, hiding the bug until Doppler pushed `Tobs` above the 6500 K threshold.
 
 ### Fix
 
@@ -74,7 +74,7 @@ WGSL and GLSL have **opposite** matrix construction conventions. Rewriting the s
 
 ### Symptom
 
-With volumetric disk mode active, the disk emitted nothing: black field, black hole shadow, lensed stars — the disk was invisible as if switched off.
+With volumetric disk mode active, the disk emitted nothing: black field, black hole shadow, lensed stars: the disk was invisible as if switched off.
 
 ### How radiative transfer works here
 

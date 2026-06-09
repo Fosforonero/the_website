@@ -1,6 +1,6 @@
 ---
 title: "Due bug nascosti nel port WebGPU del buco nero"
-excerpt: "Da WebGL a WebGPU: una macchia ciana impossibile e un disco nero. Due bug da una matrice trasposta e un'opacità troppo alta — e cosa rivelano su WGSL."
+excerpt: "Da WebGL a WebGPU: una macchia ciana impossibile e un disco nero. Due bug da una matrice trasposta e un'opacità troppo alta. Cosa rivelano su WGSL."
 date: "2026-06-08"
 tag: "Dev"
 image: "/blog/buco-nero/buco-nero-kerr-disco-accrescimento.jpg"
@@ -8,16 +8,16 @@ imageAlt: "Buco nero di Kerr ray-tracciato in WebGPU: versione corretta dopo i f
 draft: false
 ---
 
-![Buco nero di Kerr ray-tracciato in WebGPU: disco di accrescimento, photon ring e beaming Doppler — versione corretta dopo i fix](/blog/buco-nero/buco-nero-kerr-disco-accrescimento.jpg "Renderer WebGPU — risultato corretto")
+![Buco nero di Kerr ray-tracciato in WebGPU: disco di accrescimento, photon ring e beaming Doppler, versione corretta dopo i fix](/blog/buco-nero/buco-nero-kerr-disco-accrescimento.jpg "Renderer WebGPU, risultato corretto")
 *Il renderer WebGPU dopo i fix: colore del corpo nero corretto (warm-orange, non ciano) e disco volumetrico con opacità bilanciata. Render: Fosforonero.*
 
-Fare il port di un renderer WebGL in WebGPU dovrebbe essere un lavoro meccanico: traduci la sintassi GLSL in WGSL, adatti i binding, rilasci. Invece ho trovato due bug silenziosi che hanno richiesto ore di debug — uno nel calcolo del colore di corpo nero planckiano e uno nell'equazione del trasporto radiativo del disco volumetrico. Li documento perché entrambi rivelano differenze sottili tra i due sistemi di shader che non sono documentate in modo evidente.
+Fare il port di un renderer WebGL in WebGPU dovrebbe essere un lavoro meccanico: traduci la sintassi GLSL in WGSL, adatti i binding, rilasci. Invece ho trovato due bug silenziosi che hanno richiesto ore di debug: uno nel calcolo del colore di corpo nero planckiano e uno nell'equazione del trasporto radiativo del disco volumetrico. Li documento perché entrambi rivelano differenze sottili tra i due sistemi di shader che non sono documentate in modo evidente.
 
 ## Contesto: la simulazione
 
 Il [simulatore WebGPU](/lab/buco-nero/webgpu) traccia geodetiche nulle esatte nella metrica di Kerr–Schild, integra il trasferimento radiativo del disco di accrezione e calcola il colore da una funzione di corpo nero planckiana con fattore Doppler relativistico. La versione WebGL funzionava perfettamente. Il port ha introdotto due regressioni invisibili al primo lancio.
 
-## Bug 1: la macchia ciana — una matrice trasposta
+## Bug 1: la macchia ciana (matrice trasposta)
 
 ### Sintomo
 
@@ -25,7 +25,7 @@ In modalità thin disk (non volumetrica), il ring luminoso del disco mostrava un
 
 ### Prima ipotesi sbagliata
 
-Ho subito pensato a un overflow numerico: il fattore Doppler relativistico amplifica la temperatura osservata sul lato avvicinante fino a 3–4×. Se `Tobs` sale a 15.000 K, i valori RGB escono dall'intervallo [0,1] e ACES filmic — che fa la tonemapping per canale — può produrre hue shift se il canale rosso satura in modo diverso dai canali G e B. Ho aggiunto un cap sul Doppler. Non ha risolto nulla.
+Ho subito pensato a un overflow numerico: il fattore Doppler relativistico amplifica la temperatura osservata sul lato avvicinante fino a 3–4×. Se `Tobs` sale a 15.000 K, i valori RGB escono dall'intervallo [0,1] e ACES filmic (che fa la tonemapping per canale) può produrre hue shift se il canale rosso satura in modo diverso dai canali G e B. Ho aggiunto un cap sul Doppler. Non ha risolto nulla.
 
 ### Radice causa
 
@@ -44,7 +44,7 @@ mat3x3f(vec3f(a,d,g), vec3f(b,e,h), vec3f(c,f,i))
 
 Avevo trascritto la matrice del branch alto (T > 6500 K) copiando i valori nell'ordine riga-per-riga, ottenendo una matrice trasposta. Il risultato: per qualsiasi temperatura sopra 6500 K il canale rosso diventava zero, il verde e il blu restavano positivi → ciano puro.
 
-Il branch basso (T ≤ 6500 K) aveva per coincidenza i coefficienti rosso tutti nella stessa posizione sia nella forma originale che nella trasposta, quindi funzionava correttamente — nascondendo il bug finché il Doppler non spingeva `Tobs` oltre la soglia dei 6500 K.
+Il branch basso (T ≤ 6500 K) aveva per coincidenza i coefficienti rosso tutti nella stessa posizione sia nella forma originale che nella trasposta, quindi funzionava correttamente, nascondendo il bug finché il Doppler non spingeva `Tobs` oltre la soglia dei 6500 K.
 
 ### Fix
 
@@ -74,7 +74,7 @@ WGSL e GLSL hanno convenzioni di costruzione delle matrici **opposte**. Non bast
 
 ### Sintomo
 
-Con la modalità disco volumetrico attiva, il disco non emetteva nulla: campo nero, ombra del buco nero, stelle lensate — il disco era invisibile come se fosse spento.
+Con la modalità disco volumetrico attiva, il disco non emetteva nulla: campo nero, ombra del buco nero, stelle lensate: il disco era invisibile come se fosse spento.
 
 ### Come funziona il trasporto radiativo
 
