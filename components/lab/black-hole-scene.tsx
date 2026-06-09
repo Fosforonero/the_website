@@ -96,7 +96,9 @@ export function BlackHoleQuad({
     ...QUALITY_PRESETS[quality === "auto" ? "medium" : quality],
     vol: false,
   };
-  const effVol = quality === "auto" ? prof.vol : volDisk;
+  // User's explicit toggle always wins: if they turn on "3D disk" we honour it even
+  // on Auto quality (Apple Silicon / Intel where prof.vol is false by default).
+  const effVol = quality === "auto" ? (prof.vol || volDisk) : volDisk;
   // 1×1 black placeholder so the sampler is always bound (some drivers warn on an
   // unbound sampler even when the branch using it is disabled).
   const placeholder = useMemo(() => {
