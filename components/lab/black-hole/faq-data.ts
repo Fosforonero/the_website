@@ -70,6 +70,11 @@ export const FAQ: Record<FaqLocale, FaqItem[]> = {
       sec: 8,
     },
     {
+      q: "Cos'è il «Ringdown» nel Playground?",
+      a: "Il tasto «Ringdown» simula una perturbazione del buco nero: il photon ring (la returning radiation, raggi che hanno fatto almeno un giro completo attorno al buco) pulsa con una sinusoide smorzata A(t) = exp(−ω_I·t)·cos(ω_R·t). Le frequenze sono calibrate sui valori tabulati dei modi quasi-normali di Kerr l=2 (Leaver 1985). Il fattore di qualità Q = ω_R/(2ω_I) = 2,1 + 11,3·a³ è fisicamente corretto: a spin zero il buco suona ~2 volte, a spin a≈0,99 ne suona ~13 prima di quietarsi. È la stessa «suonata» che LIGO misura dopo ogni merger di buchi neri — ma qui puoi variare lo spin e vedere come cambiano il numero di oscillazioni e la rapidità dello smorzamento.",
+      sec: 8,
+    },
+    {
       q: "Perché lo spazio è nero invece che pieno di stelle luminose?",
       a: "È il paradosso di Olbers: il cielo profondo è quasi nero e solo le stelle discrete brillano. Manteniamo un fondo prossimo allo zero proprio per questo — e la luce di sfondo che vedete attorno al buco è comunque lensata davvero dalla curvatura.",
       sec: 10,
@@ -166,6 +171,11 @@ export const FAQ: Record<FaqLocale, FaqItem[]> = {
     {
       q: "What is the difference between the «Orbits» demo and the «Playground»?",
       a: "The «Orbits» demo integrates the exact Schwarzschild timelike geodesic for a single body (exact precession and ISCO, with a conservation diagnostic). The Playground uses the Paczyński–Wiita pseudo-Newtonian potential, which reproduces strong-field effects but allows mutual N-body gravity and tidal disruption — an exactness/interactivity trade-off.",
+      sec: 8,
+    },
+    {
+      q: "What is the «Ringdown» in the Playground?",
+      a: "The «Ringdown» button simulates a perturbation of the black hole: the photon ring (the returning radiation — rays that have completed at least one full orbit around the hole) pulses with the damped sinusoid A(t) = exp(−ω_I·t)·cos(ω_R·t). Frequencies are calibrated to the tabulated Kerr l=2 quasi-normal mode values (Leaver 1985). The quality factor Q = ω_R/(2ω_I) = 2.1 + 11.3·a³ is physically correct: at zero spin the hole rings ~2 times; near a≈0.99 it rings ~13 times before settling. This is the same «ring» LIGO measures after every black-hole merger — but here you can vary the spin and watch how the number of oscillations and the damping timescale change.",
       sec: 8,
     },
     {

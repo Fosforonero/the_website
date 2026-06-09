@@ -330,103 +330,156 @@ const TXT: Partial<Record<FigureId, Record<Locale, { x: string; y: string; cap: 
 };
 
 // Schematic EVPA (polarization) figure — §7.5.
-// Assumes toroidal B field viewed at inclination 75°. The E-vector (EVPA) for
-// optically-thin synchrotron is perpendicular to the projected B on the sky.
-// For toroidal B at disk azimuth φ: projected B ∝ (−sin φ, cos φ · cos i),
-// so EVPA direction ∝ (cos φ · cos i, sin φ) (normalised).
-// This is a SCHEMATIC — no GR polarization transport, no Faraday rotation.
-const POL_INCL = (75 * Math.PI) / 180;
+// Toroidal B field, inclination 55° (cos i ≈ 0.574).
+// EVPA = E-vector direction = perpendicular to projected B on the sky.
+// For toroidal B at disk azimuth φ: B_proj ∝ (−sin φ, cos φ · cos i),
+// EVPA ∝ (cos φ · cos i, sin φ) normalised.
+// Doppler factor g ≈ grav / (1 − v_orb · sin i · sin φ) at r = 3M (Schwarzschild ISCO).
+// SCHEMATIC — no GR polarization transport, no Faraday rotation.
+const POL_INCL = (55 * Math.PI) / 180; // 55° gives a readable ellipse (not too flat)
 function PolarizationFigure({ locale }: { locale: Locale }) {
-  const W = 580, H = 320;
-  const cx = W / 2, cy = H / 2;
-  const ci = Math.cos(POL_INCL);
+  const W = 600, H = 390;
+  const cx = W / 2 + 8, cy = H / 2 - 4;
+  const ci  = Math.cos(POL_INCL); // ≈ 0.574
+  const si  = Math.sin(POL_INCL); // ≈ 0.819
+
+  const shadowRx = 44;
+  const diskRx   = 150;
+  const diskRy   = diskRx * ci;
+
+  // EVPA tick positions: 5 rings × 20 ticks each
   const ticks: { x: number; y: number; dx: number; dy: number; bright: number }[] = [];
-  const radii = [55, 80, 108];
-  const nPhi = 16;
-  for (const ra of radii) {
+  const rings  = [58, 76, 96, 116, 138];
+  const nPhi   = 20;
+  for (const ra of rings) {
     for (let k = 0; k < nPhi; k++) {
       const phi = (2 * Math.PI * k) / nPhi;
-      const px = cx + ra * Math.cos(phi);
-      const py = cy + ra * Math.sin(phi) * ci;
-      const bx = -Math.sin(phi), by = Math.cos(phi) * ci;
-      const bn = Math.sqrt(bx * bx + by * by);
-      const ex = by / bn, ey = -bx / bn;
-      const vOrb = Math.sqrt(1 / (6 - 2));
-      const grav = Math.sqrt(1 - 3 / 6);
-      const g = grav / (1 - vOrb * Math.sin(POL_INCL) * Math.sin(phi));
-      const bright = Math.min(1, Math.max(0.15, (g * g) / 2.5));
+      const px  = cx + ra * Math.cos(phi);
+      const py  = cy + ra * Math.sin(phi) * ci;
+      // Projected toroidal B → EVPA direction
+      const bx  = -Math.sin(phi), by = Math.cos(phi) * ci;
+      const bn  = Math.sqrt(bx * bx + by * by) || 1;
+      const ex  = by / bn, ey = -bx / bn;
+      // Approximate Kerr Doppler at r = 3M: v_orb ≈ 0.5, grav ≈ 0.707
+      const g     = 0.707 / (1 - 0.5 * si * Math.sin(phi));
+      const bright = Math.min(1, Math.max(0.11, (g * g) / 2.5));
       ticks.push({ x: px, y: py, dx: ex, dy: ey, bright });
     }
   }
-  const shadow = 38;
-  const diskR = 122;
+
   const cap = locale === "it"
-    ? "Polarizzazione schematica per campo B toroidale a 75° di inclinazione. Le stanghette mostrano la direzione EVPA (vettore E). Il semitono riflette il beaming Doppler (lato sinistro più brillante). SCHEMATICO — nessun trasporto radiativo GR, nessuna rotazione di Faraday."
-    : "Schematic polarization for toroidal B field at 75° inclination. Tick marks show the EVPA (E-vector) direction. The shading reflects Doppler beaming (left side brighter). SCHEMATIC — no GR polarization transport, no Faraday rotation.";
+    ? "Polarizzazione schematica per campo B toroidale a 55° di inclinazione. Le stanghette mostrano la direzione EVPA (vettore E, perpendicolare a B proiettato). Il semitono riflette il beaming Doppler (lato sinistro = lato che si avvicina, più luminoso). SCHEMATICO — nessun trasporto radiativo GR, nessuna rotazione di Faraday."
+    : "Schematic polarization for toroidal B field at 55° inclination. Tick marks show the EVPA direction (E-vector, perpendicular to projected B). Shading reflects Doppler beaming (left = approaching side, brighter). SCHEMATIC — no GR polarization transport, no Faraday rotation.";
+
+  // Tick colour: bright yellow-white → dim rust-brown
+  function tickColor(bright: number): string {
+    const r = Math.round(255 * Math.min(1, bright * 1.1));
+    const g2 = Math.round(Math.max(0, 210 * bright - 20));
+    const b2 = Math.round(Math.max(0, 80  * bright - 30));
+    return `rgb(${r},${g2},${b2})`;
+  }
+
   return (
     <figure className="bh-about__fig">
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Polarization EVPA schematic" className="bh-about__plot">
         <defs>
-          {/* Radial glow: bright inner-edge ring fading outward */}
-          <radialGradient id="pol-disk-rg" cx={cx} cy={cy} r={diskR} gradientUnits="userSpaceOnUse">
-            <stop offset="0%"   stopColor="#020508" />
-            <stop offset="28%"  stopColor="#3a1000" />
-            <stop offset="34%"  stopColor="#ff7022" stopOpacity="0.9" />
-            <stop offset="52%"  stopColor="#8a2200" stopOpacity="0.85" />
-            <stop offset="100%" stopColor="#150500" stopOpacity="0.95" />
+          {/* Radial disk gradient — objectBoundingBox fills the ellipse correctly
+              in both axes, unlike userSpaceOnUse which only scales horizontally. */}
+          <radialGradient id="pol-disk-rg" cx="0.5" cy="0.5" r="0.5" gradientUnits="objectBoundingBox">
+            <stop offset="0%"   stopColor="#060103" />
+            <stop offset="28%"  stopColor="#0d0304" />
+            <stop offset="34%"  stopColor="#c83606" />
+            <stop offset="45%"  stopColor="#ff6818" />
+            <stop offset="58%"  stopColor="#8c2200" />
+            <stop offset="78%"  stopColor="#2a0900" />
+            <stop offset="100%" stopColor="#0b0200" />
           </radialGradient>
           {/* Doppler asymmetry: left (approaching) side brighter */}
-          <linearGradient id="pol-dop-lg" x1="0" y1="0" x2={W} y2="0" gradientUnits="userSpaceOnUse">
-            <stop offset="0%"   stopColor="#ffb060" stopOpacity="0.32" />
-            <stop offset="42%"  stopColor="#ff8040" stopOpacity="0.04" />
-            <stop offset="100%" stopColor="#000820" stopOpacity="0.20" />
+          <linearGradient id="pol-dop-lg"
+            x1={cx - diskRx} y1="0" x2={cx + diskRx} y2="0"
+            gradientUnits="userSpaceOnUse">
+            <stop offset="0%"   stopColor="#ffa050" stopOpacity="0.30" />
+            <stop offset="32%"  stopColor="#ff6028" stopOpacity="0.07" />
+            <stop offset="55%"  stopColor="#000000" stopOpacity="0.00" />
+            <stop offset="100%" stopColor="#000618" stopOpacity="0.22" />
           </linearGradient>
-          {/* Soft glow filter for photon ring */}
-          <filter id="pol-ring-glow" x="-60%" y="-200%" width="220%" height="500%">
-            <feGaussianBlur stdDeviation="2.5" result="b" />
-            <feMerge>
-              <feMergeNode in="b" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
+          {/* Photon-ring glow */}
+          <filter id="pol-ring-glow" x="-100%" y="-300%" width="300%" height="700%">
+            <feGaussianBlur stdDeviation="3.5" result="b" />
+            <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
           </filter>
+          {/* Clip to disk ellipse so Doppler gradient doesn't bleed outside */}
+          <clipPath id="pol-disk-clip">
+            <ellipse cx={cx} cy={cy} rx={diskRx} ry={diskRy} />
+          </clipPath>
         </defs>
 
-        {/* Disk base fill */}
-        <ellipse cx={cx} cy={cy} rx={diskR} ry={diskR * ci} fill="#150500" />
-        {/* Radial brightness gradient (inner ring hotspot) */}
-        <ellipse cx={cx} cy={cy} rx={diskR} ry={diskR * ci} fill="url(#pol-disk-rg)" />
-        {/* Doppler asymmetry overlay */}
-        <ellipse cx={cx} cy={cy} rx={diskR} ry={diskR * ci} fill="url(#pol-dop-lg)" />
+        {/* ── Disk ─────────────────────────────────────────────── */}
+        <ellipse cx={cx} cy={cy} rx={diskRx} ry={diskRy} fill="#0b0200" />
+        <ellipse cx={cx} cy={cy} rx={diskRx} ry={diskRy} fill="url(#pol-disk-rg)" />
+        <ellipse cx={cx} cy={cy} rx={diskRx} ry={diskRy} fill="url(#pol-dop-lg)"
+          clipPath="url(#pol-disk-clip)" />
 
-        {/* Photon-ring glow just outside the shadow */}
-        <ellipse cx={cx} cy={cy} rx={shadow + 5} ry={(shadow + 5) * ci}
-          fill="none" stroke="#ff6820" strokeWidth={3.5} opacity={0.45}
+        {/* ── Photon-ring glow (just outside shadow) ────────────── */}
+        <ellipse cx={cx} cy={cy} rx={shadowRx + 7} ry={(shadowRx + 7) * ci}
+          fill="none" stroke="#ff6212" strokeWidth={4.5} opacity={0.55}
           filter="url(#pol-ring-glow)" />
 
-        {/* Shadow / event horizon */}
-        <ellipse cx={cx} cy={cy} rx={shadow} ry={shadow * ci} fill="#020508" />
+        {/* ── Shadow ────────────────────────────────────────────── */}
+        <ellipse cx={cx} cy={cy} rx={shadowRx} ry={shadowRx * ci} fill="#07060e" />
+        {/* subtle rim on shadow */}
+        <ellipse cx={cx} cy={cy} rx={shadowRx} ry={shadowRx * ci}
+          fill="none" stroke="#1a1030" strokeWidth={1} />
 
-        {/* EVPA ticks — thicker, clearer */}
+        {/* ── EVPA ticks ─────────────────────────────────────────── */}
         {ticks.map((tk, i) => {
-          const len = 10;
-          const col = `rgba(255,210,110,${tk.bright.toFixed(2)})`;
+          const L = 9.5;
+          const col = tickColor(tk.bright);
+          const sw  = 1.8 + 0.9 * tk.bright;
+          const op  = 0.35 + 0.65 * tk.bright;
           return (
             <line key={i}
-              x1={tk.x - tk.dx * len} y1={tk.y - tk.dy * len}
-              x2={tk.x + tk.dx * len} y2={tk.y + tk.dy * len}
-              stroke={col} strokeWidth={2} strokeLinecap="round" />
+              x1={tk.x - tk.dx * L} y1={tk.y - tk.dy * L}
+              x2={tk.x + tk.dx * L} y2={tk.y + tk.dy * L}
+              stroke={col} strokeWidth={sw} strokeLinecap="round" opacity={op} />
           );
         })}
 
-        {/* "horizon" label inside shadow */}
-        <text x={cx} y={cy + 4} fill="#3d6080" fontSize={9} textAnchor="middle" fontFamily="monospace">
-          horizon
+        {/* ── Labels ─────────────────────────────────────────────── */}
+
+        {/* Shadow label */}
+        <text x={cx} y={cy + shadowRx * ci + 16} textAnchor="middle"
+          fill={C.ref} fontSize={10} fontFamily="monospace" letterSpacing={0.8}>
+          shadow
         </text>
 
-        {/* B-field arrow label */}
-        <text x={cx + 132} y={cy - 13} fill={C.text} fontSize={11} fontWeight="600">B</text>
-        <path d={`M${cx + 119},${cy - 8} Q${cx + 123},${cy - 19} ${cx + 130},${cy - 15}`}
-          fill="none" stroke={C.text} strokeWidth={1} />
+        {/* Photon ring annotation */}
+        <line x1={cx + shadowRx + 8} y1={cy - (shadowRx + 5) * ci}
+              x2={cx + shadowRx + 34} y2={cy - (shadowRx + 5) * ci - 18}
+              stroke={C.ref} strokeWidth={0.8} opacity={0.7} />
+        <text x={cx + shadowRx + 36} y={cy - (shadowRx + 5) * ci - 20}
+          fill={C.ref} fontSize={10} fontFamily="monospace">photon ring</text>
+
+        {/* B-field label + curved arrow */}
+        <text x={cx + diskRx + 10} y={cy - diskRy * 0.55}
+          fill={C.text} fontSize={13} fontWeight="700" fontFamily="monospace">B</text>
+        <path d={`M ${cx + diskRx + 6},${cy - diskRy * 0.55 + 4}
+                  C ${cx + diskRx + 2},${cy - diskRy * 0.55 - 4}
+                    ${cx + diskRx - 4},${cy - diskRy * 0.55 - 8}
+                    ${cx + diskRx - 10},${cy - diskRy * 0.55 - 4}`}
+          fill="none" stroke={C.text} strokeWidth={1.0} opacity={0.8} />
+
+        {/* Doppler asymmetry annotation */}
+        <text x={cx - diskRx + 4} y={cy + diskRy + 20}
+          fill="#c07838" fontSize={10} fontFamily="monospace">← approaching</text>
+        <text x={cx + diskRx - 4} y={cy + diskRy + 20} textAnchor="end"
+          fill={C.axis} fontSize={10} fontFamily="monospace">receding →</text>
+
+        {/* Inclination note */}
+        <text x={cx} y={H - 10} textAnchor="middle"
+          fill={C.ref} fontSize={9} fontFamily="monospace" opacity={0.7}>
+          i = 55°
+        </text>
       </svg>
       <figcaption className="bh-about__figcap">{cap}</figcaption>
     </figure>
