@@ -172,12 +172,12 @@ const it: Dict = {
     headline1: "Matteo",
     headline2: "Pizzi.",
     paragraphs: [
-      "Sviluppo software dal 2017. Ho lavorato in agenzie e team di prodotto; da qualche tempo dedico la maggior parte del tempo a progetti propri.",
-      "Fosforonero è il nome sotto cui raggruppo questi progetti. Niente azienda, niente team — solo un punto unico per chi vuole sapere a cosa lavoro.",
-      "Il nome è nato durante l'università, mentre studiavo per un esame di chimica. Mi colpì il fosforo nero: l'allotropo più stabile del fosforo (P, Z=15, gruppo 15 — quello dell'azoto), un semiconduttore a banda proibita diretta con una struttura a strati bidimensionali increspati. Esfoliato in un singolo strato atomico prende il nome di fosforene, ed è uno dei materiali più studiati per l'elettronica del prossimo decennio. Un materiale silenzioso, denso, stabile — fatto per durare. Mi è sembrato il nome giusto per quello che provo a fare con il software.",
+      "Sono Matteo Pizzi, sviluppatore software con quasi un decennio di esperienza tra agenzie digitali, team di prodotto e lavoro autonomo. Progetto e costruisco software dalla prima riga di codice al deploy: architettura, interfaccia, dati, performance.",
+      "Fosforonero è il nome che ho scelto per questo lavoro. Uno studio indipendente in cui architettura, fisica e design del prodotto si incontrano, senza compromessi imposti da altri.",
+      "Il nome è nato durante l'università, mentre studiavo per un esame di chimica. Mi colpì il fosforo nero: l'allotropo più stabile del fosforo (P, Z=15, gruppo 15, quello dell'azoto), un semiconduttore a banda proibita diretta con una struttura a strati bidimensionali increspati. Esfoliato in un singolo strato atomico prende il nome di fosforene, ed è uno dei materiali più studiati per l'elettronica del prossimo decennio. Un materiale silenzioso, denso, stabile: fatto per durare. Mi è sembrato il nome giusto per quello che provo a fare con il software.",
     ],
     closingNote:
-      "Disponibile per consulenze tecniche, sviluppo di prototipi e supporto a progetti esistenti. Per richieste, scrivimi via email.",
+      "Disponibile per consulenze tecniche, sviluppo su misura e supporto a prodotti esistenti. Scrivimi.",
     meta: {
       basedLabel: "// sede",
       basedValue: "Roma, Italia",
@@ -331,12 +331,12 @@ const en: Dict = {
     headline1: "Matteo",
     headline2: "Pizzi.",
     paragraphs: [
-      "Building software since 2017. I've worked across agencies and product teams; lately, most of my time goes into my own projects.",
-      "Fosforonero is the umbrella for that work. No company, no team — a single place for anyone curious about what I'm shipping.",
-      "The name comes from university, while I was studying for a chemistry exam. I got fascinated by black phosphorus: the most stable allotrope of phosphorus (P, Z=15, group 15 — the nitrogen group), a direct-bandgap semiconductor with a puckered two-dimensional layered structure. Exfoliated down to a single atomic layer it becomes phosphorene — one of the most actively studied materials for the electronics of the next decade. A quiet, dense, stable material — built to last. It felt like the right name for the kind of software I try to build.",
+      "I'm Matteo Pizzi, a software developer with nearly a decade of experience across digital agencies, product teams and independent work. I design and build software end to end: architecture, interface, data, performance.",
+      "Fosforonero is the name I chose for this work. An independent practice where architecture, physics and product design meet, on my own terms.",
+      "The name comes from university, while I was studying for a chemistry exam. I got fascinated by black phosphorus: the most stable allotrope of phosphorus (P, Z=15, group 15, the nitrogen group), a direct-bandgap semiconductor with a puckered two-dimensional layered structure. Exfoliated down to a single atomic layer it becomes phosphorene, one of the most actively studied materials for the electronics of the next decade. A quiet, dense, stable material: built to last. It felt like the right name for the kind of software I try to build.",
     ],
     closingNote:
-      "Available for technical consulting, prototyping and support on existing codebases. For inquiries, send me an email.",
+      "Available for technical consulting, custom development and support on existing products. Get in touch.",
     meta: {
       basedLabel: "// based",
       basedValue: "Rome, Italy",
