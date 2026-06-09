@@ -692,10 +692,23 @@ void main() {
   color += jetAccum;
   color += windAccum;
 
-  // The photon ring is no longer drawn analytically: it now emerges physically
-  // from the returning radiation (higher-order disk images piling up near the
-  // shadow, captured by the refined stepping above) — same colour as the disk,
-  // so it merges with the secondary image instead of being a separate white band.
+  // The photon ring normally emerges physically from the returning radiation
+  // (higher-order disk images piling up near the shadow, captured by the refined
+  // stepping above) — same colour as the disk, so it merges with the secondary
+  // image instead of being a separate white band.
+  //
+  // EXCEPTION — LOW quality: the reduced step budget can't always wind rays
+  // through the full ring, so its top/bottom arcs drop out. Below ~200 steps we
+  // DRAW a thin analytic ring at the critical impact parameter b_c = 3√3·M
+  // (Schwarzschild value; M = 0.5 in these units ⇒ ≈2.598) so the ring stays
+  // closed without overloading the GPU. This is a declared low-quality
+  // approximation (see the About page), NOT the physical returning radiation.
+  if (uSteps < 200) {
+    float bc   = 2.598076;            // 3·√3·M, M = 0.5
+    float bImp = sqrt(h2);            // photon impact parameter |L|
+    float ring = exp(-pow((bImp - bc) / 0.07, 2.0));
+    color += vec3(1.0, 0.93, 0.82) * ring * 0.7;
+  }
 
   // QNM ringdown: boost photon ring contribution (returning radiation = diskXings ≥ 2).
   // Amplitude A(t) = exp(−γt)·cos(ω_R·t) is computed in JS from tabulated Kerr l=2

@@ -42,6 +42,10 @@ const FAQ = [
     q: "È identica al buco nero di Interstellar?",
     a: "È la stessa metrica di Kerr. La differenza è il calcolo: il Gargantua di Interstellar è stato ray-tracciato offline (ore per fotogramma), mentre questa simulazione integra le geodetiche nulle esatte di Kerr in tempo reale nel browser (con lo slider Spin). Anche il disco di Interstellar è un modello artistico, come il nostro.",
   },
+  {
+    q: "Perché a qualità «Low» l'anello di fotoni sembra disegnato?",
+    a: "A bassa qualità riduciamo il numero di passi di integrazione per non sovraccaricare la GPU, e non bastano a far compiere ai raggi i giri necessari a chiudere l'anello: gli archi superiore o inferiore sparirebbero. Perciò a «Low» disegniamo un anello analitico sottile al parametro d'impatto critico b_c = 3√3·M (il valore di Schwarzschild). È un'approssimazione dichiarata: alle qualità superiori l'anello non è disegnato ma emerge fisicamente dalla returning radiation integrata lungo le geodetiche.",
+  },
 ];
 
 export default function BucoNeroAbout() {

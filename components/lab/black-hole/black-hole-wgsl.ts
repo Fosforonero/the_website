@@ -434,6 +434,19 @@ fn kerrDoppler(rd: f32, ps_at_hit: vec3f, hit: vec3f) -> f32 {
   if (!done) { color = accCol+(1.-accA)*starField(normalize(dir)); }
   color += jetAccum;
 
+  // Photon-ring fill at LOW quality only: the reduced step budget can't always
+  // wind rays through the full ring, so its top/bottom arcs drop out. Below ~200
+  // steps we DRAW a thin analytic ring at the critical impact parameter
+  // b_c = 3√3·M (Schwarzschild value; M = 0.5 here ⇒ ≈2.598) so the ring stays
+  // closed without overloading the GPU. Declared low-quality approximation (see
+  // the About page), NOT the physical returning radiation higher presets resolve.
+  if (u.steps < 200.) {
+    let bc   = 2.598076;          // 3·√3·M, M = 0.5
+    let bImp = sqrt(h2);          // photon impact parameter |L|
+    let ring = exp(-pow((bImp - bc) / 0.07, 2.));
+    color += vec3f(1., .93, .82) * ring * .7;
+  }
+
   // QNM ringdown: boost photon ring contribution (returning radiation = diskXings ≥ 2).
   // The ringdown uniform carries the damped-sinusoid amplitude A(t) = exp(−γt)·cos(ω_R·t),
   // computed in JS from tabulated Kerr l=2 quasi-normal mode frequencies.
