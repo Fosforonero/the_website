@@ -3,8 +3,13 @@ title: "Two hidden bugs in the WebGPU black hole port"
 excerpt: "From WebGL to WebGPU: an impossible cyan stain and a black disk. Two bugs from a transposed matrix and an opacity set too high — and what they reveal about WGSL."
 date: "2026-06-08"
 tag: "Dev"
+image: "/blog/buco-nero/buco-nero-kerr-disco-accrescimento.jpg"
+imageAlt: "Kerr black hole ray-traced in WebGPU: correct version after fixing the transposed matrix and volumetric disk opacity"
 draft: false
 ---
+
+![Kerr black hole ray-traced in WebGPU: correct warm-orange disk after the two bug fixes](/blog/buco-nero/buco-nero-kerr-disco-accrescimento.jpg "WebGPU renderer — after the fixes")
+*The WebGPU renderer after both fixes: correct blackbody colour (warm orange, not cyan) and balanced volumetric disk opacity. Render: Fosforonero.*
 
 Porting a WebGL renderer to WebGPU should be mechanical work: translate GLSL syntax to WGSL, adapt the bindings, ship. Instead I found two silent bugs that took hours to debug — one in the Planck blackbody colour calculation and one in the radiative transfer equation of the volumetric disk. I'm documenting them because both reveal subtle differences between the two shader systems that aren't prominently documented.
 

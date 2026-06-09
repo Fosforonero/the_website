@@ -348,13 +348,10 @@ function PolarizationFigure({ locale }: { locale: Locale }) {
       const phi = (2 * Math.PI * k) / nPhi;
       const px = cx + ra * Math.cos(phi);
       const py = cy + ra * Math.sin(phi) * ci;
-      // projected toroidal B direction
       const bx = -Math.sin(phi), by = Math.cos(phi) * ci;
       const bn = Math.sqrt(bx * bx + by * by);
-      // EVPA perpendicular to B
       const ex = by / bn, ey = -bx / bn;
-      // Doppler factor g ≈ grav / (1 − v·sin(i)·sin(φ))
-      const vOrb = Math.sqrt(1 / (6 - 2)); // ~ ISCO speed M=1
+      const vOrb = Math.sqrt(1 / (6 - 2));
       const grav = Math.sqrt(1 - 3 / 6);
       const g = grav / (1 - vOrb * Math.sin(POL_INCL) * Math.sin(phi));
       const bright = Math.min(1, Math.max(0.15, (g * g) / 2.5));
@@ -362,32 +359,73 @@ function PolarizationFigure({ locale }: { locale: Locale }) {
     }
   }
   const shadow = 38;
+  const diskR = 122;
   const cap = locale === "it"
     ? "Polarizzazione schematica per campo B toroidale a 75° di inclinazione. Le stanghette mostrano la direzione EVPA (vettore E). Il semitono riflette il beaming Doppler (lato sinistro più brillante). SCHEMATICO — nessun trasporto radiativo GR, nessuna rotazione di Faraday."
     : "Schematic polarization for toroidal B field at 75° inclination. Tick marks show the EVPA (E-vector) direction. The shading reflects Doppler beaming (left side brighter). SCHEMATIC — no GR polarization transport, no Faraday rotation.";
   return (
     <figure className="bh-about__fig">
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Polarization EVPA schematic" className="bh-about__plot">
-        {/* disk background ellipse */}
-        <ellipse cx={cx} cy={cy} rx={120} ry={120 * ci} fill="#1a0a04" stroke="#3a1800" strokeWidth={1} />
-        {/* shadow */}
-        <ellipse cx={cx} cy={cy} rx={shadow} ry={shadow * ci} fill="#050a14" />
-        {/* EVPA ticks */}
+        <defs>
+          {/* Radial glow: bright inner-edge ring fading outward */}
+          <radialGradient id="pol-disk-rg" cx={cx} cy={cy} r={diskR} gradientUnits="userSpaceOnUse">
+            <stop offset="0%"   stopColor="#020508" />
+            <stop offset="28%"  stopColor="#3a1000" />
+            <stop offset="34%"  stopColor="#ff7022" stopOpacity="0.9" />
+            <stop offset="52%"  stopColor="#8a2200" stopOpacity="0.85" />
+            <stop offset="100%" stopColor="#150500" stopOpacity="0.95" />
+          </radialGradient>
+          {/* Doppler asymmetry: left (approaching) side brighter */}
+          <linearGradient id="pol-dop-lg" x1="0" y1="0" x2={W} y2="0" gradientUnits="userSpaceOnUse">
+            <stop offset="0%"   stopColor="#ffb060" stopOpacity="0.32" />
+            <stop offset="42%"  stopColor="#ff8040" stopOpacity="0.04" />
+            <stop offset="100%" stopColor="#000820" stopOpacity="0.20" />
+          </linearGradient>
+          {/* Soft glow filter for photon ring */}
+          <filter id="pol-ring-glow" x="-60%" y="-200%" width="220%" height="500%">
+            <feGaussianBlur stdDeviation="2.5" result="b" />
+            <feMerge>
+              <feMergeNode in="b" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
+        {/* Disk base fill */}
+        <ellipse cx={cx} cy={cy} rx={diskR} ry={diskR * ci} fill="#150500" />
+        {/* Radial brightness gradient (inner ring hotspot) */}
+        <ellipse cx={cx} cy={cy} rx={diskR} ry={diskR * ci} fill="url(#pol-disk-rg)" />
+        {/* Doppler asymmetry overlay */}
+        <ellipse cx={cx} cy={cy} rx={diskR} ry={diskR * ci} fill="url(#pol-dop-lg)" />
+
+        {/* Photon-ring glow just outside the shadow */}
+        <ellipse cx={cx} cy={cy} rx={shadow + 5} ry={(shadow + 5) * ci}
+          fill="none" stroke="#ff6820" strokeWidth={3.5} opacity={0.45}
+          filter="url(#pol-ring-glow)" />
+
+        {/* Shadow / event horizon */}
+        <ellipse cx={cx} cy={cy} rx={shadow} ry={shadow * ci} fill="#020508" />
+
+        {/* EVPA ticks — thicker, clearer */}
         {ticks.map((tk, i) => {
-          const len = 9;
-          const col = `rgba(255,200,100,${tk.bright.toFixed(2)})`;
+          const len = 10;
+          const col = `rgba(255,210,110,${tk.bright.toFixed(2)})`;
           return (
             <line key={i}
               x1={tk.x - tk.dx * len} y1={tk.y - tk.dy * len}
               x2={tk.x + tk.dx * len} y2={tk.y + tk.dy * len}
-              stroke={col} strokeWidth={1.5} strokeLinecap="round" />
+              stroke={col} strokeWidth={2} strokeLinecap="round" />
           );
         })}
-        {/* horizon label */}
-        <text x={cx} y={cy + 5} fill="#3a5070" fontSize={10} textAnchor="middle">horizon</text>
-        {/* B field label */}
-        <text x={cx + 130} y={cy - 12} fill={C.text} fontSize={10}>B</text>
-        <path d={`M${cx + 118},${cy - 8} Q${cx + 122},${cy - 18} ${cx + 128},${cy - 14}`}
+
+        {/* "horizon" label inside shadow */}
+        <text x={cx} y={cy + 4} fill="#3d6080" fontSize={9} textAnchor="middle" fontFamily="monospace">
+          horizon
+        </text>
+
+        {/* B-field arrow label */}
+        <text x={cx + 132} y={cy - 13} fill={C.text} fontSize={11} fontWeight="600">B</text>
+        <path d={`M${cx + 119},${cy - 8} Q${cx + 123},${cy - 19} ${cx + 130},${cy - 15}`}
           fill="none" stroke={C.text} strokeWidth={1} />
       </svg>
       <figcaption className="bh-about__figcap">{cap}</figcaption>

@@ -3,8 +3,13 @@ title: "Due bug nascosti nel port WebGPU del buco nero"
 excerpt: "Da WebGL a WebGPU: una macchia ciana impossibile e un disco nero. Due bug da una matrice trasposta e un'opacità troppo alta — e cosa rivelano su WGSL."
 date: "2026-06-08"
 tag: "Dev"
+image: "/blog/buco-nero/buco-nero-kerr-disco-accrescimento.jpg"
+imageAlt: "Buco nero di Kerr ray-tracciato in WebGPU: versione corretta dopo i fix della matrice trasposta e dell'opacità del disco volumetrico"
 draft: false
 ---
+
+![Buco nero di Kerr ray-tracciato in WebGPU: disco di accrescimento, photon ring e beaming Doppler — versione corretta dopo i fix](/blog/buco-nero/buco-nero-kerr-disco-accrescimento.jpg "Renderer WebGPU — risultato corretto")
+*Il renderer WebGPU dopo i fix: colore del corpo nero corretto (warm-orange, non ciano) e disco volumetrico con opacità bilanciata. Render: Fosforonero.*
 
 Fare il port di un renderer WebGL in WebGPU dovrebbe essere un lavoro meccanico: traduci la sintassi GLSL in WGSL, adatti i binding, rilasci. Invece ho trovato due bug silenziosi che hanno richiesto ore di debug — uno nel calcolo del colore di corpo nero planckiano e uno nell'equazione del trasporto radiativo del disco volumetrico. Li documento perché entrambi rivelano differenze sottili tra i due sistemi di shader che non sono documentate in modo evidente.
 

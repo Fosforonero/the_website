@@ -3,6 +3,8 @@ title: "Is Interstellar's black hole real? The physics, the equations, and what'
 excerpt: "Gargantua was computed with the real Kerr metric, by a Nobel laureate. But the film cheated on purpose. Near-extremal spin, a shrinking ISCO, the 1 hour = 7 years time dilation, the suppressed Doppler asymmetry (with the equations) and what you can see for yourself in the simulator."
 date: "2026-06-06"
 tag: "Dev"
+image: "/blog/buco-nero/buco-nero-kerr-disco-accrescimento.jpg"
+imageAlt: "Kerr black hole ray-traced in real time in the browser: comparison with Interstellar's Gargantua — same Kerr metric, different render times"
 draft: false
 ---
 
@@ -39,6 +41,15 @@ The detail few people know: in the film the disk is almost **symmetric** in brig
 A little is enough: the side coming toward us turns blinding, the receding side dims. Nolan and Thorne chose to **suppress** that asymmetry, because such a lopsided image would have confused the audience. A narrative choice, not a mistake.
 
 And the disk itself? A bespoke artistic-volumetric model built by the artists, not a simulation of magnetised plasma ([GRMHD](/en/lab/black-hole/about)), like ours: full magnetohydrodynamics costs hours per frame. Finally DNGR ran **offline**, up to hours per frame at IMAX resolution, tracing whole bundles of rays to anti-alias the razor-thin edges. I have one ray per pixel and ~16 milliseconds.
+
+## The comparison: reality, cinema, simulator
+
+Before opening the simulator, it's worth seeing what a real black hole actually looks like when photographed.
+
+![First image of a black hole: M87*, captured by the Event Horizon Telescope in 2019](/blog/buco-nero/eht-m87-primo-buco-nero.jpg "M87* — Event Horizon Telescope, 2019")
+*M87\*, the supermassive black hole at the centre of galaxy Messier 87, 55 million light-years away. The first direct photograph of a black hole (2019). The bright ring is real: light orbiting the hole before reaching the telescopes. Credit: EHT Collaboration (CC BY 4.0).*
+
+The asymmetric ring — brighter at the bottom — is exactly the Doppler beaming that _Interstellar_ suppressed for readability: the plasma approaching us is more luminous. It's the same effect you can toggle in the simulator with the Doppler slider. Gargantua in the film is symmetric because Kip Thorne's team chose it for narrative clarity; reality — and the simulator with Doppler on — is asymmetric.
 
 ## What you can see for yourself
 

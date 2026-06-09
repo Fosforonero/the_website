@@ -3,8 +3,13 @@ title: "Real-time relativistic ray tracing: a Kerr black hole in WebGL"
 excerpt: "How I rendered the exact Kerr null geodesics in a fragment shader: the Kerr–Schild form, Hamiltonian integration, three integrators (Euler, RK4, Yoshida via Tao), the blackbody colour shifted by Doppler, and the fight with the mobile shader compiler. With the equations."
 date: "2026-06-06"
 tag: "Dev"
+image: "/blog/buco-nero/buco-nero-kerr-disco-accrescimento.jpg"
+imageAlt: "Kerr black hole ray-traced in WebGL: lensed accretion disk, photon ring and relativistic Doppler beaming, from the Fosforonero simulator"
 draft: false
 ---
+
+![Kerr black hole ray-traced in WebGL: exact null geodesics, accretion disk, photon ring, Doppler beaming](/blog/buco-nero/buco-nero-kerr-disco-accrescimento.jpg "WebGL renderer output")
+*Renderer output: Kerr black hole (spin a = 0.7), lensed accretion disk with Doppler beaming — the approaching side (left) is hotter and brighter. Photon ring: light that orbits 1.5× before reaching the camera. Render: Fosforonero.*
 
 The easy part of a black hole simulator is the data. The hard part is running **general relativity** inside the ~16 milliseconds per frame of a WebGL fragment shader, on a phone. These are the technical notes on how I did it for a [Kerr black hole](/en/lab/black-hole).
 
