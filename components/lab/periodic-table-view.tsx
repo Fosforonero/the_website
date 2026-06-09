@@ -2301,7 +2301,13 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
                       locale={locale}
                       isOpen={orbitalInfoOpen}
                       onToggle={() => setOrbitalInfoOpen(v => !v)}
-                      onClose={() => setInspectorOrbital(null)}
+                      onClose={() => {
+                        // Mobile: × just collapses the popup, staying in the
+                        // inspector (exit is via the Orbitali tab). Desktop: ×
+                        // exits the inspector (no tab bar there).
+                        if (isMobile) setOrbitalInfoOpen(false);
+                        else setInspectorOrbital(null);
+                      }}
                     />
                   </>
                 )}
