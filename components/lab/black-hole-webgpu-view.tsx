@@ -76,7 +76,10 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
   const [starless,   setStarless]   = useState(false);
   const [pureBlack,  setPureBlack]  = useState(false);
   const [jetsOn,     setJetsOn]     = useState(false);
-  const [volDisk,    setVolDisk]    = useState(true);
+  // Off by default: the volumetric disk is the heaviest path (radiative transfer
+  // + turbulence per step, per pixel) and on WebGPU it can stall the page on
+  // weaker GPUs. Users can still enable it explicitly via the Vol disk toggle.
+  const [volDisk,    setVolDisk]    = useState(false);
   const [skyOn,      setSkyOn]      = useState(false);
   const [skySource,  setSkySource]  = useState<SkySource>("nasa8k");
   const [steps,      setSteps]      = useState(260);
