@@ -1,12 +1,19 @@
-// Temporarily serving the ComingSoon screen at /en. See app/page.tsx for the
-// reactivation note.
-import { ComingSoon } from "@/components/parts/coming-soon";
-// import { Landing } from "@/components/landing";
-// import { getAllPosts } from "@/lib/blog";
-// import { projectsListLd } from "@/lib/jsonld";
+import { Landing } from "@/components/landing";
+import { getAllPosts } from "@/lib/blog";
+import { projectsListLd } from "@/lib/jsonld";
 
 export const revalidate = 3600;
 
-export default function EnHomePage() {
-  return <ComingSoon locale="en" />;
+export default async function EnHomePage() {
+  const posts = await getAllPosts("en");
+  const jsonLd = projectsListLd();
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <Landing locale="en" posts={posts} />
+    </>
+  );
 }
