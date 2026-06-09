@@ -18,10 +18,13 @@ export function Nav({ locale }: Props) {
   // it's computed explicitly rather than via getLocalePath.
   const identityHref = locale === "it" ? "/identita" : "/en/identity";
 
+  const labHref = locale === "it" ? "/lab" : "/en/lab";
+
   const links: Array<{ label: string; href: string }> = [
     { label: t.nav.about, href: `${homeHref}#about` },
     { label: t.nav.projects, href: `${homeHref}#progetti` },
     { label: t.nav.blog, href: `${homeHref === "/" ? "" : homeHref}/blog` },
+    { label: t.nav.labs, href: labHref },
     { label: t.nav.identity, href: identityHref },
     { label: t.nav.contact, href: `${homeHref}#contatti` },
   ];

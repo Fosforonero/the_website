@@ -8,6 +8,7 @@ type Dict = {
     about: string;
     projects: string;
     blog: string;
+    labs: string;
     contact: string;
     identity: string;
   };
@@ -146,7 +147,7 @@ type Dict = {
 };
 
 const it: Dict = {
-  nav: { about: "Chi sono", projects: "Progetti", blog: "Blog", contact: "Contatti", identity: "Identità" },
+  nav: { about: "Chi sono", projects: "Progetti", blog: "Blog", labs: "Lab", contact: "Contatti", identity: "Identità" },
   hero: {
     eyebrow: "SVILUPPATORE INDIPENDENTE · Roma · Dal 2017",
     title1: "Sviluppo software",
@@ -305,7 +306,7 @@ const it: Dict = {
 };
 
 const en: Dict = {
-  nav: { about: "About", projects: "Projects", blog: "Writing", contact: "Contact", identity: "Identity" },
+  nav: { about: "About", projects: "Projects", blog: "Writing", labs: "Lab", contact: "Contact", identity: "Identity" },
   hero: {
     eyebrow: "INDEPENDENT DEVELOPER · Rome · Since 2017",
     title1: "Building software",
