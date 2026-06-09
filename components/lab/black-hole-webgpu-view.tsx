@@ -218,18 +218,25 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Canvas resize
+  // Canvas resize — DPR is volumetric-disk-aware. The vol disk is fill-rate bound
+  // (radiative transfer + turbulence per step, per pixel), so when it's on we cap
+  // DPR lower (1.0 on touch, 1.25 on desktop) to keep mobile/integrated GPUs
+  // fluid; the soft, glowy disk hides the reduced resolution. Re-runs on toggle.
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ro = new ResizeObserver(() => {
-      const dpr = Math.min(window.devicePixelRatio ?? 1, 1.5);
+    const coarse = typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches === true;
+    const cap = volDisk ? (coarse ? 1.0 : 1.25) : 1.5;
+    const resize = () => {
+      const dpr = Math.min(window.devicePixelRatio ?? 1, cap);
       canvas.width  = Math.floor(canvas.clientWidth  * dpr);
       canvas.height = Math.floor(canvas.clientHeight * dpr);
-    });
+    };
+    const ro = new ResizeObserver(resize);
     ro.observe(canvas);
+    resize();
     return () => ro.disconnect();
-  }, []);
+  }, [volDisk]);
 
   // Orbit
   const onMouseDown = useCallback((e: React.MouseEvent) => { dragRef.current={x:e.clientX,y:e.clientY}; }, []);

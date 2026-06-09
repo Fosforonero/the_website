@@ -296,8 +296,19 @@ fn kerrDoppler(rd: f32, ps_at_hit: vec3f, hit: vec3f) -> f32 {
     } else {
       var dt = clamp(r*.10, .02, .9);
       if (r < 6.) { dt = min(dt, .016+.045*(r-1.)); }
-      // Refine step near the disk plane to prevent volumetric staircase artifacts
-      if (u.vol_disk > .5 && abs(pos.y) < 1.2) { dt = min(dt, 0.035); }
+      // Refine the step ONLY inside the volumetric disk's emitting region —
+      // radial bounds + a few scale heights of the equatorial plane. The first
+      // version capped dt across the whole |y|<1.2 slab at ANY radius, so rays
+      // skimming the equator over-stepped all the way from r=60 inward (~25×
+      // the step count) and fps collapsed. Gating by the disk footprint keeps
+      // the fine sampling (and the jitter) exactly where the Gaussian thickness
+      // needs it, at a fraction of the cost.
+      if (u.vol_disk > .5) {
+        let rhoR = length(pos.xz);
+        if (rhoR > rIn && rhoR < u.disk_outer && abs(pos.y) < min(1.2, 0.30 * rhoR)) {
+          dt = min(dt, 0.035);
+        }
+      }
 
       // Symplectic Euler
       let psNext  = ps + dt*kerrKick(pos, ps, kerrA);

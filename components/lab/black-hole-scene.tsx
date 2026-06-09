@@ -216,7 +216,9 @@ export function BlackHoleQuad({
           else if (fpsEma.current > 56 && resScale.current < 1.0) resScale.current = Math.min(1.0, resScale.current + 0.1);
           if (resScale.current !== before) {
             const dprMax = (typeof window !== "undefined" ? window.devicePixelRatio : 1) || 1;
-            setDpr(Math.min(dprMax, prof.dprCap * resScale.current));
+            // Mobile + volumetric disk on: hold the DPR ceiling at 1.0 (see wrapper).
+            const dprCeil = effVol ? Math.min(prof.dprCap, 1.0) : prof.dprCap;
+            setDpr(Math.min(dprMax, dprCeil * resScale.current));
           }
         } else {
           // Floor: keep enough steps for the photon ring (~200 min: 40 approach
@@ -338,7 +340,12 @@ export default function BlackHoleScene({
   );
   const profile = effectiveProfile(quality, gpu, isMobile);
   useEffect(() => { onGpu?.(gpu); }, [gpu, onGpu]);
-  const dprCap = profile.dprCap;
+  // The volumetric disk is fill-rate bound (radiative transfer + turbulence per
+  // step, per pixel). When it's active, cap DPR lower so mobile/integrated GPUs
+  // stay fluid — the disk is soft and glowy, so the reduced resolution is nearly
+  // invisible while the per-frame pixel cost drops ~2–4×.
+  const effVolDisk = quality === "auto" ? (profile.vol || volDisk) : volDisk;
+  const dprCap = effVolDisk ? Math.min(profile.dprCap, isMobile ? 1.0 : 1.25) : profile.dprCap;
 
   return (
     <Canvas
