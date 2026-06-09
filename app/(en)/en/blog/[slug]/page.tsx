@@ -9,6 +9,7 @@ import { Footer } from "@/components/parts/footer";
 import { Pill } from "@/components/parts/pill";
 import { PostNav } from "@/components/parts/post-nav";
 import { ShareBar } from "@/components/parts/share-bar";
+import { ViewCount } from "@/components/parts/view-count";
 import { alternateSlug, getAdjacentPosts, getAllSlugs, getPost, getRelatedPosts } from "@/lib/blog";
 import { blogPostingLd, breadcrumbLd } from "@/lib/jsonld";
 import { getDictionary } from "@/lib/i18n";
@@ -114,6 +115,7 @@ export default async function EnBlogPostPage({ params }: { params: Promise<Param
               >
                 {dateStr} · {post.readingMinutes} min read
               </span>
+              <ViewCount slug={post.slug} locale="en" />
             </div>
             <h1
               style={{
