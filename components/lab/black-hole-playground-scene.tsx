@@ -9,6 +9,7 @@ import { BlackHoleQuad } from "./black-hole-scene";
 import { BlackHoleGrid } from "./black-hole-grid";
 import { DitherEffect } from "./black-hole/dither-effect";
 import { QUALITY_PRESETS, type BlackHoleQuality } from "./black-hole/black-hole-shader";
+import { AccretionDiskParticles } from "./black-hole/accretion-disk-particles";
 import type { WebGPUBgHandle } from "./black-hole-webgpu-background";
 
 // ---------------------------------------------------------------------------
@@ -721,6 +722,14 @@ export default function BlackHolePlaygroundScene({ quality, spin, diskOn, dopple
     >
       {!webgpuMode && <BlackHoleQuad quality={quality} diskOn={diskOn} spin={spin} dopplerOn={dopplerOn} jetsOn={jetsOn} windOn={windOn} />}
       {webgpuMode && bgRef && <CameraSync bgRef={bgRef} />}
+      {/* 300 k Keplerian particles — visible only in WebGPU mode where the
+          ray-marched disk lives in the background canvas. Orbits follow the
+          exact prograde Kerr angular velocity + epicyclic perturbation so the
+          inner edge shifts with the spin slider (same ISCO as the shader).
+          NOT gravitationally lensed (same limitation as the 3D bodies). */}
+      {webgpuMode && (
+        <AccretionDiskParticles spin={spin} dopplerOn={dopplerOn} />
+      )}
       {/* In WebGPU mode the R3F canvas is composited over the WebGPU background.
           The point light at the BH centre barely reaches bodies at r > 19 rs
           (decay=1.5), so planet meshes appear near-black against the bright disk.
