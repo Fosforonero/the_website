@@ -1,10 +1,47 @@
 # Fosforonero — Handoff
 
 > Documento di passaggio tra sessioni. Aggiornato a fine sessione corrente.
-> **Ultimo aggiornamento: 2026-05-31 23:30 CEST** (chiusura Tavola Periodica, Solar System separato in corso)
+> **Ultimo aggiornamento: 2026-06-09 23:25 CEST** (sessione Buco Nero perf/UX + About Tavola Periodica)
 >
-> 🎯 **Domani: ripartire dalla Tavola Periodica solo dopo smoke test molecole v2.**
-> Il lavoro Solar System è aperto in un altro contesto/agente: non mischiare i due sprint.
+> 🎯 **Domani: ripartire dalla coda aperta qui sotto (Sessione 2026-06-09), in ordine.**
+> Branch attivo `fix/bh-auto-m2-perf` — già promosso su `init` commit per commit.
+
+---
+
+## Sessione 2026-06-09 — Buco Nero perf/UX + About Tavola Periodica
+
+Branch: `fix/bh-auto-m2-perf` (tutti i commit sotto già pushati su `fix/bh-auto-m2-perf` **e** su `init`).
+
+**Spedito in produzione (`init`):**
+
+| Commit | Descrizione |
+|---|---|
+| `f8104bf` | fix(e11): route groups `app/(it)` + `app/(en)` → `<html lang>` corretto per locale |
+| `e5f9b11` | feat(blog): share bar (X, LinkedIn, copia link) negli articoli |
+| `ed538ae` | feat(blog): view count via Upstash Redis (⚠️ serve `UPSTASH_REDIS_REST_URL` + `_TOKEN` su Vercel, altrimenti invisibile) |
+| `54a7e78` | perf(bh): fix lentezza disco volumetrico — WGSL over-stepping (footprint-gating) + DPR vol-aware |
+| `3659343` | fix(pt): atom-view mobile, chrome morta al tap (paint-order canvas) → `z-index` chrome |
+| `0214463` | perf(bh-webgpu): disco volumetrico OFF di default |
+| `623b0df` | feat(pt): About a livello Buco Nero — FAQ + JSON-LD (TechArticle + FAQPage) |
+| `7101194` | fix(pt): inspector orbitali, `×` collassa il popup (non esce) su mobile |
+| `0e24f0d` | fix(pt): inspector orbitali mobile — popup chiudibile sopra la tab bar, griglia ridondante nascosta |
+| `ed14bf1` | fix(bh-playground): particelle co-rotanti + puntiformi |
+| `ada318f` | feat(bh): photon ring analitico a LOW (dichiarato) — WebGL + WebGPU |
+| `82afad5` | feat(bh-playground): toggle disco particelle + corpi cadono meno facilmente (star 0.94, comet 0.72) |
+| `f9ce667` | feat(bh): toggle disco particelle anche sul simulatore WebGL principale |
+| `49d9720` | docs(bh): About FAQ — differenza getti vs vento del disco (IT+EN) |
+
+**Verifiche:** `tsc --noEmit` ✅ e `build` ✅ a ogni commit. NON verificabile headless: resa GPU/perf reale → **da confermare sul device** (FPS buco nero, fix touch tavola periodica mobile).
+
+**Decisioni:** vol disk è la feature più pesante → off di default ovunque; photon ring a low = anello analitico dichiarato (`uSteps/u.steps < 200`); il lensing esterno netto è fisico (secondo immagine / anello di Einstein), non un bug; il cielo reale è già campionato senza cuciture (`RepeatWrapping`); il vento è gated off, NON è causa di lentezza.
+
+### ▶ Coda aperta — ripartire da qui domani
+1. **Cielo reale WebGL slavato** vs WebGPU → allineare post-processing (esposizione/tonemap) tra GLSL e WGSL. (`black-hole-shader.ts` `starField` vs `black-hole-wgsl.ts`)
+2. **Disco particellare "non corretto"** → serve dettaglio utente (rado/spesso/colore/rotazione) prima di intervenire. "Miglioralo" sul simulatore principale: direzione da confermare.
+3. **Toggle code stelle (tidal stream)** nel playground (il toggle disco di sfondo c'è già).
+4. **Vento**: rinforzare visibilità (emissione troppo debole) + esporre toggle sulle pagine principali (ora solo playground).
+5. **Migliorie resa** getti (più collimati/luminescenti) + vento (cono strutturato) — entrambi oggi stilizzati/"finti", dichiarati.
+6. Opz.: ringdown — abbassare il fattore `0.7` se l'anello risulta troppo acceso.
 
 ---
 
