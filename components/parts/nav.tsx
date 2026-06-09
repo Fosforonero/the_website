@@ -37,7 +37,7 @@ export function Nav({ locale }: Props) {
         position: "sticky",
         top: "clamp(12px, 3vw, 24px)",
         zIndex: 50,
-        background: "rgba(255,255,255,0.96)",
+        background: "rgba(255,255,255,0.82)",
         backdropFilter: "blur(16px)",
         WebkitBackdropFilter: "blur(16px)",
         border: "1px solid var(--color-rule)",

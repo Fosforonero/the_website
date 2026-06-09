@@ -93,7 +93,6 @@ export function Landing({ locale, posts }: Props) {
         background: "var(--color-bg)",
         color: "var(--color-ink)",
         position: "relative",
-        overflow: "hidden",
       }}
     >
       {/* subtle dot grid */}
