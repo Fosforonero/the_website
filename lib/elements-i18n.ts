@@ -361,7 +361,16 @@ export const ABOUT_TRANSLATIONS = {
       { done: false, label: "Livello 2: zoom nel nucleo — protoni e neutroni come sfere 3D a scala reale" },
       { done: false, label: "Livello 3: zoom nei quark — struttura sub-nucleare del protone (up/down quark + gluoni)" },
       { done: false, label: "Livello 4: bosoni, campo di Higgs, particelle elementari del Modello Standard" },
-    ]
+    ],
+    sectionFaq: "Domande frequenti",
+    faq: [
+      { q: "I modelli atomici 3D sono scientificamente accurati?", a: "Dipende dal modello. Thomson, Rutherford, Bohr e Sommerfeld sono modelli storici: li mostriamo come furono concepiti, con i loro limiti dichiarati. La vista «Quantistico» e l'inspector orbitali mostrano la nuvola di probabilità degli orbitali idrogenoidi — esatta per l'idrogeno (Z=1), indicativa per gli atomi multi-elettrone. Nessun modello classico descrive davvero l'atomo, e lo diciamo apertamente in ogni vista." },
+      { q: "Gli elettroni seguono davvero quelle orbite?", a: "No. Le orbite circolari di Bohr e quelle ellittiche di Sommerfeld sono convenzioni visive storiche. Nella meccanica quantistica l'elettrone non ha una traiettoria: ha una distribuzione di probabilità, l'orbitale. La vista quantistica è la rappresentazione fisicamente corretta." },
+      { q: "Da dove vengono i dati degli elementi?", a: "Da fonti ufficiali e pubbliche: IUPAC (pesi atomici e nomenclatura 2021), NIST Chemistry WebBook (dati termofisici), PubChem (strutture molecolari) e WebElements. Tutte le fonti sono elencate e linkate in questa pagina." },
+      { q: "Posso usarla a scuola o per studiare?", a: "Sì. È gratuita, senza pubblicità e senza registrazione, disponibile in italiano e inglese. Gira interamente nel browser ed è pensata come strumento didattico per chimica e fisica." },
+      { q: "Funziona su smartphone e tablet?", a: "Sì. La scena 3D usa WebGL ed è ottimizzata per il touch, con layout responsive e controlli dedicati su mobile. Serve un browser recente con supporto WebGL." },
+      { q: "La vista molecole mostra geometrie reali?", a: "Le geometrie principali sono curate da dati reali e integrate con le strutture 3D di PubChem tramite ricerca. I legami (covalenti, ionici, polari) sono rappresentati in modo illustrativo per evidenziarne il tipo, non come simulazione quantomeccanica del legame." },
+    ],
   },
   en: {
     heroTag: "FOSFORONERO LAB · 2026",
@@ -407,7 +416,16 @@ export const ABOUT_TRANSLATIONS = {
       { done: false, label: "Level 2: zoom into the nucleus — protons and neutrons as 3D spheres at real scale" },
       { done: false, label: "Level 3: zoom into quarks — sub-nuclear structure of the proton (up/down quarks + gluons)" },
       { done: false, label: "Level 4: bosons, Higgs field, elementary particles of the Standard Model" },
-    ]
+    ],
+    sectionFaq: "Frequently asked questions",
+    faq: [
+      { q: "Are the 3D atomic models scientifically accurate?", a: "It depends on the model. Thomson, Rutherford, Bohr and Sommerfeld are historical models: we show them as they were conceived, with their limitations stated. The “Quantum” view and the orbital inspector show the probability cloud of hydrogen-like orbitals — exact for hydrogen (Z=1), indicative for multi-electron atoms. No classical model truly describes the atom, and we say so in every view." },
+      { q: "Do electrons really follow those orbits?", a: "No. Bohr's circular orbits and Sommerfeld's ellipses are historical visual conventions. In quantum mechanics the electron has no trajectory: it has a probability distribution, the orbital. The quantum view is the physically correct representation." },
+      { q: "Where does the element data come from?", a: "From official, public sources: IUPAC (atomic weights and 2021 nomenclature), the NIST Chemistry WebBook (thermophysical data), PubChem (molecular structures) and WebElements. Every source is listed and linked on this page." },
+      { q: "Can I use it at school or for studying?", a: "Yes. It's free, ad-free and account-free, available in English and Italian. It runs entirely in the browser and is designed as a teaching tool for chemistry and physics." },
+      { q: "Does it work on phones and tablets?", a: "Yes. The 3D scene uses WebGL and is optimized for touch, with a responsive layout and dedicated mobile controls. A recent browser with WebGL support is required." },
+      { q: "Does the molecule view show real geometries?", a: "The main geometries are curated from real data and augmented with PubChem's 3D structures via search. Bonds (covalent, ionic, polar) are drawn illustratively to highlight their type, not as a quantum-mechanical simulation of bonding." },
+    ],
   }
 };
 

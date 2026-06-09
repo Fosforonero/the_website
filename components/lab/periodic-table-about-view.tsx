@@ -61,6 +61,38 @@ export function PeriodicTableAboutView({ locale }: AboutViewProps) {
             : "tavola periodica, periodic table, 3D WebGL, atomo, electron shell, Bohr model, chimica, elementi chimici, Three.js",
       },
       {
+        "@type": "TechArticle",
+        "@id": PAGE_URL,
+        headline: locale === "en"
+          ? "Interactive Periodic Table 3D: technology, sources and scientific honesty"
+          : "Tavola Periodica 3D interattiva: tecnologia, fonti e onestà scientifica",
+        description: t.heroLead,
+        url: PAGE_URL,
+        inLanguage: locale,
+        author: { "@type": "Person", name: site.author.name, url: site.url },
+        publisher: { "@type": "Organization", name: site.name, url: site.url },
+        about: locale === "en"
+          ? ["Periodic table", "Atomic models", "Atomic orbitals", "Quantum mechanics", "Chemistry"]
+          : ["Tavola periodica", "Modelli atomici", "Orbitali atomici", "Meccanica quantistica", "Chimica"],
+        keywords: locale === "en"
+          ? "periodic table, 3D WebGL, atomic models, Bohr model, Sommerfeld, hydrogen-like orbitals, electron configuration, quantum numbers, chemistry, chemical elements, Three.js"
+          : "tavola periodica, 3D WebGL, modelli atomici, modello di Bohr, Sommerfeld, orbitali idrogenoidi, configurazione elettronica, numeri quantici, chimica, elementi chimici, Three.js",
+        citation: [
+          "IUPAC (2021), Standard Atomic Weights",
+          "NIST Chemistry WebBook, SRD 69",
+          "PubChem, NIH/NLM",
+        ],
+      },
+      {
+        "@type": "FAQPage",
+        "@id": `${PAGE_URL}#faq`,
+        mainEntity: t.faq.map((f) => ({
+          "@type": "Question",
+          name: f.q,
+          acceptedAnswer: { "@type": "Answer", text: f.a },
+        })),
+      },
+      {
         "@type": "BreadcrumbList",
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "Home",             item: site.url },
@@ -164,6 +196,43 @@ export function PeriodicTableAboutView({ locale }: AboutViewProps) {
           margin: 0 0 20px;
           text-transform: uppercase;
           font-weight: normal;
+        }
+
+        /* FAQ */
+        .ab-faq { display: flex; flex-direction: column; gap: 10px; }
+        .ab-faq-item {
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 10px;
+          background: rgba(255,255,255,0.02);
+          padding: 0 16px;
+        }
+        .ab-faq-q {
+          font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+          font-size: 14px;
+          color: #eeeef8;
+          padding: 14px 0;
+          cursor: pointer;
+          list-style: none;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 12px;
+        }
+        .ab-faq-q::-webkit-details-marker { display: none; }
+        .ab-faq-q::after {
+          content: "+";
+          color: rgba(200,200,216,0.45);
+          font-size: 18px;
+          line-height: 1;
+          flex-shrink: 0;
+        }
+        .ab-faq-item[open] .ab-faq-q::after { content: "−"; }
+        .ab-faq-a {
+          font-size: 13px;
+          line-height: 1.7;
+          color: rgba(200,200,216,0.72);
+          margin: 0;
+          padding: 0 0 16px;
         }
 
         /* Stack list */
@@ -455,6 +524,21 @@ export function PeriodicTableAboutView({ locale }: AboutViewProps) {
                 </li>
               ))}
             </ul>
+          </section>
+
+          <hr className="ab-divider" />
+
+          {/* FAQ */}
+          <section className="ab-section" aria-labelledby="s-faq">
+            <h2 className="ab-section-title" id="s-faq">{t.sectionFaq}</h2>
+            <div className="ab-faq">
+              {t.faq.map(({ q, a }) => (
+                <details key={q} className="ab-faq-item">
+                  <summary className="ab-faq-q">{q}</summary>
+                  <p className="ab-faq-a">{a}</p>
+                </details>
+              ))}
+            </div>
           </section>
 
           <hr className="ab-divider" />
