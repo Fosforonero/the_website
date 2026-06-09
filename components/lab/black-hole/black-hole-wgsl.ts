@@ -257,6 +257,18 @@ fn kerrDoppler(rd: f32, ps_at_hit: vec3f, hit: vec3f) -> f32 {
   var done    = false;
   var accCol  = vec3f(0.);
   var accA    = 0.;
+
+  // Per-pixel jitter: offset the ray start by a random fraction of the first
+  // step so volumetric samples don't align across pixels → staircase → noise.
+  // Hash is purely spatial; converts structured aliasing to high-freq grain.
+  if (u.vol_disk > .5) {
+    let jit = fract(sin(dot(in.pos.xy, vec2f(127.1, 311.7))) * 43758.5453);
+    let r0  = kerrR(pos, kerrA);
+    let dt0 = clamp(r0 * .10, .02, .9) * jit;
+    let ps0 = ps + dt0 * kerrKick(pos, ps, kerrA);
+    pos += kerrVel(pos, ps0, kerrA) * dt0;
+    ps   = ps0;
+  }
   var jetAccum  = vec3f(0.);
   var diskXings: i32 = 0; // disk-plane crossings (≥2 = returning radiation / photon ring)
 
@@ -284,6 +296,8 @@ fn kerrDoppler(rd: f32, ps_at_hit: vec3f, hit: vec3f) -> f32 {
     } else {
       var dt = clamp(r*.10, .02, .9);
       if (r < 6.) { dt = min(dt, .016+.045*(r-1.)); }
+      // Refine step near the disk plane to prevent volumetric staircase artifacts
+      if (u.vol_disk > .5 && abs(pos.y) < 1.2) { dt = min(dt, 0.035); }
 
       // Symplectic Euler
       let psNext  = ps + dt*kerrKick(pos, ps, kerrA);
