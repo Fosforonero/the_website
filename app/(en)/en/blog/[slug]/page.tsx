@@ -8,6 +8,7 @@ import { Nav } from "@/components/parts/nav";
 import { Footer } from "@/components/parts/footer";
 import { Pill } from "@/components/parts/pill";
 import { PostNav } from "@/components/parts/post-nav";
+import { ShareBar } from "@/components/parts/share-bar";
 import { alternateSlug, getAdjacentPosts, getAllSlugs, getPost, getRelatedPosts } from "@/lib/blog";
 import { blogPostingLd, breadcrumbLd } from "@/lib/jsonld";
 import { getDictionary } from "@/lib/i18n";
@@ -159,7 +160,7 @@ export default async function EnBlogPostPage({ params }: { params: Promise<Param
               gap: 16,
             }}
           >
-            <span>{site.author.name}</span>
+            <ShareBar url={`${site.url}/en/blog/${post.slug}`} title={post.title} locale="en" />
             <Link
               href="/en/blog"
               className="fn-link-underline"
