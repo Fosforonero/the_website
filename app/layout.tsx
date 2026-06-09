@@ -6,6 +6,7 @@ import "./globals.css";
 import { site } from "@/lib/site";
 import { organizationLd, personLd, websiteLd } from "@/lib/jsonld";
 import { CookieBanner } from "@/components/client/cookie-banner";
+import { ScrollFade } from "@/components/client/scroll-fade";
 
 // GA Measurement ID resolution:
 // 1) NEXT_PUBLIC_GA_ID env var wins (Vercel project setting) — lets future
@@ -117,6 +118,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Script>
 
         <a href="#main" className="skip-link">Vai al contenuto</a>
+        <ScrollFade />
         {children}
 
         {GA_ID ? <GoogleAnalytics gaId={GA_ID} /> : null}
