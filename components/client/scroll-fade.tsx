@@ -20,17 +20,28 @@ export function ScrollFade() {
     // 24px top margin + ~52px nav height = ~76px.
     const NAV_BOTTOM = 76;
 
+    // Walk up from el to find the first ancestor with a non-transparent bg.
+    function resolvedBg(el: Element): string {
+      let node: Element | null = el;
+      while (node && node !== document.documentElement) {
+        const bg = getComputedStyle(node).backgroundColor;
+        if (bg && bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent") return bg;
+        node = node.parentElement;
+      }
+      return getComputedStyle(document.body).backgroundColor;
+    }
+
     function getActiveBg(): string {
       const sections = document.querySelectorAll("main > section");
       for (const s of sections) {
         const r = s.getBoundingClientRect();
         if (r.top <= NAV_BOTTOM && r.bottom > NAV_BOTTOM) {
-          return getComputedStyle(s).backgroundColor;
+          return resolvedBg(s);
         }
       }
       // Fallback: first section (before any scrolling) or body.
       const first = document.querySelector("main > section");
-      if (first) return getComputedStyle(first).backgroundColor;
+      if (first) return resolvedBg(first);
       return getComputedStyle(document.body).backgroundColor;
     }
 
