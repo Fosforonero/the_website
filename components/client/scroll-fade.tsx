@@ -33,16 +33,16 @@ export function ScrollFade() {
 
     function getActiveBg(): string {
       const sections = document.querySelectorAll("main > section");
+      // No sections = fullscreen/lab page: hide the overlay entirely.
+      if (!sections.length) return "transparent";
       for (const s of sections) {
         const r = s.getBoundingClientRect();
         if (r.top <= NAV_BOTTOM && r.bottom > NAV_BOTTOM) {
           return resolvedBg(s);
         }
       }
-      // Fallback: first section (before any scrolling) or body.
-      const first = document.querySelector("main > section");
-      if (first) return resolvedBg(first);
-      return getComputedStyle(document.body).backgroundColor;
+      // Fallback: first section colour (before any scrolling).
+      return resolvedBg(sections[0]);
     }
 
     function update() {
