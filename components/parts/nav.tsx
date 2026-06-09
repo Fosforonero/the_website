@@ -37,12 +37,12 @@ export function Nav({ locale }: Props) {
         position: "sticky",
         top: "clamp(12px, 3vw, 24px)",
         zIndex: 50,
-        background: "rgba(255,255,255,0.7)",
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
+        background: "rgba(255,255,255,0.96)",
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
         border: "1px solid var(--color-rule)",
         borderRadius: 14,
-        boxShadow: "0 1px 3px rgba(10,10,10,0.04)",
+        boxShadow: "0 1px 4px rgba(10,10,10,0.08)",
       }}
     >
       <Link
