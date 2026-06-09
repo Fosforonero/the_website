@@ -3349,11 +3349,16 @@
     min-height: 0;
     order: 3;
   }
-  /* mobile chrome children come after canvas-wrap in DOM — reorder visually */
-  .pt-atomm-topbar { order: 1; flex-shrink: 0; }
-  .pt-atomm-row    { order: 2; flex-shrink: 0; }
-  .pt-atomm-peek   { order: 4; flex-shrink: 0; }
-  .pt-atomm-tabbar { order: 5; flex-shrink: 0; }
+  /* mobile chrome children come after canvas-wrap in DOM — reorder visually.
+     position:relative + z-index lifts them ABOVE .pt-canvas-wrap: the wrap is
+     position:relative (a positioned box), so by CSS paint order it would paint
+     over these static siblings and swallow their taps (the 3D canvas still
+     rotates, but every chrome button/toggle/tab goes dead on touch). Explicit
+     stacking keeps them tappable; the sheet (z46) / scrim (z44) stay on top. */
+  .pt-atomm-topbar { order: 1; flex-shrink: 0; position: relative; z-index: 2; }
+  .pt-atomm-row    { order: 2; flex-shrink: 0; position: relative; z-index: 2; }
+  .pt-atomm-peek   { order: 4; flex-shrink: 0; position: relative; z-index: 2; }
+  .pt-atomm-tabbar { order: 5; flex-shrink: 0; position: relative; z-index: 2; }
 
   /* ── top bar ── */
   .pt-atomm-topbar {
