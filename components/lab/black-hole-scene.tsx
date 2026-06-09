@@ -18,6 +18,7 @@ import {
 } from "./black-hole/black-hole-shader";
 import { BlackHoleGrid } from "./black-hole-grid";
 import { DitherEffect } from "./black-hole/dither-effect";
+import { AccretionDiskParticles } from "./black-hole/accretion-disk-particles";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -39,6 +40,7 @@ export type BlackHoleSceneProps = {
   pureBlack?: boolean; // "Pure black" preset: sky off, saturated-orange disk (NASA look)
   skyUrl?: string;     // equirectangular real-sky photo (default: NASA Deep Star Maps 8k)
   volDisk?: boolean;   // volumetric 3D disk (radiative transfer through an analytic plasma)
+  diskParticles?: boolean; // Keplerian particle disk overlay (not lensed), on top of the ray-marched disk
   hdrMode?: boolean;   // HDR display detected: use wider exposure curve
   onGpu?: (g: GpuInfo) => void; // report the detected GPU (for the UI to show)
   onFps?: (fps: number) => void; // report the EMA frame rate once per second
@@ -327,6 +329,7 @@ export default function BlackHoleScene({
   pureBlack = false,
   skyUrl,
   volDisk = false,
+  diskParticles = false,
   hdrMode = false,
   onGpu,
   onFps,
@@ -359,6 +362,9 @@ export default function BlackHoleScene({
         diskTemp={diskTemp} diskBright={diskBright} diskOuter={diskOuter} starless={starless} pureBlack={pureBlack} skyUrl={skyUrl} volDisk={volDisk}
         hdrMode={hdrMode} onFps={onFps}
       />
+      {diskParticles && (
+        <AccretionDiskParticles spin={spin} dopplerOn={dopplerOn} diskOuter={diskOuter} diskTemp={diskTemp} />
+      )}
       <BlackHoleGrid visible={gridOn} spin={spin} />
 
       <OrbitControls
