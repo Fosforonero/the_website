@@ -30,6 +30,7 @@ import {
 import { APPLICATIONS } from "@/lib/element-applications-data";
 import type { ChEMBLDrugInfo } from "@/app/api/periodic-table/chembl/route";
 import {
+  useIsMobile,
   AtomTopBar,
   AtomModelRow,
   type Chip,
@@ -1662,6 +1663,12 @@ export function PeriodicTableView({ locale = "it" }: { locale?: Locale }) {
   const [canvasFullscreen, setCanvasFullscreen] = useState(false);
   const [orbitalInfoOpen, setOrbitalInfoOpen] = useState(true);
   const [materialView,    setMaterialView]    = useState(false);
+  const isMobile = useIsMobile();
+  // On mobile the orbital info panel opens collapsed — a compact, closable popup
+  // that doesn't bury the canvas or the tab bar. Desktop keeps it expanded.
+  useEffect(() => {
+    if (inspectorOrbital !== null) setOrbitalInfoOpen(!isMobile);
+  }, [inspectorOrbital, isMobile]);
 
   const [panelWidth,      setPanelWidth]      = usePersistedState<number>("pt:panelWidth", 264);
   const panelWidthRef                         = useRef(panelWidth);

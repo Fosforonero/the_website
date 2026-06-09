@@ -3043,22 +3043,26 @@
     display: none;
   }
 
-  /* Orbital Inspector: bottom sheet on portrait mobile */
+  /* The desktop orbital selector grid is redundant on mobile — the top chip row
+     (AtomModelRow in orbital mode) already selects orbitals, and this grid sits
+     under the info panel where it can't be reached. Hide it on mobile. */
+  .pt-orbital-grid { display: none; }
+
+  /* Orbital Inspector: closable popup on portrait mobile. Floats ABOVE the tab
+     bar (bottom: 60px) so the tab bar stays tappable, and opens collapsed (set
+     in JS) so it doesn't bury the canvas — tap the header to expand, × to exit. */
   .pt-orbital-panel {
     position: fixed;
     left: 0;
     right: 0;
-    bottom: 0;
+    bottom: 60px;
     width: 100%;
     max-height: 50vh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    border-radius: 16px 16px 0 0;
-    border-left: none;
-    border-right: none;
-    border-bottom: none;
-    border-top: 1px solid rgba(94,234,212,0.22);
-    padding: 0 16px env(safe-area-inset-bottom, 16px);
+    border-radius: 16px;
+    border: 1px solid rgba(94,234,212,0.22);
+    padding: 0 16px 12px;
     z-index: 200;
     background: rgba(6,6,20,0.96);
     backdrop-filter: blur(16px);
