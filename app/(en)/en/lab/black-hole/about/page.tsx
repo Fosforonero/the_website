@@ -43,6 +43,10 @@ const FAQ = [
     a: "It is the same Kerr metric. The difference is the computation: Interstellar's Gargantua was ray-traced offline (hours per frame), while this simulation integrates the exact Kerr null geodesics in real time in the browser (with the Spin slider). Interstellar's disk is an artistic model too, like ours.",
   },
   {
+    q: "What's the difference between the relativistic jets and the disk wind?",
+    a: "They are two different outflows. Relativistic jets are narrow, collimated beams along the spin axis (the poles), launched at near-light speed by extracting the black hole's rotational energy (the Blandford–Znajek mechanism). The disk wind is instead a wide, slower outflow that leaves the surface of the accretion disk, not the poles, driven by radiation pressure and magnetic fields (Blandford–Payne). In short: jets are thin, fast and polar; the wind is broad, slow and near-equatorial. In the simulator both are rendered in a stylized way (optically-thin emission, not a magnetohydrodynamic solution) and declared as such.",
+  },
+  {
     q: "Why does the photon ring look drawn at «Low» quality?",
     a: "At low quality we reduce the number of integration steps to spare the GPU, and they aren't enough to wind rays into the full ring — its top or bottom arc would drop out. So at «Low» we draw a thin analytic ring at the critical impact parameter b_c = 3√3·M (the Schwarzschild value). It's a declared approximation: at higher quality the ring is not drawn but emerges physically from the returning radiation integrated along the geodesics.",
   },
