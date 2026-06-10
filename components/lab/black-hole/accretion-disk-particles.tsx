@@ -140,8 +140,9 @@ void main() {
   vec4 mv = modelViewMatrix * vec4(pos, 1.0);
   gl_Position = projectionMatrix * mv;
   float d = max(-mv.z, 0.5);
-  // Point-like grains: small and crisp (was up to 6px → looked like blobs).
-  gl_PointSize = clamp(150.0 / d, 0.4, 2.2);
+  // Point-like grains. Tuned between the two extremes already tried: up to
+  // 6px read as blobs, 2.2px max was nearly invisible over the bright disk.
+  gl_PointSize = clamp(210.0 / d, 0.8, 3.4);
 }
 `;
 
