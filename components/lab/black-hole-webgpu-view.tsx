@@ -184,23 +184,28 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
           needsBGUpdate.current = false;
         }
 
-        // FPS EMA + adaptive DPR for mobile WebGPU
+        // FPS EMA + adaptive DPR governor.
+        // Active on touch devices always; on desktop only when vol disk is on
+        // (vol disk is fill-rate-heavy everywhere, not just on mobile).
         const now = performance.now();
         const dt = Math.max((now - lastFrameTime) / 1000, 1e-3);
         lastFrameTime = now;
         fpsEmaGPU = fpsEmaGPU * 0.92 + (1.0 / dt) * 0.08;
         sinceGovCheck += dt;
-        if (coarseDevice && sinceGovCheck > 1.5) {
+        const ctrl = ctrlRef.current;
+        const govActive = coarseDevice || ctrl.volDisk;
+        if (govActive && sinceGovCheck > 1.0) {
           sinceGovCheck = 0;
-          const ctrl = ctrlRef.current;
-          const baseCap = ctrl.volDisk ? 0.75 : 0.90;
-          if (fpsEmaGPU < 32 && dprScaleRef.current > 0.65) {
-            dprScaleRef.current = Math.max(0.65, dprScaleRef.current - 0.10);
+          const baseCap = ctrl.volDisk
+            ? (coarseDevice ? 0.75 : 1.25)
+            : (coarseDevice ? 0.90 : 1.5);
+          if (fpsEmaGPU < 32 && dprScaleRef.current > 0.55) {
+            dprScaleRef.current = Math.max(0.55, dprScaleRef.current - 0.10);
             const dpr = Math.min(window.devicePixelRatio ?? 1, baseCap * dprScaleRef.current);
             canvas.width  = Math.floor(canvas.clientWidth  * dpr);
             canvas.height = Math.floor(canvas.clientHeight * dpr);
-          } else if (fpsEmaGPU > 56 && dprScaleRef.current < 1.0) {
-            dprScaleRef.current = Math.min(1.0, dprScaleRef.current + 0.07);
+          } else if (fpsEmaGPU > 52 && dprScaleRef.current < 1.0) {
+            dprScaleRef.current = Math.min(1.0, dprScaleRef.current + 0.06);
             const dpr = Math.min(window.devicePixelRatio ?? 1, baseCap * dprScaleRef.current);
             canvas.width  = Math.floor(canvas.clientWidth  * dpr);
             canvas.height = Math.floor(canvas.clientHeight * dpr);
@@ -208,7 +213,6 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
         }
 
         const time = (performance.now() - t0) / 1000;
-        const ctrl = ctrlRef.current;
         writeUniforms(core.uniformData, {
           w: canvas.width, h: canvas.height, time,
           spin: ctrl.spin, diskOn: ctrl.diskOn,
@@ -256,6 +260,34 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
 
   // Adaptive DPR governor for WebGPU. Refs for the RAF loop to read/write.
   const dprScaleRef = useRef(1.0);  // multiplied against the cap, updated by the governor
+
+  // When vol disk is toggled ON, immediately drop DPR and steps so the GPU
+  // is not stalled on the first heavy frame. The governor recovers both if
+  // the measured FPS allows it. On toggle-off, reset dprScale to full.
+  const prevVolDiskRef = useRef(false);
+  useEffect(() => {
+    const justTurnedOn  = volDisk && !prevVolDiskRef.current;
+    const justTurnedOff = !volDisk && prevVolDiskRef.current;
+    prevVolDiskRef.current = volDisk;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const coarse = typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches === true;
+    if (justTurnedOn) {
+      // Vol disk is the heaviest path — drop DPR immediately, cap steps at 160.
+      dprScaleRef.current = 0.65;
+      setSteps(s => Math.min(s, 160));
+      const baseCap = coarse ? 0.75 : 1.25;
+      const dpr = Math.min(window.devicePixelRatio ?? 1, baseCap * 0.65);
+      canvas.width  = Math.floor(canvas.clientWidth  * dpr);
+      canvas.height = Math.floor(canvas.clientHeight * dpr);
+    } else if (justTurnedOff) {
+      dprScaleRef.current = 1.0;
+      const baseCap = coarse ? 0.90 : 1.5;
+      const dpr = Math.min(window.devicePixelRatio ?? 1, baseCap);
+      canvas.width  = Math.floor(canvas.clientWidth  * dpr);
+      canvas.height = Math.floor(canvas.clientHeight * dpr);
+    }
+  }, [volDisk]);
 
   // Canvas resize — DPR caps:
   //   touch + vol disk:     0.75  (heaviest path)
