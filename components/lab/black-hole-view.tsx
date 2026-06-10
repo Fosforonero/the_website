@@ -83,6 +83,11 @@ const COPY = {
     skySrc: "Sorgente cielo",
     volDisk: "Disco 3D",
     diskParticles: "Disco particelle",
+    diskLabel: "Disco",
+    diskOff: "Off",
+    diskThin: "Sottile",
+    diskVolOpt: "Volumetrico",
+    diskPartOpt: "Particelle",
     hdr: "HDR",
     phys: {
       title: "Scala reale", mass: "Massa", close: "Chiudi",
@@ -128,6 +133,11 @@ const COPY = {
     skySrc: "Sky source",
     volDisk: "3D disk",
     diskParticles: "Particle disk",
+    diskLabel: "Disk",
+    diskOff: "Off",
+    diskThin: "Thin",
+    diskVolOpt: "Volumetric",
+    diskPartOpt: "Particles",
     hdr: "HDR",
     phys: {
       title: "Real scale", mass: "Mass", close: "Close",
@@ -154,7 +164,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
   const [quality, setQuality] = useState<QualityChoice>("auto");
   const [gpu, setGpu] = useState<GpuInfo | null>(null);
   const [fps, setFps] = useState<number | null>(null);
-  const [diskOn, setDiskOn] = useState(true);
+  const [diskMode, setDiskMode] = useState<"off" | "thin" | "vol" | "particles">("thin");
   const [dopplerOn, setDopplerOn] = useState(true);
   const [jetsOn, setJetsOn] = useState(false);
   const [gridOn, setGridOn] = useState(false);
@@ -169,8 +179,10 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
   const [starlessOn, setStarlessOn] = useState(false);
   const [pureBlackOn, setPureBlackOn] = useState(false);
   const [skySource, setSkySource] = useState<SkySource>("nasa8k");
-  const [volDiskOn, setVolDiskOn] = useState(false);
-  const [diskParticlesOn, setDiskParticlesOn] = useState(false);
+  // Single source of truth for the disk: derive the three scene flags from it.
+  const diskOn = diskMode !== "off";
+  const volDiskOn = diskMode === "vol";
+  const diskParticlesOn = diskMode === "particles";
   const [distKpc, setDistKpc] = useState(8.1); // distance for shadow angle calc (kpc)
   // Ultra needs the 6th-order Tao integrator: only discrete desktop GPUs support
   // it without freezing. Apple Silicon and mobile get it disabled.
@@ -242,7 +254,8 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
     if (p.has("r")) setDiskOuter(clamp(parseFloat(p.get("r")!), 8, 26));
     if (p.has("d")) setDopplerOn(p.get("d") !== "0");
     if (p.has("j")) setJetsOn(p.get("j") === "1");
-    if (p.has("v")) setVolDiskOn(p.get("v") === "1");
+    if (p.has("dm")) { const dm = p.get("dm")!; if (["off", "thin", "vol", "particles"].includes(dm)) setDiskMode(dm as "off" | "thin" | "vol" | "particles"); }
+    else if (p.get("v") === "1") setDiskMode("vol"); // legacy param
     if (p.has("g")) setGridOn(p.get("g") === "1");
     if (p.has("dist")) setDistKpc(clamp(parseFloat(p.get("dist")!), 0.1, 1e6));
     queueMicrotask(() => { restoredRef.current = true; });
@@ -257,12 +270,12 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
     if (diskOuter !== 16) p.set("r", diskOuter.toFixed(1));
     if (!dopplerOn) p.set("d", "0");
     if (jetsOn) p.set("j", "1");
-    if (volDiskOn) p.set("v", "1");
+    if (diskMode !== "thin") p.set("dm", diskMode);
     if (gridOn) p.set("g", "1");
     if (distKpc !== 8.1) p.set("dist", distKpc.toFixed(1));
     const qs = p.toString();
     window.history.replaceState(null, "", qs ? `?${qs}` : window.location.pathname);
-  }, [spin, quality, diskBright, diskTemp, diskOuter, dopplerOn, jetsOn, volDiskOn, gridOn, distKpc]);
+  }, [spin, quality, diskBright, diskTemp, diskOuter, dopplerOn, jetsOn, diskMode, gridOn, distKpc]);
   // ─────────────────────────────────────────────────────────────────────────
 
   const aboutHref = locale === "it" ? "/lab/buco-nero/about" : "/en/lab/black-hole/about";
@@ -299,12 +312,18 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
           {t.hdr}
         </button>
 
-        <button
-          className={`bh-control${diskOn ? " bh-control--active" : ""}`}
-          onClick={() => setDiskOn((v) => !v)}
-        >
-          {t.disk}
-        </button>
+        <label className="bh-control" aria-label={t.diskLabel}>
+          <span>{t.diskLabel}</span>
+          <select
+            value={diskMode}
+            onChange={(e) => setDiskMode(e.target.value as "off" | "thin" | "vol" | "particles")}
+          >
+            <option value="off">{t.diskOff}</option>
+            <option value="thin">{t.diskThin}</option>
+            <option value="vol">{t.diskVolOpt}</option>
+            <option value="particles">{t.diskPartOpt}</option>
+          </select>
+        </label>
 
         <button
           className={`bh-control bh-toolbar__hide-sm${dopplerOn ? " bh-control--active" : ""}`}
@@ -408,22 +427,6 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
           title={locale === "it" ? "Nero puro — cielo spento, disco arancio saturo (look NASA)" : "Pure black — sky off, saturated-orange disk (NASA look)"}
         >
           {t.pureBlack}
-        </button>
-
-        <button
-          className={`bh-control bh-toolbar__hide-sm${volDiskOn ? " bh-control--active" : ""}`}
-          onClick={() => setVolDiskOn((v) => !v)}
-          title={locale === "it" ? "Disco 3D volumetrico — trasporto radiativo (pesante, desktop)" : "Volumetric 3D disk — radiative transfer (heavy, desktop)"}
-        >
-          {t.volDisk}
-        </button>
-
-        <button
-          className={`bh-control bh-toolbar__hide-sm${diskParticlesOn ? " bh-control--active" : ""}`}
-          onClick={() => setDiskParticlesOn((v) => !v)}
-          title={locale === "it" ? "Disco a particelle kepleriane (non lensato) sopra il disco" : "Keplerian particle disk (not lensed) over the disk"}
-        >
-          {t.diskParticles}
         </button>
 
         <button className="bh-control bh-toolbar__hide-sm" onClick={onShare}>📷 {t.share}</button>
@@ -533,9 +536,14 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
                 </select>
               </label>
             )}
-            <label className="bh-controls__toggle">
-              <span>{t.volDisk}</span>
-              <input type="checkbox" checked={volDiskOn} onChange={(e) => setVolDiskOn(e.target.checked)} />
+            <label>
+              <span>{t.diskLabel}</span>
+              <select value={diskMode} onChange={(e) => setDiskMode(e.target.value as "off" | "thin" | "vol" | "particles")}>
+                <option value="off">{t.diskOff}</option>
+                <option value="thin">{t.diskThin}</option>
+                <option value="vol">{t.diskVolOpt}</option>
+                <option value="particles">{t.diskPartOpt}</option>
+              </select>
             </label>
             <label className="bh-controls__toggle">
               <span>{t.eht}</span>

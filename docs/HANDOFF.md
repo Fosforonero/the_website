@@ -42,7 +42,33 @@ Branch: `fix/bh-auto-m2-perf` (tutti i commit sotto già pushati su `fix/bh-auto
 
 **Decisioni:** vol disk è la feature più pesante → off di default ovunque; photon ring a low = anello analitico dichiarato (`uSteps/u.steps < 200`); il lensing esterno netto è fisico (secondo immagine / anello di Einstein), non un bug; il cielo reale è già campionato senza cuciture (`RepeatWrapping`); il vento è gated off, NON è causa di lentezza.
 
-### ▶ Coda aperta — ripartire da qui domani
+### ▶ UX/UI SIMPLIFICATION — audit 2026-06-10 (PRIORITÀ)
+Audit visivo mobile (390px, M2 reale via Playwright). **Perf OK** (BH 60fps; il 14-15
+misurato era throttle headless, non reale). Problema = **chiarezza/ridondanza**.
+
+Trovato — **Buco nero**: 14+ controlli sparsi (toolbar 2 righe + pannello); **3 toggle
+disco** confusi (Disco accrescimento / Disco 3D vol / Disco particelle); cielo sparso
+(Cielo reale + Nero puro separati); fisica mischiata a resa nei checkbox; **3 viste
+WebGL/WebGPU/playground con controlli e label DIVERSI**.
+Trovato — **Tavola periodica**: tabella non entra in portrait ("ruota il dispositivo"),
+legenda 10 chip ingombrante, 11 viste tematiche troncate (poco scopribili), 2 hint in
+conflitto; atom view già ok ma restano polish a11y.
+
+**Decisioni utente:** disco → **selettore UNICO esclusivo** (Off / Sottile / Volumetrico /
+Particelle). Cielo → un solo selettore (Procedurale / Reale / Nero). Mobile = priorità.
+Path scelto da me: **F1 prima**.
+
+**Piano a fasi:**
+- **F1 — BH controlli**: 3 dischi→1 selettore, cielo segmentato, raggruppare Fisica/Aspetto/Qualità. (IN CORSO)
+- **F2 — BH coerenza**: stesso set controlli+label tra WebGL/WebGPU/playground.
+- **F3 — PT mobile**: tabella portrait usabile, legenda collassabile, 11 viste scopribili.
+- **F4 — Polish a11y** mobile entrambi (focus-visible, disabled, aria).
+
+Mapping disco→props: off→diskOn F · sottile→diskOn T · volumetrico→diskOn T+volDisk T ·
+particelle→diskOn T+diskParticles T. Cielo: procedurale→starless F/pureBlack F · reale→
+starless T · nero→pureBlack T.
+
+### ▶ Coda aperta (BH visual, da fare dopo l'UX) — ripartire da qui domani
 1. **Cielo reale WebGL slavato** vs WebGPU → allineare post-processing (esposizione/tonemap) tra GLSL e WGSL. (`black-hole-shader.ts` `starField` vs `black-hole-wgsl.ts`)
 2. **Disco particellare "non corretto"** → serve dettaglio utente (rado/spesso/colore/rotazione) prima di intervenire. "Miglioralo" sul simulatore principale: direzione da confermare.
 3. **Toggle code stelle (tidal stream)** nel playground (il toggle disco di sfondo c'è già).
