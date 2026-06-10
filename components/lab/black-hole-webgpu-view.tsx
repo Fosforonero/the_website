@@ -170,6 +170,7 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
       let fpsEmaGPU = 60;
       let lastFrameTime = performance.now();
       let sinceGovCheck = 0;
+      let sinceAdjust = 0;
 
       let t0 = performance.now();
       function frame() {
@@ -192,6 +193,7 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
         lastFrameTime = now;
         fpsEmaGPU = fpsEmaGPU * 0.92 + (1.0 / dt) * 0.08;
         sinceGovCheck += dt;
+        sinceAdjust   += dt;
         const ctrl = ctrlRef.current;
         const govActive = coarseDevice || ctrl.volDisk;
         if (govActive && sinceGovCheck > 1.0) {
@@ -199,16 +201,31 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
           const baseCap = ctrl.volDisk
             ? (coarseDevice ? 0.75 : 1.25)
             : (coarseDevice ? 0.90 : 1.5);
+          const applyDpr = () => {
+            const dpr = Math.min(window.devicePixelRatio ?? 1, baseCap * dprScaleRef.current);
+            canvas.width  = Math.floor(canvas.clientWidth  * dpr);
+            canvas.height = Math.floor(canvas.clientHeight * dpr);
+            // Each resize reallocates the swapchain (a visible hitch) and skews
+            // the next frame times: reset the EMA to a neutral value so the
+            // governor re-measures instead of cascading off the hitch itself.
+            fpsEmaGPU = 42;
+            sinceAdjust = 0;
+          };
           if (fpsEmaGPU < 32 && dprScaleRef.current > 0.55) {
+            // Remember the scale that failed: vsync quantises FPS to 60↔30,
+            // which sits exactly across the 32/52 thresholds — without this
+            // ceiling the governor drops and re-raises forever, and the
+            // once-per-second canvas reallocation IS the stutter.
+            recoverCeilRef.current = Math.max(0.55, dprScaleRef.current - 0.04);
             dprScaleRef.current = Math.max(0.55, dprScaleRef.current - 0.10);
-            const dpr = Math.min(window.devicePixelRatio ?? 1, baseCap * dprScaleRef.current);
-            canvas.width  = Math.floor(canvas.clientWidth  * dpr);
-            canvas.height = Math.floor(canvas.clientHeight * dpr);
-          } else if (fpsEmaGPU > 52 && dprScaleRef.current < 1.0) {
-            dprScaleRef.current = Math.min(1.0, dprScaleRef.current + 0.06);
-            const dpr = Math.min(window.devicePixelRatio ?? 1, baseCap * dprScaleRef.current);
-            canvas.width  = Math.floor(canvas.clientWidth  * dpr);
-            canvas.height = Math.floor(canvas.clientHeight * dpr);
+            applyDpr();
+          } else if (
+            fpsEmaGPU > 52 &&
+            dprScaleRef.current < recoverCeilRef.current &&
+            sinceAdjust > 2.5
+          ) {
+            dprScaleRef.current = Math.min(recoverCeilRef.current, dprScaleRef.current + 0.06);
+            applyDpr();
           }
         }
 
@@ -260,6 +277,9 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
 
   // Adaptive DPR governor for WebGPU. Refs for the RAF loop to read/write.
   const dprScaleRef = useRef(1.0);  // multiplied against the cap, updated by the governor
+  // Highest scale the governor may recover to: lowered each time a scale fails
+  // (FPS < 32) so the recovery never climbs back into the failing zone.
+  const recoverCeilRef = useRef(1.0);
 
   // When vol disk is toggled ON, immediately drop DPR and steps so the GPU
   // is not stalled on the first heavy frame. The governor recovers both if
@@ -275,6 +295,7 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
     if (justTurnedOn) {
       // Vol disk is the heaviest path — drop DPR immediately, cap steps at 160.
       dprScaleRef.current = 0.65;
+      recoverCeilRef.current = 1.0;   // new workload: let the governor re-probe
       setSteps(s => Math.min(s, 160));
       const baseCap = coarse ? 0.75 : 1.25;
       const dpr = Math.min(window.devicePixelRatio ?? 1, baseCap * 0.65);
@@ -282,6 +303,7 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
       canvas.height = Math.floor(canvas.clientHeight * dpr);
     } else if (justTurnedOff) {
       dprScaleRef.current = 1.0;
+      recoverCeilRef.current = 1.0;
       const baseCap = coarse ? 0.90 : 1.5;
       const dpr = Math.min(window.devicePixelRatio ?? 1, baseCap);
       canvas.width  = Math.floor(canvas.clientWidth  * dpr);
