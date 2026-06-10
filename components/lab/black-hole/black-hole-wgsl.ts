@@ -277,7 +277,15 @@ fn kerrDoppler(rd: f32, ps_at_hit: vec3f, hit: vec3f) -> f32 {
   let b1    = dot(pos, dir);
   if (length(pos) > R_far) {
     if (b1 >= 0. || h2 > R_far*R_far) {
-      color = starField(normalize(dir));
+      // Not unlensed: analytic weak-field deflection from the camera to ∞,
+      //   α(t₀→∞) = (2M/b)·(1 − t₀/√(b²+t₀²))   (full path → Einstein's 4M/b),
+      // so the lensing decays smoothly outside the influence sphere instead of
+      // cutting off at its rim (which showed as a circular seam in the sky).
+      let perp = pos - b1 * dir;               // hole→ray vector at closest approach
+      let bp2  = max(dot(perp, perp), 1.0e-6);
+      let bp   = sqrt(bp2);
+      let alf  = (1. / bp) * (1. - b1 / sqrt(bp2 + b1 * b1)); // 2M = 1 (M = ½ R_S)
+      color = starField(normalize(dir - perp * (alf / bp)));
       done = true;
     } else {
       let disc = b1*b1 - (dot(pos,pos) - R_far*R_far);
