@@ -5,6 +5,13 @@
 >
 > 🎯 **Domani: ripartire dalla coda aperta qui sotto (Sessione 2026-06-09), in ordine.**
 > Branch attivo `fix/bh-auto-m2-perf` — già promosso su `init` commit per commit.
+>
+> 🧠 **Direttiva permanente — modello IA per task**: usa sempre il modello più adatto.
+> Opus per fisica/shader/correttezza, architettura, debug complesso, refactor
+> multi-file, contenuti scientifici/SEO; Sonnet per implementazione di routine;
+> Haiku per task meccanici; subagent read-only su modello economico (Opus solo per
+> sintesi/verifica). In dubbio o se tocca fisica/correttezza/produzione → Opus.
+> (Anche in `CLAUDE.md` e nella skill `fosforonero-compass`.)
 
 ---
 

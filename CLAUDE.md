@@ -24,6 +24,16 @@ contesto iniziale del progetto, non caricarlo in ogni sessione.
 Fail loud, never fake: se mancano credenziali, dati, URL o asset reali, fermati
 e dichiaralo. Non inventare metriche, screenshot, testimonial o claim.
 
+## Modello IA per task
+Usa SEMPRE il modello più adatto al compito, non uno fisso:
+- **Opus** — fisica/shader/correttezza scientifica, architettura, debugging
+  complesso, refactor multi-file, contenuti scientifici/SEO, decisioni di design.
+- **Sonnet** — implementazione di routine, edit standard, wiring UI, copy non critico.
+- **Haiku** — task meccanici (rinomine, grep/lookup, fix di una riga, formattazione).
+- **Subagent read-only** (Explore/audit/ricerca parallela) — modello economico per
+  il fan-out; Opus solo per la sintesi/verifica critica dei risultati.
+- In dubbio, o se il task tocca fisica/correttezza/produzione → **Opus**.
+
 ## Branch strategy — Tavola Periodica vs Solar System
 Il branch locale `init` può contenere lavoro Solar System ahead o uncommitted.
 Per sprint Tavola Periodica:
