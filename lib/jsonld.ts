@@ -95,7 +95,7 @@ export function blogPostingLd(post: BlogPostMeta) {
     headline: post.title,
     description: post.excerpt,
     datePublished: post.date,
-    dateModified: post.date,
+    dateModified: post.updated ?? post.date,
     inLanguage: post.locale,
     url,
     image: post.image ? `${site.url}${post.image}` : `${site.url}/opengraph-image`,

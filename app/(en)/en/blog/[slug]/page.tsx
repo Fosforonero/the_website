@@ -48,6 +48,7 @@ export async function generateMetadata({
       title: post.title,
       description: post.excerpt,
       publishedTime: post.date,
+      modifiedTime: post.updated ?? post.date,
       authors: [site.author.name],
       tags: [post.tag],
       images: post.image

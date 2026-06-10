@@ -12,7 +12,8 @@ export type BlogPostMeta = {
   slug: string;
   title: string;
   excerpt: string;
-  date: string; // ISO yyyy-mm-dd
+  date: string; // ISO yyyy-mm-dd — original publish date
+  updated?: string; // ISO yyyy-mm-dd — last meaningful content update (optional)
   tag: string;
   image?: string;
   imageAlt?: string;
@@ -66,6 +67,7 @@ export async function getAllPosts(locale: Locale): Promise<BlogPostMeta[]> {
         title: String(data.title ?? slug),
         excerpt: String(data.excerpt ?? ""),
         date: String(data.date ?? ""),
+        updated: data.updated ? String(data.updated) : undefined,
         tag: String(data.tag ?? ""),
         image: data.image ? String(data.image) : undefined,
         imageAlt: data.imageAlt ? String(data.imageAlt) : undefined,
@@ -93,6 +95,7 @@ export async function getPost(locale: Locale, slug: string): Promise<BlogPost | 
       title: String(data.title ?? slug),
       excerpt: String(data.excerpt ?? ""),
       date: String(data.date ?? ""),
+      updated: data.updated ? String(data.updated) : undefined,
       tag: String(data.tag ?? ""),
       image: data.image ? String(data.image) : undefined,
       imageAlt: data.imageAlt ? String(data.imageAlt) : undefined,
