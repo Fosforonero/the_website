@@ -24,4 +24,14 @@ The real question isn't "do I need accounts?", it's "where's the first drop-off 
 
 For a quick-poll tool, the first drop-off point is forced sign-up on the voting side. Moving accounts from the voter side to the creator side (and making them optional even there) keeps the voter funnel clean (one click, one vote) while creators still get every advanced feature when they actually need them.
 
+## How it works without an account, in practice
+
+When a voter opens the poll link, the system generates a **one-time token** embedded in the URL and stored in `localStorage` on their device. That token is anonymous — no name, no email, no identifying data. It does exactly one thing: prevent the same person from voting twice on the same poll.
+
+There's no user record on the server side. The server knows "someone with this token has already voted", not who that someone is.
+
+For poll creators who choose to stay anonymous, the logic is similar: they get a **management token** in the URL generated at creation time. That URL is their key to edit the poll, watch the results come in, and close it. If they lose it, there's no recovery — but that's a deliberate trade-off, not an oversight.
+
+It's a simple system. No delegating identity to third parties, no sessions, no data accumulated that doesn't need to exist. For SplitVote's use case — fast votes, informal settings — it's exactly as much as the job requires.
+
 > Accounts-everywhere by default is the easy choice, but rarely the right one. Accounts-where-they-add-value takes more work, but removes friction where it matters.

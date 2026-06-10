@@ -21,6 +21,20 @@ FitMesh è online da poco più di un anno. Ecco cosa ho imparato.
 
 **La home dell'app.** La prima versione mostrava tutti i dati in un'unica dashboard. Confusionaria. Adesso è una serie di "card" stackate, ognuna con una metrica primaria. Più leggibile, più mobile-friendly.
 
+## Un anno di maintenance: cosa assorbe il tempo
+
+C'è una verità che nessun tutorial racconta: **spedire l'app è il 30% del lavoro, mantenerla è il 70%.**
+
+Wear OS riceve aggiornamenti annuali importanti. Ogni volta tocca riaprire il codice, verificare le API deprecate, testare sul dispositivo fisico. Non è drammatico, ma richiede attenzione e non si può rimandare: se smette di funzionare sull'orologio, gli utenti lasciano una stella e spariscono.
+
+Il **Play Store review cycle** per ogni rilascio introduce una latenza che al lancio sottovaluto sempre: un fix urgente non arriva in produzione in dieci minuti. Pianificare con anticipo diventa obbligatorio.
+
+Il **feedback degli utenti** senza un team di supporto è un lavoro a parte. Leggo ogni recensione, ogni segnalazione via email. La maggior parte è preziosa. Alcune richiedono investigazione lunga. Il rischio è passare ore a riprodurre un bug su una configurazione di dispositivo che non possiedo.
+
+Infine, **le dipendenze**. Ogni aggiornamento di Gradle, Kotlin, o dei plugin Wear OS può rompere la CI in modi non ovvi. Tenere la pipeline verde richiede piccole sessioni di manutenzione regolari, anche quando non stai aggiungendo nulla di nuovo.
+
+Niente di tutto questo è insormontabile. È semplicemente lavoro reale, che non appare nelle demo dei side project.
+
 ## Cosa cambierei se lo rifacessi oggi
 
 - Userei `androidx.health.connect.client` come livello aggiuntivo dall'inizio

@@ -27,6 +27,18 @@ Every few years I redraw my mental stack, not for fun, but to stay grounded. Wha
 
 A single shared types file, generated from Supabase, imported in both the web client and the Flutter app (via a small script that converts the TS types into Dart models). Old trick, still does its job.
 
+## What this stack produces in practice
+
+Three projects in production, three different contexts.
+
+**Fosforonero.com** runs on Next.js App Router. The black hole simulator is raw WebGL inside a Server Component: the heavy computation stays on the client, everything else — SEO, routing, i18n — is handled by the framework with no friction. No extra API layer: Server Actions cover the forms.
+
+**FitMesh mobile** is Flutter. One codebase targeting Android phone and Wear OS: same business logic, UI adapted for the small screen. The data layer talks directly to Supabase over REST — no proprietary SDK in the middle, just `http` and the generated types.
+
+**FitMesh backend** is Postgres on Supabase. Row-level security enabled on every user-facing table, Edge Functions for incoming webhooks. Nothing exotic: the real value is having a proper relational database from day one, with no forced migrations later when the schema grows.
+
+The consistency across the three projects is the actual payoff. A type contract bug shows up in all three places before it reaches production.
+
 > The right stack isn't the objectively best one. It's the one you can maintain alone for ten years.
 
 I'll revisit this post in a year. Let's see what changes.

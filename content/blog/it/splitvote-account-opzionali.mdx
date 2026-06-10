@@ -24,4 +24,14 @@ La domanda di fondo non è "serve un sistema di account?", ma "qual è il primo 
 
 Per uno strumento di voto rapido, il primo punto di abbandono è la registrazione richiesta a chi vota. Spostando l'account dal lato voto al lato creazione (e rendendolo opzionale anche lì) il funnel di chi vota resta pulito (un click, un voto) mentre chi crea ha comunque accesso a tutte le funzioni avanzate quando le serve davvero.
 
+## Come funziona senza account, in pratica
+
+Quando un votante apre il link del poll, il sistema genera un **token monouso** che viene incorporato nell'URL e salvato nel `localStorage` del suo dispositivo. Quel token è anonimo — nessun nome, nessuna email, nessun dato identificativo. Serve solo a una cosa: impedire che la stessa persona voti due volte sullo stesso poll.
+
+Non c'è nessun record utente lato server. Il server sa che "qualcuno con questo token ha già votato", non sa chi sia quel qualcuno.
+
+Per il creatore del poll che sceglie di restare anonimo, la logica è simile: riceve un **token di gestione** nell'URL generato alla creazione. Quell'URL è la sua chiave d'accesso per modificare il poll, vedere i risultati, chiuderlo. Se lo perde, non può recuperarlo — ma è una scelta consapevole, non un bug.
+
+È un sistema semplice. Non delega l'identità a terze parti, non richiede sessioni, non accumula dati che non servono. Per il caso d'uso di SplitVote — voti rapidi, contesti informali — è esattamente quanto basta.
+
 > Account ovunque per default è una scelta facile, ma raramente è la scelta giusta. Account solo dove portano valore richiede più lavoro, ma riduce l'attrito dove conta.

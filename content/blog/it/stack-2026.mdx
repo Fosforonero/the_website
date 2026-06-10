@@ -27,6 +27,18 @@ Ogni qualche anno ridisegno mentalmente lo stack, non per gusto, ma per stare an
 
 Un singolo file di tipi condivisi, generato da Supabase, importato sia nel client web che nell'app Flutter (tramite uno script che converte i tipi TS in modelli Dart). Vecchio trucco, ma fa il suo lavoro.
 
+## Cosa produce questo stack in pratica
+
+Tre progetti in produzione, tre contesti diversi.
+
+**Fosforonero.com** gira su Next.js App Router. Il simulatore del buco nero è WebGL puro dentro un Server Component: la parte pesante resta sul client, il resto — SEO, routing, i18n — lo gestisce il framework senza attriti. Nessun API layer aggiuntivo: le Server Actions bastano per i form.
+
+**FitMesh mobile** è Flutter. Una codebase che copre Android phone e Wear OS: stessa logica di business, UI adattata per schermo piccolo. Il layer dati parla direttamente con Supabase via REST; nessun SDK proprietario in mezzo, solo `http` e i tipi generati.
+
+**FitMesh backend** è Postgres su Supabase. Row-level security abilitata su tutte le tabelle degli utenti, funzioni Edge per i webhook in entrata. Niente di esotico: il valore è nell'avere un DB relazionale vero sin dal primo giorno, senza migrazioni forzate dopo.
+
+La coerenza tra i tre progetti è il vero vantaggio. Un bug nel contratto dei tipi lo vedo in tutti e tre i posti prima che arrivi in produzione.
+
 > Lo stack giusto non è quello migliore in assoluto. È quello che riesci a mantenere da solo per dieci anni.
 
 Tornerò su questo articolo tra un anno. Vediamo cosa cambierà.

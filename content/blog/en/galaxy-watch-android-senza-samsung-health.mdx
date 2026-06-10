@@ -30,3 +30,18 @@ Health Services is Google's official API for biometric data on Wear OS. It works
 I would adopt `androidx.health.connect.client` as an additional layer: it lets you read data from other health apps too (Strava, Adidas, and so on), expanding the user base without writing custom integrations.
 
 > For now, the "Watch → Phone → Cloud" design works, but I have the feeling the right model is "Watch → Health Connect → Apps". We'll see if Google actually gets there.
+
+## Why Health Connect changes everything
+
+`androidx.health.connect.client` is Google's unified health data hub, available as a system component on Android 14 and as a separate APK on Android 9–13. The concept is straightforward but powerful: any app can **write** biometric records into Health Connect, and any other app can **read** them — with explicit user consent for each data type.
+
+For a project like FitMesh this means cleanly splitting two roles:
+
+- **Data collection**: the Wear OS app continues to use Health Services to read the sensors, then writes the records into Health Connect via `HealthConnectClient.insertRecords`.
+- **Data reading**: FitMesh — or any other app — requests read permissions and queries Health Connect, regardless of which wearable or companion app produced the data.
+
+The practical outcome is that the integration stops being vendor-specific. A user with a Pixel Watch, a Galaxy Watch, or a Fitbit can feed the same data pipeline, as long as the relevant client writes to Health Connect. The wearable becomes interchangeable.
+
+The trade-off worth keeping in mind: on Android 9–12, Health Connect requires a separate install from the Play Store, and the user may not have it. You need to handle the fallback with a clear message and a deep-link to the installation.
+
+> The "Watch → Health Connect → Apps" model isn't the de-facto standard yet, but it's Google's stated direction. Building toward it today reduces tomorrow's technical debt.
