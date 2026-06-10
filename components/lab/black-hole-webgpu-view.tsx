@@ -82,7 +82,10 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
   const [volDisk,    setVolDisk]    = useState(false);
   const [skyOn,      setSkyOn]      = useState(false);
   const [skySource,  setSkySource]  = useState<SkySource>("nasa8k");
-  const [steps,      setSteps]      = useState(260);
+  // Initial steps: lower on touch devices so the first frame is not stalled.
+  // The user can raise them with the Steps select; we never override that choice.
+  const isMobileGPU = typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches === true;
+  const [steps,      setSteps]      = useState(isMobileGPU ? 160 : 260);
   const [showControls, setShowControls] = useState(false);
 
   // Support: null=loading, true=ok, false=unsupported
@@ -161,6 +164,13 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
       bindGroupRef.current = makePlaceholderBindGroup(core);
       setSupported(true);
 
+      // FPS EMA governor: reduces canvas DPR when the GPU can't keep up.
+      // Only active on touch devices (coarse pointer) — desktop is fast enough.
+      const coarseDevice = typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches === true;
+      let fpsEmaGPU = 60;
+      let lastFrameTime = performance.now();
+      let sinceGovCheck = 0;
+
       let t0 = performance.now();
       function frame() {
         if (destroyed || !coreRef.current || !bindGroupRef.current) return;
@@ -172,6 +182,29 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
         if (needsBGUpdate.current && skyTexRef.current) {
           bindGroupRef.current = makeSkyBindGroup(core, skyTexRef.current);
           needsBGUpdate.current = false;
+        }
+
+        // FPS EMA + adaptive DPR for mobile WebGPU
+        const now = performance.now();
+        const dt = Math.max((now - lastFrameTime) / 1000, 1e-3);
+        lastFrameTime = now;
+        fpsEmaGPU = fpsEmaGPU * 0.92 + (1.0 / dt) * 0.08;
+        sinceGovCheck += dt;
+        if (coarseDevice && sinceGovCheck > 1.5) {
+          sinceGovCheck = 0;
+          const ctrl = ctrlRef.current;
+          const baseCap = ctrl.volDisk ? 0.75 : 0.90;
+          if (fpsEmaGPU < 32 && dprScaleRef.current > 0.65) {
+            dprScaleRef.current = Math.max(0.65, dprScaleRef.current - 0.10);
+            const dpr = Math.min(window.devicePixelRatio ?? 1, baseCap * dprScaleRef.current);
+            canvas.width  = Math.floor(canvas.clientWidth  * dpr);
+            canvas.height = Math.floor(canvas.clientHeight * dpr);
+          } else if (fpsEmaGPU > 56 && dprScaleRef.current < 1.0) {
+            dprScaleRef.current = Math.min(1.0, dprScaleRef.current + 0.07);
+            const dpr = Math.min(window.devicePixelRatio ?? 1, baseCap * dprScaleRef.current);
+            canvas.width  = Math.floor(canvas.clientWidth  * dpr);
+            canvas.height = Math.floor(canvas.clientHeight * dpr);
+          }
         }
 
         const time = (performance.now() - t0) / 1000;
@@ -221,17 +254,22 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Canvas resize — DPR is volumetric-disk-aware. The vol disk is fill-rate bound
-  // (radiative transfer + turbulence per step, per pixel), so when it's on we cap
-  // DPR lower (1.0 on touch, 1.25 on desktop) to keep mobile/integrated GPUs
-  // fluid; the soft, glowy disk hides the reduced resolution. Re-runs on toggle.
+  // Adaptive DPR governor for WebGPU. Refs for the RAF loop to read/write.
+  const dprScaleRef = useRef(1.0);  // multiplied against the cap, updated by the governor
+
+  // Canvas resize — DPR caps:
+  //   touch + vol disk:     0.75  (heaviest path)
+  //   touch + no vol disk:  0.90  (was 1.5 — the main mobile bottleneck)
+  //   desktop + vol disk:   1.25
+  //   desktop + no vol disk: 1.5
+  // Re-runs when volDisk changes.
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const coarse = typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches === true;
-    const cap = volDisk ? (coarse ? 1.0 : 1.25) : 1.5;
+    const baseCap = volDisk ? (coarse ? 0.75 : 1.25) : (coarse ? 0.90 : 1.5);
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio ?? 1, cap);
+      const dpr = Math.min(window.devicePixelRatio ?? 1, baseCap * dprScaleRef.current);
       canvas.width  = Math.floor(canvas.clientWidth  * dpr);
       canvas.height = Math.floor(canvas.clientHeight * dpr);
     };
