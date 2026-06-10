@@ -827,14 +827,14 @@ export function effectiveProfile(choice: QualityChoice, gpu: GpuInfo, isMobile: 
     return { ...QUALITY_PRESETS[choice], vol: false }; // manual: the 3D-disk toggle controls vol
   }
   if (isMobile) {
-    // Mobile is fill-rate (DPR) bound, NOT step bound — and the photon ring needs
-    // enough steps to resolve. Keep steps high and use DPR as the perf knob; the
-    // governor scales resolution, not steps, so the ring budget stays intact.
-    // Steps raised from 240→260 (combined with dt_max 0.6→0.9, this gives ~18
-    // extra steps for the ring region on low-end devices, fixing "artigli").
-    if (gpu.tier === "high") return { steps: 260, dprCap: 1.4, rk4: false, tao: false, vol: false };
-    if (gpu.tier === "mid")  return { steps: 260, dprCap: 1.2, rk4: false, tao: false, vol: false };
-    return { steps: 250, dprCap: 1.0, rk4: false, tao: false, vol: false };
+    // Mobile default: fluidity first. The analytic photon-ring fallback (uSteps < 200)
+    // keeps the ring visible even at these reduced step counts, so we can reclaim the
+    // budget for resolution. DPR caps are well below the device pixel ratio so the
+    // fill-rate cost is manageable from frame 1. The governor in black-hole-scene.tsx
+    // will adapt both DPR and steps further once measured FPS is available.
+    if (gpu.tier === "high") return { steps: 180, dprCap: 1.0, rk4: false, tao: false, vol: false };
+    if (gpu.tier === "mid")  return { steps: 160, dprCap: 0.85, rk4: false, tao: false, vol: false };
+    return { steps: 140, dprCap: 0.75, rk4: false, tao: false, vol: false };
   }
   // Desktop.
   // Apple Silicon (M-series integrated GPU): powerful but not a discrete card.
