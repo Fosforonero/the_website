@@ -356,9 +356,18 @@ void main() {
   float b1 = dot(pos, dir);
   if (length(pos) > R_far) {
     if (b1 >= 0.0 || h2 > R_far * R_far) {
-      // heading away, or impact parameter outside the influence sphere → pure
-      // background (deflection negligible at this distance).
-      color = starField(normalize(dir));
+      // Heading away, or impact parameter outside the influence sphere → pure
+      // background, but NOT unlensed: apply the analytic weak-field deflection
+      // accumulated from the camera to infinity along the straight path,
+      //   α(t₀→∞) = (2M/b)·(1 − t₀/√(b²+t₀²))   (→ Einstein's 4M/b full-path),
+      // bending the ray toward the hole. Without this the rim of the influence
+      // sphere shows as a circular seam in the sky — lensed inside, straight
+      // outside — read by users as a giant "sphere" around the hole.
+      vec3  perp = pos - b1 * dir;             // hole→ray vector at closest approach
+      float bp2  = max(dot(perp, perp), 1.0e-6);
+      float bp   = sqrt(bp2);
+      float alf  = (1.0 / bp) * (1.0 - b1 / sqrt(bp2 + b1 * b1)); // 2M = 1 (M = ½ R_S)
+      color = starField(normalize(dir - perp * (alf / bp)));
       done = true;
     } else {
       float disc = b1 * b1 - (dot(pos, pos) - R_far * R_far);
@@ -400,6 +409,25 @@ void main() {
     // ~8 more steps for the photon-ring region (r<6) on step-limited mobile GPUs.
     float dt = clamp(r * 0.10, 0.02, 0.9);
     if (r < 6.0) dt = min(dt, 0.016 + 0.045 * (r - 1.0));
+
+#ifdef BH_VOLDISK
+    // Refine the step inside the volumetric-disk slab: the coarse far-field dt
+    // (up to 0.9) can cross the whole vertical Gaussian (H·rho ≈ 0.1–0.6) in a
+    // single step, which renders the volume as discrete horizontal slabs and
+    // thin concentric sample-count rings. Target ≳4 samples per scale height
+    // ALONG Y: the clamp scales with the ray's vertical slope, so in-plane rays
+    // (which see no vertical density change) keep the coarse step and the step
+    // budget never explodes on equator-skimming rays.
+    if (uDiskOn > 0.5 && uVolDisk > 0.5) {
+      float rhoS = length(pos.xz);
+      if (rhoS > rIn && rhoS < uDiskOuter) {
+        float HhS = clamp(uVolThick * sqrt(rhoS), 0.012, 0.035) * rhoS;
+        if (abs(pos.y) < 3.0 * HhS + 0.1) {
+          dt = min(dt, max(0.025, 0.45 * HhS / max(abs(dir.y), 0.12)));
+        }
+      }
+    }
+#endif
 
     // Relativistic jets: optically-thin, collimated emission along the spin
     // axis (±Y). Accumulated along the (lensed) ray, so the beams bend near
