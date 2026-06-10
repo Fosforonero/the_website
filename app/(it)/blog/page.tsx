@@ -6,6 +6,7 @@ import { Pill } from "@/components/parts/pill";
 import { Reveal } from "@/components/client/reveal";
 import { getAllPosts } from "@/lib/blog";
 import { getDictionary } from "@/lib/i18n";
+import { blogIndexLd } from "@/lib/jsonld";
 import { site } from "@/lib/site";
 
 export const revalidate = 3600;
@@ -32,9 +33,11 @@ export const metadata: Metadata = {
 export default async function BlogIndexPage() {
   const t = getDictionary("it");
   const posts = await getAllPosts("it");
+  const ld = blogIndexLd(posts, "it");
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
       <Nav locale="it" />
       <main
         id="main"

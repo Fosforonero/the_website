@@ -87,6 +87,39 @@ export function projectsListLd() {
   };
 }
 
+/** CollectionPage + ItemList for the blog index — describes the article
+ *  collection (position, title, URL, dates, author) so search/AI can read the
+ *  list as a structured set, not just a page of links. */
+export function blogIndexLd(posts: ReadonlyArray<BlogPostMeta>, locale: "it" | "en") {
+  const base = locale === "it" ? `${site.url}/blog` : `${site.url}/${locale}/blog`;
+  const author = { "@type": "Person", name: site.author.name, url: site.url };
+  return {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": base,
+    url: base,
+    name: locale === "it" ? "Blog · Note tecniche" : "Blog · Technical notes",
+    inLanguage: locale,
+    isPartOf: { "@type": "WebSite", url: site.url, name: site.name },
+    mainEntity: {
+      "@type": "ItemList",
+      itemListElement: posts.map((post, idx) => ({
+        "@type": "ListItem",
+        position: idx + 1,
+        url: `${base}/${post.slug}`,
+        item: {
+          "@type": "BlogPosting",
+          headline: post.title,
+          url: `${base}/${post.slug}`,
+          datePublished: post.date,
+          dateModified: post.updated ?? post.date,
+          author,
+        },
+      })),
+    },
+  };
+}
+
 export function blogPostingLd(post: BlogPostMeta) {
   const url = `${site.url}${post.locale === "it" ? "" : "/" + post.locale}/blog/${post.slug}`;
   return {
