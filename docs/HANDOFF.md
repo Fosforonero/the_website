@@ -1,10 +1,10 @@
 # Fosforonero — Handoff
 
 > Documento di passaggio tra sessioni. Aggiornato a fine sessione corrente.
-> **Ultimo aggiornamento: 2026-06-09 23:25 CEST** (sessione Buco Nero perf/UX + About Tavola Periodica)
+> **Ultimo aggiornamento: 2026-06-10 13:45 CEST** (sessione SEO/GEO Blog Phase 1+2)
 >
-> 🎯 **Domani: ripartire dalla coda aperta qui sotto (Sessione 2026-06-09), in ordine.**
-> Branch attivo `fix/bh-auto-m2-perf` — già promosso su `init` commit per commit.
+> 🎯 **Prossima sessione: scegliere tra (a) BH UX F1 disk selector merge + F2 unify, oppure (b) screenshot prodotto per 3 post blog rimasti.**
+> Branch attivo blog: `fix/seo-blog` = `origin/init` (tutto pushato). Branch BH: `fix/bh-auto-m2-perf` (disk selector `7195741` ancora non su `init` — da verificare sul device prima del merge).
 >
 > 🧠 **Direttiva permanente — modello IA per task**: usa sempre il modello più adatto.
 > Opus per fisica/shader/correttezza, architettura, debug complesso, refactor
@@ -12,6 +12,65 @@
 > Haiku per task meccanici; subagent read-only su modello economico (Opus solo per
 > sintesi/verifica). In dubbio o se tocca fisica/correttezza/produzione → Opus.
 > (Anche in `CLAUDE.md` e nella skill `fosforonero-compass`.)
+
+---
+
+## Sessione 2026-06-10 — SEO/GEO Blog Phase 1 + 2
+
+Branch: `fix/seo-blog` (tutti i commit pushati su `fix/seo-blog` **e** su `init`).
+
+**Spedito in produzione (`init`):**
+
+| Commit | Descrizione |
+|---|---|
+| `513f609` | feat(seo): expand `llms.txt` — 23 URL Lab (BH, Solar System, PT) con descrizioni |
+| `549e284` | feat(blog): campo `updated` per `dateModified` in JSON-LD e OG modifiedTime |
+| `1bfa0f0` | feat(blog): `CollectionPage` + `ItemList` sugli indici blog IT+EN |
+| `2382b94` | fix(blog): 16 titoli accorciati a ≤63 char finali (era 71–78) IT+EN |
+| `b8cd20b` | feat(blog): immagini OG per orbitali, spaghettificazione, stack-2026 (Playwright screenshots) |
+| `14dff53` | feat(blog): espansi 4 post prodotto sottili (340→510w media) IT+EN |
+
+**Immagini OG aggiunte via Playwright screenshot (produzione):**
+
+| Post | Immagine | Sorgente |
+|---|---|---|
+| `orbitali-atomici-visualizzati` | `public/blog/tavola-periodica/orbitali-atomici-inspector.jpg` | PT Inspector orbitali 2pz Fosforo |
+| `spaghettificazione-disruzione-mareale` | `public/blog/buco-nero/spaghettificazione-playground-tde.jpg` | BH Playground con disco + debris |
+| `stack-2026` | `public/blog/buco-nero/buco-nero-webgl-nextjs.jpg` | BH WebGL @60fps M2 Pro |
+
+**Post espansi (Task 6 — thin posts → ≥480 parole):**
+
+| Post | IT → finale | EN → finale | Sezione aggiunta |
+|---|---|---|---|
+| `splitvote-account-opzionali` | 314→485w | 492w | "Come funziona senza account, in pratica" — token URL + localStorage, no PII |
+| `stack-2026` | 340→514w | 544w | "Cosa produce questo stack in pratica" — BH, FitMesh, Supabase concreti |
+| `galaxy-watch-android-senza-samsung-health` | 326→563w | 593w | "Perché Health Connect cambia tutto" — hub unificato, vendor-neutral |
+| `fitmesh-primo-anno-produzione` | 343→548w | 564w | "Un anno di maintenance" — WearOS API churn, Play Store, dipendenze |
+
+**Ancora mancanti (⚠️ servono screenshot reali da Matteo):**
+
+| Post | Cosa serve |
+|---|---|
+| `fitmesh-primo-anno-produzione` | screenshot dashboard/app FitMesh (16:9, ≥1200w) |
+| `galaxy-watch-android-senza-samsung-health` | screenshot Galaxy Watch / Wear OS UI |
+| `splitvote-account-opzionali` | screenshot poll in app SplitVote |
+
+Salvarli in `public/blog/<progetto>/<slug>.jpg`, poi aggiungere `image` e `imageAlt` nel frontmatter IT+EN. Niente inventati.
+
+### ▶ Coda aperta — prossima sessione
+
+**Priorità 1 — BH UX F1 (in attesa verifica device):**
+- Il selettore disco unificato (`diskMode: "off"|"thin"|"vol"|"particles"`) è in `fix/bh-auto-m2-perf` commit `7195741`.
+- Prima del merge su `init`: test su device reale (mobile + desktop) che i 4 stati funzionino, poi `git push origin fix/bh-auto-m2-perf:init`.
+- **F1 restante:** cielo selector (Procedurale/Reale/Nero → un `<select>`), grouping controlli in sezioni Fisica/Aspetto/Qualità.
+- **F2:** unificare label e UX tra WebGL / WebGPU / Playground.
+
+**Priorità 2 — Screenshot prodotto:**
+- 3 post blog mancano ancora di immagine OG (vedi tabella sopra).
+
+**Priorità 3 — SEO Phase 3 (FAQ schema):**
+- Aggiungere `FAQPage` JSON-LD ai post scientifici con vere domande/risposte (orbitali, spaghettificazione, buco nero nel browser).
+- Candidati: già hanno sezioni Q&A o spiegazioni step-by-step.
 
 ---
 
