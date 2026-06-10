@@ -34,6 +34,38 @@ Usa SEMPRE il modello più adatto al compito, non uno fisso:
   il fan-out; Opus solo per la sintesi/verifica critica dei risultati.
 - In dubbio, o se il task tocca fisica/correttezza/produzione → **Opus**.
 
+## SEO — regole sempre attive
+
+Ogni volta che scrivi o modifichi un blog post, una pagina web o qualsiasi
+contenuto pubblicabile, applica **prima di fare commit**:
+
+### Nuovo blog post (IT + EN)
+- `title`: 30–65 caratteri finali (dopo template ` · Fosforonero`)
+- `excerpt`: 80–160 caratteri (diventa meta description)
+- `image`: obbligatoria — path `public/blog/<progetto>/<slug>.jpg`, asset reale
+- `imageAlt`: ≥ 10 parole descrittive, tradotto in entrambe le lingue
+- `tag`: 1 tag primario
+- `date`: ISO `YYYY-MM-DD`
+- Corpo: ≥ 480 parole
+- Parità IT ↔ EN: stessi campi frontmatter, stesso path `image`, `imageAlt` tradotto
+- Se modifichi contenuto esistente: aggiungi/aggiorna `updated: "YYYY-MM-DD"`
+- Inizia sempre con `draft: true`; rimuovilo solo quando l'articolo è completo
+
+### Nuova pagina web
+- `title`: 30–65 caratteri, `description`: 110–165 caratteri
+- `og:image` presente (1200×630)
+- `canonical` + `hreflang` IT↔EN simmetrico
+- JSON-LD schema appropriato al tipo di pagina (vedi `docs/seo/governance.md`)
+
+### Post-publish (dopo merge su `init`)
+```bash
+pnpm seo:audit -- --url=https://fosforonero.com/blog/<slug>
+pnpm seo:indexnow -- --url=https://www.fosforonero.com/blog/<slug>
+# ripetere per versione EN
+```
+
+Regole complete e soglie numeriche: `docs/seo/governance.md`.
+
 ## Branch strategy — Tavola Periodica vs Solar System
 Il branch locale `init` può contenere lavoro Solar System ahead o uncommitted.
 Per sprint Tavola Periodica:

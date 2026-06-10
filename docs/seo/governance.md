@@ -74,7 +74,121 @@ Le stesse soglie su desktop sono ≥ 95 per Performance.
 - `<html lang>` corretto per locale (riapertura prevista quando si introduce
   route group `[locale]`)
 
-## Regole di contenuto (linee guida, non bloccanti)
+## Checklist authoring — nuovo blog post (IT + EN)
+
+Da completare **prima di togliere `draft: true`** e prima di fare push su `init`.
+
+### Frontmatter obbligatorio
+
+```mdx
+---
+title: "…"          # 30–65 caratteri (titolo finale incluso template ` · Fosforonero`)
+excerpt: "…"        # 80–160 caratteri — diventa meta description e og:description
+date: "YYYY-MM-DD"  # ISO, data di prima pubblicazione
+tag: "…"            # 1 tag primario (es. "Stack", "FitMesh", "Retrospettiva")
+image: "/blog/<progetto>/<slug>.jpg"  # OG image OBBLIGATORIA — vedi sezione Asset
+imageAlt: "…"       # testo alternativo descrittivo, ≥ 10 parole, unico tra post
+---
+```
+
+> **`image` è obbligatoria.** Un post senza OG image blocca la cascade di
+> `opengraph-image.tsx` e appare senza anteprima su social e chat.
+> Cattura uno screenshot reale con Playwright (o fornisci un asset) prima
+> di pubblicare. Non inventare immagini.
+
+### Asset immagine OG
+
+| Requisito | Valore |
+|---|---|
+| Percorso | `public/blog/<progetto>/<slug>.jpg` |
+| Dimensioni | 1200 × 630 px (oppure 2:1, ≥ 1200px wide) |
+| Formato | JPEG, qualità 85–92 |
+| Origine | Screenshot Playwright di pagina reale **oppure** asset fornito dall'autore |
+| Niente fake | Mai stock photo generica, mai placeholder inventato |
+
+Dopo aver aggiunto l'asset: `image` nel frontmatter IT **e** EN (stesso path),
+`imageAlt` tradotto nelle due lingue.
+
+### Corpo dell'articolo
+
+| Requisito | Soglia | Note |
+|---|---|---|
+| Parole minime | ≥ 480 parole (corpo, escluso frontmatter) | Post sotto soglia sono "thin content" per Google |
+| H1 implicito | 1 sola per pagina — il `title` frontmatter lo genera | Non aggiungere `# Titolo` manuale nell'MDX |
+| Struttura heading | H2 come sezioni principali, H3 per sottosezioni | Niente salti H2 → H4 |
+| Internal link | ≥ 1 link interno (altro post o pagina Lab) | `PostNav` aggiunge prev/next automatici |
+| External link | ≥ 1 link esterno qualificato (docs ufficiali, fonte primaria) | Solo link reali, verificati |
+| Claim e metriche | Solo dati reali, verificabili, già presenti nel prodotto | Niente metriche inventate o arrotondate |
+
+### Parità IT ↔ EN
+
+- Ogni post IT deve avere il corrispettivo EN (stesso slug oppure slug localizzato
+  con `alternates.languages` esplicito nel metadata della pagina).
+- Frontmatter `image` e `imageAlt` (tradotto) identici in struttura.
+- `date` identica tra IT ed EN; `updated` identico se presente.
+
+### Campo `updated` (dateModified)
+
+Aggiungere `updated: "YYYY-MM-DD"` al frontmatter **ogni volta** che si modifica
+sostanzialmente il contenuto di un post esistente (nuove sezioni, correzioni fattuali,
+aggiornamenti tecnici). Non aggiornarlo per fix tipografici minimi.
+
+```mdx
+updated: "2026-06-10"   # aggiungere o aggiornare quando il contenuto cambia
+```
+
+### Post-publish (dopo merge su `init`)
+
+1. `pnpm seo:audit -- --url=https://fosforonero.com/blog/<slug>` — verifica zero errori
+2. `pnpm seo:indexnow -- --url=https://www.fosforonero.com/blog/<slug>` — notifica motori
+3. Stessa cosa per la versione EN: `/en/blog/<slug>`
+
+---
+
+## Checklist authoring — nuova pagina web (non blog)
+
+### Metadata obbligatorio (Next.js `generateMetadata` o oggetto `metadata`)
+
+```ts
+title: "…"               // 30–65 caratteri (valore finale dopo template)
+description: "…"         // 110–165 caratteri
+openGraph: {
+  title: "…",
+  description: "…",
+  images: [{ url: "…", width: 1200, height: 630 }],
+  url: "https://fosforonero.com/…",
+}
+alternates: {
+  canonical: "https://fosforonero.com/…",
+  languages: { it: "…", en: "…" }
+}
+```
+
+### Structured data JSON-LD
+
+Scegliere lo schema più specifico disponibile:
+
+| Tipo pagina | Schema |
+|---|---|
+| Post/articolo | `BlogPosting` + `BreadcrumbList` |
+| Indice blog | `CollectionPage` + `ItemList` |
+| Landing/home | `WebPage` + `ItemList` progetti |
+| Pagina Lab | `SoftwareApplication` o `WebApplication` |
+| About/identità | `Person` + `BreadcrumbList` |
+| Legal | `WebPage` + `BreadcrumbList` |
+
+Tutti i JSON-LD: `@context: "https://schema.org"`, JSON sintatticamente valido,
+nessun campo inventato.
+
+### Parità IT ↔ EN
+
+- Ogni route IT (`/x`) deve avere la route EN (`/en/x`).
+- `hreflang` simmetrico (`x-default` punta all'IT per Fosforonero.com).
+- Stessa qualità di contenuto: niente pagine EN stub con solo traduzione automatica.
+
+---
+
+## Regole di contenuto (linee guida editoriali)
 
 - **H1**: una sola per pagina, contiene la keyword primaria della pagina
 - **H2-H3**: gerarchia coerente, niente salti `H1 → H4`
