@@ -84,16 +84,16 @@ export function BlackHoleQuad({
   const glCaps = useThree((s) => s.gl.capabilities);
   const setDpr = useThree((s) => s.setDpr);
   // FPS governor (Auto mode). DESKTOP: scale the step count (resolution is fixed).
-  // MOBILE: the bottleneck is fill-rate, and the photon ring needs its steps, so
-  // we keep steps fixed and scale the RESOLUTION (DPR) instead — slow phones get
-  // fluid without a broken ring.
+  // MOBILE: two-stage adaptive governor —
+  //   Stage 1: reduce DPR (resScale) until floor, if FPS is still low:
+  //   Stage 2: reduce steps (stepScale) down to a hard minimum (~120).
+  // Both scales start conservatively so the GPU is never overloaded from frame 1.
   const fpsEma = useRef(60);
   const sinceCheck = useRef(0);
-  // Desktop starts at 85% steps so the photon ring (~177 steps/orbit at r=3) is
-  // visible from frame 1; mobile starts at 70% resolution (step count stays fixed).
-  // Both scale toward 100% as the FPS governor confirms the GPU can handle it.
-  const stepScale = useRef(isMobile ? 0.7 : 0.85);
-  const resScale  = useRef(isMobile ? 0.7 : 1.0);
+  // Desktop: 85% steps from frame 1; mobile: 75% resolution + 100% steps.
+  // The reduced mobile profile (140-180 steps) already keeps the analytic ring.
+  const stepScale = useRef(isMobile ? 1.0 : 0.85);
+  const resScale  = useRef(isMobile ? 0.75 : 1.0);
   // Effective render profile: GPU-tuned in Auto (passed from the parent), else the
   // chosen manual preset. In Auto the volumetric disk follows the profile.
   const prof: RenderProfile = profile ?? {
@@ -213,19 +213,32 @@ export function BlackHoleQuad({
     if (quality === "auto" && !eht) {
       if (ticked) {
         if (isMobile) {
-          const before = resScale.current;
-          if (fpsEma.current < 40 && resScale.current > 0.55) resScale.current = Math.max(0.55, resScale.current - 0.12);
-          else if (fpsEma.current > 56 && resScale.current < 1.0) resScale.current = Math.min(1.0, resScale.current + 0.1);
-          if (resScale.current !== before) {
-            const dprMax = (typeof window !== "undefined" ? window.devicePixelRatio : 1) || 1;
-            // Mobile + volumetric disk on: hold the DPR ceiling at 1.0 (see wrapper).
-            const dprCeil = effVol ? Math.min(prof.dprCap, 1.0) : prof.dprCap;
-            setDpr(Math.min(dprMax, dprCeil * resScale.current));
+          // Two-stage governor: reduce DPR first, then steps if still slow.
+          const dprFloor = 0.55;
+          const stepFloor = 0.75; // ~105-135 steps min depending on profile
+          const dprMax = (typeof window !== "undefined" ? window.devicePixelRatio : 1) || 1;
+          const dprCeil = effVol ? Math.min(prof.dprCap, 1.0) : prof.dprCap;
+          if (fpsEma.current < 35) {
+            if (resScale.current > dprFloor) {
+              // Stage 1: drop DPR
+              resScale.current = Math.max(dprFloor, resScale.current - 0.10);
+              setDpr(Math.min(dprMax, dprCeil * resScale.current));
+            } else if (stepScale.current > stepFloor) {
+              // Stage 2: DPR already at floor — reduce steps
+              stepScale.current = Math.max(stepFloor, stepScale.current - 0.10);
+            }
+          } else if (fpsEma.current > 56) {
+            // Scale DPR back up gently (steps recover automatically when DPR is ok)
+            if (resScale.current < 1.0) {
+              resScale.current = Math.min(1.0, resScale.current + 0.07);
+              setDpr(Math.min(dprMax, dprCeil * resScale.current));
+            }
           }
         } else {
-          // Floor: keep enough steps for the photon ring (~200 min: 40 approach
-          // + 133 half-orbit at r=3 + 40 departure). Below this the ring vanishes.
-          const minScale = Math.max(0.5, 200 / prof.steps);
+          // Desktop: scale steps. Floor keeps the photon ring intact.
+          // Ring needs ~177 steps/half-orbit at r=3; profile steps are already
+          // well above that so a 0.5 floor on 300-step profiles is safe.
+          const minScale = Math.max(0.5, 60 / prof.steps);
           if (fpsEma.current < 38 && stepScale.current > minScale) stepScale.current = Math.max(minScale, stepScale.current - 0.12);
           else if (fpsEma.current > 56 && stepScale.current < 1.0) stepScale.current = Math.min(1.0, stepScale.current + 0.08);
         }
@@ -234,8 +247,9 @@ export function BlackHoleQuad({
       stepScale.current = 1.0;
     }
     const preset = prof;
-    // Mobile keeps full steps (ring); desktop scales steps with the governor.
-    u.uSteps.value = isMobile ? preset.steps : Math.max(60, Math.round(preset.steps * stepScale.current));
+    // Both mobile and desktop scale steps; mobile starts at 1.0 (already low profile).
+    const minSteps = isMobile ? 110 : 60;
+    u.uSteps.value = Math.max(minSteps, Math.round(preset.steps * stepScale.current));
     u.uHighOrder.value = preset.rk4 ? 1 : 0;
     u.uUltra.value = preset.tao ? 1 : 0;
     u.uStyle.value = starless ? 1 : 0;
@@ -380,15 +394,21 @@ export default function BlackHoleScene({
         maxDistance={600}
       />
 
-      <EffectComposer frameBufferType={THREE.HalfFloatType}>
-        <Bloom
-          intensity={1.35}
-          luminanceThreshold={0.75}
-          luminanceSmoothing={0.45}
-          mipmapBlur
-        />
-        <DitherEffect />
-      </EffectComposer>
+      {/* Bloom + DitherEffect run only on desktop: on mobile the EffectComposer
+          is a measurable fill-rate cost (HalfFloat framebuffer + blur passes).
+          The shader already has an inline dither (±½ LSB) so banding is handled
+          regardless. The disk's glow is softer on mobile, which is acceptable. */}
+      {!isMobile && (
+        <EffectComposer frameBufferType={THREE.HalfFloatType}>
+          <Bloom
+            intensity={1.35}
+            luminanceThreshold={0.75}
+            luminanceSmoothing={0.45}
+            mipmapBlur
+          />
+          <DitherEffect />
+        </EffectComposer>
+      )}
     </Canvas>
   );
 }
