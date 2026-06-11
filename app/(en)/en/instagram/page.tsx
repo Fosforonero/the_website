@@ -7,6 +7,7 @@ import Link from "next/link";
 import { getAllInstagramPosts } from "@/lib/instagram";
 import { getDictionary } from "@/lib/i18n";
 import { getLocalePath, site } from "@/lib/site";
+import { instagramGalleryLd } from "@/lib/jsonld";
 
 export const revalidate = 3600;
 
@@ -37,6 +38,10 @@ export default async function InstagramPageEN() {
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(instagramGalleryLd(posts, "en")) }}
+      />
       <Nav locale="en" />
       <main
         id="main"

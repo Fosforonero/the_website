@@ -5,6 +5,7 @@
 import { site } from "./site";
 import { projects } from "./projects";
 import type { BlogPostMeta } from "./blog";
+import type { InstaPost } from "./instagram";
 
 /** WebSite — declares the brand/site entity to Google. Without an internal
  *  search endpoint we skip SearchAction (Google ignores it without a real
@@ -117,6 +118,41 @@ export function blogIndexLd(posts: ReadonlyArray<BlogPostMeta>, locale: "it" | "
         },
       })),
     },
+  };
+}
+
+/** ImageGallery — declares the photography wall and each photo as an
+ *  ImageObject, so search/AI engines can surface the individual images and
+ *  understand the page is a photo collection (GEO image discovery). */
+export function instagramGalleryLd(posts: ReadonlyArray<InstaPost>, locale: "it" | "en") {
+  const url = locale === "it" ? `${site.url}/instagram` : `${site.url}/${locale}/instagram`;
+  const trunc = (s: string, n = 200) => {
+    const cp = Array.from(s.replace(/\s+/g, " ").trim());
+    return cp.length > n ? cp.slice(0, n).join("") + "…" : cp.join("");
+  };
+  const author = { "@type": "Person", name: site.author.name, url: site.url };
+  return {
+    "@context": "https://schema.org",
+    "@type": "ImageGallery",
+    "@id": url,
+    url,
+    name:
+      locale === "it"
+        ? `Fotografia — ${site.author.name}`
+        : `Photography — ${site.author.name}`,
+    inLanguage: locale,
+    isPartOf: { "@type": "WebSite", url: site.url, name: site.name },
+    author,
+    associatedMedia: posts
+      .filter((p) => p.image)
+      .map((p) => ({
+        "@type": "ImageObject",
+        contentUrl: `${site.url}${p.image}`,
+        uploadDate: p.date,
+        ...(p.caption ? { caption: trunc(p.caption), name: trunc(p.caption, 80) } : null),
+        creator: author,
+        ...(p.permalink ? { sameAs: p.permalink } : null),
+      })),
   };
 }
 
