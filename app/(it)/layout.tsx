@@ -6,7 +6,6 @@ import "../globals.css";
 import { site } from "@/lib/site";
 import { organizationLd, personLd, websiteLd } from "@/lib/jsonld";
 import { CookieBanner } from "@/components/client/cookie-banner";
-import { ScrollFade } from "@/components/client/scroll-fade";
 
 const GA_ID_FALLBACK = "G-K1QTXSDVD8";
 const GA_ID =
@@ -93,7 +92,6 @@ export default function ItRootLayout({ children }: { children: React.ReactNode }
         </Script>
 
         <a href="#main" className="skip-link">Vai al contenuto</a>
-        <ScrollFade />
         {children}
 
         {GA_ID ? <GoogleAnalytics gaId={GA_ID} /> : null}

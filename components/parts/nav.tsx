@@ -32,14 +32,20 @@ export function Nav({ locale }: Props) {
   ];
 
   return (
-    <header
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "clamp(14px, 3vw, 20px) clamp(16px, 4vw, 32px)",
-        margin: "clamp(12px, 3vw, 24px) clamp(12px, 4vw, 32px)",
-        position: "sticky",
+    <>
+      {/* Frosted band behind/around the floating nav pill: blurs whatever
+          scrolls under the top of the page (technically real compositing, not
+          a flat colour overlay), fading to clear just below the pill. Coupled
+          to the Nav so it never appears on fullscreen lab pages. */}
+      <div className="fn-navfade" aria-hidden />
+      <header
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "clamp(14px, 3vw, 20px) clamp(16px, 4vw, 32px)",
+          margin: "clamp(12px, 3vw, 24px) clamp(12px, 4vw, 32px)",
+          position: "sticky",
         top: "clamp(12px, 3vw, 24px)",
         zIndex: 50,
         background: "rgba(255,255,255,0.82)",
@@ -117,6 +123,7 @@ export function Nav({ locale }: Props) {
         otherLocaleHref={otherLocaleHref}
         ariaLabel={ariaLabel}
       />
-    </header>
+      </header>
+    </>
   );
 }

@@ -424,6 +424,26 @@ body {
   color: var(--color-accent);
 }
 
+/* Frosted band behind the floating nav pill. Pure backdrop blur (no opaque
+   colour overlay) masked to fade to clear just below the pill — content
+   scrolling under the header is frosted, not hidden by a flat rectangle. */
+.fn-navfade {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 104px;
+  z-index: 45;
+  pointer-events: none;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 58%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 58%, transparent 100%);
+}
+@media (max-width: 639px) {
+  .fn-navfade { height: 84px; }
+}
+
 /* Lock body scroll when the mobile drawer is open. */
 body.fn-no-scroll { overflow: hidden; }
 
