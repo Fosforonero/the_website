@@ -435,8 +435,8 @@ body {
   height: 104px;
   z-index: 45;
   pointer-events: none;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  /* backdrop-filter is set inline in Nav: the build's CSS pipeline drops it
+     from this rule (it survives only as an inline style, like the nav pill). */
   -webkit-mask-image: linear-gradient(to bottom, #000 58%, transparent 100%);
   mask-image: linear-gradient(to bottom, #000 58%, transparent 100%);
 }

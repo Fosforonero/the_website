@@ -37,7 +37,11 @@ export function Nav({ locale }: Props) {
           scrolls under the top of the page (technically real compositing, not
           a flat colour overlay), fading to clear just below the pill. Coupled
           to the Nav so it never appears on fullscreen lab pages. */}
-      <div className="fn-navfade" aria-hidden />
+      <div
+        className="fn-navfade"
+        aria-hidden
+        style={{ backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}
+      />
       <header
         style={{
           display: "flex",
