@@ -304,17 +304,26 @@ fn kerrDoppler(rd: f32, ps_at_hit: vec3f, hit: vec3f) -> f32 {
     } else {
       var dt = clamp(r*.10, .02, .9);
       if (r < 6.) { dt = min(dt, .016+.045*(r-1.)); }
-      // Refine the step ONLY inside the volumetric disk's emitting region —
-      // radial bounds + a few scale heights of the equatorial plane. The first
-      // version capped dt across the whole |y|<1.2 slab at ANY radius, so rays
-      // skimming the equator over-stepped all the way from r=60 inward (~25×
-      // the step count) and fps collapsed. Gating by the disk footprint keeps
-      // the fine sampling (and the jitter) exactly where the Gaussian thickness
-      // needs it, at a fraction of the cost.
+      // Refine the step inside the volumetric-disk slab, SCALED BY THE RAY'S
+      // VERTICAL SLOPE (same scheme as the WebGL shader). The previous flat
+      // dt=0.035 clamp inside the whole footprint made near-plane rays crawl:
+      // a ray skimming the equator stays in the slab for ~25-30 units of path,
+      // needing ~800 steps at 0.035 — but the vol-disk budget is 140-220, so
+      // those rays burned every step creeping through the dim outer disk and
+      // never reached the bright inner region (the equatorial band rendered
+      // BLACK), each at maximum per-step cost (fps collapse). Only the
+      // vertical Gaussian needs fine sampling ALONG Y: in-plane rays see no
+      // vertical density change and keep the coarse step (they traverse and
+      // escape early), vertical rays get a fine step but exit the slab in a
+      // few scale heights. Hh here is the crude (flux-free, slightly larger)
+      // version of the emission section's scale height — fine for a clamp.
       if (u.vol_disk > .5) {
         let rhoR = length(pos.xz);
-        if (rhoR > rIn && rhoR < u.disk_outer && abs(pos.y) < min(1.2, 0.30 * rhoR)) {
-          dt = min(dt, 0.035);
+        if (rhoR > rIn && rhoR < u.disk_outer) {
+          let HhR = clamp(u.vol_thick * sqrt(rhoR) * 0.22, 0.008, 0.18) * rhoR;
+          if (abs(pos.y) < 2.0 * HhR + 0.1) {
+            dt = min(dt, max(0.03, 0.22 * HhR / max(abs(dir.y), 0.15)));
+          }
         }
       }
 

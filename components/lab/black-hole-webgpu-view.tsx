@@ -293,10 +293,15 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
     if (!canvas) return;
     const coarse = typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches === true;
     if (justTurnedOn) {
-      // Vol disk is the heaviest path — drop DPR immediately, cap steps at 160.
+      // Vol disk is the heaviest path — drop DPR immediately and cap steps.
+      // Desktop cap 240 (= the "Med" preset, so the Steps select stays
+      // truthful; ≥200 keeps the PHYSICAL photon ring instead of the analytic
+      // fallback circle): affordable now that the slab step is slope-scaled
+      // and near-plane rays no longer crawl at dt=0.035 through their whole
+      // budget. Touch devices stay at 160 for fluidity.
       dprScaleRef.current = 0.65;
       recoverCeilRef.current = 1.0;   // new workload: let the governor re-probe
-      setSteps(s => Math.min(s, 160));
+      setSteps(s => Math.min(s, coarse ? 160 : 240));
       const baseCap = coarse ? 0.75 : 1.25;
       const dpr = Math.min(window.devicePixelRatio ?? 1, baseCap * 0.65);
       canvas.width  = Math.floor(canvas.clientWidth  * dpr);
