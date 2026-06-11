@@ -259,8 +259,8 @@ const it: Dict = {
   },
   instagram: {
     eyebrow: "§ V — Instagram",
-    title: "Dietro le quinte.",
-    body: "Frammenti di build, screenshot, dietro le quinte. Aggiornato manualmente dal feed @fosforonero.",
+    title: "Attraverso l'obiettivo.",
+    body: "La mia passione per la fotografia: paesaggi, viaggi, ritratti e dettagli. Una selezione dal feed @fosforonero.",
     openOriginal: "Apri su Instagram",
     close: "Chiudi",
     typeLabel: (t) => (t === "video" ? "VIDEO" : t === "carousel" ? "CAROSELLO" : "IMMAGINE"),
@@ -418,8 +418,8 @@ const en: Dict = {
   },
   instagram: {
     eyebrow: "§ V — Instagram",
-    title: "Behind the scenes.",
-    body: "Build fragments, screenshots, work-in-progress shots. Manually curated from the @fosforonero feed.",
+    title: "Through the lens.",
+    body: "My passion for photography: landscapes, travel, portraits and details. A selection from the @fosforonero feed.",
     openOriginal: "Open on Instagram",
     close: "Close",
     typeLabel: (t) => (t === "video" ? "VIDEO" : t === "carousel" ? "CAROUSEL" : "IMAGE"),

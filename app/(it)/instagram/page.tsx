@@ -11,8 +11,8 @@ import { getLocalePath, site } from "@/lib/site";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: "Instagram — dietro le quinte",
-  description: `Frammenti di build, screenshot, dietro le quinte. Feed @fosforonero curato a mano da ${site.author.name}, sviluppatore indipendente di ${site.name}.`,
+  title: "Fotografia — attraverso l'obiettivo",
+  description: `La passione per la fotografia di ${site.author.name}: paesaggi, viaggi, ritratti e dettagli. Una selezione dal feed Instagram @fosforonero.`,
   alternates: {
     canonical: "/instagram",
     languages: { it: "/instagram", en: "/en/instagram", "x-default": "/instagram" },

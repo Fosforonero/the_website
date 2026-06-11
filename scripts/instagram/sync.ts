@@ -111,6 +111,26 @@ async function downloadImage(url: string): Promise<Buffer> {
   return Buffer.from(await res.arrayBuffer());
 }
 
+// Download one image, optimise to webp at public/instagram/<fileId>.webp, and
+// return its public path plus the dominant colour and aspect ratio.
+async function processImage(
+  fileId: string,
+  url: string,
+): Promise<{ path: string; halo: string; aspect: number }> {
+  const raw = await downloadImage(url);
+  const { data: webp, info } = await sharp(raw)
+    .rotate() // honour EXIF orientation
+    .resize(1080, 1080, { fit: "inside", withoutEnlargement: true })
+    .webp({ quality: 82 })
+    .toBuffer({ resolveWithObject: true });
+  await fs.writeFile(path.join(PUBLIC_DIR, `${fileId}.webp`), webp);
+  return {
+    path: `/instagram/${fileId}.webp`,
+    halo: await dominantColour(raw),
+    aspect: Math.round((info.width / info.height) * 1000) / 1000,
+  };
+}
+
 async function main() {
   const { limit, refresh, debug, includeVideos } = parseArgs(process.argv.slice(2));
   if (debug) {
@@ -149,29 +169,36 @@ async function main() {
   let skipped = 0;
 
   for (const m of media) {
-    const imgUrl = pickImageUrl(m);
-    let image: string | null = null;
-    let halo = "#00A341"; // brand phosphor fallback
-    let aspect = 1; // width / height — drives the justified layout
+    const slides: string[] = [];
+    let halo = "#00A341"; // brand phosphor fallback (from the cover slide)
+    let aspect = 1; // cover width / height — drives the justified layout
 
-    if (imgUrl) {
-      try {
-        const raw = await downloadImage(imgUrl);
-        const { data: webp, info } = await sharp(raw)
-          .rotate() // honour EXIF orientation
-          .resize(1080, 1080, { fit: "inside", withoutEnlargement: true })
-          .webp({ quality: 82 })
-          .toBuffer({ resolveWithObject: true });
-        await fs.writeFile(path.join(PUBLIC_DIR, `${m.id}.webp`), webp);
-        halo = await dominantColour(raw);
-        aspect = Math.round((info.width / info.height) * 1000) / 1000;
-        image = `/instagram/${m.id}.webp`;
-        downloaded++;
-      } catch (err) {
-        console.warn(`  ⚠ ${m.id}: immagine non scaricata (${(err as Error).message})`);
-        skipped++;
+    try {
+      if (m.media_type === "CAROUSEL_ALBUM" && m.children?.data?.length) {
+        // Download every slide so the carousel is swipable; the first is the cover.
+        for (const child of m.children.data) {
+          const url = child.media_type === "VIDEO" ? child.thumbnail_url : child.media_url;
+          if (!url) continue;
+          const r = await processImage(child.id, url);
+          slides.push(r.path);
+          if (slides.length === 1) {
+            halo = r.halo;
+            aspect = r.aspect;
+          }
+        }
+      } else {
+        const url = pickImageUrl(m);
+        if (url) {
+          const r = await processImage(m.id, url);
+          slides.push(r.path);
+          halo = r.halo;
+          aspect = r.aspect;
+        }
       }
-    } else {
+      if (slides.length) downloaded++;
+      else skipped++;
+    } catch (err) {
+      console.warn(`  ⚠ ${m.id}: immagine non scaricata (${(err as Error).message})`);
       skipped++;
     }
 
@@ -180,7 +207,8 @@ async function main() {
       caption: m.caption?.trim() ?? "",
       date: m.timestamp.slice(0, 10), // yyyy-mm-dd
       permalink: m.permalink,
-      image,
+      image: slides[0] ?? null,
+      ...(slides.length > 1 ? { images: slides } : null),
       type: TYPE_MAP[m.media_type],
       size: "1x1",
       halo,

@@ -257,6 +257,10 @@ body {
   border-color: var(--color-accent);
   background: var(--color-accent-soft);
 }
+/* On phones M and L are visually almost the same → hide M, keep S and L. */
+@media (max-width: 639px) {
+  .fn-ig-sizectl button[data-size="m"] { display: none; }
+}
 
 /* Instagram dynamic wall — justified rows + dock-style hover magnify.
    Each row is a flex line; tiles grow ∝ their aspect ratio so widths
@@ -342,6 +346,61 @@ body {
   .fn-ig-jtile:focus-visible {
     transition: none !important;
   }
+}
+
+/* Lightbox carousel — prev/next nav, slide counter, dots. */
+.fn-ig-cnav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--color-ink);
+  background: rgba(255, 255, 255, 0.92);
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(10, 10, 10, 0.3);
+  transition: background 0.2s ease;
+}
+.fn-ig-cnav:hover { background: #fff; }
+.fn-ig-ccount {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: #fff;
+  background: rgba(10, 10, 10, 0.6);
+  padding: 4px 8px;
+  border-radius: 999px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.fn-ig-cdots {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+}
+.fn-ig-cdots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.5);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.fn-ig-cdots span.is-active {
+  background: #fff;
+  transform: scale(1.25);
 }
 
 /* Lock body scroll when the mobile drawer is open. */

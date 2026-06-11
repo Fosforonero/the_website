@@ -56,7 +56,7 @@ export function InstagramGallery({ posts, t, locale = "it", variant = "base" }: 
       <>
         <DynamicWall posts={posts} t={t} dateLocale={dateLocale} onOpen={setActive} />
         {active ? (
-          <Lightbox post={active} onClose={() => setActive(null)} t={t} dateLocale={dateLocale} />
+          <Lightbox key={active.id} post={active} onClose={() => setActive(null)} t={t} dateLocale={dateLocale} />
         ) : null}
       </>
     );
@@ -91,7 +91,7 @@ export function InstagramGallery({ posts, t, locale = "it", variant = "base" }: 
         </div>
       ) : null}
 
-      {active ? <Lightbox post={active} onClose={() => setActive(null)} t={t} dateLocale={dateLocale} /> : null}
+      {active ? <Lightbox key={active.id} post={active} onClose={() => setActive(null)} t={t} dateLocale={dateLocale} /> : null}
     </>
   );
 }
@@ -206,8 +206,12 @@ function DynamicWall({
   }, [hasMore, posts.length]);
 
   const gap = 12;
+  // On phones M and L look nearly identical, so M is hidden there and collapses
+  // to L (no phantom control). The size buttons hide M on mobile via CSS.
+  const isPhone = width > 0 && width < 640;
+  const effSize = isPhone && size === "m" ? "l" : size;
   // Base desktop row height per size; scaled down on narrower screens.
-  const baseH = size === "s" ? 210 : size === "l" ? 400 : 300;
+  const baseH = effSize === "s" ? 210 : effSize === "l" ? 400 : 300;
   const factor = width === 0 ? 1 : width < 640 ? 0.58 : width < 1024 ? 0.8 : 1;
   const targetH = Math.round(baseH * factor);
   const rows = width > 0 ? computeRows(shown, width, targetH, gap) : [];
@@ -219,10 +223,11 @@ function DynamicWall({
           <button
             key={s}
             type="button"
+            data-size={s}
             onClick={() => changeSize(s)}
-            aria-pressed={size === s}
+            aria-pressed={effSize === s}
             aria-label={s === "s" ? "Foto piccole" : s === "m" ? "Foto medie" : "Foto grandi"}
-            className={size === s ? "is-active" : undefined}
+            className={effSize === s ? "is-active" : undefined}
           >
             {s.toUpperCase()}
           </button>
@@ -501,9 +506,21 @@ function Lightbox({
 
   const close = useCallback(() => onClose(), [onClose]);
 
+  // Slides: a carousel post has ≥2; otherwise the single cover image.
+  const imgs =
+    post.images && post.images.length > 1 ? post.images : post.image ? [post.image] : [];
+  const [idx, setIdx] = useState(0);
+  const go = useCallback(
+    (d: number) => setIdx((i) => Math.max(0, Math.min(imgs.length - 1, i + d))),
+    [imgs.length],
+  );
+  const touchX = useRef<number | null>(null);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") close();
+      else if (e.key === "ArrowLeft") go(-1);
+      else if (e.key === "ArrowRight") go(1);
     };
     document.addEventListener("keydown", onKey);
     document.body.classList.add("fn-no-scroll");
@@ -511,7 +528,7 @@ function Lightbox({
       document.removeEventListener("keydown", onKey);
       document.body.classList.remove("fn-no-scroll");
     };
-  }, [close]);
+  }, [close, go]);
 
   return (
     <div
@@ -561,6 +578,16 @@ function Lightbox({
         }}
       >
         <div
+          onTouchStart={(e) => {
+            touchX.current = e.touches[0]?.clientX ?? null;
+          }}
+          onTouchEnd={(e) => {
+            if (touchX.current == null) return;
+            const end = e.changedTouches[0]?.clientX ?? touchX.current;
+            const dx = end - touchX.current;
+            if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
+            touchX.current = null;
+          }}
           style={{
             position: "relative",
             width: "100%",
@@ -572,12 +599,13 @@ function Lightbox({
             alignItems: "center",
             justifyContent: "center",
             flex: "0 0 auto",
+            touchAction: "pan-y",
           }}
         >
-          {post.image ? (
+          {imgs.length ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={post.image}
+              src={imgs[idx]}
               alt={clip(post.caption, 80)}
               style={{ width: "100%", height: "100%", objectFit: "contain" }}
             />
@@ -586,6 +614,41 @@ function Lightbox({
               <InstaIcon size={56} />
             </div>
           )}
+
+          {imgs.length > 1 ? (
+            <>
+              {idx > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => go(-1)}
+                  aria-label="Slide precedente"
+                  className="fn-ig-cnav"
+                  style={{ left: 12 }}
+                >
+                  ‹
+                </button>
+              ) : null}
+              {idx < imgs.length - 1 ? (
+                <button
+                  type="button"
+                  onClick={() => go(1)}
+                  aria-label="Slide successiva"
+                  className="fn-ig-cnav"
+                  style={{ right: 12 }}
+                >
+                  ›
+                </button>
+              ) : null}
+              <span className="fn-ig-ccount">
+                {idx + 1}/{imgs.length}
+              </span>
+              <div className="fn-ig-cdots" aria-hidden>
+                {imgs.map((src, i) => (
+                  <span key={src} className={i === idx ? "is-active" : undefined} />
+                ))}
+              </div>
+            </>
+          ) : null}
 
           <button
             type="button"

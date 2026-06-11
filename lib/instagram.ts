@@ -19,6 +19,8 @@ export type InstaPost = {
   permalink?: string;
   /** Path inside /public, e.g. "/instagram/abc.webp". null = render placeholder. */
   image: string | null;
+  /** All slides for a carousel post (≥2). Absent for single-image posts. */
+  images?: string[];
   type?: InstaType;
   /** Bento tile size — defaults to 1x1. */
   size?: InstaTileSize;

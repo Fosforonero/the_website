@@ -11,8 +11,8 @@ import { getLocalePath, site } from "@/lib/site";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: "Instagram — behind the scenes",
-  description: `Build fragments, screenshots, work-in-progress shots. @fosforonero feed manually curated by ${site.author.name}, independent software engineer at ${site.name}.`,
+  title: "Photography — through the lens",
+  description: `${site.author.name}'s passion for photography: landscapes, travel, portraits and details. A selection from the @fosforonero Instagram feed.`,
   alternates: {
     canonical: "/en/instagram",
     languages: { it: "/instagram", en: "/en/instagram", "x-default": "/instagram" },
