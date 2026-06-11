@@ -231,6 +231,33 @@ body {
   }
 }
 
+/* Instagram wall — size control (S/M/L segmented), right-aligned above grid. */
+.fn-ig-sizectl {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+.fn-ig-sizectl button {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  width: 30px;
+  height: 28px;
+  border: 1px solid var(--color-rule);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--color-dim);
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+.fn-ig-sizectl button:hover { color: var(--color-ink); }
+.fn-ig-sizectl button.is-active {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
 /* Instagram dynamic wall — justified rows + dock-style hover magnify.
    Each row is a flex line; tiles grow ∝ their aspect ratio so widths
    reproduce the real photo shapes and fill the row. Hover boosts the tile's

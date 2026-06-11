@@ -156,6 +156,23 @@ function DynamicWall({
   // fallback markup → no hydration mismatch; rows appear after mount.
   const [width, setWidth] = useState(0);
 
+  // Tile size = target row height. Bigger → larger previews, fewer per row.
+  // In a justified layout this is the real lever (the per-row count follows).
+  // Persisted so the choice sticks; this is the future plugin "size" setting.
+  const [size, setSize] = useState<"s" | "m" | "l">("m");
+  useEffect(() => {
+    const saved = window.localStorage.getItem("fn-ig-size");
+    if (saved === "s" || saved === "m" || saved === "l") setSize(saved);
+  }, []);
+  const changeSize = (s: "s" | "m" | "l") => {
+    setSize(s);
+    try {
+      window.localStorage.setItem("fn-ig-size", s);
+    } catch {
+      /* private mode — non-fatal */
+    }
+  };
+
   // Infinite scroll: render an initial batch, then reveal older photos as the
   // sentinel scrolls into view. The first INITIAL items are in the SSR fallback
   // markup so the most recent posts are crawlable (SEO); older ones load
@@ -189,11 +206,28 @@ function DynamicWall({
   }, [hasMore, posts.length]);
 
   const gap = 12;
-  const targetH = width === 0 ? 220 : width < 640 ? 150 : width < 1024 ? 200 : 250;
+  // Base desktop row height per size; scaled down on narrower screens.
+  const baseH = size === "s" ? 210 : size === "l" ? 400 : 300;
+  const factor = width === 0 ? 1 : width < 640 ? 0.58 : width < 1024 ? 0.8 : 1;
+  const targetH = Math.round(baseH * factor);
   const rows = width > 0 ? computeRows(shown, width, targetH, gap) : [];
 
   return (
     <div ref={ref} style={{ marginTop: "clamp(20px, 3vw, 32px)" }}>
+      <div className="fn-ig-sizectl" role="group" aria-label="Dimensione foto">
+        {(["s", "m", "l"] as const).map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => changeSize(s)}
+            aria-pressed={size === s}
+            aria-label={s === "s" ? "Foto piccole" : s === "m" ? "Foto medie" : "Foto grandi"}
+            className={size === s ? "is-active" : undefined}
+          >
+            {s.toUpperCase()}
+          </button>
+        ))}
+      </div>
       {width === 0 ? (
         // SSR / first-paint fallback: a CSS flex-wrap justified row so the
         // images are in the HTML (SEO) before measurement kicks in.
