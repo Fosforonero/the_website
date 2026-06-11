@@ -98,6 +98,46 @@ solo con un tenant. Non è lavoro buttato.
   gestisce come immagini con chip "video". Riproduzione inline = scope futuro.
 - **WordPress**: distribuzione su wp.org (review) vs vendita diretta?
 
+## 9. Backlog feature (raccolto in sessione, 2026-06-11)
+
+Idee emerse mentre il wall prendeva forma. Triage: **[wall]** = riguarda il
+componente di rendering (vendibile come layout/UX); **[backend]** = richiede il
+servizio + permessi Meta; **[AI]** = richiede un LLM (Claude API).
+
+### Layout & UX del wall
+- **[wall] Layout "base"**: griglia uniforme 1:1 con hero — FATTO, è il preset di
+  default. Salvato come configurazione base.
+- **[wall] Layout "dinamico"**: usa la **forma esatta** delle foto (aspect ratio
+  reale), giustificato a righe (Flickr/Google Photos) o masonry (Pinterest).
+- **[wall] Hover-magnify**: al passaggio del mouse l'immagine si ingrandisce un
+  po' e **ridimensiona le vicine** (effetto dock). Da progettare.
+- **[wall] Lightbox** (già esistente): al click l'immagine si apre in
+  sovrimpressione su sfondo scuro (termine: *lightbox* + *backdrop/scrim*).
+- **[wall] Caroselli swipabili**: i post multi-immagine vanno sfogliati
+  (swipe/frecce) sia nella tile sia nel lightbox.
+- **[wall] Icona di condivisione** per ogni immagine (share nativo / copia link).
+- **[wall] UX caption**: oggi va "sotto col mouse". Valutare se rendere
+  swipabile l'intera immagine (gesto naturale Instagram) e tenere la caption
+  sempre sotto.
+- **[wall] Video** (quando riattivati): anteprima breve all'hover, play al click,
+  controlli (pausa, ecc.). Esclusi di default in Fase 1.
+- **[wall] Nav/scroll-fade pulito**: sostituire il "trucchetto del gradiente" che
+  maschera il contenuto sotto la nav flottante con una soluzione professionale
+  (nav frosted con backdrop-filter + scroll-padding-top), valida per tutto il sito.
+
+### Feature di prodotto (plugin)
+- **[backend][AI] Ottimizzatore SEO/GEO Instagram**: legge caption + hashtag +
+  (vision sull'immagine) e suggerisce caption/hashtag/alt ottimizzati secondo le
+  best practice correnti. **Limite Meta**: l'API NON permette di modificare la
+  caption di un post **già pubblicato** (solo l'app lo consente a mano); si può
+  applicare a **nuovi** post in fase di publish. Quindi: analizza + suggerisce
+  sempre; auto-applica solo su nuovi contenuti.
+- **[backend] Gestione commenti**: leggere, **rispondere**, nascondere/eliminare i
+  commenti sui propri media (scope `instagram_business_manage_comments`, incluso
+  nel caso d'uso già attivato). Moderazione fattibile via API.
+- **[backend] Publish/scheduling** di nuovi post (scope content publish) — già
+  parte del caso d'uso, da valutare se in scope prodotto.
+
 ## 8. Principi (ereditati dal progetto)
 
 - **Fail loud, never fake**: se manca token/dato reale, errore esplicito, mai mock.
