@@ -125,6 +125,14 @@ servizio + permessi Meta; **[AI]** = richiede un LLM (Claude API).
   maschera il contenuto sotto la nav flottante con una soluzione professionale
   (nav frosted con backdrop-filter + scroll-padding-top), valida per tutto il sito.
 
+- **[wall][AI] Punto focale sul viso**: nel layout giustificato le tile hanno già
+  la forma esatta (niente crop a riposo), ma lo zoom hover e la compressione delle
+  vicine partono dal centro. Soluzione: salvare `focusX/focusY` e applicarlo come
+  `object-position`. Euristica gratis ora (sharp attention); preciso agganciandolo
+  alla chiamata vision AI già prevista (face bbox dallo stesso passaggio SEO).
+- **[wall] Infinite scroll**: caricamento progressivo dei post più vecchi (sentinel
+  + IntersectionObserver). Batch iniziale nell'HTML per SEO; resto progressivo.
+
 ### Feature di prodotto (plugin)
 - **[backend][AI] Ottimizzatore SEO/GEO Instagram**: legge caption + hashtag +
   (vision sull'immagine) e suggerisce caption/hashtag/alt ottimizzati secondo le
@@ -132,9 +140,22 @@ servizio + permessi Meta; **[AI]** = richiede un LLM (Claude API).
   caption di un post **già pubblicato** (solo l'app lo consente a mano); si può
   applicare a **nuovi** post in fase di publish. Quindi: analizza + suggerisce
   sempre; auto-applica solo su nuovi contenuti.
+  - **Workflow ottimizzazione (metodo scelto)**: la caption non è editabile via
+    API → testo IT+EN copiabile con un tap + deep-link "Apri in Instagram" per
+    incollare (post vecchi); auto sui post nuovi (publish API). **Gli hashtag**
+    invece si iniettano come **primo commento** via comment API → automatizzabile
+    anche sui post già pubblicati. WhatsApp solo come canale notifica opzionale.
 - **[backend] Gestione commenti**: leggere, **rispondere**, nascondere/eliminare i
   commenti sui propri media (scope `instagram_business_manage_comments`, incluso
   nel caso d'uso già attivato). Moderazione fattibile via API.
+- **[backend][AI] Ottimizzazione data-driven (loop che impara)**: NON "seguire
+  l'algoritmo segreto di Instagram" (impossibile + claim fasullo, vietato dal
+  principio fail-loud). Versione onesta e più forte: usare l'**Insights API**
+  (reach, salvataggi, condivisioni, engagement, orari attivi del pubblico,
+  performance per tipo di contenuto) per imparare cosa funziona **per questo
+  account** e affinare caption/hashtag/orari/strategia sui risultati reali, in
+  un loop suggerisci→pubblica→misura→affina. Best-practice ruleset aggiornabile.
+  ⚠️ Mai vendere come "conosciamo l'algoritmo".
 - **[backend] Publish/scheduling** di nuovi post (scope content publish) — già
   parte del caso d'uso, da valutare se in scope prodotto.
 

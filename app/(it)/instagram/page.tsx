@@ -95,7 +95,7 @@ export default async function InstagramPageIT() {
           </a>
         </header>
 
-        <InstagramGallery posts={posts} t={galleryT} locale="it" />
+        <InstagramGallery posts={posts} t={galleryT} locale="it" variant="dynamic" />
       </main>
       <ComingSoonLegalFooter locale="it" t={t} />
     </div>

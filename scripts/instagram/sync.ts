@@ -152,17 +152,19 @@ async function main() {
     const imgUrl = pickImageUrl(m);
     let image: string | null = null;
     let halo = "#00A341"; // brand phosphor fallback
+    let aspect = 1; // width / height — drives the justified layout
 
     if (imgUrl) {
       try {
         const raw = await downloadImage(imgUrl);
-        const webp = await sharp(raw)
+        const { data: webp, info } = await sharp(raw)
           .rotate() // honour EXIF orientation
           .resize(1080, 1080, { fit: "inside", withoutEnlargement: true })
           .webp({ quality: 82 })
-          .toBuffer();
+          .toBuffer({ resolveWithObject: true });
         await fs.writeFile(path.join(PUBLIC_DIR, `${m.id}.webp`), webp);
         halo = await dominantColour(raw);
+        aspect = Math.round((info.width / info.height) * 1000) / 1000;
         image = `/instagram/${m.id}.webp`;
         downloaded++;
       } catch (err) {
@@ -182,6 +184,7 @@ async function main() {
       type: TYPE_MAP[m.media_type],
       size: "1x1",
       halo,
+      aspect,
     });
   }
 

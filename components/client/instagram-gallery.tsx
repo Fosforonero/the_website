@@ -11,8 +11,8 @@
 // - YES scroll-stagger reveal (fade + rise) for cinematic entrance.
 // - YES placeholder tiles with a barely-there neutral gradient (no colour).
 
-import { useCallback, useEffect, useId, useState } from "react";
-import type { ReactNode } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import type { InstaPost } from "@/lib/instagram";
 import { Reveal } from "@/components/client/reveal";
 
@@ -25,9 +25,10 @@ type T = {
   empty: string;
 };
 
-type Props = { posts: InstaPost[]; t: T; locale?: "it" | "en" };
+type Variant = "base" | "dynamic";
+type Props = { posts: InstaPost[]; t: T; locale?: "it" | "en"; variant?: Variant };
 
-export function InstagramGallery({ posts, t, locale = "it" }: Props) {
+export function InstagramGallery({ posts, t, locale = "it", variant = "base" }: Props) {
   const [active, setActive] = useState<InstaPost | null>(null);
   const dateLocale = locale === "en" ? "en-US" : "it-IT";
 
@@ -45,6 +46,19 @@ export function InstagramGallery({ posts, t, locale = "it" }: Props) {
       >
         {t.empty}
       </p>
+    );
+  }
+
+  // Dynamic variant: justified rows preserving each photo's exact aspect ratio,
+  // with a dock-style hover that grows the hovered tile and shrinks its row-mates.
+  if (variant === "dynamic") {
+    return (
+      <>
+        <DynamicWall posts={posts} t={t} dateLocale={dateLocale} onOpen={setActive} />
+        {active ? (
+          <Lightbox post={active} onClose={() => setActive(null)} t={t} dateLocale={dateLocale} />
+        ) : null}
+      </>
     );
   }
 
@@ -79,6 +93,167 @@ export function InstagramGallery({ posts, t, locale = "it" }: Props) {
 
       {active ? <Lightbox post={active} onClose={() => setActive(null)} t={t} dateLocale={dateLocale} /> : null}
     </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Dynamic wall — justified rows (Flickr/Google Photos style).
+// Each row is a flex container at a computed height; tiles flex-grow ∝ aspect
+// so their widths reproduce the real photo shapes and fill the row edge to
+// edge. Hovering a tile boosts its flex-grow → it widens and its row-mates
+// shrink (dock magnification), with no row re-wrapping since each row is its
+// own flex line.
+// ─────────────────────────────────────────────────────────────
+
+type Row = { items: InstaPost[]; height: number; last: boolean };
+
+// Greedy justified row-breaking: accumulate tiles until their natural width at
+// the target height fills the container, then lock that row's exact height.
+function computeRows(posts: InstaPost[], containerW: number, targetH: number, gap: number): Row[] {
+  const rows: Row[] = [];
+  let row: InstaPost[] = [];
+  let arSum = 0;
+  for (const p of posts) {
+    const ar = p.aspect && p.aspect > 0 ? p.aspect : 1;
+    row.push(p);
+    arSum += ar;
+    const naturalW = arSum * targetH + gap * (row.length - 1);
+    if (naturalW >= containerW) {
+      const h = (containerW - gap * (row.length - 1)) / arSum;
+      rows.push({ items: row, height: h, last: false });
+      row = [];
+      arSum = 0;
+    }
+  }
+  if (row.length) {
+    // Trailing row. With ≥2 photos, justify it to full width like the others
+    // (a sparse half-row reads as broken). A lone trailing photo keeps its
+    // natural size at the target height rather than ballooning full-width.
+    if (row.length >= 2) {
+      const h = (containerW - gap * (row.length - 1)) / arSum;
+      rows.push({ items: row, height: h, last: false });
+    } else {
+      rows.push({ items: row, height: targetH, last: true });
+    }
+  }
+  return rows;
+}
+
+function DynamicWall({
+  posts,
+  t,
+  dateLocale,
+  onOpen,
+}: {
+  posts: InstaPost[];
+  t: T;
+  dateLocale: string;
+  onOpen: (p: InstaPost) => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  // 0 until measured. Server and first client render both see 0 → identical
+  // fallback markup → no hydration mismatch; rows appear after mount.
+  const [width, setWidth] = useState(0);
+
+  // Infinite scroll: render an initial batch, then reveal older photos as the
+  // sentinel scrolls into view. The first INITIAL items are in the SSR fallback
+  // markup so the most recent posts are crawlable (SEO); older ones load
+  // progressively, the standard indexable-initial pattern.
+  const INITIAL = 18;
+  const BATCH = 12;
+  const [visible, setVisible] = useState(INITIAL);
+  const hasMore = visible < posts.length;
+  const shown = posts.slice(0, visible);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setWidth(el.clientWidth));
+    ro.observe(el);
+    setWidth(el.clientWidth);
+    return () => ro.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || !hasMore) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) setVisible((v) => Math.min(v + BATCH, posts.length));
+      },
+      { rootMargin: "600px 0px" }, // prefetch before the user reaches the bottom
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasMore, posts.length]);
+
+  const gap = 12;
+  const targetH = width === 0 ? 220 : width < 640 ? 150 : width < 1024 ? 200 : 250;
+  const rows = width > 0 ? computeRows(shown, width, targetH, gap) : [];
+
+  return (
+    <div ref={ref} style={{ marginTop: "clamp(20px, 3vw, 32px)" }}>
+      {width === 0 ? (
+        // SSR / first-paint fallback: a CSS flex-wrap justified row so the
+        // images are in the HTML (SEO) before measurement kicks in.
+        <div style={{ display: "flex", flexWrap: "wrap", gap }}>
+          {shown.map((p) => (
+            <div
+              key={p.id}
+              style={{
+                height: targetH,
+                flexGrow: p.aspect ?? 1,
+                flexBasis: (p.aspect ?? 1) * targetH,
+                position: "relative",
+                borderRadius: 12,
+                overflow: "hidden",
+              }}
+            >
+              <TileVisual post={p} t={t} />
+            </div>
+          ))}
+        </div>
+      ) : (
+        rows.map((row, ri) => (
+          <Reveal key={ri} delay={ri * 70}>
+            <div style={{ display: "flex", gap, height: row.height, marginBottom: gap }}>
+              {row.items.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => onOpen(p)}
+                  aria-label={`Apri post: ${clip(p.caption, 60)}`}
+                  className={`fn-ig-jtile${row.last ? " fn-ig-jtile--last" : ""}`}
+                  style={
+                    {
+                      ["--ar"]: p.aspect ?? 1,
+                      ...(row.last ? { flexBasis: (p.aspect ?? 1) * row.height } : null),
+                      height: "100%",
+                    } as CSSProperties
+                  }
+                >
+                  <TileVisual post={p} t={t} />
+                  <DynamicCaption post={p} dateLocale={dateLocale} />
+                </button>
+              ))}
+            </div>
+          </Reveal>
+        ))
+      )}
+      {hasMore ? <div ref={sentinelRef} aria-hidden style={{ height: 1 }} /> : null}
+    </div>
+  );
+}
+
+// Caption strip for a justified tile — hidden until hover/focus, slides up.
+function DynamicCaption({ post, dateLocale }: { post: InstaPost; dateLocale: string }) {
+  if (!post.image) return null;
+  return (
+    <div className="fn-ig-jcap" aria-hidden>
+      <span className="fn-ig-jcap__date">{formatDate(post.date, dateLocale)}</span>
+      {post.caption ? <span className="fn-ig-jcap__text">{clip(post.caption, 70)}</span> : null}
+    </div>
   );
 }
 

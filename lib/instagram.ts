@@ -24,6 +24,8 @@ export type InstaPost = {
   size?: InstaTileSize;
   /** Dominant colour used for the hover halo. Hex string. */
   halo?: string;
+  /** width / height of the image — drives the justified "dynamic" layout. */
+  aspect?: number;
 };
 
 const FILE = path.join(process.cwd(), "content", "instagram", "posts.json");
