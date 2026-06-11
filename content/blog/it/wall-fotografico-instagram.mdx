@@ -1,0 +1,35 @@
+---
+title: "Un wall fotografico da Instagram, senza scraping"
+excerpt: "Come ho portato il mio feed Instagram sul sito nel 2026: niente scraping, API ufficiali, sito statico e un layout che rispetta ogni scatto."
+date: "2026-06-11"
+tag: "Dev"
+image: "/blog/fotografia/wall-fotografico-instagram.jpg"
+imageAlt: "Il wall fotografico del sito Fosforonero: righe giustificate di foto che rispettano l'aspect ratio reale di ogni scatto"
+draft: true
+---
+
+Volevo una cosa semplice: mostrare le mie foto Instagram sul sito, ma fatte bene, non incastrate in un widget di terze parti pieno di branding altrui. Sembrava un pomeriggio di lavoro. Si è rivelato un piccolo viaggio nelle macerie delle API di Meta. Il risultato lo vedi nella [pagina Fotografia](/fotografia).
+
+## Niente scraping: cosa è cambiato nel 2026
+
+La prima idea, quella ingenua, è "dammi l'handle e tiro giù le foto". Nel 2026 non funziona più, ed è importante capirlo se vuoi costruirci sopra qualcosa di serio.
+
+Meta ha **chiuso l'Instagram Basic Display API a dicembre 2024**. Le pagine di profilo pubbliche richiedono login per quasi tutto, gli endpoint JSON pubblici non esistono più, e lo scraping non autenticato viene bloccato in fretta. Non è solo fragile: viola i Termini di Servizio, e Meta ha fatto causa a chi lo fa. Per un sito personale è un rischio inutile; per un prodotto da vendere è insostenibile.
+
+La strada lecita oggi è una sola: la [Instagram Platform API](https://developers.facebook.com/docs/instagram-platform) con account Business o Creator, una app su Meta for Developers e un token di accesso autorizzato via OAuth. Tu **autorizzi una volta**, e da lì leggi i tuoi media. Niente magie sull'account altrui — è progettato apposta così.
+
+## L'architettura: uno script di sync, sito statico
+
+Il sito è Next.js statico su Vercel, e volevo restasse tale. Quindi niente fetch a runtime: un piccolo script (`pnpm ig:sync`) che gira quando voglio aggiornare la galleria.
+
+Lo script chiama la Graph API, scarica ogni immagine in `/public`, ne estrae il colore dominante e l'aspect ratio, e riscrive un singolo file JSON che la pagina legge a build time. Un dettaglio cruciale: gli URL che la Graph API restituisce sono **link CDN temporanei che scadono in poche ore**. Se li usassi direttamente, la galleria si romperebbe da sola entro un giorno. Scaricando i file in locale diventano permanenti, veloci e versionati.
+
+## Il layout: righe giustificate e forma esatta
+
+La parte divertente. Una griglia di quadrati ritagliati è noiosa e taglia le foto male. Volevo che ogni scatto mantenesse la sua **forma reale** — verticali, panoramiche, quadrati — come una galleria editoriale.
+
+La soluzione sono righe giustificate in stile Flickr: ogni riga è un contenitore flex con altezza calcolata, e ogni foto cresce in proporzione al suo aspect ratio fino a riempire la riga da bordo a bordo. Sopra ci ho messo un hover "dock": passando il mouse, la foto si allarga un po' e le vicine nella stessa riga si stringono, con un movimento lento ed elegante. C'è l'infinite scroll per le foto più vecchie, i caroselli sono sfogliabili, e l'header usa una vera sfocatura `backdrop-filter` invece del solito trucco del gradiente bianco.
+
+## Cosa c'è dopo
+
+Il muro è la fondazione di qualcosa di più grande: un widget "muro Instagram" vendibile, con un backend che gestisce OAuth e token e client leggeri per WordPress e React. Ma quella è un'altra storia — e, questa volta, parte da basi oneste.

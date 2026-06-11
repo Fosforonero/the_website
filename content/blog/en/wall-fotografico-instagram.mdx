@@ -1,0 +1,35 @@
+---
+title: "A photo wall from Instagram, without scraping"
+excerpt: "How I brought my Instagram feed onto the site in 2026: no scraping, official APIs, a static build, and a layout that respects every photo's shape."
+date: "2026-06-11"
+tag: "Dev"
+image: "/blog/fotografia/wall-fotografico-instagram.jpg"
+imageAlt: "The Fosforonero photo wall: justified rows of photos that preserve the real aspect ratio of each shot"
+draft: true
+---
+
+I wanted something simple: show my Instagram photos on the site, but done right — not wedged into a third-party widget covered in someone else's branding. It looked like an afternoon of work. It turned into a little tour through the rubble of Meta's APIs. You can see the result on the [Photography page](/en/photography).
+
+## No scraping: what changed in 2026
+
+The naive first idea is "give me the handle and I'll pull the photos." In 2026 that no longer works, and it matters if you want to build something serious on top of it.
+
+Meta **shut down the Instagram Basic Display API in December 2024**. Public profile pages require login for almost everything, the public JSON endpoints are gone, and unauthenticated scraping gets blocked fast. It's not just fragile: it violates the Terms of Service, and Meta has sued the people who do it. For a personal site it's a pointless risk; for a product you intend to sell it's untenable.
+
+The one legitimate path today is the [Instagram Platform API](https://developers.facebook.com/docs/instagram-platform) with a Business or Creator account, an app on Meta for Developers, and an access token authorized via OAuth. You **authorize once**, and from there you read your own media. No magic on someone else's account — it's designed that way on purpose.
+
+## The architecture: a sync script, static site
+
+The site is a static Next.js build on Vercel, and I wanted it to stay that way. So no runtime fetching: a small script (`pnpm ig:sync`) that runs whenever I want to refresh the gallery.
+
+The script calls the Graph API, downloads each image into `/public`, extracts its dominant colour and aspect ratio, and rewrites a single JSON file the page reads at build time. One crucial detail: the URLs the Graph API returns are **temporary CDN links that expire within hours**. Use them directly and the gallery breaks itself within a day. Downloading the files locally makes them permanent, fast, and versioned.
+
+## The layout: justified rows, exact shape
+
+The fun part. A grid of cropped squares is boring and frames photos badly. I wanted each shot to keep its **real shape** — verticals, panoramas, squares — like an editorial gallery.
+
+The answer is Flickr-style justified rows: each row is a flex container at a computed height, and every photo grows in proportion to its aspect ratio until it fills the row edge to edge. On top I added a "dock" hover: as you point at a photo it widens a little and its row-mates ease back, in a slow, elegant motion. There's infinite scroll for older photos, carousels are swipable, and the header uses a real `backdrop-filter` blur instead of the usual white-gradient trick.
+
+## What's next
+
+The wall is the foundation of something bigger: a sellable "Instagram wall" widget, with a backend that handles OAuth and tokens and thin clients for WordPress and React. But that's another story — and this time it starts from honest foundations.
