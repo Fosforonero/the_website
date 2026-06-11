@@ -7,15 +7,15 @@ export const dynamic = "force-static";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
-  // Static pages: home + blog index + legal pages + instagram, per locale
-  // Periodic table is excluded here because EN slug differs (/en/lab/periodic-table ≠ /en/lab/tavola-periodica)
+  // Static pages: home + blog index + legal pages, per locale (symmetric slugs).
+  // Pages whose EN slug differs (periodic table, identity, photography) are
+  // declared explicitly below.
   const staticPaths = [
     "/",
     "/lab",
     "/blog",
     "/privacy",
     "/cookies",
-    "/instagram",
   ];
   // One entry per locale per path so both IT and EN URLs appear explicitly.
   const staticEntries: MetadataRoute.Sitemap = staticPaths.flatMap((p) =>
@@ -359,5 +359,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  return [...staticEntries, ...periodicTableEntries, ...identityEntry, ...manualEntry, ...solarSystemEntries, ...blackHoleEntries, ...postEntries];
+  // Photography wall — slug differs per locale (/fotografia · /en/photography).
+  const photographyEntry: MetadataRoute.Sitemap = [
+    {
+      url: `${site.url}/fotografia`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+      alternates: {
+        languages: {
+          it: `${site.url}/fotografia`,
+          en: `${site.url}/en/photography`,
+        },
+      },
+    },
+    {
+      url: `${site.url}/en/photography`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+      alternates: {
+        languages: {
+          it: `${site.url}/fotografia`,
+          en: `${site.url}/en/photography`,
+        },
+      },
+    },
+  ];
+
+  return [...staticEntries, ...photographyEntry, ...periodicTableEntries, ...identityEntry, ...manualEntry, ...solarSystemEntries, ...blackHoleEntries, ...postEntries];
 }

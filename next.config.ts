@@ -16,6 +16,15 @@ const nextConfig: NextConfig = {
   // satisfy Next 16's literal route types. Re-enable when navigation is
   // refactored around the Route<T> helper.
   typedRoutes: false,
+  // The photography wall moved from /instagram → /fotografia (IT) and
+  // /en/instagram → /en/photography (EN). Permanent redirects preserve the
+  // old URLs (they were live) for SEO and any existing links.
+  async redirects() {
+    return [
+      { source: "/instagram", destination: "/fotografia", permanent: true },
+      { source: "/en/instagram", destination: "/en/photography", permanent: true },
+    ];
+  },
   // Response headers: aggressive cache on static assets + site-wide security
   // headers. HSTS is already added automatically by Vercel
   // (strict-transport-security: max-age=63072000), so we don't duplicate it.

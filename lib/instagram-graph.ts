@@ -52,9 +52,9 @@ const MEDIA_FIELDS =
  * silently fall back to stale or fake data.
  */
 export async function fetchUserMedia(
-  userId: string,
   accessToken: string,
   limit = 24,
+  userId = "me", // "me" resolves to the token's own account — no numeric id needed
 ): Promise<IgMedia[]> {
   const out: IgMedia[] = [];
   let url =

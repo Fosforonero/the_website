@@ -12,16 +12,16 @@ import { instagramGalleryLd } from "@/lib/jsonld";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: "Photography — through the lens",
-  description: `${site.author.name}'s passion for photography: landscapes, travel, portraits and details. A selection from the @fosforonero Instagram feed.`,
+  title: "Fotografia — attraverso l'obiettivo",
+  description: `La passione per la fotografia di ${site.author.name}: paesaggi, viaggi, ritratti e dettagli. Una selezione dal feed Instagram @fosforonero.`,
   alternates: {
-    canonical: "/en/instagram",
-    languages: { it: "/instagram", en: "/en/instagram", "x-default": "/instagram" },
+    canonical: "/fotografia",
+    languages: { it: "/fotografia", en: "/en/photography", "x-default": "/fotografia" },
   },
 };
 
-export default async function InstagramPageEN() {
-  const t = getDictionary("en");
+export default async function InstagramPageIT() {
+  const t = getDictionary("it");
   const posts = await getAllInstagramPosts();
   const galleryT = {
     openOriginal: t.instagram.openOriginal,
@@ -40,9 +40,9 @@ export default async function InstagramPageEN() {
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(instagramGalleryLd(posts, "en")) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(instagramGalleryLd(posts, "it")) }}
       />
-      <Nav locale="en" />
+      <Nav locale="it" />
       <main
         id="main"
         style={{
@@ -102,40 +102,54 @@ export default async function InstagramPageEN() {
           </a>
         </header>
 
-        <InstagramGallery posts={posts} t={galleryT} locale="en" />
+        <InstagramGallery posts={posts} t={galleryT} locale="it" variant="dynamic" />
       </main>
-      <div
-        style={{
-          padding: "clamp(20px, 4vw, 32px) clamp(20px, 5vw, 64px)",
-          display: "flex",
-          flexWrap: "wrap",
-          justifyContent: "center",
-          gap: "10px 18px",
-          fontFamily: "var(--font-mono)",
-          fontSize: 11,
-          color: "var(--color-dim)",
-          letterSpacing: "0.12em",
-          borderTop: "1px solid var(--color-rule)",
-        }}
+      <ComingSoonLegalFooter locale="it" t={t} />
+    </div>
+  );
+}
+
+// Small legal-only footer (same as ComingSoon) so the Instagram page stays
+// quiet and doesn't pull in the full marketing footer.
+function ComingSoonLegalFooter({
+  locale,
+  t,
+}: {
+  locale: "it" | "en";
+  t: ReturnType<typeof getDictionary>;
+}) {
+  return (
+    <div
+      style={{
+        padding: "clamp(20px, 4vw, 32px) clamp(20px, 5vw, 64px)",
+        display: "flex",
+        flexWrap: "wrap",
+        justifyContent: "center",
+        gap: "10px 18px",
+        fontFamily: "var(--font-mono)",
+        fontSize: 11,
+        color: "var(--color-dim)",
+        letterSpacing: "0.12em",
+        borderTop: "1px solid var(--color-rule)",
+      }}
+    >
+      <Link
+        href={getLocalePath(locale, "/privacy")}
+        className="fn-link-underline"
+        style={{ color: "var(--color-dim)", textDecoration: "none" }}
       >
-        <Link
-          href={getLocalePath("en", "/privacy")}
-          className="fn-link-underline"
-          style={{ color: "var(--color-dim)", textDecoration: "none" }}
-        >
-          {t.footer.legal.privacy}
-        </Link>
-        <Link
-          href={getLocalePath("en", "/cookies")}
-          className="fn-link-underline"
-          style={{ color: "var(--color-dim)", textDecoration: "none" }}
-        >
-          {t.footer.legal.cookies}
-        </Link>
-        <CookieSettingsLink className="fn-link-underline">
-          {t.footer.legal.cookieSettings}
-        </CookieSettingsLink>
-      </div>
+        {t.footer.legal.privacy}
+      </Link>
+      <Link
+        href={getLocalePath(locale, "/cookies")}
+        className="fn-link-underline"
+        style={{ color: "var(--color-dim)", textDecoration: "none" }}
+      >
+        {t.footer.legal.cookies}
+      </Link>
+      <CookieSettingsLink className="fn-link-underline">
+        {t.footer.legal.cookieSettings}
+      </CookieSettingsLink>
     </div>
   );
 }

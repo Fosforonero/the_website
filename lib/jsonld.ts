@@ -125,7 +125,7 @@ export function blogIndexLd(posts: ReadonlyArray<BlogPostMeta>, locale: "it" | "
  *  ImageObject, so search/AI engines can surface the individual images and
  *  understand the page is a photo collection (GEO image discovery). */
 export function instagramGalleryLd(posts: ReadonlyArray<InstaPost>, locale: "it" | "en") {
-  const url = locale === "it" ? `${site.url}/instagram` : `${site.url}/${locale}/instagram`;
+  const url = locale === "it" ? `${site.url}/fotografia` : `${site.url}/en/photography`;
   const trunc = (s: string, n = 200) => {
     const cp = Array.from(s.replace(/\s+/g, " ").trim());
     return cp.length > n ? cp.slice(0, n).join("") + "…" : cp.join("");

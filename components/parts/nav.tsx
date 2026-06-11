@@ -19,7 +19,7 @@ export function Nav({ locale }: Props) {
   const identityHref = locale === "it" ? "/identita" : "/en/identity";
 
   const labHref = locale === "it" ? "/lab" : "/en/lab";
-  const photographyHref = locale === "it" ? "/instagram" : "/en/instagram";
+  const photographyHref = locale === "it" ? "/fotografia" : "/en/photography";
 
   const links: Array<{ label: string; href: string }> = [
     { label: t.nav.about, href: `${homeHref}#about` },
