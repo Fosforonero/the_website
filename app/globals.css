@@ -403,6 +403,27 @@ body {
   transform: scale(1.25);
 }
 
+/* Lightbox share button — secondary outline next to "Open on Instagram". */
+.fn-ig-share {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: transparent;
+  color: var(--color-ink);
+  border: 1px solid var(--color-rule);
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+.fn-ig-share:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
 /* Lock body scroll when the mobile drawer is open. */
 body.fn-no-scroll { overflow: hidden; }
 

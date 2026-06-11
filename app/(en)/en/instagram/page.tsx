@@ -25,6 +25,8 @@ export default async function InstagramPageEN() {
   const galleryT = {
     openOriginal: t.instagram.openOriginal,
     close: t.instagram.close,
+    share: t.instagram.share,
+    copied: t.instagram.copied,
     empty: t.instagram.empty,
     typeLabels: {
       image: t.instagram.typeLabel("image"),

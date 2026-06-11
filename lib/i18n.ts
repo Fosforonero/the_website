@@ -11,6 +11,7 @@ type Dict = {
     labs: string;
     contact: string;
     identity: string;
+    photography: string;
   };
   hero: {
     eyebrow: string;
@@ -119,6 +120,8 @@ type Dict = {
     body: string;
     openOriginal: string;
     close: string;
+    share: string;
+    copied: string;
     typeLabel: (t: "image" | "video" | "carousel") => string;
     empty: string;
   };
@@ -147,7 +150,7 @@ type Dict = {
 };
 
 const it: Dict = {
-  nav: { about: "Chi sono", projects: "Progetti", blog: "Blog", labs: "Lab", contact: "Contatti", identity: "Identità" },
+  nav: { about: "Chi sono", projects: "Progetti", blog: "Blog", labs: "Lab", contact: "Contatti", identity: "Identità", photography: "Fotografia" },
   hero: {
     eyebrow: "SVILUPPATORE INDIPENDENTE · Roma · Dal 2017",
     title1: "Sviluppo software",
@@ -263,6 +266,8 @@ const it: Dict = {
     body: "La mia passione per la fotografia: paesaggi, viaggi, ritratti e dettagli. Una selezione dal feed @fosforonero.",
     openOriginal: "Apri su Instagram",
     close: "Chiudi",
+    share: "Condividi",
+    copied: "Link copiato",
     typeLabel: (t) => (t === "video" ? "VIDEO" : t === "carousel" ? "CAROSELLO" : "IMMAGINE"),
     empty: "Nessun post ancora. Aggiorna content/instagram/posts.json per popolare la gallery.",
   },
@@ -306,7 +311,7 @@ const it: Dict = {
 };
 
 const en: Dict = {
-  nav: { about: "About", projects: "Projects", blog: "Writing", labs: "Lab", contact: "Contact", identity: "Identity" },
+  nav: { about: "About", projects: "Projects", blog: "Writing", labs: "Lab", contact: "Contact", identity: "Identity", photography: "Photography" },
   hero: {
     eyebrow: "INDEPENDENT DEVELOPER · Rome · Since 2017",
     title1: "Building software",
@@ -422,6 +427,8 @@ const en: Dict = {
     body: "My passion for photography: landscapes, travel, portraits and details. A selection from the @fosforonero feed.",
     openOriginal: "Open on Instagram",
     close: "Close",
+    share: "Share",
+    copied: "Link copied",
     typeLabel: (t) => (t === "video" ? "VIDEO" : t === "carousel" ? "CAROUSEL" : "IMAGE"),
     empty: "No posts yet. Update content/instagram/posts.json to populate the gallery.",
   },

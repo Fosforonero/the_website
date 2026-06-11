@@ -19,12 +19,14 @@ export function Nav({ locale }: Props) {
   const identityHref = locale === "it" ? "/identita" : "/en/identity";
 
   const labHref = locale === "it" ? "/lab" : "/en/lab";
+  const photographyHref = locale === "it" ? "/instagram" : "/en/instagram";
 
   const links: Array<{ label: string; href: string }> = [
     { label: t.nav.about, href: `${homeHref}#about` },
     { label: t.nav.projects, href: `${homeHref}#progetti` },
     { label: t.nav.blog, href: `${homeHref === "/" ? "" : homeHref}/blog` },
     { label: t.nav.labs, href: labHref },
+    { label: t.nav.photography, href: photographyHref },
     { label: t.nav.identity, href: identityHref },
     { label: t.nav.contact, href: `${homeHref}#contatti` },
   ];

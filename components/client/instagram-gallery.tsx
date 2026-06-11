@@ -21,6 +21,8 @@ type TypeLabels = Record<"image" | "video" | "carousel", string>;
 type T = {
   openOriginal: string;
   close: string;
+  share: string;
+  copied: string;
   typeLabels: TypeLabels;
   empty: string;
 };
@@ -516,6 +518,27 @@ function Lightbox({
   );
   const touchX = useRef<number | null>(null);
 
+  const [copied, setCopied] = useState(false);
+  const onShare = useCallback(async () => {
+    if (!post.permalink) return;
+    const nav = navigator as Navigator & { share?: (d: ShareData) => Promise<void> };
+    if (typeof nav.share === "function") {
+      try {
+        await nav.share({ title: "Fosforonero", text: clip(post.caption, 100), url: post.permalink });
+      } catch {
+        /* user dismissed the share sheet */
+      }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(post.permalink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      /* clipboard unavailable */
+    }
+  }, [post.permalink, post.caption]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") close();
@@ -625,7 +648,9 @@ function Lightbox({
                   className="fn-ig-cnav"
                   style={{ left: 12 }}
                 >
-                  ‹
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <polyline points="15 18 9 12 15 6" />
+                  </svg>
                 </button>
               ) : null}
               {idx < imgs.length - 1 ? (
@@ -636,7 +661,9 @@ function Lightbox({
                   className="fn-ig-cnav"
                   style={{ right: 12 }}
                 >
-                  ›
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
                 </button>
               ) : null}
               <span className="fn-ig-ccount">
@@ -717,28 +744,38 @@ function Lightbox({
             {post.caption}
           </p>
           {post.permalink ? (
-            <a
-              href={post.permalink}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                marginTop: 4,
-                alignSelf: "flex-start",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                padding: "10px 16px",
-                background: "var(--color-ink)",
-                color: "#fff",
-                borderRadius: 8,
-                fontFamily: "var(--font-sans)",
-                fontSize: 13,
-                fontWeight: 600,
-                textDecoration: "none",
-              }}
-            >
-              {t.openOriginal} <span style={{ color: "var(--color-accent)" }}>↗</span>
-            </a>
+            <div style={{ marginTop: 4, display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+              <a
+                href={post.permalink}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "10px 16px",
+                  background: "var(--color-ink)",
+                  color: "#fff",
+                  borderRadius: 8,
+                  fontFamily: "var(--font-sans)",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  textDecoration: "none",
+                }}
+              >
+                {t.openOriginal} <span style={{ color: "var(--color-accent)" }}>↗</span>
+              </a>
+              <button type="button" onClick={onShare} className="fn-ig-share">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <circle cx="18" cy="5" r="3" />
+                  <circle cx="6" cy="12" r="3" />
+                  <circle cx="18" cy="19" r="3" />
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                </svg>
+                {copied ? t.copied : t.share}
+              </button>
+            </div>
           ) : null}
         </div>
       </div>
