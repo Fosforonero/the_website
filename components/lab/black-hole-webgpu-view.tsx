@@ -396,8 +396,8 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
         >{t.badge}</span>
         <div className="bh-toolbar__sep" />
 
-        {/* Spin */}
-        <label className="bh-control">
+        {/* Spin — hidden in the collapsed toolbar (lives in the ⚙ sheet) */}
+        <label className="bh-control bh-toolbar__hide-sm">
           <span>{t.spin}</span>
           <input type="range" min={0} max={0.998} step={0.001} value={spin}
             onChange={e => setSpin(parseFloat(e.target.value))} style={{width:80}} />

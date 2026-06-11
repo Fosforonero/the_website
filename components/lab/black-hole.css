@@ -337,10 +337,12 @@
   background:
     radial-gradient(1200px 600px at 50% -10%, #0b1426 0%, #05060d 60%, #04050a 100%);
 }
-/* Mobile-only "Controls" button + bottom-sheet (disk/quality sliders) */
+/* Compact "Controls" button + bottom-sheet (disk/quality sliders).
+   Collapses at ≤1024px so tablets get the clean single-row toolbar + ⚙ sheet
+   instead of the full desktop toolbar wrapping onto 2–3 rows. */
 .bh-toolbar__only-sm { display: none; }
 .bh-controls { display: none; }
-@media (max-width: 680px) {
+@media (max-width: 1024px) {
   .bh-toolbar__only-sm { display: inline-flex; }
   .bh-controls {
     position: absolute;
@@ -357,6 +359,15 @@
     box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.5);
     z-index: 5;
   }
+  /* Hide the secondary toolbar controls (they live in the ⚙ sheet now) and
+     enlarge the few that stay so they clear the 44px touch-target floor. */
+  .bh-toolbar__hide-sm { display: none !important; }
+  .bh-hint--hide-sm { display: none; }
+  .bh-control {
+    min-height: 40px;
+    padding: 8px 12px;
+  }
+  .bh-toolbar__only-sm { min-width: 40px; justify-content: center; }
 }
 .bh-controls__head {
   display: flex;
@@ -676,11 +687,9 @@
 
 /* ── Responsive ───────────────────────────────────────────────────────── */
 @media (max-width: 680px) {
-  .bh-toolbar__hide-sm { display: none !important; }
-  .bh-hint--hide-sm { display: none; }
+  /* Toolbar collapse + touch sizing handled by the ≤1024px block above. */
   .bh-toolbar { gap: 6px; padding: 6px 8px; }
   .bh-toolbar__title { font-size: 0.78rem; }
-  .bh-control { padding: 5px 9px; font-size: 0.72rem; }
   /* Disclosure becomes a clean bottom sheet on phones. */
   .bh-disclosure {
     left: 0;
