@@ -25,10 +25,11 @@ type T = {
   empty: string;
 };
 
-type Props = { posts: InstaPost[]; t: T };
+type Props = { posts: InstaPost[]; t: T; locale?: "it" | "en" };
 
-export function InstagramGallery({ posts, t }: Props) {
+export function InstagramGallery({ posts, t, locale = "it" }: Props) {
   const [active, setActive] = useState<InstaPost | null>(null);
+  const dateLocale = locale === "en" ? "en-US" : "it-IT";
 
   if (posts.length === 0) {
     return (
@@ -55,7 +56,7 @@ export function InstagramGallery({ posts, t }: Props) {
     <>
       {hero ? (
         <Reveal>
-          <HeroTile post={hero} onOpen={() => setActive(hero)} t={t} />
+          <HeroTile post={hero} onOpen={() => setActive(hero)} t={t} dateLocale={dateLocale} />
         </Reveal>
       ) : null}
 
@@ -70,13 +71,13 @@ export function InstagramGallery({ posts, t }: Props) {
         >
           {rest.map((post, i) => (
             <Reveal key={post.id} delay={i * 60}>
-              <Tile post={post} onOpen={() => setActive(post)} t={t} />
+              <Tile post={post} onOpen={() => setActive(post)} t={t} dateLocale={dateLocale} />
             </Reveal>
           ))}
         </div>
       ) : null}
 
-      {active ? <Lightbox post={active} onClose={() => setActive(null)} t={t} /> : null}
+      {active ? <Lightbox post={active} onClose={() => setActive(null)} t={t} dateLocale={dateLocale} /> : null}
     </>
   );
 }
@@ -85,12 +86,12 @@ export function InstagramGallery({ posts, t }: Props) {
 // Featured hero tile — full width, 21:9 aspect, larger caption.
 // ─────────────────────────────────────────────────────────────
 
-function HeroTile({ post, onOpen, t }: { post: InstaPost; onOpen: () => void; t: T }) {
+function HeroTile({ post, onOpen, t, dateLocale }: { post: InstaPost; onOpen: () => void; t: T; dateLocale: string }) {
   return (
     <button
       type="button"
       onClick={onOpen}
-      aria-label={`Apri post: ${post.caption.slice(0, 60)}`}
+      aria-label={`Apri post: ${clip(post.caption, 60)}`}
       className="fn-ig-tile"
       style={{
         position: "relative",
@@ -108,7 +109,7 @@ function HeroTile({ post, onOpen, t }: { post: InstaPost; onOpen: () => void; t:
       }}
     >
       <TileVisual post={post} t={t} />
-      <TileCaption post={post} hero />
+      <TileCaption post={post} hero dateLocale={dateLocale} />
     </button>
   );
 }
@@ -117,12 +118,12 @@ function HeroTile({ post, onOpen, t }: { post: InstaPost; onOpen: () => void; t:
 // Regular tile — uniform 1:1.
 // ─────────────────────────────────────────────────────────────
 
-function Tile({ post, onOpen, t }: { post: InstaPost; onOpen: () => void; t: T }) {
+function Tile({ post, onOpen, t, dateLocale }: { post: InstaPost; onOpen: () => void; t: T; dateLocale: string }) {
   return (
     <button
       type="button"
       onClick={onOpen}
-      aria-label={`Apri post: ${post.caption.slice(0, 60)}`}
+      aria-label={`Apri post: ${clip(post.caption, 60)}`}
       className="fn-ig-tile"
       style={{
         position: "relative",
@@ -139,7 +140,7 @@ function Tile({ post, onOpen, t }: { post: InstaPost; onOpen: () => void; t: T }
       }}
     >
       <TileVisual post={post} t={t} />
-      <TileCaption post={post} />
+      <TileCaption post={post} dateLocale={dateLocale} />
     </button>
   );
 }
@@ -155,7 +156,7 @@ function TileVisual({ post, t }: { post: InstaPost; t: T }) {
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={post.image}
-          alt={post.caption.slice(0, 80)}
+          alt={clip(post.caption, 80)}
           loading="lazy"
           style={{
             position: "absolute",
@@ -208,7 +209,7 @@ function TileVisual({ post, t }: { post: InstaPost; t: T }) {
   );
 }
 
-function TileCaption({ post, hero }: { post: InstaPost; hero?: boolean }) {
+function TileCaption({ post, hero, dateLocale }: { post: InstaPost; hero?: boolean; dateLocale: string }) {
   const hasImage = !!post.image;
 
   return (
@@ -265,7 +266,7 @@ function TileCaption({ post, hero }: { post: InstaPost; hero?: boolean }) {
             textTransform: "uppercase",
           }}
         >
-          {formatDate(post.date)}
+          {formatDate(post.date, dateLocale)}
         </div>
       </div>
     </>
@@ -280,10 +281,12 @@ function Lightbox({
   post,
   onClose,
   t,
+  dateLocale,
 }: {
   post: InstaPost;
   onClose: () => void;
   t: T;
+  dateLocale: string;
 }) {
   const titleId = useId();
 
@@ -366,7 +369,7 @@ function Lightbox({
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={post.image}
-              alt={post.caption.slice(0, 80)}
+              alt={clip(post.caption, 80)}
               style={{ width: "100%", height: "100%", objectFit: "contain" }}
             />
           ) : (
@@ -426,7 +429,7 @@ function Lightbox({
               flexWrap: "wrap",
             }}
           >
-            <span>{formatDate(post.date)}</span>
+            <span>{formatDate(post.date, dateLocale)}</span>
             {post.type ? <span>· {t.typeLabels[post.type]}</span> : null}
           </div>
           <p
@@ -475,9 +478,22 @@ function Lightbox({
 // Helpers
 // ─────────────────────────────────────────────────────────────
 
-function formatDate(iso: string): string {
+// Code-point-safe truncation: Array.from splits by Unicode code points, so we
+// never cut an emoji's surrogate pair in half. A lone surrogate serializes
+// differently on server vs client and breaks hydration (real captions contain
+// emoji like 🌴). Trailing newlines/spaces are trimmed for clean alt text.
+function clip(s: string, n: number): string {
+  const cp = Array.from(s);
+  const out = cp.length > n ? cp.slice(0, n).join("") : s;
+  return out.replace(/\s+/g, " ").trim();
+}
+
+function formatDate(iso: string, locale: string): string {
   try {
-    return new Date(iso).toLocaleDateString(undefined, {
+    // Explicit locale (it-IT / en-US) keeps SSR and client output identical —
+    // `undefined` would use the server's locale on the server and the browser's
+    // on the client, causing a hydration mismatch.
+    return new Date(iso).toLocaleDateString(locale, {
       day: "numeric",
       month: "short",
       year: "numeric",

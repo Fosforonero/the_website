@@ -38,11 +38,38 @@ const JSON_FILE = path.join(ROOT, "content", "instagram", "posts.json");
 function parseArgs(argv: string[]) {
   let limit = 24;
   let refresh = false;
+  let debug = false;
+  // Videos are excluded by default (still photos read best in the wall). The
+  // future plugin will expose this as a toggle; here it's --include-videos.
+  let includeVideos = false;
   for (const a of argv) {
     if (a.startsWith("--limit=")) limit = Math.max(1, parseInt(a.slice(8), 10) || 24);
     else if (a === "--refresh") refresh = true;
+    else if (a === "--debug") debug = true;
+    else if (a === "--include-videos") includeVideos = true;
   }
-  return { limit, refresh };
+  return { limit, refresh, debug, includeVideos };
+}
+
+/** Print only the SHAPE of the token, never the value, to debug parse errors. */
+function diagnoseToken(raw: string | undefined) {
+  if (!raw) {
+    console.log("\nINSTAGRAM_ACCESS_TOKEN: ASSENTE\n");
+    return;
+  }
+  const flags = [
+    raw !== raw.trim() && "spazi/whitespace ai bordi",
+    /["']/.test(raw) && "contiene virgolette",
+    /\s/.test(raw.trim()) && "contiene spazi/interruzioni interne",
+    !raw.startsWith("IGAA") && "NON inizia con 'IGAA' (token IG validi iniziano così)",
+  ].filter(Boolean);
+  console.log(
+    `\nForma del token (valore nascosto):\n` +
+      `  lunghezza: ${raw.length}  (un token IG valido è ~150–250 char)\n` +
+      `  primi 4:   ${JSON.stringify(raw.slice(0, 4))}\n` +
+      `  ultimi 2:  ${JSON.stringify(raw.slice(-2))}\n` +
+      `  problemi:  ${flags.length ? flags.join("; ") : "nessuno rilevato"}\n`,
+  );
 }
 
 function requireEnv(name: string): string {
@@ -85,9 +112,14 @@ async function downloadImage(url: string): Promise<Buffer> {
 }
 
 async function main() {
-  const { limit, refresh } = parseArgs(process.argv.slice(2));
-  const userId = requireEnv("INSTAGRAM_USER_ID");
+  const { limit, refresh, debug, includeVideos } = parseArgs(process.argv.slice(2));
+  if (debug) {
+    diagnoseToken(process.env.INSTAGRAM_ACCESS_TOKEN);
+    return;
+  }
   const token = requireEnv("INSTAGRAM_ACCESS_TOKEN");
+  // Optional: "me" (the token's own account) works without it.
+  const userId = process.env.INSTAGRAM_USER_ID || "me";
 
   if (refresh) {
     const { token: fresh, expiresInSeconds } = await refreshLongLivedToken(token);
@@ -97,9 +129,18 @@ async function main() {
     return;
   }
 
+  // Over-fetch a little when excluding videos so we still land ~`limit` photos.
   console.log(`\n→ Fetch degli ultimi ${limit} post da Instagram…`);
-  const media = await fetchUserMedia(userId, token, limit);
-  console.log(`  ${media.length} post ricevuti.`);
+  const raw = await fetchUserMedia(token, includeVideos ? limit : limit * 2, userId);
+  const media = (includeVideos ? raw : raw.filter((m) => m.media_type !== "VIDEO")).slice(
+    0,
+    limit,
+  );
+  const videosSkipped = raw.length - media.length;
+  console.log(
+    `  ${media.length} post da pubblicare` +
+      (includeVideos ? "" : ` (${videosSkipped} video esclusi — usa --include-videos per tenerli)`),
+  );
 
   await fs.mkdir(PUBLIC_DIR, { recursive: true });
 

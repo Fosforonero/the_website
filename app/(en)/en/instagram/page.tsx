@@ -95,7 +95,7 @@ export default async function InstagramPageEN() {
           </a>
         </header>
 
-        <InstagramGallery posts={posts} t={galleryT} />
+        <InstagramGallery posts={posts} t={galleryT} locale="en" />
       </main>
       <div
         style={{
