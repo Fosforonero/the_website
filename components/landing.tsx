@@ -405,6 +405,81 @@ export function Landing({ locale, posts }: Props) {
               </div>
             </Reveal>
           </div>
+          <Reveal delay={200}>
+            <div
+              style={{
+                maxWidth: 1280,
+                margin: "clamp(40px, 6vw, 64px) auto 0",
+                borderTop: "1px solid var(--color-rule)",
+                paddingTop: 32,
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 10,
+                  letterSpacing: "0.2em",
+                  color: "var(--color-dim)",
+                  textTransform: "uppercase",
+                  marginBottom: 20,
+                }}
+              >
+                {locale === "it" ? "Competenze" : "Skills"}
+              </div>
+              {[
+                {
+                  area: "Web full-stack",
+                  tags: "Next.js · TypeScript · JavaScript · WordPress · PHP · PostgreSQL · Supabase · Tailwind · SEO",
+                },
+                {
+                  area: "Mobile & Wearable",
+                  tags: "Flutter · Android · Wear OS · Dart",
+                },
+                {
+                  area: "3D / WebGL / GPU",
+                  tags: "Three.js · GLSL · WebGPU · React Three Fiber",
+                },
+                {
+                  area: "AI & integrations",
+                  tags: "LLM APIs · edge runtime · agenti · tool use",
+                },
+              ].map(({ area, tags }) => (
+                <div
+                  key={area}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "160px 1fr",
+                    gap: "8px 16px",
+                    padding: "14px 0",
+                    borderBottom: "1px solid var(--color-rule)",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: "var(--color-ink)",
+                      letterSpacing: "-0.01em",
+                      paddingTop: 1,
+                    }}
+                  >
+                    {area}
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 12,
+                      color: "var(--color-ink-2)",
+                      lineHeight: 1.7,
+                    }}
+                  >
+                    {tags}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </Reveal>
         </section>
 
         {/* ───────── PROJECTS ───────── */}
