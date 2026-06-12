@@ -48,7 +48,12 @@ export function MobileNav({
       }
     };
     document.addEventListener("keydown", onKey);
-    document.body.classList.add("fn-no-scroll");
+
+    // position-fixed scroll lock: preserves scroll position unlike overflow:hidden
+    const savedY = window.scrollY;
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${savedY}px`;
+    document.body.style.width = "100%";
 
     const focusTimer = window.setTimeout(() => {
       firstLinkRef.current?.focus();
@@ -56,7 +61,10 @@ export function MobileNav({
 
     return () => {
       document.removeEventListener("keydown", onKey);
-      document.body.classList.remove("fn-no-scroll");
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
+      window.scrollTo(0, savedY);
       window.clearTimeout(focusTimer);
       if (closedByKeyboard.current) {
         trigger?.focus();
