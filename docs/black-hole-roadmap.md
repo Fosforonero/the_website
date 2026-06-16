@@ -21,6 +21,50 @@ Aggiornato durante la sessione di sviluppo lensing/Kerr + ottimizzazioni GPU.
 
 ---
 
+## 0.5 Diagnosi stutter (mobile + desktop) — 2026-06-16
+
+> Diagnosi **da lettura del codice**, NON da profiling on-device (non eseguito in questa
+> sessione). I candidati vanno confermati con un trace Performance (DevTools) o Spector.js sul
+> dispositivo reale. Distinguere **stutter** (frame-time spikes / hitching irregolare) da
+> **FPS basso costante** (lentezza sostenuta). Il codice ha GIÀ un governor adattivo evoluto
+> (`black-hole-scene.tsx`): lo stutter che resta nonostante questo punta ai costi sotto.
+
+Candidati ordinati per ROI (impatto / sforzo):
+
+1. **`preserveDrawingBuffer: true` — `black-hole-scene.tsx:371` (entrambe le piattaforme).**
+   Forza il browser a preservare il backbuffer dopo il compositing → disabilita lo swap veloce,
+   copia del framebuffer **ogni frame** (costosa ad alto DPI). Causa nota di frame pacing
+   irregolare. Quasi certamente attivo per la cattura screenshot/share. **Fix**: default `false`,
+   attivarlo solo durante la cattura.
+2. **Oscillazione `setDpr()` del governor — `black-hole-scene.tsx:213-236` (stutter periodico ~1s, mobile).**
+   Il governor campiona l'FPS 1×/s e chiama `setDpr()` per cambiare risoluzione → reallocazione
+   del framebuffer (hitch visibile). Soglie 35↓ / 56↑: se il device oscilla vicino al confine il
+   DPR fa flip-flop, un hitch a ogni cambio. **Fix**: isteresi più ampia, N campioni consecutivi
+   prima di agire, debounce, niente inversione di direzione entro qualche secondo.
+3. **Ricompilazione shader sui toggle — `black-hole-scene.tsx:281-309` (entrambe, one-time ma molto visibile).**
+   Cambiare qualità / "3D disk" setta `mat.needsUpdate = true` → recompile+relink GLSL di uno
+   shader da 879 righe (50-300 ms su GPU/driver lenti). Già segnalato in §2.3 ("fragilità budget
+   compilazione `#define`"). **Fix**: pre-warm async di entrambe le varianti, o branch uniform.
+4. **Upload texture cielo grande — `black-hole-scene.tsx:121-143` (entrambe, one-time).**
+   "Real sky" carica un JPEG equirettangolare 4k-16k; decode + upload GPU blocca la pipeline al
+   bind → grosso hitch. **Fix**: `createImageBitmap` off-thread, fade-in (`fitNasaUrl` già limita
+   la variante al `maxTextureSize`).
+5. **Tetto fill-rate del raymarch (FPS basso costante, soprattutto mobile).**
+   Core = raymarch geodetico per-pixel fino a ~300 passi + fbm 5 ottave + (BH_VOLDISK) trasporto
+   radiativo per-step. A DPR mobile è il costo fondamentale; il governor mitiga ma non elimina.
+   È il punto debole già noto (§6: "lento su mobile, WebGL"); soluzione architetturale = WebGPU +
+   accumulo temporale (§2). Non è "stutter" ma alimenta la percezione di scatti insieme al #2.
+6. **Bloom / EffectComposer desktop — `black-hole-scene.tsx:401-411`.**
+   Passi fullscreen extra (HalfFloat + mipmapBlur + dither) ogni frame; sommati alla copia di
+   `preserveDrawingBuffer` possono dare irregolarità su desktop. **Fix**: verificare risoluzione/passi.
+
+**Ordine consigliato (quick-win prima):** 1 → 2 → 4 → 3 → (architetturale) 5 / WebGPU.
+
+**Escluso come causa primaria:** le particelle disco (300k) sono calcolate in GPU
+(nessun costo CPU/frame, `accretion-disk-particles.tsx`) e off di default nella scena principale.
+
+---
+
 ## 1. Rifiniture in sospeso (da verificare su dispositivo, valori tarati a occhio)
 
 - **Disco 3D volumetrico** (`uVolThick=0.06`, `uVolOpacity=1.8`, gain emissione 0.9 in shader):

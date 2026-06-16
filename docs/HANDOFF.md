@@ -34,7 +34,7 @@
 - **Stutter Buco Nero** mobile+desktop non risolto (3 branch perf aperti: `fix/bh-auto-m2-perf`, `fix/bh-mobile-perf`, `fix/bh-webgpu-voldisk`).
 - Maturità progetti: **Tavola Periodica > Sistema Solare > Buco Nero**.
 
-**Prossimo passo:** riconciliare `init` portando il lavoro Solar su branch pulito da `origin/init`; in alternativa, diagnosi stutter Buco Nero.
+**Prossimo passo:** ✅ Diagnosi stutter Buco Nero fatta → vedi `docs/black-hole-roadmap.md` §0.5. **Domani**: partire dal quick-win #1 (`preserveDrawingBuffer: true` → default `false`, attivo solo in cattura, `black-hole-scene.tsx:371`), poi #2 isteresi governor `setDpr`. Prima però **confermare con un trace Performance on-device** (non ancora fatto). Parallelo aperto: riconciliare `init` (lavoro Solar 20 commit solo su disco) su branch pulito da `origin/init`.
 
 ---
 
