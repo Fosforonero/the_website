@@ -1,0 +1,135 @@
+---
+title: "How I built SplitVote: real-time Redis, Stripe and the curiosity gap trap"
+excerpt: "Moral dilemmas in real time, Stripe idempotency, AdSense and a psychology bug that killed the k-factor. Everything I learned building SplitVote solo."
+date: "2026-06-16"
+tag: "SplitVote"
+---
+
+**SplitVote is a real-time moral dilemma platform: anonymous votes, live results, moral personality profiles and viral share loops.** I built it solo in about two months. This article covers the main technical decisions and the most interesting bugs — including a late discovery about the psychology of sharing that required rewriting all share copy from scratch.
+
+The site is live at [splitvote.io](https://splitvote.io). For the reasoning behind the stack choices (Next.js, Supabase, Redis), see [The stack I use in 2026](/blog/stack-2026). For the decision to make voting fully anonymous without accounts, I wrote [a dedicated article](/blog/splitvote-optional-accounts).
+
+Here I focus on what I haven't covered elsewhere: Redis, caching, Stripe, AdSense and the curiosity gap.
+
+---
+
+## Redis as source of truth for live votes
+
+The core requirement was an instant response on tap — no perceptible latency. Postgres is fine for history, but read-modify-write at high frequency introduces contention.
+
+The solution: **Redis** (Upstash) as source of truth for vote counts. Every vote increments a counter with `HINCRBY` — atomic, sub-millisecond, no race conditions on concurrent votes.
+
+```typescript
+// lib/redis.ts
+await redis.hincrby(`dilemma:${id}`, option, 1)
+```
+
+Supabase receives a parallel write to `dilemma_votes` for logged-in user history. An **hourly cron snapshot** syncs Redis → Postgres as backup.
+
+What I underestimated: Redis can lose data on restart without persistence configured. I found this out in May when a flush zeroed out ~500 votes. The cron snapshot is the primary protection; I also added a daily backup to Postgres.
+
+---
+
+## Next.js App Router: force-dynamic vs revalidate
+
+The most important caching distinction in the architecture:
+
+| Route | Strategy | Why |
+|-------|----------|-----|
+| `/play/[id]` | `force-dynamic` | `existingVote` is per-user, not cacheable |
+| `/results/[id]` | `revalidate = 60` | Aggregate data, ISR safe |
+| `/moral-dilemmas` | `revalidate = 300` | Static catalog |
+
+I learned the hard way that putting `revalidate` on a page that reads cookies silently breaks per-user behavior. Next.js doesn't throw errors — it just serves ISR and returns the cached version from the previous user, including the "you already voted" state.
+
+SplitVote runs **14.2.3**, while this blog runs Next.js 16. The natural question: is it worth migrating? Right now, no. The migration would take about a week (params and searchParams become `Promise<>`, breaking changes stacked across two major versions) for zero user-visible benefit. The current constraint is distribution, not the framework. I'll revisit when there's real traffic.
+
+---
+
+## Stripe and idempotency: the bug that would have given away Premium for free
+
+I wrote an idempotency library for Stripe webhooks — `claimWebhookEvent` / `markWebhookEventProcessed` — with row locking on Postgres. The problem: I had never imported it into the webhook handler.
+
+Stripe retries webhooks on timeout or 5xx. Without idempotency, every retry would have:
+- Incremented `name_changes` twice
+- Awarded double XP on cosmetic purchases
+- Never revoked `is_premium` on cancellation, because the `customer.subscription.deleted` handler was missing entirely
+
+The fix was wiring the existing library and adding the missing lifecycle events (`customer.subscription.updated`, `customer.subscription.deleted`). Lesson: write idempotency tests *before* putting the webhook in production, not after.
+
+---
+
+## AdSense and the "low value content" problem
+
+AdSense rejected the site for "low value content." It took me weeks to understand why.
+
+The problem: every dilemma generated two indexed URLs — `/play/[id]` and `/results/[id]`. Semantically identical, with the only difference being vote counts. 100 dilemmas = 200 thin content pages, 50% near-duplicates.
+
+The fix:
+- `robots: { index: false, follow: true }` on all `/results/[id]` pages
+- Removed ~118 URLs from the sitemap
+- Removed `dateModified: new Date().toISOString()` from the JSON-LD Dataset — daily churn on unchanged content is a negative signal for crawlers
+
+Expected result: "low value" profile resolved, link equity concentrated on `/play/[id]` as the single indexable URL per dilemma.
+
+---
+
+## The curiosity gap: a psychology bug, not a code bug
+
+This is the most interesting problem because it wasn't a code bug.
+
+The original share texts said:
+
+> *"73% chose A. What would you choose?"*
+
+Result: whoever received the link already knew the answer. The mystery was solved before clicking. K-factor ≈ 0.
+
+The correct version:
+
+> *"I already voted. Bet you can't guess what most people chose."*
+
+Same information (you voted), zero reveal. The recipient *has to* click to find out. The same principle applies to the OG image in link previews — I removed the percentages from the card too, replacing them with "Can you guess how the vote splits?" with the visual bar but no numbers.
+
+---
+
+## AI pipeline with human review
+
+SplitVote generates new dilemmas with Claude (Anthropic) via a daily cron:
+
+1. The cron generates N drafts per locale (EN + IT)
+2. Drafts go into Redis in `draft` state
+3. I review and approve/reject manually from the admin panel
+4. Only after approval does a dilemma become visible
+
+I deliberately chose **no auto-publish**. With ~800 approved dilemmas and low traffic, supply is not the bottleneck. I lowered generation from 10 to 5 drafts per locale/day when I realized I was accumulating drafts faster than I could review them.
+
+---
+
+## What I got wrong: distribution
+
+After about 560 commits and two months of work, the site has very few organic visitors.
+
+The reason is simple: **zero hours spent on distribution.** No posts on Reddit, no threads on Twitter/X, no mentions in psychology or philosophy communities. The code was clean, the product worked, but nobody knew it existed.
+
+The domain is six weeks old — Google takes months to give authority to a new domain. Even rigorous technical SEO doesn't help without initial traffic and backlinks.
+
+This article is the first backlink from fosforonero.com. The next phase is distribution.
+
+---
+
+**FAQ**
+
+**What is SplitVote's stack?**
+Next.js 14 App Router with TypeScript on Vercel, Supabase for Auth and Postgres, Upstash Redis for live vote counts, Stripe for Premium payments, AdSense for monetization. For the reasoning behind these choices: [The stack I use in 2026](/blog/stack-2026).
+
+**Why Redis instead of Postgres for votes?**
+Latency and atomicity. Redis responds in sub-milliseconds and `HINCRBY` is atomic — no race conditions on concurrent votes. Postgres is used for history and as a backup in case of Redis flush.
+
+**Is it worth migrating from Next.js 14 to Next.js 16?**
+For SplitVote right now, no: params and searchParams become async, breaking changes stack across two major versions. Worth revisiting with real traffic or a specific feature that justifies the effort.
+
+**How does the AI pipeline for new dilemmas work?**
+A daily cron generates drafts via Claude. Every draft requires manual approval from the admin before becoming visible. No auto-publish.
+
+**What is the curiosity gap in sharing?**
+It's the principle that content gets shared only if the recipient is motivated to click and discover something. Revealing the result in the share text destroys this mechanism. SplitVote hides the percentages until you vote.
