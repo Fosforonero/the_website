@@ -1,10 +1,9 @@
 # Fosforonero — Handoff
 
 > Documento di passaggio tra sessioni. Aggiornato a fine sessione corrente.
-> **Ultimo aggiornamento: 2026-06-10 13:45 CEST** (sessione SEO/GEO Blog Phase 1+2)
+> **Ultimo aggiornamento: 2026-06-16** (pubblicato articolo blog SplitVote, riorientamento portfolio)
 >
-> 🎯 **Prossima sessione: scegliere tra (a) BH UX F1 disk selector merge + F2 unify, oppure (b) screenshot prodotto per 3 post blog rimasti.**
-> Branch attivo blog: `fix/seo-blog` = `origin/init` (tutto pushato). Branch BH: `fix/bh-auto-m2-perf` (disk selector `7195741` ancora non su `init` — da verificare sul device prima del merge).
+> 🎯 **Prossima sessione: riconciliare `init` locale (ahead 20 / behind 274) con `origin/init` — i 20 commit Solar System vivono solo su disco. In alternativa: diagnosi stutter Buco Nero (mobile+desktop).**
 >
 > 🧠 **Direttiva permanente — modello IA per task**: usa sempre il modello più adatto.
 > Opus per fisica/shader/correttezza, architettura, debug complesso, refactor
@@ -12,6 +11,30 @@
 > Haiku per task meccanici; subagent read-only su modello economico (Opus solo per
 > sintesi/verifica). In dubbio o se tocca fisica/correttezza/produzione → Opus.
 > (Anche in `CLAUDE.md` e nella skill `fosforonero-compass`.)
+
+---
+
+## Sessione 2026-06-16 — stato finale
+
+**Branch / git:** `init` locale, **ahead 20 / behind 274** vs `origin/init`. Working tree: screenshot audit untracked + `docs/periodic-table/pharmadive-integration-analysis.md`, non committati.
+
+**Obiettivo sessione:** risolvere conflitti fitmesh residui, pubblicare i 2 articoli blog SplitVote (EN+IT), riorientare sul portfolio.
+
+**File modificati/creati per area:**
+- *Blog*: creati `content/blog/{it,en}/splitvote-arch…-nextjs-redis-supabase.mdx` → mergiati su `origin/init` (commit `71d49c5`), **LIVE in produzione**.
+- *Cleanup git*: rimossi da `init` i 2 file fitmesh in conflitto `DU` (residuo stash pop); droppato `stash@{0}` (WIP fitmesh); eliminato branch remoto `feat/blog-splitvote`.
+- *Docs*: questo handoff.
+
+**Verifiche:** articoli IT+EN → **200** in prod, titolo presente nell'HTML (render reale). Scoperto: **Vercel deploya da `origin/init`** (non più `responsive`, ormai legacy, 379 commit indietro).
+
+**Rischi / non fatto:**
+- Forbice `init` locale 20/274: i **20 commit Solar System** (Sprint 05–06) vivono **solo su disco**, non in prod → a rischio.
+- Branch remoto `responsive` morto, da cancellare.
+- Branch `feat/blog-fitmesh-anello-fusione` (`817c57a`): articoli porting non mergiati, tono da rivedere.
+- **Stutter Buco Nero** mobile+desktop non risolto (3 branch perf aperti: `fix/bh-auto-m2-perf`, `fix/bh-mobile-perf`, `fix/bh-webgpu-voldisk`).
+- Maturità progetti: **Tavola Periodica > Sistema Solare > Buco Nero**.
+
+**Prossimo passo:** riconciliare `init` portando il lavoro Solar su branch pulito da `origin/init`; in alternativa, diagnosi stutter Buco Nero.
 
 ---
 
