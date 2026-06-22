@@ -39,6 +39,10 @@ const HIDE_DRAFTS = process.env.NODE_ENV === "production";
 const SLUG_ALTERNATES: Record<string, string> = {
   "splitvote-account-opzionali": "splitvote-optional-accounts",
   "splitvote-optional-accounts": "splitvote-account-opzionali",
+  "splitvote-architettura-nextjs-redis-supabase": "splitvote-architecture-nextjs-redis-supabase",
+  "splitvote-architecture-nextjs-redis-supabase": "splitvote-architettura-nextjs-redis-supabase",
+  "tradurre-1200-pagine-ollama": "translating-1200-pages-ollama",
+  "translating-1200-pages-ollama": "tradurre-1200-pagine-ollama",
 };
 export function alternateSlug(slug: string): string {
   return SLUG_ALTERNATES[slug] ?? slug;
