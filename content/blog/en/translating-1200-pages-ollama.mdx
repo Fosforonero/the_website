@@ -1,17 +1,19 @@
 ---
 title: "How I translated 1,200 pages into 11 languages with Ollama for €0"
-excerpt: "A local translation pipeline — JSON → Python → Ollama (qwen2.5:7b on Apple Silicon) → Next.js — that generates 1,243 multilingual SEO pages for FitMesh Sync. API cost: zero. Real code, real choices, real limits."
+excerpt: "A local translation pipeline: English JSON → Python → Ollama (qwen2.5:7b on Apple Silicon) → Next.js, generating 1,243 multilingual SEO pages for FitMesh Sync. API cost: zero. The code, the choices, the honest limits."
 date: "2026-06-22"
 tag: "Dev"
 ---
 
-[FitMesh Sync](https://www.fitmesh.fit) lives in eleven markets. Each one wants to read the same thing in its own language: the landing page, the supported-device pages, the articles. Translating all of it through a commercial API was the obvious route — and the one I dropped. This is the system I built instead: it runs entirely locally on my MacBook, the translation-API cost is zero, and at build time it produces 1,243 indexable pages.
+[FitMesh Sync](https://www.fitmesh.fit) lives in eleven markets. Each one wants to read the same thing in its own language: the landing page, the supported-device pages, the articles. Translating all of it through a commercial API was the obvious route, and the one I dropped. This is the system I built instead: it runs entirely locally on my MacBook, the translation-API cost is zero, and at build time it produces 1,243 indexable pages.
+
+One thing up front, because it matters: this isn't taking work away from a translator. It replaces a paid API in a specific case (a zero-budget indie app) where the realistic alternative was never "pay a professional", it was "don't translate at all". For text where language really matters, a human translator is a different category, and a 7B model doesn't come close.
 
 ## The problem: multilingual SEO on a zero budget
 
-For an indie app, "translating the site" doesn't mean swapping the strings in the interface. It means generating **real pages, one per language**, with the text inside the HTML at build time — not a label loaded over JavaScript in the browser. That's the difference between a page Google indexes and one that stays invisible.
+For an indie app, "translating the site" doesn't mean swapping the strings in the interface. It means generating **real pages, one per language**, with the text inside the HTML at build time, not a label loaded over JavaScript in the browser. That's the difference between a page Google indexes and one that stays invisible.
 
-Multiply everything by eleven locales and the site's surface area multiplies by eleven. The text to translate isn't trivial: landing copy, device pages, blog posts. The convenient route — DeepL API or GPT-4o — works beautifully, but it has a per-character price, and that price gets paid again on every regeneration of the site. For a project I maintain alone, the constraint was sharp: **marginal cost per page equal to zero**, because otherwise I stop regenerating and the content goes stale.
+Multiply everything by eleven locales and the site's surface area multiplies by eleven. The text to translate isn't trivial: landing copy, device pages, blog posts. The convenient route, DeepL API or GPT-4o, works beautifully, but it has a per-character price, and that price gets paid again on every regeneration of the site. For a project I maintain alone, the constraint was sharp: **marginal cost per page equal to zero**, because otherwise I stop regenerating and the content goes stale.
 
 From here on, every technical decision comes out of that constraint.
 
@@ -21,10 +23,10 @@ From here on, every technical decision comes out of that constraint.
 
 It isn't the best model in absolute terms. It's the best one *for this constraint*. The alternatives I weighed:
 
-- **gpt-4o** — better translation quality, but paid. Across 1,243 pages, multiplied by every copy update, the bill isn't symbolic.
-- **DeepL API** — the highest quality of the group on European languages, but paid and character-capped on the free tier. Same problem as gpt-4o: excellent until you regenerate often.
-- **gemma (2B / 7B)** — runs locally like qwen, but in my tests it slipped on technical vocabulary: sensor names, units, standards. It tended to "translate" terms that should stay in English.
-- **qwen2.5:7b** — the best balance of quality, technical-vocabulary robustness, and speed *that runs on my laptop*. It wins because it's the only one that satisfies the "€0 per page" constraint without falling apart on health-tech content.
+- **gpt-4o**: better translation quality, but paid. Across 1,243 pages, multiplied by every copy update, the bill isn't symbolic.
+- **DeepL API**: the highest quality of the group on European languages, but paid and character-capped on the free tier. Same problem as gpt-4o: excellent until you regenerate often.
+- **gemma (2B / 7B)**: runs locally like qwen, but in my tests it slipped on technical vocabulary: sensor names, units, standards. It tended to "translate" terms that should stay in English.
+- **qwen2.5:7b**: the best balance of quality, technical-vocabulary robustness, and speed *that runs on my laptop*. It wins because it's the only one that satisfies the "€0 per page" constraint without falling apart on health-tech content.
 
 The rule I drew from it: when the constraint is zero marginal cost, the question isn't "which is the best model" but "which is the best model among the ones that run for free on my machine".
 
@@ -48,14 +50,14 @@ lib/landing/data.ts          11 locales per slug
 Next.js generateStaticParams → 11 SSG pages per slug
 ```
 
-The key point: English is the input, typed TypeScript is the output. The Python script sits in the middle and knows nothing about Next.js — it emits a `LandingPage` object that the site consumes as if I'd hand-written it. The pages are static (SSG): the translated text is already in the HTML at deploy, exactly what a search engine needs to read it.
+The key point: English is the input, typed TypeScript is the output. The Python script sits in the middle and knows nothing about Next.js: it emits a `LandingPage` object that the site consumes as if I'd hand-written it. The pages are static (SSG): the translated text is already in the HTML at deploy, exactly what a search engine needs to read it.
 
 ## The core: batches, retries, fallback
 
-The model doesn't translate one string at a time — that would be glacial — nor all of them at once, because a 7B loses coherence on long inputs. The compromise is the **batch of 18 strings**: enough context for the translations to stay consistent with each other, short enough that the model doesn't forget the rules halfway through.
+The model doesn't translate one string at a time (that would be glacial), nor all of them at once, because a 7B loses coherence on long inputs. The compromise is the **batch of 18 strings**: enough context for the translations to stay consistent with each other, short enough that the model doesn't forget the rules halfway through.
 
 ```python
-# translate_landing.py — translates an EN landing into N locales.
+# translate_landing.py - translates an EN landing into N locales.
 # In Docker:  docker compose run --rm translate python -u translate_landing.py
 
 import json, subprocess
@@ -136,7 +138,7 @@ Strings:
 {numbered}"""
 ```
 
-The rule about em-dashes and typographic quotes looks like nitpicking. It isn't. Models love "pretty" typographic characters (— instead of -, " " instead of "), which then break the JSON, the alignment in the `.ts` files, and the snippets in meta tags. Saying it explicitly in the prompt costs one line and removed an entire class of downstream errors.
+The rule about em-dashes and typographic quotes looks like nitpicking. It isn't. Models love "pretty" typographic characters (the long dash instead of a plain hyphen, curly quotes instead of straight ones), which then break the JSON, the alignment in the `.ts` files, and the snippets in meta tags. Saying it explicitly in the prompt costs one line and removed an entire class of downstream errors.
 
 ## The real numbers
 
@@ -155,7 +157,7 @@ Time to translate one landing page (~38 strings × 10 locales, the eleventh bein
 
 qwen2.5:7b is not GPT-4, and pretending otherwise would be dishonest.
 
-- **Health-tech quality, not literary.** For concise technical copy — feature names, device descriptions, instructions — the result holds. For prose with nuance or rhythm, it doesn't. Luckily, FitMesh Sync's content sits in the first category.
+- **Health-tech quality, not literary.** For concise technical copy (feature names, device descriptions, instructions), the result holds. For prose with nuance or rhythm, it doesn't. Luckily, FitMesh Sync's content sits in the first category.
 - **Japanese and Korean fall back more.** Across runs, JA and KO collect more `!`s than the European languages: the model produces malformed JSON more often, and more batches end up on the English fallback. Quality on those languages is the weakest of the set.
 - **Typographic characters are still an open front.** Even with the explicit rule in the prompt, an em-dash slips through now and then. For now I accept it; systematic sanitization is on the list.
 
@@ -164,11 +166,11 @@ qwen2.5:7b is not GPT-4, and pretending otherwise would be dishonest.
 Three things, in order of return on investment:
 
 1. **A bigger model for JA/KO.** For the two problem languages I'd use `qwen3:14b`: slower, but almost certainly fewer fallbacks where quality is weakest. The European languages stay on the 7B, which is more than enough there.
-2. **A translation cache.** Today a copy update re-translates everything. With a hash of the source string as the key, I'd re-translate only what changed — updates would go from minutes to seconds.
+2. **A translation cache.** Today a copy update re-translates everything. With a hash of the source string as the key, I'd re-translate only what changed, and updates would go from minutes to seconds.
 3. **Writing output straight into the Docker volume.** Right now I track progress over stdout, handy for live monitoring but fragile as transport. Writing the translated files directly into the mounted volume removes a step and a breakage point.
 
 ## Translation is only half the work
 
 Having 1,243 translated, static pages doesn't mean having 1,243 pages that rank. Translating the text is the visible half. The other half is telling search engines how to hold eleven versions of the same page together without cannibalizing each other: correct `hreflang`, per-locale `canonical`, a multilingual sitemap, and structured data that describes each page in its own language. That's a problem of its own, with its own traps, and I'll pick it up in a dedicated article.
 
-> A 7B model on your laptop doesn't beat GPT-4. But 1,243 pages at zero cost, reproducible and versioned in the repo, beat the 1,243 pages you never shipped because the API cost too much.
+> A 7B model on a laptop isn't GPT-4, and isn't trying to be. For a zero-budget indie project the question isn't what the best translation is in the abstract, but how to ship in 11 languages without the cost stopping you. This is one workable answer, limits and all.
