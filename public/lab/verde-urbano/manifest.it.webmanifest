@@ -1,0 +1,22 @@
+{
+  "id": "/lab/verde-urbano",
+  "name": "Verde Urbano",
+  "short_name": "Verde Urbano",
+  "description": "Verde Urbano — demo interattiva: un'app concept per rigenerare il verde di Roma. Dona alberi, seguine la crescita, segnala aree da rinverdire.",
+  "lang": "it",
+  "dir": "ltr",
+  "start_url": "/lab/verde-urbano",
+  "scope": "/lab/verde-urbano",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FAF6EC",
+  "theme_color": "#FAF6EC",
+  "categories": ["education", "lifestyle"],
+  "icons": [
+    { "src": "/lab/verde-urbano/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/lab/verde-urbano/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/lab/verde-urbano/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/lab/verde-urbano/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/lab/verde-urbano/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
