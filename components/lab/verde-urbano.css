@@ -1,0 +1,343 @@
+/* ============================================================================
+   Verde Urbano — interactive app demo (Fosforonero Lab)
+   ----------------------------------------------------------------------------
+   Two presentations driven purely by CSS (no layout JS, SSR-safe):
+
+   • FRAMED  (wide / tall screens, in-browser): the app sits inside a stylised
+     phone bezel on a soft gradient backdrop — the showcase look from the
+     original design.
+   • NATIVE  (narrow screens OR installed standalone PWA): the bezel, fake
+     status bar, notch and fake home-indicator disappear; the app fills the
+     viewport edge-to-edge and respects the device safe-areas, so an installed
+     instance feels like a real native app on iOS / Android.
+
+   All rules are namespaced `.vu-*`; the file is only loaded on the Verde Urbano
+   route, so the few element selectors (body) are scoped to it in practice.
+   ========================================================================== */
+
+.vu-stage {
+  --vu-ink: #16321f;
+  --vu-surface: #faf6ec;
+  --vu-green: #1b8a43;
+  --vu-bright: #34b85a;
+  --vu-chrome-h: 42px;
+
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  overflow: hidden;
+  background: radial-gradient(120% 80% at 50% 0%, #eaf4e0 0%, #e4dfcd 60%);
+  font-family: var(--vu-font-text, "Hanken Grotesk", system-ui, sans-serif);
+  color: var(--vu-ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Decorative drifting blobs behind the phone (framed mode only). */
+.vu-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.vu-bg span {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(8px);
+}
+.vu-bg .b1 {
+  top: -60px;
+  left: -40px;
+  width: 260px;
+  height: 260px;
+  background: #cfe8be;
+  opacity: 0.5;
+  animation: vu-floaty 9s ease-in-out infinite;
+}
+.vu-bg .b2 {
+  bottom: -80px;
+  right: -60px;
+  width: 320px;
+  height: 320px;
+  background: #d8ecc4;
+  opacity: 0.45;
+  animation: vu-floaty2 11s ease-in-out infinite;
+}
+
+/* ----- demo chrome (back / title / language) ----------------------------- */
+.vu-chrome {
+  position: relative;
+  z-index: 30;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 390px;
+  width: calc(100% - 32px);
+  padding: 7px 8px 7px 14px;
+  border-radius: 40px;
+  background: rgba(255, 255, 255, 0.66);
+  border: 1px solid rgba(22, 50, 31, 0.08);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 24px -16px rgba(20, 51, 30, 0.5);
+}
+.vu-chrome-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--vu-ink);
+  text-decoration: none;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 6px 4px;
+  font-family: inherit;
+}
+.vu-chrome-link:hover {
+  color: var(--vu-green);
+}
+.vu-chrome-title {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: #5e6b5f;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.vu-chrome-lang {
+  flex: none;
+  padding: 7px 13px;
+  border-radius: 30px;
+  background: var(--vu-ink);
+  color: #fff;
+  font-size: 12.5px;
+}
+.vu-chrome-lang:hover {
+  color: #fff;
+  background: #214a2e;
+}
+
+/* ----- the phone --------------------------------------------------------- */
+.vu-device {
+  position: relative;
+  z-index: 20;
+  flex: none;
+  width: 390px;
+  height: min(844px, calc(100dvh - 84px));
+  background: linear-gradient(155deg, #24251f, #0b0c09);
+  border-radius: 56px;
+  padding: 13px;
+  box-shadow:
+    0 50px 90px -30px rgba(20, 51, 30, 0.55),
+    0 2px 6px rgba(0, 0, 0, 0.4),
+    0 0 0 2px rgba(255, 255, 255, 0.05) inset;
+}
+.vu-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 44px;
+  overflow: hidden;
+  background: var(--vu-surface);
+  isolation: isolate;
+}
+
+/* Fake iOS chrome — only meaningful inside the bezel. */
+.vu-statusbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 46px;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 30px 0 32px;
+  pointer-events: none;
+}
+.vu-statusbar .vu-time {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--vu-ink);
+  letter-spacing: 0.4px;
+}
+.vu-statusbar .vu-icons {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--vu-ink);
+}
+.vu-notch {
+  position: absolute;
+  top: 11px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 108px;
+  height: 30px;
+  background: #000;
+  border-radius: 18px;
+  z-index: 70;
+}
+.vu-homeindicator {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 128px;
+  height: 5px;
+  border-radius: 10px;
+  background: var(--vu-ink);
+  opacity: 0.26;
+  z-index: 58;
+  pointer-events: none;
+}
+
+/* ----- the scrollable app surface --------------------------------------- */
+.vu-scroll {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-top: 46px; /* clears the fake status bar in framed mode */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+.vu-scroll::-webkit-scrollbar,
+.vu-noscroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+.vu-scroll,
+.vu-noscroll {
+  scrollbar-width: none;
+}
+
+/* Layout hooks whose padding differs framed vs native. */
+.vu-nav {
+  padding: 10px 14px 26px;
+}
+.vu-sheet {
+  padding-bottom: 34px;
+}
+
+/* ============================ NATIVE / FULLSCREEN ========================= */
+/* Narrow screens, short landscape, or an installed standalone PWA. */
+@media (max-width: 480px), (max-height: 600px), (display-mode: standalone) {
+  .vu-stage {
+    display: block;
+    gap: 0;
+    background: var(--vu-surface);
+  }
+  .vu-bg {
+    display: none;
+  }
+  .vu-device {
+    width: 100%;
+    height: 100dvh;
+    border-radius: 0;
+    padding: 0;
+    background: var(--vu-surface);
+    box-shadow: none;
+  }
+  .vu-screen {
+    border-radius: 0;
+  }
+  /* Real OS chrome takes over — hide the mockup's fake bits. */
+  .vu-statusbar,
+  .vu-notch,
+  .vu-homeindicator {
+    display: none;
+  }
+  /* Demo chrome becomes a slim translucent top bar, safe-area aware. */
+  .vu-chrome {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 90;
+    width: 100%;
+    max-width: none;
+    border-radius: 0;
+    border: none;
+    border-bottom: 1px solid rgba(22, 50, 31, 0.07);
+    background: rgba(250, 246, 236, 0.86);
+    padding: calc(env(safe-area-inset-top, 0px) + 6px) 14px 6px;
+    box-shadow: none;
+  }
+  /* App content clears the fixed top chrome + the notch safe-area. */
+  .vu-scroll {
+    padding-top: calc(env(safe-area-inset-top, 0px) + var(--vu-chrome-h));
+  }
+  .vu-nav {
+    padding: 10px 14px calc(env(safe-area-inset-bottom, 0px) + 16px);
+  }
+  .vu-sheet {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 26px);
+  }
+  .vu-fabsheet {
+    bottom: calc(100px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vu-stage *,
+  .vu-stage *::before,
+  .vu-stage *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ============================== keyframes ================================ */
+@keyframes vu-screenIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes vu-sheetUp {
+  from { opacity: 0; transform: translateY(60px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes vu-pop {
+  0% { transform: scale(0.5); opacity: 0; }
+  65% { transform: scale(1.12); }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes vu-toastIn {
+  from { opacity: 0; transform: translate(-50%, 24px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+@keyframes vu-floaty {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-14px) rotate(4deg); }
+}
+@keyframes vu-floaty2 {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(10px) rotate(-5deg); }
+}
+@keyframes vu-ringpulse {
+  0% { transform: translate(-50%, -50%) scale(0.7); opacity: 0.55; }
+  70%, 100% { transform: translate(-50%, -50%) scale(2.6); opacity: 0; }
+}
+@keyframes vu-barfill {
+  from { width: 0; }
+}
+@keyframes vu-pinDrop {
+  0% { transform: translateY(-16px); opacity: 0; }
+  60% { transform: translateY(3px); }
+  100% { transform: translateY(0); opacity: 1; }
+}

@@ -1,0 +1,22 @@
+{
+  "id": "/en/lab/verde-urbano",
+  "name": "Verde Urbano",
+  "short_name": "Verde Urbano",
+  "description": "Verde Urbano — interactive demo: a concept app to regrow Rome's urban green. Donate trees, follow their growth, report areas that need planting.",
+  "lang": "en",
+  "dir": "ltr",
+  "start_url": "/en/lab/verde-urbano",
+  "scope": "/en/lab/verde-urbano",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FAF6EC",
+  "theme_color": "#FAF6EC",
+  "categories": ["education", "lifestyle"],
+  "icons": [
+    { "src": "/lab/verde-urbano/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/lab/verde-urbano/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/lab/verde-urbano/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/lab/verde-urbano/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/lab/verde-urbano/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
