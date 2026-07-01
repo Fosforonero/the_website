@@ -10,7 +10,7 @@ const PAGE_URL_IT = `${site.url}/lab/verde-urbano`;
 export const metadata: Metadata = {
   title: "Verde Urbano · A concept app to re-green Rome · Fosforonero Lab",
   description:
-    "Installable interactive demo: a concept app to regrow Rome's urban green. Donate trees, follow their growth in a diary, report areas that need planting. Works like a native app on Android and iPhone.",
+    "Installable interactive demo: a concept app to regrow Rome's urban green. Give what you can into a common fund, explore the participatory map, report areas that need planting. Works like a native app on Android and iPhone.",
   applicationName: "Verde Urbano",
   manifest: "/lab/verde-urbano/manifest.en.webmanifest",
   appleWebApp: { capable: true, title: "Verde Urbano", statusBarStyle: "default" },
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     siteName: site.name,
     title: "Verde Urbano · Let's rebuild Rome's green",
     description:
-      "A concept app to regrow Rome's urban green: donate trees, follow their growth, report areas to plant. Installable interactive demo.",
+      "A concept app to regrow Rome's urban green: give what you can into a common fund, the participatory map steers plantings, report areas. Installable interactive demo.",
     images: [{ url: `${site.url}/opengraph-image`, width: 1200, height: 630, alt: "Verde Urbano — Fosforonero Lab" }],
   },
   twitter: { card: "summary_large_image" },
@@ -67,7 +67,7 @@ export default function VerdeUrbanoEn() {
         "@id": `${PAGE_URL}#app`,
         name: "Verde Urbano",
         description:
-          "Installable interactive demo (PWA) of a civic concept app to regrow Rome's urban green: tree donations, a participatory needs map, and a growth diary.",
+          "Installable interactive demo (PWA) of a civic concept app to regrow Rome's urban green: free giving into a common fund, a participatory needs map, and automatic transparent allocation.",
         url: PAGE_URL,
         applicationCategory: "LifestyleApplication",
         operatingSystem: "Web, iOS, Android",
@@ -75,7 +75,7 @@ export default function VerdeUrbanoEn() {
         offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
         author: { "@type": "Person", name: site.author.name, url: site.url },
         keywords:
-          "urban green, urban reforestation, civic app, donate trees, participatory map, Rome, interactive demo, installable PWA, CO₂, trees",
+          "urban green, urban reforestation, civic app, common fund, donations, participatory map, Rome, interactive demo, installable PWA, CO₂, trees",
       },
       {
         "@type": "BreadcrumbList",

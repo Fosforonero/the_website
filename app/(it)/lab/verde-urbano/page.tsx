@@ -10,7 +10,7 @@ const PAGE_URL_EN = `${site.url}/en/lab/verde-urbano`;
 export const metadata: Metadata = {
   title: "Verde Urbano · App concept per rinverdire Roma · Fosforonero Lab",
   description:
-    "Demo interattiva e installabile: un'app concept per rigenerare il verde di Roma. Dona alberi, seguine la crescita su un diario, segnala aree da rinverdire. Funziona come un'app nativa su Android e iPhone.",
+    "Demo interattiva e installabile: un'app concept per rigenerare il verde di Roma. Dona quello che puoi in un fondo comune, esplora la mappa partecipata, segnala aree da rinverdire. Funziona come un'app nativa su Android e iPhone.",
   applicationName: "Verde Urbano",
   manifest: "/lab/verde-urbano/manifest.it.webmanifest",
   appleWebApp: { capable: true, title: "Verde Urbano", statusBarStyle: "default" },
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     siteName: site.name,
     title: "Verde Urbano · Ricostruiamo il verde di Roma",
     description:
-      "Un'app concept per rigenerare il verde urbano di Roma: dona alberi, segui la loro crescita, segnala aree da rinverdire. Demo interattiva installabile.",
+      "Un'app concept per rigenerare il verde urbano di Roma: dona quello che puoi in un fondo comune, la mappa partecipata guida le piantumazioni, segnala le aree. Demo interattiva installabile.",
     images: [{ url: `${site.url}/opengraph-image`, width: 1200, height: 630, alt: "Verde Urbano — Fosforonero Lab" }],
   },
   twitter: { card: "summary_large_image" },
@@ -67,7 +67,7 @@ export default function VerdeUrbano() {
         "@id": `${PAGE_URL}#app`,
         name: "Verde Urbano",
         description:
-          "Demo interattiva e installabile (PWA) di un'app concept civica per rigenerare il verde urbano di Roma: donazione di alberi, mappa partecipata delle necessità, diario di crescita.",
+          "Demo interattiva e installabile (PWA) di un'app concept civica per rigenerare il verde urbano di Roma: donazione libera a fondo comune, mappa partecipata delle necessità, allocazione automatica e trasparente.",
         url: PAGE_URL,
         applicationCategory: "LifestyleApplication",
         operatingSystem: "Web, iOS, Android",
@@ -75,7 +75,7 @@ export default function VerdeUrbano() {
         offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
         author: { "@type": "Person", name: site.author.name, url: site.url },
         keywords:
-          "verde urbano, riforestazione urbana, app civica, donare alberi, mappa partecipata, Roma, demo interattiva, PWA installabile, CO₂, alberi",
+          "verde urbano, riforestazione urbana, app civica, fondo comune, donazioni, mappa partecipata, Roma, demo interattiva, PWA installabile, CO₂, alberi",
       },
       {
         "@type": "BreadcrumbList",
