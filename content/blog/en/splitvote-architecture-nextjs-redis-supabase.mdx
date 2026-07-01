@@ -3,6 +3,8 @@ title: "How I built SplitVote: real-time Redis, Stripe and the curiosity gap tra
 excerpt: "Moral dilemmas in real time, Stripe idempotency, AdSense and a psychology bug that killed the k-factor. Everything I learned building SplitVote solo."
 date: "2026-06-16"
 tag: "SplitVote"
+image: "/blog/splitvote/splitvote-redis-realtime-nextjs-supabase.webp"
+imageAlt: "SplitVote real-time architecture: a live voting dashboard with Redis (HINCRBY) as the source of truth, Next.js and Supabase, real-time results and atomic vote counting"
 ---
 
 **SplitVote is a real-time moral dilemma platform: anonymous votes, live results, moral personality profiles and viral share loops.** I built it solo in about two months. This article covers the main technical decisions and the most interesting bugs — including a late discovery about the psychology of sharing that required rewriting all share copy from scratch.

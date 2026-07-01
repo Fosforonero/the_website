@@ -43,6 +43,8 @@ const SLUG_ALTERNATES: Record<string, string> = {
   "splitvote-architecture-nextjs-redis-supabase": "splitvote-architettura-nextjs-redis-supabase",
   "tradurre-1200-pagine-ollama": "translating-1200-pages-ollama",
   "translating-1200-pages-ollama": "tradurre-1200-pagine-ollama",
+  "costruire-motore-di-traduzione-weglot": "build-your-own-translation-engine",
+  "build-your-own-translation-engine": "costruire-motore-di-traduzione-weglot",
 };
 export function alternateSlug(slug: string): string {
   return SLUG_ALTERNATES[slug] ?? slug;

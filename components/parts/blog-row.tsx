@@ -64,6 +64,27 @@ export function BlogRow({ post, idx, readLabel }: Props) {
         </div>
       </div>
       <div>
+        {post.image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={post.image}
+            alt={post.imageAlt ?? post.title}
+            width={1200}
+            height={800}
+            loading="lazy"
+            decoding="async"
+            style={{
+              display: "block",
+              width: "100%",
+              height: 190,
+              objectFit: "cover",
+              objectPosition: "center 32%",
+              borderRadius: 10,
+              border: "1px solid var(--color-rule)",
+              marginBottom: 14,
+            }}
+          />
+        ) : null}
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
           <Pill background="var(--color-accent-soft)" color="var(--color-accent)">
             {post.tag}

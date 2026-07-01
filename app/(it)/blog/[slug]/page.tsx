@@ -144,6 +144,23 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
               {post.excerpt}
             </p>
           </header>
+          {post.image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={post.image}
+              alt={post.imageAlt ?? post.title}
+              width={1200}
+              height={800}
+              style={{
+                display: "block",
+                width: "100%",
+                height: "auto",
+                borderRadius: 14,
+                border: "1px solid var(--color-rule)",
+                margin: "0 0 clamp(28px, 5vw, 44px)",
+              }}
+            />
+          ) : null}
           <div className="prose">
             <MDXRemote source={post.content} components={{ Math, Mi }} />
           </div>

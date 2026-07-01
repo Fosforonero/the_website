@@ -3,6 +3,8 @@ title: "Come ho tradotto 1.200 pagine in 11 lingue con Ollama spendendo €0"
 excerpt: "Una pipeline di traduzione locale: JSON → Python → Ollama (qwen2.5:7b su Apple Silicon) → Next.js, che genera 1.243 pagine SEO multilingua per FitMesh Sync. Costo API: zero. Il codice, le scelte e i limiti onesti."
 date: "2026-06-22"
 tag: "Dev"
+image: "/blog/ollama/traduzione-locale-ollama-qwen.webp"
+imageAlt: "Illustrazione della pipeline di traduzione locale con Ollama: script Python traduci.py con modello qwen, 1.200 pagine tradotte a costo zero per il sito multilingua di FitMesh Sync"
 ---
 
 [FitMesh Sync](https://www.fitmesh.fit) vive in undici mercati. Ognuno vuole leggere la stessa cosa nella propria lingua: la landing, le pagine dei dispositivi supportati, gli articoli. Tradurre tutto con un'API commerciale era la strada ovvia, ed è quella che ho scartato. Questo è il sistema che ho costruito al suo posto: gira interamente in locale sul mio MacBook, il costo delle API di traduzione è zero, e a build time produce 1.243 pagine indicizzabili.
@@ -166,11 +168,13 @@ qwen2.5:7b non è GPT-4, e fingere il contrario sarebbe disonesto.
 Tre cose, in ordine di ritorno sull'investimento:
 
 1. **Un modello più grande per JA/KO.** Per le due lingue problematiche userei `qwen3:14b`: più lento, ma quasi certamente meno fallback dove la qualità è più debole. Le lingue europee restano sul 7B, che lì basta e avanza.
-2. **Una cache delle traduzioni.** Oggi un aggiornamento del copy ritraduce tutto. Con un hash della stringa sorgente come chiave, ritradurrei solo ciò che è cambiato, e gli aggiornamenti passerebbero da minuti a secondi.
+2. **Una cache delle traduzioni.** Oggi un aggiornamento del copy ritraduce tutto. Con un hash della stringa sorgente come chiave, ritradurrei solo ciò che è cambiato, e gli aggiornamenti passerebbero da minuti a secondi. **Aggiornamento (luglio 2026):** l'ho costruita. È diventata [loctron](/blog/costruire-motore-di-traduzione-weglot), il nostro motore di traduzione con memoria, glossario e una cascata DeepL più Ollama, che ora traduce anche l'app Flutter.
 3. **Output direttamente nel volume Docker.** Adesso seguo l'avanzamento via stdout, comodo per il monitoraggio dal vivo ma fragile come trasporto. Scrivere i file tradotti direttamente nel volume montato toglie un passaggio e un punto di rottura.
 
 ## La traduzione è solo metà del lavoro
 
 Avere 1.243 pagine tradotte e statiche non significa avere 1.243 pagine che si posizionano. Tradurre il testo è la metà visibile. L'altra metà è dire ai motori di ricerca come tenere insieme undici versioni della stessa pagina senza che si cannibalizzino: `hreflang` corretti, `canonical` per locale, una sitemap multilingua, e structured data che descriva ogni pagina nella sua lingua. È un problema a sé, con le sue trappole, e lo riprenderò in un articolo dedicato.
+
+Quella cache delle traduzioni che citavo poco sopra, nel frattempo, è cresciuta in un motore vero, con memoria, glossario e più motori, capace di tradurre anche l'app: [perché abbiamo costruito il nostro Weglot](/blog/costruire-motore-di-traduzione-weglot).
 
 > Un modello da 7B sul portatile non è GPT-4, e non prova a esserlo. Per un progetto indie a budget zero la domanda non è quale sia la traduzione migliore in assoluto, ma come pubblicare in 11 lingue senza che il costo ti fermi. Questa è una risposta possibile, con i suoi limiti.
