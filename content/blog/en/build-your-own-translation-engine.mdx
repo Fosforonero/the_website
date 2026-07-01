@@ -1,5 +1,5 @@
 ---
-title: "Why we built our own translation engine instead of paying for Weglot"
+title: "How I built my in-house translation engine"
 excerpt: "How loctron came to be, FitMesh's in-house translation engine: translation memory, glossary, brand and placeholder protection, and a DeepL + Ollama waterfall for a Next.js site and a Flutter app. Subscription cost: zero. The real value is not the engine, it is owning the workflow."
 date: "2026-07-01"
 tag: "Dev"
@@ -9,26 +9,26 @@ imageAlt: "loctron architecture, FitMesh's in-house translation engine: translat
 
 A year ago I wrote about [how I translated 1,200 pages into 11 languages with Ollama for €0](/en/blog/translating-1200-pages-ollama). It was a Python pipeline that fed raw JSON into a local model and produced static pages for FitMesh Sync. It worked, but at the end of that article I left a list of three things I would do differently. The first line of that list read: "a translation cache, with a hash of the source string as the key, so I only re-translate what changed".
 
-This article is what happened when I actually built it. It is called **loctron**, our internal translation engine, a home-grown *translation engine*, and it translates both the Next.js site and the Flutter app with a single shared memory. It is not a product. We do not sell it. It is the tool we use to bring FitMesh to 15 languages without paying anyone a subscription. This is a build in public article: there is real code, there are the bugs that bit us, and there is the reason why, at a certain point, replicating Weglot in-house was the right call.
+This article is what happened when I actually built it. It is called **loctron**, my internal translation engine, a home-grown *translation engine*, and it translates both the Next.js site and the Flutter app with a single shared memory. It is not a product. I do not sell it. It is the tool I use to bring FitMesh to 15 languages without paying anyone a subscription. This is a build in public article: there is real code, there are the bugs that bit me, and there is the reason why, at a certain point, replicating Weglot in-house was the right call.
 
 ## The problem: site and app, in fifteen languages, with no recurring budget
 
-FitMesh lives in 15 markets. The [first year in production](/en/blog/fitmesh-primo-anno-produzione) taught us one sharp lesson: for an indie app, the cost that kills you is not the one-off cost, it is the recurring one. A pay-per-character translation engine is exactly a recurring cost dressed up as convenience. Every time you update a landing page, every time you publish an article, every time you add a language, you pay again.
+FitMesh lives in 15 markets. The [first year in production](/en/blog/fitmesh-primo-anno-produzione) taught me one sharp lesson: for an indie app, the cost that kills you is not the one-off cost, it is the recurring one. A pay-per-character translation engine is exactly a recurring cost dressed up as convenience. Every time you update a landing page, every time you publish an article, every time you add a language, you pay again.
 
 Chapter one solved half the problem: the **site**. A local, free pipeline that generated indexable pages. But the other half was left out, the **app**. FitMesh is written in Flutter, and its strings live in [ARB](https://github.com/google/app-resource-bundle/wiki/ApplicationResourceBundleSpecification) files, not JSON. The chapter one pipeline could not read them. And above all it re-translated everything from scratch on every run, because it had no memory.
 
-Then came the Nordic expansion. We wanted to add Swedish, Danish, Norwegian Bokmål and Finnish, four languages with grammatical cases, word composition and a technical vocabulary all their own. Going from 11 to 15 languages across two different products, with decent quality and without opening the wallet every month, was not a job for a throwaway script. It needed a system.
+Then came the Nordic expansion. I wanted to add Swedish, Danish, Norwegian Bokmål and Finnish, four languages with grammatical cases, word composition and a technical vocabulary all their own. Going from 11 to 15 languages across two different products, with decent quality and without opening the wallet every month, was not a job for a throwaway script. It needed a system.
 
-## Why we didn't buy a SaaS
+## Why I didn't buy a SaaS
 
-The obvious path was [Weglot](https://www.weglot.com/) or an equivalent like [ConveyThis](https://www.conveythis.com/). They are serious products, they do their job, and for the right site they are an excellent choice. For us they were the wrong choice, for four concrete reasons.
+The obvious path was [Weglot](https://www.weglot.com/) or an equivalent like [ConveyThis](https://www.conveythis.com/). They are serious products, they do their job, and for the right site they are an excellent choice. For me they were the wrong choice, for four concrete reasons.
 
-- **The price is per word per language.** Our site has around 700 programmatic pages. Multiply that by 15 languages, and then by every regeneration, and a translation SaaS plan blows up fast. It is the same constraint from chapter one: if regenerating costs, you stop regenerating, and the content goes stale.
-- **The site already has real i18n.** Localization is already in-house: per-language dictionaries, `hreflang`, localized slugs, a multilingual sitemap. Translation proxies like Weglot exist for sites that do not have this infrastructure: they intercept the HTML and rewrite it on the fly. We would have paid for a layer that duplicated what we already owned.
-- **They only cover the web.** None of these products touch a Flutter app and its ARB files. We needed one system for site **and** app, with the same terminology in both. Two separate tools mean two glossaries that drift apart.
-- **The quality is not the SaaS, it is the engine underneath.** Under the hood, these services call DeepL or Google Translate. The SaaS adds the convenience of the editor and the integration, not the translation quality. And that engine, DeepL, we can call directly ourselves.
+- **The price is per word per language.** My site has around 700 programmatic pages. Multiply that by 15 languages, and then by every regeneration, and a translation SaaS plan blows up fast. It is the same constraint from chapter one: if regenerating costs, you stop regenerating, and the content goes stale.
+- **The site already has real i18n.** Localization is already in-house: per-language dictionaries, `hreflang`, localized slugs, a multilingual sitemap. Translation proxies like Weglot exist for sites that do not have this infrastructure: they intercept the HTML and rewrite it on the fly. I would have paid for a layer that duplicated what I already owned.
+- **They only cover the web.** None of these products touch a Flutter app and its ARB files. I needed one system for site **and** app, with the same terminology in both. Two separate tools mean two glossaries that drift apart.
+- **The quality is not the SaaS, it is the engine underneath.** Under the hood, these services call DeepL or Google Translate. The SaaS adds the convenience of the editor and the integration, not the translation quality. And that engine, DeepL, I can call directly myself.
 
-Lined up, these four reasons lead to a single conclusion: we should not buy a product, we should replicate its *value*. And the value of a tool like Weglot is not the neural network that translates. It is the **translation memory**, the **glossary**, the **review** flow and the ability to orchestrate **multiple engines**. Those are four things you write in your own code, they stay yours, and they have no subscription.
+Lined up, these four reasons lead to a single conclusion: I should not buy a product, I should replicate its *value*. And the value of a tool like Weglot is not the neural network that translates. It is the **translation memory**, the **glossary**, the **review** flow and the ability to orchestrate **multiple engines**. Those are four things you write in your own code, they stay yours, and they have no subscription.
 
 ## What loctron is in one line
 
@@ -50,7 +50,7 @@ adapter.build() / inject
 translated file, one version per language
 ```
 
-Technically it is deliberately lean. It is TypeScript run on Node 22 with `--experimental-strip-types`, no build step, and **zero npm dependencies**: both DeepL and Ollama are reached with native `fetch`. It runs inside Docker, because on the dev machine we do not install language runtimes:
+Technically it is deliberately lean. It is TypeScript run on Node 22 with `--experimental-strip-types`, no build step, and **zero npm dependencies**: both DeepL and Ollama are reached with native `fetch`. It runs inside Docker, because on the dev machine I do not install language runtimes:
 
 ```
 docker run --rm --network host -e DEEPL_API_KEY -v "$PWD":/app -w /app node:22 \
@@ -83,19 +83,19 @@ Every entry in memory has a text, the engine that produced it, a timestamp and, 
 
 The point about corrections is that they are "sticky". When you promote an entry from `machine` to `reviewed`, that rendering stays and is reused everywhere the same source string appears, across all projects. Fix "Apple Health:aan" once, and you never review it again. The memory is also why the process is **restartable**: if a run stops halfway, whatever was already translated is already in memory, and resuming costs nothing.
 
-This is the central thesis of the article, and it is worth being explicit: **the value is not the engine, it is the memory**. The engine that translates, DeepL or a local model or whatever ships next year, is interchangeable. The memory of strings already translated and already reviewed, on the other hand, grows over time, is versioned in our repo, and is ours. It is the asset a SaaS makes you build inside its house, and that you do not take with you when you switch providers.
+This is the central thesis of the article, and it is worth being explicit: **the value is not the engine, it is the memory**. The engine that translates, DeepL or a local model or whatever ships next year, is interchangeable. The memory of strings already translated and already reviewed, on the other hand, grows over time, is versioned in my repo, and is ours. It is the asset a SaaS makes you build inside its house, and that you do not take with you when you switch providers.
 
 ### Glossary and do-not-translate (DNT)
 
 The glossary solves two different problems with two complementary mechanisms.
 
-The first is **consistent terminology**. "smart ring" must always become "smartring" in Norwegian and "älysormus" in Finnish, not a different variant every time the model feels creative. The glossary is a table of `source term → rendering per language`, and when it is the local model's turn, we inject it into the prompt as an explicit constraint.
+The first is **consistent terminology**. "smart ring" must always become "smartring" in Norwegian and "älysormus" in Finnish, not a different variant every time the model feels creative. The glossary is a table of `source term → rendering per language`, and when it is the local model's turn, I inject it into the prompt as an explicit constraint.
 
 The second is **do-not-translate**. Some things should not be translated at all: brand names (FitMesh, Apple Health, Galaxy Watch, Health Connect, Wear OS), technical acronyms (SpO₂, HRV, VO₂ max, GDPR), URLs, emails and placeholders. If the model translates "Health Connect", the text is immediately wrong for whoever reads it. The same health-tech terminology I dealt with while integrating [Health Services on Wear OS](/en/blog/galaxy-watch-android-senza-samsung-health) is what has to be protected word by word here.
 
 ### Placeholder protection: masking with an integrity check
 
-We implement do-not-translate with **masking**. Before sending a string to an engine, we replace everything that must not be translated with neutral placeholders of the form `⟦0⟧`, `⟦1⟧`, and so on. The engine translates the text around the placeholders, and at the end we restore them.
+I implement do-not-translate with **masking**. Before sending a string to an engine, I replace everything that must not be translated with neutral placeholders of the form `⟦0⟧`, `⟦1⟧`, and so on. The engine translates the text around the placeholders, and at the end I restore them.
 
 ```ts
 mask(text: string): { masked: string; tokens: string[] } {
@@ -121,9 +121,9 @@ mask(text: string): { masked: string; tokens: string[] } {
 }
 ```
 
-Simple [ICU](https://unicode-org.github.io/icu/userguide/format_parse/messages/) placeholders like `{count}` get masked; the complex ones with plurals or selects we leave to manual handling, because their structure is too fragile to hand to a machine.
+Simple [ICU](https://unicode-org.github.io/icu/userguide/format_parse/messages/) placeholders like `{count}` get masked; the complex ones with plurals or selects I leave to manual handling, because their structure is too fragile to hand to a machine.
 
-The detail that makes this mechanism reliable is not the masking itself, it is the **integrity check** after translation. If the engine drops a placeholder along the way, we do not reconstruct a mangled brand: we discard that translation and move to the next engine.
+The detail that makes this mechanism reliable is not the masking itself, it is the **integrity check** after translation. If the engine drops a placeholder along the way, I do not reconstruct a mangled brand: I discard that translation and move to the next engine.
 
 ```ts
 placeholdersIntact(masked: string, tokens: string[]): boolean {
@@ -132,7 +132,7 @@ placeholdersIntact(masked: string, tokens: string[]): boolean {
 }
 ```
 
-It is one line of logic that removes an entire class of silent errors. A brand or a `{count}` never break without us noticing, because a translation that has lost them does not even enter memory.
+It is one line of logic that removes an entire class of silent errors. A brand or a `{count}` never break without me noticing, because a translation that has lost them does not even enter memory.
 
 ### The adapters: one core, many formats
 
@@ -195,7 +195,7 @@ The bonus is control over indexing. A flag `isPostTranslated(post, lang)` checks
 
 There are two engines, and they play different roles.
 
-[DeepL](https://developers.deepl.com/docs) is the workhorse. Near-professional quality, fast, holds placeholders well, and surprisingly strong even on Finnish, the trickiest language in the set. We call it over HTTP, no SDK: the adapter is one file. It works out on its own whether the key is Free or Pro from the `:fx` suffix, and above all it exposes a **usage** endpoint that tells us how many characters we have consumed in the month.
+[DeepL](https://developers.deepl.com/docs) is the workhorse. Near-professional quality, fast, holds placeholders well, and surprisingly strong even on Finnish, the trickiest language in the set. I call it over HTTP, no SDK: the adapter is one file. It works out on its own whether the key is Free or Pro from the `:fx` suffix, and above all it exposes a **usage** endpoint that tells me how many characters I have consumed in the month.
 
 ```ts
 async usage(): Promise<{ count: number; limit: number } | null> {
@@ -206,9 +206,9 @@ async usage(): Promise<{ count: number; limit: number } | null> {
 }
 ```
 
-This detail is central: **we never hardcode the free plan limit**, we read it from the API. DeepL's [free plan](https://developers.deepl.com/docs/resources/usage-limits) gives 500,000 characters per month, but what matters for the code is the real value the endpoint reports, month by month.
+This detail is central: **I never hardcode the free plan limit**, I read it from the API. DeepL's [free plan](https://developers.deepl.com/docs/resources/usage-limits) gives 500,000 characters per month, but what matters for the code is the real value the endpoint reports, month by month.
 
-[Ollama](https://ollama.com/) with [qwen3:14b](https://ollama.com/library/qwen3) is the other engine. It runs locally, it is free and unlimited, and it serves two purposes: covering when the month's DeepL budget is gone, and guaranteeing **total independence**. If DeepL changed its prices tomorrow or shut down the free API, loctron would keep translating without touching a line of configuration, just a bit slower. The prompt we give it is strict about placeholders and explicit about the em-dash:
+[Ollama](https://ollama.com/) with [qwen3:14b](https://ollama.com/library/qwen3) is the other engine. It runs locally, it is free and unlimited, and it serves two purposes: covering when the month's DeepL budget is gone, and guaranteeing **total independence**. If DeepL changed its prices tomorrow or shut down the free API, loctron would keep translating without touching a line of configuration, just a bit slower. The prompt I give it is strict about placeholders and explicit about the em-dash:
 
 ```ts
 const prompt =
@@ -219,7 +219,7 @@ const prompt =
   `Return ONLY lines "N=translation" with the same numbers.\n\n${numbered}\n/no_think`;
 ```
 
-The comparison between the two engines explains why we need both:
+The comparison between the two engines explains why I need both:
 
 | Aspect | DeepL | Ollama (qwen3:14b) |
 |---|---|---|
@@ -252,7 +252,7 @@ placeholders ⟦n⟧ intact?
                   └─ if none succeed ──►  review queue (text = null)
 ```
 
-The budget logic inside the loop is where we left a bug the first time. The cost of a segment is counted on the characters **of the masked source string**, and it is subtracted from what is left before sending. But if DeepL fails, that budget has to be **refunded**, not treated as spent:
+The budget logic inside the loop is where I left a bug the first time. The cost of a segment is counted on the characters **of the masked source string**, and it is subtracted from what is left before sending. But if DeepL fails, that budget has to be **refunded**, not treated as spent:
 
 ```ts
 try {
@@ -263,7 +263,7 @@ try {
 }
 ```
 
-Without that refund, the budget "runs out" while you have actually spent nothing, and the languages in the queue stay at zero. It is a subtle bug, and on the first run it left us with two languages completely untranslated despite having credit. I tell it because it is exactly the kind of detail a SaaS hides from you, and that, when you own the code, you have to understand yourself.
+Without that refund, the budget "runs out" while you have actually spent nothing, and the languages in the queue stay at zero. It is a subtle bug, and on the first run it left me with two languages completely untranslated despite having credit. I tell it because it is exactly the kind of detail a SaaS hides from you, and that, when you own the code, you have to understand yourself.
 
 The full flow, at the run level, is one language at a time with incremental saving:
 
@@ -298,14 +298,14 @@ No vanity metrics. This is the state at the time of writing, read straight from 
 
 **The site.** From 11 to 15 languages, with the four Nordic ones added via loctron. One glossary and one memory for app and site.
 
-The honest comparison of the options we had:
+The honest comparison of the options I had:
 
 | | Weglot / ConveyThis | loctron |
 |---|---|---|
 | Cost model | Subscription, per word per language | Zero subscription, just the laptop's electricity |
 | Site + app | Web only | Next.js site **and** Flutter app |
 | Requires your own i18n | No, they build it | Yes, it leverages it |
-| Memory ownership | Inside their service | In our repo, versioned |
+| Memory ownership | Inside their service | In my repo, versioned |
 | MT engine | DeepL/Google, not steerable | DeepL + Ollama, steerable |
 | Lock-in | High | None |
 | Visual editor and collaboration | Yes | No (for now it is a CLI) |
@@ -315,7 +315,7 @@ The last row is the honest part: a SaaS is not yours to maintain. loctron is. It
 
 ## Gotchas from the field
 
-Some things we only understood by shipping real translations to production. They are the kind of detail you will not find in any product's documentation.
+Some things I only understood by shipping real translations to production. They are the kind of detail you will not find in any product's documentation.
 
 - **DeepL's free plan rate-limits on bulk.** Hundreds of requests in a row trigger 429 errors, and the batches fail silently. The cure is trivial but you have to add it: a pause between requests and a retry with backoff on the 429. Without it, a large slice of the translations comes back empty and you cannot tell why.
 - **The budget is counted on source characters, per language.** Translating a text into four languages costs four times its characters. Obvious to say, easy to get wrong in the counting (see the refund bug above).
@@ -323,7 +323,7 @@ Some things we only understood by shipping real translations to production. They
 - **Better one complete language than four half-done.** Because `noindex` is dropped per (article, language) pair, it is better to finish Swedish across all articles before moving to Danish. Every complete pair enters the index on its own; four languages all half-done make no article show up. That is exactly why in the blog memory Swedish is at 100% while Finnish and Norwegian have barely started.
 - **DeepL sometimes "declines" brands.** In languages with grammatical cases it can attach an ending to a protected name, like "Apple Health:aan" in Finnish, right after the placeholder. The integrity check sees the placeholder intact and lets it through, because the ending is outside the token. Those are the few points a human or frontier-model review fixes, promoting the entry to `reviewed` in memory once and for all.
 
-## Design choices we'd make again
+## Design choices I'd make again
 
 - **No source rewriting where possible.** The blog overlay and the runtime merge kept 51 files clean in git.
 - **Masking with an integrity check.** Brands and placeholders never break silently, and that removes the most insidious category of bug in machine translation.
@@ -347,7 +347,7 @@ loctron is alive, and the to-do list is concrete.
 
 It makes sense when: you already have a structured i18n, you want to own the stack and the translation workflow, you have more than one target (site and app), and the volumes would make a SaaS expensive. A SaaS is the better call when: you are starting from zero with no i18n, you need a visual editor and collaboration from day one, and you do not want to maintain anything.
 
-And selling loctron? Honestly, no, not as it is. The translation-tool market is mature and crowded: to compete you would need hosting, an editor, integrations, support and marketing, which is another company. loctron is an excellent internal tool and a good story to tell, not a product for sale. Our product is FitMesh; loctron is the means by which we bring it to 15 languages without paying a subscription. If one day it took on a life of its own, the road would be open-source first, hosted later. But that is another story.
+And selling loctron? Honestly, no, not as it is. The translation-tool market is mature and crowded: to compete you would need hosting, an editor, integrations, support and marketing, which is another company. loctron is an excellent internal tool and a good story to tell, not a product for sale. My product is FitMesh; loctron is the means by which I bring it to 15 languages without paying a subscription. If one day it took on a life of its own, the road would be open-source first, hosted later. But that is another story.
 
 ## Frequently asked questions
 
@@ -357,7 +357,7 @@ A translation memory is a store that indexes every source string and its transla
 
 ### Why build a translation engine instead of using Weglot?
 
-Because we already had real i18n, we needed to cover both the Next.js site and the Flutter app with a single system, and we did not want a per-word, per-language subscription that gets repaid on every regeneration. Weglot and its peers are great for sites without internationalization infrastructure; for those who already have it, they duplicate a layer you own and charge you for the convenience of the editor, not for the translation quality.
+Because I already had real i18n, I needed to cover both the Next.js site and the Flutter app with a single system, and I did not want a per-word, per-language subscription that gets repaid on every regeneration. Weglot and its peers are great for sites without internationalization infrastructure; for those who already have it, they duplicate a layer you own and charge you for the convenience of the editor, not for the translation quality.
 
 ### Weglot alternatives: what are the options if you don't want a SaaS?
 
@@ -369,7 +369,7 @@ DeepL exposes a `/v2/translate` endpoint to translate and `/v2/usage` to read th
 
 ### How do you use Ollama for local machine translation?
 
-Ollama runs language models locally and exposes an HTTP API on `localhost:11434`. To translate, you send a prompt to the `/api/generate` endpoint asking the model to translate line by line, keeping placeholders intact and adding no commentary. In loctron we use qwen3:14b with a low temperature (0.2) and small batches, because a model does better in its context window when the input is short.
+Ollama runs language models locally and exposes an HTTP API on `localhost:11434`. To translate, you send a prompt to the `/api/generate` endpoint asking the model to translate line by line, keeping placeholders intact and adding no commentary. In loctron I use qwen3:14b with a low temperature (0.2) and small batches, because a model does better in its context window when the input is short.
 
 ### How do you translate a Flutter app with ARB files?
 
@@ -393,7 +393,7 @@ It depends on the text. DeepL is better on long prose and it is fast, but it has
 
 ### What is a translation overlay and what is it for?
 
-It is a technique to add translations to structured content without rewriting the source files. In our blog the 51 articles are TypeScript objects: instead of editing them, we keep the Nordic translations in a separate JSON overlay file and inject them into memory on load, using a walker that generates stable paths for each field. That keeps the source files clean in git and the translations a separate, regenerable artifact.
+It is a technique to add translations to structured content without rewriting the source files. In my blog the 51 articles are TypeScript objects: instead of editing them, I keep the Nordic translations in a separate JSON overlay file and inject them into memory on load, using a walker that generates stable paths for each field. That keeps the source files clean in git and the translations a separate, regenerable artifact.
 
 ### How do you avoid lock-in with a translation engine?
 
@@ -401,6 +401,6 @@ By owning the three pieces that matter and keeping them separate from the engine
 
 ### What happens if an engine fails to translate a segment?
 
-The cascade moves to the next engine. If even the last one fails, or a translation loses a placeholder and gets discarded by the integrity check, the segment lands in the review queue with a null text. We never invent a translation: an untranslated string shows the fallback (the original) instead of a hallucinated result, exactly like the omitted ARB keys.
+The cascade moves to the next engine. If even the last one fails, or a translation loses a placeholder and gets discarded by the integrity check, the segment lands in the review queue with a null text. I never invent a translation: an untranslated string shows the fallback (the original) instead of a hallucinated result, exactly like the omitted ARB keys.
 
 > A translation SaaS makes you build memory and glossary inside its house, and you do not take them with you. Building them in-house costs more time, but what remains, the versioned memory in your repo, is the one part that is not replaceable. The engine that translates is.
