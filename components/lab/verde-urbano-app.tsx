@@ -3,13 +3,16 @@
 // Verde Urbano — interactive app demo.
 //
 // A concept civic app for re-greening Rome. Single, role-free flow: every user
-// enters straight into the app and can donate, report or just explore, anytime.
-// Screens: home, participatory map, a free "give what you can" donation into a
-// common fund, a report flow, an "how it works / transparency" info screen and a
+// enters straight into the app and can help plant a tree, report an area, or
+// just explore, anytime. "Aiuta a piantare un albero" has a double function:
+// you pick a LOCATION (an existing reported spot, or a new one you add) AND
+// WHAT to give (a specific priced tree, or — as the last option — a free
+// amount into the common fund). Screens: home, participatory map, the help
+// flow, a report flow, an "how it works / transparency" info screen and a
 // profile — plus a bottom sheet, a FAB action sheet and a bottom tab bar.
 // Fully bilingual (IT/EN). The structural chrome (device frame, status bar,
-// safe-areas) lives in verde-urbano-view.tsx + verde-urbano.css; this file owns
-// the app surface, its state and its content.
+// safe-areas) lives in verde-urbano-view.tsx + verde-urbano.css; this file
+// owns the app surface, its state and its content.
 
 import {
   useCallback,
@@ -40,7 +43,24 @@ type Area = {
   kind: LS;
 };
 
-type MyDonation = { id: string; amount: number; date: LS };
+type Tree = {
+  id: string;
+  name: LS;
+  sci: string;
+  price: number;
+  co2: number;
+  h: string;
+  color: string;
+};
+
+type MyContribution = {
+  id: string;
+  amount: number;
+  date: LS;
+  kind: "tree" | "fund";
+  treeName?: LS;
+  areaName?: string;
+};
 
 /* ----------------------------- static data ----------------------------- */
 
@@ -53,7 +73,15 @@ const AREAS: Area[] = [
   { id: "eur", name: "Viale Europa", zona: { it: "EUR · Municipio IX", en: "EUR · District IX" }, need: "media", count: 7, x: 53, y: 88, kind: { it: "Viale alberato", en: "Tree-lined avenue" } },
 ];
 
-// Preset donation amounts (€) for the "give what you can" screen.
+const TREES: Tree[] = [
+  { id: "acero", name: { it: "Acero campestre", en: "Field maple" }, sci: "Acer campestre", price: 45, co2: 18, h: "6–8 m", color: "#E0654B" },
+  { id: "tiglio", name: { it: "Tiglio", en: "Linden" }, sci: "Tilia cordata", price: 70, co2: 24, h: "15–20 m", color: "#E59B26" },
+  { id: "leccio", name: { it: "Leccio", en: "Holm oak" }, sci: "Quercus ilex", price: 90, co2: 31, h: "15–25 m", color: "#34B85A" },
+  { id: "pino", name: { it: "Pino domestico", en: "Stone pine" }, sci: "Pinus pinea", price: 120, co2: 38, h: "20–25 m", color: "#2BAFC0" },
+  { id: "roverella", name: { it: "Roverella", en: "Downy oak" }, sci: "Quercus pubescens", price: 150, co2: 45, h: "15–20 m", color: "#7A8C3F" },
+];
+
+// Preset donation amounts (€) for the free "give what you can" option.
 const AMOUNTS = [1, 2, 5, 10, 20, 50];
 
 // Common-fund seed figures (session demo). Avg cost per tree used only to show a
@@ -61,9 +89,9 @@ const AMOUNTS = [1, 2, 5, 10, 20, 50];
 const FUND_START = 12480;
 const AVG_TREE_COST = 75;
 
-const INITIAL_DONATIONS: MyDonation[] = [
-  { id: "d_seed1", amount: 25, date: { it: "2 sett. fa", en: "2 wks ago" } },
-  { id: "d_seed2", amount: 10, date: { it: "1 mese fa", en: "1 month ago" } },
+const INITIAL_CONTRIBUTIONS: MyContribution[] = [
+  { id: "c_seed1", amount: 90, date: { it: "2 sett. fa", en: "2 wks ago" }, kind: "tree", treeName: { it: "Leccio", en: "Holm oak" }, areaName: "Viale del Pinciano" },
+  { id: "c_seed2", amount: 10, date: { it: "1 mese fa", en: "1 month ago" }, kind: "fund", areaName: "Viale Europa" },
 ];
 
 const NEED_META: Record<Need, { c: string; l: LS; soft: string }> = {
@@ -94,13 +122,13 @@ const T = {
       fundTitle: "Fondo comune",
       fundRaised: "raccolti",
       fundTrees: "alberi già finanziati · ogni euro tracciato",
-      donate: "Dona quello che puoi",
+      donate: "Aiuta a piantare un albero",
       report: "Segnala un'area",
       near: "Aree che aspettano",
       map: "Mappa →",
       treesNeeded: "alberi richiesti",
       howTitle: "Come funziona",
-      howBody: "Doni quello che puoi, i cittadini segnalano le aree, l'associazione pianta dove serve di più. Semplice e trasparente.",
+      howBody: "Aiuti a piantare un albero (specifico o con un importo libero) indicando anche il luogo. I cittadini segnalano, l'associazione pianta e rendiconta.",
       howCta: "Scopri di più",
     },
     map: {
@@ -117,24 +145,48 @@ const T = {
     },
     sheet: {
       needed: "alberi richiesti",
-      note: "Il fondo comune viene usato qui in base alla priorità dell'area — non scegli tu.",
-      donate: "Dona al fondo comune",
+      note: "Scegli un albero specifico o dona un importo libero: in entrambi i casi il contributo è per quest'area.",
+      donate: "Aiuta a piantare un albero qui",
       report: "Segnala un problema qui",
     },
     donate: {
-      title: "Dona quello che puoi",
-      sub: "Scegli un importo: va tutto nel fondo comune per gli alberi di Roma.",
+      locTitle: "Dove pianti?",
+      locSub: "Scegli un punto già segnalato, oppure aggiungine uno nuovo.",
+      addNew: "Aggiungi un nuovo luogo",
+      addNewHint: "Tocca la mappa per indicare il punto.",
+      addNewNote: "I punti segnalati sono luoghi dove un albero c'era ed ora manca (aiuola abbandonata, ceppo) — non nuove aree da rimboschire: quelle seguono un iter diverso insieme al Comune.",
+      addNewConfirm: "Usa questo punto",
+      addNewCancel: "Annulla",
+      newAreaName: "Nuovo punto",
+      newAreaZona: "Segnalato da te",
+      whatTitle: "Cosa doni?",
+      whatSub: "Scegli un albero, oppure — come ultima opzione — un importo libero.",
+      upTo: "Fino a",
+      fundRow: "Dona quello che puoi",
+      fundRowSub: "Scegli tu l'importo",
+      summaryTitle: "Riepilogo",
+      rLoc: "Luogo",
+      rTree: "Albero",
+      rCo2: "CO₂ assorbita",
+      perYear: "kg / anno",
+      total: "Totale",
+      confirm: "Conferma",
       custom: "Altro importo",
       fundTitle: "Fondo comune",
-      fundBody: "Nessun albero da scegliere: l'associazione usa il fondo per piantare dove serve di più. Ogni euro è tracciato.",
+      fundBody: "Il tuo contributo libero confluisce nel fondo comune per quest'area. Ogni euro è tracciato.",
       how: "Come funziona →",
       cta: "Dona",
       pick: "Scegli un importo",
-      demo: "Donazione simulata — questa è una demo.",
+      demo: "Contributo simulato — questa è una demo.",
+      disclaimer: "Interventi eseguiti da operatori incaricati dall'amministrazione.",
+      thanksTree: ["Grazie!", "Il tuo albero arriva."],
+      thanksTreeBody: "La messa a dimora è programmata. L'associazione ti aggiornerà sui progressi.",
       thanks: ["Grazie!", "Il tuo contributo conta."],
-      thanksTail: "entrano nel fondo comune. L'associazione li userà per piantare dove serve di più, in modo trasparente.",
-      seeHow: "Come vengono usati i fondi",
+      thanksTail: "entrano nel fondo comune per quest'area, in modo trasparente.",
+      seeHow: "Come funziona tutto questo",
       home: "Torna alla home",
+      step: "PASSO",
+      of3: "DI 3",
     },
     report: {
       sent: ["Segnalazione", "inviata!"],
@@ -144,6 +196,7 @@ const T = {
       head: "SEGNALA UN'AREA",
       q1: "Dov'è l'area?",
       q1sub: "Tocca la mappa per posizionare il punto.",
+      q1note: "Segnala un punto dove un albero c'era ed ora manca — non una nuova area da rimboschire.",
       tapPlace: "Tocca per posizionare",
       cont: "Continua",
       useLoc: "Usa la mia posizione attuale",
@@ -157,30 +210,30 @@ const T = {
     },
     info: {
       title: "Come funziona",
-      intro: "Un unico flusso, senza ruoli: puoi donare, segnalare o solo esplorare. Quando vuoi.",
+      intro: "Un unico flusso, senza ruoli: puoi aiutare a piantare, segnalare o solo esplorare. Quando vuoi.",
       steps: [
-        { t: "1 · Doni quello che puoi", b: "Anche 1 €. Tutte le donazioni confluiscono in un fondo comune." },
-        { t: "2 · I cittadini segnalano", b: "Le segnalazioni costruiscono la mappa delle aree che hanno più bisogno di verde." },
-        { t: "3 · L'associazione pianta", b: "Con il fondo, l'ente gestore finanzia le piantumazioni dove servono di più." },
+        { t: "1 · Scegli il luogo", b: "Un punto già segnalato dalla community, oppure uno nuovo che aggiungi tu." },
+        { t: "2 · Scegli come contribuire", b: "Un albero specifico con il suo prezzo, oppure — come ultima opzione — un importo libero." },
+        { t: "3 · L'associazione pianta e rendiconta", b: "Messa a dimora, foto e aggiornamenti sulla crescita." },
       ],
-      allocTitle: "Come vengono assegnati i fondi",
-      alloc: ["Priorità alle aree con maggiore necessità", "Ordine cronologico delle segnalazioni", "Priorità definite dagli amministratori"],
-      allocNote: "Assegnazione automatica e trasparente: non scegli tu quale albero finanziare.",
+      allocTitle: "Da dove vengono i punti sulla mappa",
+      alloc: ["Segnalati dai cittadini che vedono un albero mancante o abbattuto", "Verificati e aggiunti dall'associazione", "Puoi comunque aggiungerne uno nuovo mentre aiuti a piantare"],
+      allocNote: "Nuove aree di rimboschimento (mai state alberate) seguono un iter diverso insieme al Comune: per ora la demo mostra solo i punti dove un albero c'era ed è mancante.",
       transpTitle: "Trasparenza",
       transpBody: "Ogni euro è tracciato. L'associazione pubblica rendiconti e aggiornamenti sulle piantumazioni finanziate.",
       fundLabel: "raccolti nel fondo",
       treesLabel: "alberi finanziati",
-      cta: "Dona quello che puoi",
+      cta: "Aiuta a piantare un albero",
     },
     profile: {
       name: "Marco Rossi",
       tag: "Cittadino attivo",
       donated: "donato",
       reports: "segnalazioni",
-      donations: "donazioni",
-      myDonations: "Le mie donazioni",
+      donations: "contributi",
+      myDonations: "I miei contributi",
       myReports: "Le mie segnalazioni",
-      toFund: "al fondo comune",
+      toFund: "fondo comune",
       r1: "Piazzale Ostiense",
       r1d: "Piazza da rinverdire · 2 sett. fa",
       r1s: "In valutazione",
@@ -189,8 +242,8 @@ const T = {
       r2s: "Pianificato",
     },
     fab: {
-      donate: "Dona quello che puoi",
-      donateSub: "Un importo libero, nel fondo comune",
+      donate: "Aiuta a piantare un albero",
+      donateSub: "Scegli un albero o un importo libero, e il luogo",
       report: "Segnala un'area",
       reportSub: "Mappa una necessità di verde",
     },
@@ -209,13 +262,13 @@ const T = {
       fundTitle: "Common fund",
       fundRaised: "raised",
       fundTrees: "trees already financed · every euro tracked",
-      donate: "Give what you can",
+      donate: "Help plant a tree",
       report: "Report an area",
       near: "Areas waiting",
       map: "Map →",
       treesNeeded: "trees needed",
       howTitle: "How it works",
-      howBody: "You give what you can, citizens report areas, the association plants where it's needed most. Simple and transparent.",
+      howBody: "You help plant a tree (a specific one or a free amount) and indicate the location too. Citizens report, the association plants and reports back.",
       howCta: "Learn more",
     },
     map: {
@@ -232,24 +285,48 @@ const T = {
     },
     sheet: {
       needed: "trees needed",
-      note: "The common fund is used here based on the area's priority — you don't choose.",
-      donate: "Give to the common fund",
+      note: "Pick a specific tree or give a free amount: either way, your contribution is for this area.",
+      donate: "Help plant a tree here",
       report: "Report a problem here",
     },
     donate: {
-      title: "Give what you can",
-      sub: "Pick an amount: it all goes into the common fund for Rome's trees.",
+      locTitle: "Where do you plant?",
+      locSub: "Choose an already-reported spot, or add a new one.",
+      addNew: "Add a new spot",
+      addNewHint: "Tap the map to mark the spot.",
+      addNewNote: "Reported spots are places where a tree used to be and is now missing (a neglected bed, a stump) — not new afforestation areas: those follow a different process with the city.",
+      addNewConfirm: "Use this spot",
+      addNewCancel: "Cancel",
+      newAreaName: "New spot",
+      newAreaZona: "Reported by you",
+      whatTitle: "What do you give?",
+      whatSub: "Pick a tree, or — as a last option — a free amount.",
+      upTo: "Up to",
+      fundRow: "Give what you can",
+      fundRowSub: "You choose the amount",
+      summaryTitle: "Summary",
+      rLoc: "Location",
+      rTree: "Tree",
+      rCo2: "CO₂ absorbed",
+      perYear: "kg / year",
+      total: "Total",
+      confirm: "Confirm",
       custom: "Other amount",
       fundTitle: "Common fund",
-      fundBody: "No tree to pick: the association uses the fund to plant where it's needed most. Every euro is tracked.",
+      fundBody: "Your free contribution goes into the common fund for this area. Every euro is tracked.",
       how: "How it works →",
       cta: "Give",
       pick: "Pick an amount",
-      demo: "Simulated donation — this is a demo.",
+      demo: "Simulated contribution — this is a demo.",
+      disclaimer: "Work carried out by operators appointed by the city.",
+      thanksTree: ["Thank you!", "Your tree is on its way."],
+      thanksTreeBody: "Planting is scheduled. The association will keep you posted on progress.",
       thanks: ["Thank you!", "Your contribution counts."],
-      thanksTail: "go into the common fund. The association will use them to plant where it's needed most, transparently.",
-      seeHow: "How the funds are used",
+      thanksTail: "go into the common fund for this area, transparently.",
+      seeHow: "How all this works",
       home: "Back to home",
+      step: "STEP",
+      of3: "OF 3",
     },
     report: {
       sent: ["Report", "sent!"],
@@ -259,6 +336,7 @@ const T = {
       head: "REPORT AN AREA",
       q1: "Where's the area?",
       q1sub: "Tap the map to drop the pin.",
+      q1note: "Report a spot where a tree used to be and is now missing — not a new area to afforest.",
       tapPlace: "Tap to drop the pin",
       cont: "Continue",
       useLoc: "Use my current location",
@@ -272,30 +350,30 @@ const T = {
     },
     info: {
       title: "How it works",
-      intro: "One single flow, no roles: you can donate, report or just explore. Whenever you like.",
+      intro: "One single flow, no roles: you can help plant, report or just explore. Whenever you like.",
       steps: [
-        { t: "1 · You give what you can", b: "Even €1. Every donation flows into one common fund." },
-        { t: "2 · Citizens report", b: "Reports build the map of the areas that need green the most." },
-        { t: "3 · The association plants", b: "With the fund, the managing body finances plantings where they're needed most." },
+        { t: "1 · Choose the location", b: "A spot already reported by the community, or a new one you add." },
+        { t: "2 · Choose how to contribute", b: "A specific tree with its price, or — as a last option — a free amount." },
+        { t: "3 · The association plants and reports back", b: "Planting, photos and growth updates." },
       ],
-      allocTitle: "How funds are allocated",
-      alloc: ["Priority to the areas with the greatest need", "Chronological order of reports", "Priorities set by administrators"],
-      allocNote: "Automatic and transparent allocation: you don't choose which tree to finance.",
+      allocTitle: "Where map points come from",
+      alloc: ["Reported by citizens who see a missing or felled tree", "Verified and added by the association", "You can still add a new one while helping plant"],
+      allocNote: "New afforestation areas (never planted before) follow a different process with the city: for now the demo only shows spots where a tree used to be and is missing.",
       transpTitle: "Transparency",
       transpBody: "Every euro is tracked. The association publishes reports and updates on the financed plantings.",
       fundLabel: "raised in the fund",
       treesLabel: "trees financed",
-      cta: "Give what you can",
+      cta: "Help plant a tree",
     },
     profile: {
       name: "Marco Rossi",
       tag: "Active citizen",
-      donated: "donated",
+      donated: "given",
       reports: "reports",
-      donations: "donations",
-      myDonations: "My donations",
+      donations: "contributions",
+      myDonations: "My contributions",
       myReports: "My reports",
-      toFund: "to the common fund",
+      toFund: "common fund",
       r1: "Piazzale Ostiense",
       r1d: "Square to re-green · 2 wks ago",
       r1s: "Under review",
@@ -304,8 +382,8 @@ const T = {
       r2s: "Planned",
     },
     fab: {
-      donate: "Give what you can",
-      donateSub: "A free amount, into the common fund",
+      donate: "Help plant a tree",
+      donateSub: "Pick a tree or a free amount, and the location",
       report: "Report an area",
       reportSub: "Map a green need",
     },
@@ -358,6 +436,14 @@ function ReportTypeIcon({ kind, color }: { kind: ReportType["icon"]; color: stri
   return (
     <svg width={24} height={24} viewBox="0 0 24 24" fill="none" aria-hidden>
       <path d="M3 20h18M6 20c0-5 2-9 6-9s6 4 6 9" stroke={color} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function CrosshairIcon({ stroke = "#1B8A43" }: { stroke?: string }) {
+  return (
+    <svg width={26} height={26} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke={stroke} strokeWidth={2} strokeLinecap="round" />
+      <circle cx="12" cy="12" r="4" stroke={stroke} strokeWidth={2} />
     </svg>
   );
 }
@@ -422,6 +508,56 @@ function VuPhoto({ label, height, radius = 16, bg = "#CFE8BE" }: { label: string
   );
 }
 
+/* -------------------------- add-a-location box -------------------------- */
+// Shared by the "help plant a tree" location step and reused visually to match
+// the report flow's map-pin placement, so both feel like one consistent app.
+
+function AddLocationBox({
+  placed,
+  onTap,
+  onConfirm,
+  onCancel,
+  hint,
+  note,
+  confirmLabel,
+  cancelLabel,
+}: {
+  placed: boolean;
+  onTap: () => void;
+  onConfirm: () => void;
+  onCancel: () => void;
+  hint: string;
+  note: string;
+  confirmLabel: string;
+  cancelLabel: string;
+}) {
+  return (
+    <div style={{ marginTop: 4, marginBottom: 11 }}>
+      <div onClick={onTap} style={{ position: "relative", width: "100%", height: 220, borderRadius: 20, overflow: "hidden", cursor: "pointer", background: "linear-gradient(150deg,#EAF3E0,#DEEFD2)", border: "1px solid #D6E6C9", boxShadow: "inset 0 0 50px rgba(20,51,30,.05)" }}>
+        <ReportMapArt />
+        {!placed ? (
+          <div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%,-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: 7, color: "#5E6B5F", pointerEvents: "none" }}>
+            <CrosshairIcon />
+            <span style={{ fontSize: 12.5, fontWeight: 700, background: "rgba(255,255,255,.85)", padding: "5px 11px", borderRadius: 20 }}>{hint}</span>
+          </div>
+        ) : (
+          <div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%,-50%)", animation: "vu-pop .5s ease both" }}>
+            <span style={{ position: "absolute", left: "50%", top: "50%", width: 40, height: 40, borderRadius: "50%", background: "#E0654B", animation: "vu-ringpulse 1.8s ease-out infinite" }} />
+            <span style={{ position: "relative", display: "block", width: 38, height: 38, borderRadius: "50% 50% 50% 12px", background: "#E0654B", border: "3px solid #fff", boxShadow: "0 6px 14px rgba(20,51,30,.3)" }} />
+          </div>
+        )}
+      </div>
+      <p style={{ fontSize: 12.5, color: "#9AA59B", margin: "10px 0 0", lineHeight: 1.45 }}>{note}</p>
+      <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
+        <button type="button" onClick={onCancel} style={{ flex: "none", cursor: "pointer", border: "2px solid #ECE6D8", background: "#fff", color: "#5E6B5F", borderRadius: 14, padding: "11px 16px", fontWeight: 700, fontSize: 13.5, fontFamily: "inherit" }}>{cancelLabel}</button>
+        {placed && (
+          <button type="button" onClick={onConfirm} style={{ flex: 1, cursor: "pointer", border: "none", background: "#1B8A43", color: "#fff", borderRadius: 14, padding: "11px 16px", fontWeight: 700, fontSize: 14, fontFamily: "inherit" }}>{confirmLabel}</button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ------------------------------ component ------------------------------ */
 
 export type Screen = "home" | "map" | "donate" | "report" | "info" | "profile";
@@ -441,14 +577,23 @@ export function VerdeUrbanoApp({ locale, entryScreen = "home", scrollRef }: Verd
   const [fabOpen, setFabOpen] = useState(false);
   const [mapFilter, setMapFilter] = useState<"all" | "alta">("all");
   const [sheetArea, setSheetArea] = useState<Area | null>(null);
+  const [customAreas, setCustomAreas] = useState<Area[]>([]);
 
-  // Donation (common fund)
-  const [dStep, setDStep] = useState<1 | 2>(1);
+  // "Aiuta a piantare un albero" flow: 1 = luogo, 2 = cosa doni, 3 = dettaglio
+  // (riepilogo albero, o importo libero), 4 = grazie.
+  const [dStep, setDStep] = useState<1 | 2 | 3 | 4>(1);
+  const [dOrigin, setDOrigin] = useState<Screen>("home");
+  const [dSkippedLoc, setDSkippedLoc] = useState(false);
+  const [dArea, setDArea] = useState<string | null>(null);
+  const [dAddingNew, setDAddingNew] = useState(false);
+  const [dPendingPin, setDPendingPin] = useState(false);
+  const [dChoice, setDChoice] = useState<"tree" | "fund" | null>(null);
+  const [dTreeId, setDTreeId] = useState<string | null>(null);
   const [dAmount, setDAmount] = useState<number | null>(null);
   const [dCustom, setDCustom] = useState("");
-  const [dDone, setDDone] = useState(0);
+  const [dConfirmed, setDConfirmed] = useState(0);
   const [fundRaised, setFundRaised] = useState(FUND_START);
-  const [myDonations, setMyDonations] = useState<MyDonation[]>(INITIAL_DONATIONS);
+  const [myContributions, setMyContributions] = useState<MyContribution[]>(INITIAL_CONTRIBUTIONS);
 
   // Report flow
   const [rStep, setRStep] = useState(1);
@@ -467,13 +612,20 @@ export function VerdeUrbanoApp({ locale, entryScreen = "home", scrollRef }: Verd
     [toTop],
   );
 
-  const startDonate = () => {
+  const startAiuta = (presetAreaId?: string) => {
+    setDOrigin(screen);
     setScreen("donate");
     setFabOpen(false);
     setSheetArea(null);
-    setDStep(1);
+    setDArea(presetAreaId ?? null);
+    setDAddingNew(false);
+    setDPendingPin(false);
+    setDChoice(null);
+    setDTreeId(null);
     setDAmount(null);
     setDCustom("");
+    setDSkippedLoc(!!presetAreaId);
+    setDStep(presetAreaId ? 2 : 1);
     toTop();
   };
   const startReport = () => {
@@ -484,6 +636,22 @@ export function VerdeUrbanoApp({ locale, entryScreen = "home", scrollRef }: Verd
     setRPlaced(false);
     toTop();
   };
+  const rBack = () => {
+    if (rStep <= 1) return go("home");
+    setRStep(rStep - 1);
+    toTop();
+  };
+  // A submitted report is the same kind of thing as an inline "new location":
+  // it becomes a real, selectable/visible spot (map pin, donate-flow location
+  // list, Home teaser), not just a message that disappears into a form.
+  const submitReport = () => {
+    if (rPlaced) {
+      const newArea = createArea();
+      setCustomAreas((prev) => [...prev, newArea]);
+    }
+    setRStep(4);
+    toTop();
+  };
   // Open the map already focused on a specific area's sheet (used by the home
   // "areas waiting" cards, whose specific data implies a drill-in).
   const openArea = (a: Area) => {
@@ -492,28 +660,103 @@ export function VerdeUrbanoApp({ locale, entryScreen = "home", scrollRef }: Verd
     setFabOpen(false);
     toTop();
   };
-  const rBack = () => {
-    if (rStep <= 1) return go("home");
-    setRStep(rStep - 1);
-    toTop();
+
+  // Shared by both ways a new candidate spot enters the map: adding one inline
+  // while helping plant a tree, and submitting a plain area report — both
+  // represent the same kind of thing (a place where a tree is missing), so
+  // both feed the same pool of selectable/visible areas.
+  const createArea = (): Area => {
+    const idx = customAreas.length;
+    return {
+      id: "custom" + idx,
+      name: `${t.donate.newAreaName} ${idx + 1}`,
+      zona: t.donate.newAreaZona,
+      need: "media",
+      count: 1,
+      x: 40 + ((idx * 13) % 40),
+      y: 55 + ((idx * 17) % 30),
+      kind: { it: "Nuovo punto", en: "New spot" },
+    };
   };
 
-  const effAmount = dCustom.trim() !== "" ? Math.max(0, Math.floor(Number(dCustom)) || 0) : dAmount ?? 0;
-  const confirmDonate = () => {
-    if (effAmount <= 0) return;
-    setFundRaised((f) => f + effAmount);
-    setMyDonations((prev) => [{ id: "d" + prev.length + "_" + effAmount, amount: effAmount, date: { it: "Adesso", en: "Just now" } }, ...prev]);
-    setDDone(effAmount);
+  const addCustomArea = () => {
+    const newArea = createArea();
+    setCustomAreas((prev) => [...prev, newArea]);
+    setDArea(newArea.id);
+    setDAddingNew(false);
+    setDPendingPin(false);
     setDStep(2);
     toTop();
   };
 
+  const dBack = () => {
+    if (dStep === 1) {
+      if (dAddingNew) {
+        setDAddingNew(false);
+        setDPendingPin(false);
+        return;
+      }
+      return go(dOrigin);
+    }
+    if (dStep === 2) {
+      // Entered with a preset area (e.g. from a map pin's sheet): there is no
+      // location step to go back to, so back exits to where we came from.
+      if (dSkippedLoc) return go(dOrigin);
+      setDStep(1);
+      setDChoice(null);
+      setDTreeId(null);
+      setDAddingNew(false);
+      setDPendingPin(false);
+      toTop();
+      return;
+    }
+    setDStep(2);
+    toTop();
+  };
+
+  const effAmount = dCustom.trim() !== "" ? Math.max(0, Math.floor(Number(dCustom)) || 0) : dAmount ?? 0;
+
+  const confirmDonate = () => {
+    const areaObj = areas.find((a) => a.id === dArea);
+    if (dChoice === "tree") {
+      const tree = TREES.find((x) => x.id === dTreeId);
+      if (!tree) return;
+      setFundRaised((f) => f + tree.price);
+      setMyContributions((prev) => [
+        { id: "c" + prev.length + "_" + tree.id, amount: tree.price, date: { it: "Adesso", en: "Just now" }, kind: "tree", treeName: tree.name, areaName: areaObj?.name },
+        ...prev,
+      ]);
+      setDConfirmed(tree.price);
+      setDStep(4);
+      toTop();
+      return;
+    }
+    if (effAmount <= 0) return;
+    setFundRaised((f) => f + effAmount);
+    setMyContributions((prev) => [
+      { id: "c" + prev.length + "_fund", amount: effAmount, date: { it: "Adesso", en: "Just now" }, kind: "fund", areaName: areaObj?.name },
+      ...prev,
+    ]);
+    setDConfirmed(effAmount);
+    setDStep(4);
+    toTop();
+  };
+
   /* derived */
-  const areas = AREAS.map((a) => ({ ...a, needColor: NEED_META[a.need].c, needLabel: ls(NEED_META[a.need].l), needSoft: NEED_META[a.need].soft }));
+  const enrichArea = (a: Area) => ({ ...a, needColor: NEED_META[a.need].c, needLabel: ls(NEED_META[a.need].l), needSoft: NEED_META[a.need].soft });
+  const allAreasRaw = [...AREAS, ...customAreas];
+  const areas = allAreasRaw.map(enrichArea);
   const pins = mapFilter === "alta" ? areas.filter((a) => a.need === "alta") : areas;
-  const nearby = areas.filter((a) => a.need !== "bassa").slice(0, 3);
+  // Newly added spots (from "add a new location" or a report) surface first,
+  // so Home's teaser actually reflects what the user just added.
+  const customNearby = [...customAreas].reverse().map(enrichArea).filter((a) => a.need !== "bassa");
+  const staticNearby = AREAS.map(enrichArea).filter((a) => a.need !== "bassa");
+  const nearby = [...customNearby, ...staticNearby].slice(0, 3);
   const treesFunded = Math.floor(fundRaised / AVG_TREE_COST);
-  const totalDonated = myDonations.reduce((s, d) => s + d.amount, 0);
+  const totalGiven = myContributions.reduce((s, d) => s + d.amount, 0);
+  const dAreaObj = areas.find((a) => a.id === dArea);
+  const dTreeObj = TREES.find((x) => x.id === dTreeId);
+  const dProg = (Math.min(dStep, 3) / 3) * 100;
 
   const showNav = ["home", "map", "profile", "info"].includes(screen);
   const navColor = (on: boolean) => (on ? "#1B8A43" : "#9AA59B");
@@ -530,7 +773,6 @@ export function VerdeUrbanoApp({ locale, entryScreen = "home", scrollRef }: Verd
         <div style={{ width: 42, height: 42, borderRadius: "50%", background: "#16321F", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 15 }}>MR</div>
       </div>
 
-      {/* collective goal */}
       <div style={{ background: "linear-gradient(135deg,#163E22 0%,#1F5E33 100%)", borderRadius: 28, padding: 24, color: "#fff", position: "relative", overflow: "hidden", marginBottom: 12 }}>
         <div style={{ position: "absolute", right: -30, bottom: -40, width: 160, height: 160, borderRadius: "50%", background: "rgba(52,184,90,.25)" }} />
         <div style={{ position: "absolute", right: 18, top: 18, opacity: 0.5, animation: "vu-floaty 7s ease-in-out infinite" }}>
@@ -550,7 +792,6 @@ export function VerdeUrbanoApp({ locale, entryScreen = "home", scrollRef }: Verd
         </div>
       </div>
 
-      {/* common fund */}
       <div style={{ background: "#fff", border: "1px solid #ECE6D8", borderRadius: 22, padding: "16px 18px", marginBottom: 20, display: "flex", alignItems: "center", gap: 14 }}>
         <div style={{ flex: "none", width: 46, height: 46, borderRadius: 14, background: "#E4F2DE", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <Leaf size={24} stroke="#1B8A43" />
@@ -564,19 +805,17 @@ export function VerdeUrbanoApp({ locale, entryScreen = "home", scrollRef }: Verd
         </div>
       </div>
 
-      {/* actions */}
       <div style={{ display: "flex", gap: 11, marginBottom: 26 }}>
-        <button type="button" onClick={startDonate} style={{ flex: 1, cursor: "pointer", border: "none", background: "#1B8A43", color: "#fff", borderRadius: 18, padding: 16, fontWeight: 700, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 8px 20px rgba(27,138,67,.28)", fontFamily: "inherit" }}>
+        <button type="button" onClick={() => startAiuta()} style={{ flex: 1, cursor: "pointer", border: "none", background: "#1B8A43", color: "#fff", borderRadius: 18, padding: 16, fontWeight: 700, fontSize: 14.5, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 8px 20px rgba(27,138,67,.28)", fontFamily: "inherit" }}>
           <Leaf size={19} stroke="#fff" />
           {t.home.donate}
         </button>
-        <button type="button" onClick={startReport} style={{ flex: 1, cursor: "pointer", border: "2px solid #1B8A43", background: "#fff", color: "#1B8A43", borderRadius: 18, padding: 14, fontWeight: 700, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontFamily: "inherit" }}>
+        <button type="button" onClick={startReport} style={{ flex: 1, cursor: "pointer", border: "2px solid #1B8A43", background: "#fff", color: "#1B8A43", borderRadius: 18, padding: 14, fontWeight: 700, fontSize: 14.5, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontFamily: "inherit" }}>
           <PinIcon size={19} stroke="#1B8A43" />
           {t.home.report}
         </button>
       </div>
 
-      {/* areas waiting (informational → map) */}
       <SectionHead title={t.home.near} action={t.home.map} onAction={() => go("map")} />
       <div className="vu-noscroll" style={{ display: "flex", gap: 13, overflowX: "auto", margin: "0 -18px 26px", padding: "2px 18px 6px" }}>
         {nearby.map((a) => (
@@ -600,7 +839,6 @@ export function VerdeUrbanoApp({ locale, entryScreen = "home", scrollRef }: Verd
         ))}
       </div>
 
-      {/* how it works teaser */}
       <button type="button" onClick={() => go("info")} style={{ display: "block", width: "100%", textAlign: "left", cursor: "pointer", background: "#16321F", color: "#fff", border: "none", borderRadius: 24, padding: 22, fontFamily: "inherit" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
           <InfoIcon size={20} stroke="#7FD79A" />
@@ -655,71 +893,182 @@ export function VerdeUrbanoApp({ locale, entryScreen = "home", scrollRef }: Verd
 
   const donate = (
     <div style={{ animation: "vu-screenIn .4s ease both", minHeight: "100%", padding: "20px 18px 40px", background: "#FAF6EC" }}>
-      {dStep === 2 ? (
+      {dStep === 4 ? (
         <div style={{ textAlign: "center", paddingTop: 70 }}>
           <div style={{ width: 108, height: 108, borderRadius: "50%", background: "#E4F2DE", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 26px", animation: "vu-pop .7s cubic-bezier(.2,1.2,.4,1) both" }}>
             <Leaf size={56} stroke="#1B8A43" />
           </div>
-          <h1 style={{ fontFamily: "var(--vu-font-display)", fontWeight: 800, fontSize: 30, letterSpacing: -0.6, margin: "0 0 12px" }}>
-            {t.donate.thanks[0]}
-            <br />
-            {t.donate.thanks[1]}
-          </h1>
-          <p style={{ fontSize: 16, color: "#5E6B5F", lineHeight: 1.5, maxWidth: 320, margin: "0 auto 34px" }}>
-            <strong style={{ color: "#16321F" }}>€{fmt(dDone)}</strong> {t.donate.thanksTail}
-          </p>
+          {dChoice === "tree" ? (
+            <>
+              <h1 style={{ fontFamily: "var(--vu-font-display)", fontWeight: 800, fontSize: 30, letterSpacing: -0.6, margin: "0 0 12px" }}>
+                {t.donate.thanksTree[0]}
+                <br />
+                {t.donate.thanksTree[1]}
+              </h1>
+              <p style={{ fontSize: 16, color: "#5E6B5F", lineHeight: 1.5, maxWidth: 320, margin: "0 auto 34px" }}>{t.donate.thanksTreeBody}</p>
+            </>
+          ) : (
+            <>
+              <h1 style={{ fontFamily: "var(--vu-font-display)", fontWeight: 800, fontSize: 30, letterSpacing: -0.6, margin: "0 0 12px" }}>
+                {t.donate.thanks[0]}
+                <br />
+                {t.donate.thanks[1]}
+              </h1>
+              <p style={{ fontSize: 16, color: "#5E6B5F", lineHeight: 1.5, maxWidth: 320, margin: "0 auto 34px" }}>
+                <strong style={{ color: "#16321F" }}>€{fmt(dConfirmed)}</strong> {t.donate.thanksTail}
+              </p>
+            </>
+          )}
           <button type="button" onClick={() => go("info")} style={btnPrimary}>{t.donate.seeHow}</button>
           <button type="button" onClick={() => go("home")} style={btnGhost}>{t.donate.home}</button>
         </div>
       ) : (
         <>
-          <BackRow onBack={() => go("home")} title={t.donate.title} backLabel={t.a11y.back} />
-          <p style={{ fontSize: 14.5, color: "#7E8C7C", margin: "0 0 20px" }}>{t.donate.sub}</p>
+          <FlowHeader onBack={dBack} backLabel={t.a11y.back} kicker={`${t.donate.step} ${dStep} ${t.donate.of3}`} prog={dProg} progColor="#1B8A43" />
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 12 }}>
-            {AMOUNTS.map((a) => {
-              const sel = dCustom.trim() === "" && dAmount === a;
-              return (
-                <button
-                  key={a}
-                  type="button"
-                  onClick={() => { setDAmount(a); setDCustom(""); }}
-                  style={{ padding: "16px 0", borderRadius: 16, border: `2px solid ${sel ? "#1B8A43" : "#ECE6D8"}`, background: sel ? "#1B8A43" : "#fff", color: sel ? "#fff" : "#16321F", fontWeight: 800, fontSize: 20, fontFamily: "var(--vu-font-display)", cursor: "pointer" }}
-                >
-                  €{a}
-                </button>
-              );
-            })}
-          </div>
-
-          <div style={{ position: "relative", marginBottom: 18 }}>
-            <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", fontSize: 16, fontWeight: 700, color: "#7E8C7C", pointerEvents: "none" }}>€</span>
-            <input
-              inputMode="numeric"
-              value={dCustom}
-              onChange={(e) => { setDCustom(e.target.value.replace(/[^0-9]/g, "")); setDAmount(null); }}
-              placeholder={t.donate.custom}
-              style={{ width: "100%", border: `2px solid ${dCustom.trim() !== "" ? "#1B8A43" : "#ECE6D8"}`, borderRadius: 16, padding: "14px 16px 14px 30px", fontFamily: "inherit", fontSize: 16, color: "#16321F", background: "#fff", outline: "none" }}
-            />
-          </div>
-
-          <div style={{ background: "#fff", border: "1px solid #ECE6D8", borderRadius: 20, padding: 17, marginBottom: 20 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 700, fontSize: 15.5, marginBottom: 4 }}>
-              <Leaf size={18} stroke="#1B8A43" /> {t.donate.fundTitle}
+          {(dStep === 2 || dStep === 3) && dAreaObj && (
+            <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 16, fontSize: 13, color: "#7E8C7C" }}>
+              <PinIcon size={15} stroke="#1B8A43" />
+              <span>{t.donate.rLoc}: <strong style={{ color: "#16321F" }}>{dAreaObj.name}</strong></span>
             </div>
-            <p style={{ fontSize: 13.5, color: "#7E8C7C", lineHeight: 1.45, margin: "0 0 8px" }}>{t.donate.fundBody}</p>
-            <button type="button" onClick={() => go("info")} style={{ background: "none", border: "none", color: "#1B8A43", fontWeight: 700, fontSize: 13.5, cursor: "pointer", padding: 0, fontFamily: "inherit" }}>{t.donate.how}</button>
-          </div>
+          )}
 
-          <button
-            type="button"
-            onClick={confirmDonate}
-            disabled={effAmount <= 0}
-            style={{ width: "100%", cursor: effAmount > 0 ? "pointer" : "default", border: "none", background: effAmount > 0 ? "#1B8A43" : "#EDEFEA", color: effAmount > 0 ? "#fff" : "#5E6B5F", borderRadius: 18, padding: 17, fontWeight: 700, fontSize: 16.5, boxShadow: effAmount > 0 ? "0 10px 24px rgba(27,138,67,.3)" : "none", fontFamily: "inherit", transition: "background .2s ease, color .2s ease" }}
-          >
-            {effAmount > 0 ? `${t.donate.cta} €${fmt(effAmount)}` : t.donate.pick}
-          </button>
-          <p style={{ textAlign: "center", fontSize: 12.5, color: "#9AA59B", margin: "14px 0 0" }}>{t.donate.demo}</p>
+          {dStep === 1 && (
+            <>
+              <FlowTitle title={t.donate.locTitle} sub={t.donate.locSub} />
+              {areas.map((a) => (
+                <button key={a.id} type="button" onClick={() => { setDArea(a.id); setDChoice(null); setDTreeId(null); setDAddingNew(false); setDPendingPin(false); setDStep(2); toTop(); }} style={{ ...pickBtn, borderColor: dArea === a.id ? "#1B8A43" : "#ECE6D8" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 13 }}>
+                    <span style={{ flex: "none", width: 14, height: 14, borderRadius: "50%", background: a.needColor }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 700, fontSize: 16 }}>{a.name}</div>
+                      <div style={{ fontSize: 13, color: "#7E8C7C" }}>{ls(a.zona)} · {a.count} {t.home.treesNeeded}</div>
+                    </div>
+                    <ChevR size={20} stroke="#C9D4C2" sw={2.1} />
+                  </div>
+                </button>
+              ))}
+              {!dAddingNew ? (
+                <button type="button" onClick={() => setDAddingNew(true)} style={{ display: "flex", width: "100%", alignItems: "center", justifyContent: "center", gap: 8, cursor: "pointer", border: "2px dashed #C9D4C2", background: "none", color: "#1B8A43", borderRadius: 20, padding: 15, fontWeight: 700, fontSize: 14.5, fontFamily: "inherit" }}>
+                  <svg width={18} height={18} viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path d="M12 5v14M5 12h14" stroke="#1B8A43" strokeWidth={2.2} strokeLinecap="round" />
+                  </svg>
+                  {t.donate.addNew}
+                </button>
+              ) : (
+                <AddLocationBox
+                  placed={dPendingPin}
+                  onTap={() => setDPendingPin(true)}
+                  onConfirm={addCustomArea}
+                  onCancel={() => { setDAddingNew(false); setDPendingPin(false); }}
+                  hint={t.donate.addNewHint}
+                  note={t.donate.addNewNote}
+                  confirmLabel={t.donate.addNewConfirm}
+                  cancelLabel={t.donate.addNewCancel}
+                />
+              )}
+            </>
+          )}
+
+          {dStep === 2 && (
+            <>
+              <FlowTitle title={t.donate.whatTitle} sub={t.donate.whatSub} />
+              {TREES.map((tr) => (
+                <button key={tr.id} type="button" onClick={() => { setDTreeId(tr.id); setDChoice("tree"); setDStep(3); toTop(); }} style={{ ...pickBtn, background: dTreeId === tr.id && dChoice === "tree" ? "#F1F8EE" : "#fff", borderColor: dTreeId === tr.id && dChoice === "tree" ? "#1B8A43" : "#ECE6D8" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                    <div style={{ flex: "none", width: 48, height: 48, borderRadius: 15, background: tr.color, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Leaf size={25} stroke="#fff" />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 700, fontSize: 16.5 }}>{ls(tr.name)}</div>
+                      <div style={{ fontSize: 12.5, color: "#7E8C7C", fontStyle: "italic" }}>{tr.sci}</div>
+                      <div style={{ fontSize: 12.5, color: "#41513F", marginTop: 3 }}>{t.donate.upTo} {tr.h} · {tr.co2} kg CO₂/{locale === "it" ? "anno" : "yr"}</div>
+                    </div>
+                    <div style={{ fontFamily: "var(--vu-font-display)", fontWeight: 800, fontSize: 19, color: "#1B8A43" }}>€{tr.price}</div>
+                  </div>
+                </button>
+              ))}
+              <button type="button" onClick={() => { setDChoice("fund"); setDTreeId(null); setDStep(3); toTop(); }} style={{ ...pickBtn, borderStyle: "dashed", borderColor: dChoice === "fund" ? "#1B8A43" : "#C9D4C2", background: dChoice === "fund" ? "#F1F8EE" : "#fff", marginBottom: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                  <div style={{ flex: "none", width: 48, height: 48, borderRadius: 15, background: "#E4F2DE", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Leaf size={25} stroke="#1B8A43" />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, fontSize: 16.5 }}>{t.donate.fundRow}</div>
+                    <div style={{ fontSize: 12.5, color: "#7E8C7C" }}>{t.donate.fundRowSub}</div>
+                  </div>
+                  <ChevR size={20} stroke="#C9D4C2" sw={2.1} />
+                </div>
+              </button>
+            </>
+          )}
+
+          {dStep === 3 && dChoice === "tree" && dTreeObj && (
+            <>
+              <h1 style={{ fontFamily: "var(--vu-font-display)", fontWeight: 800, fontSize: 26, letterSpacing: -0.5, margin: "0 0 18px" }}>{t.donate.summaryTitle}</h1>
+              <div style={{ background: "#fff", border: "1px solid #ECE6D8", borderRadius: 22, padding: "6px 18px", marginBottom: 18 }}>
+                <SummaryRow k={t.donate.rLoc} v={dAreaObj ? dAreaObj.name : ""} />
+                <SummaryRow k={t.donate.rTree} v={`${ls(dTreeObj.name)} · ${dTreeObj.sci}`} />
+                <SummaryRow k={t.donate.rCo2} v={`${dTreeObj.co2} ${t.donate.perYear}`} vColor="#1B8A43" last />
+              </div>
+              <div style={{ background: "#16321F", color: "#fff", borderRadius: 22, padding: "20px 22px", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+                <span style={{ fontSize: 15, color: "#BFE0C6" }}>{t.donate.total}</span>
+                <span style={{ fontFamily: "var(--vu-font-display)", fontWeight: 800, fontSize: 30 }}>€{dTreeObj.price}</span>
+              </div>
+              <button type="button" onClick={confirmDonate} style={{ width: "100%", cursor: "pointer", border: "none", background: "#1B8A43", color: "#fff", borderRadius: 18, padding: 17, fontWeight: 700, fontSize: 16.5, boxShadow: "0 10px 24px rgba(27,138,67,.3)", fontFamily: "inherit" }}>{t.donate.confirm} €{dTreeObj.price}</button>
+              <p style={{ textAlign: "center", fontSize: 12.5, color: "#9AA59B", margin: "14px 0 0" }}>{t.donate.disclaimer}</p>
+            </>
+          )}
+
+          {dStep === 3 && dChoice === "fund" && (
+            <>
+              <FlowTitle title={t.donate.fundRow} sub={dAreaObj ? `${t.donate.rLoc}: ${dAreaObj.name}` : ""} />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 12 }}>
+                {AMOUNTS.map((a) => {
+                  const sel = dCustom.trim() === "" && dAmount === a;
+                  return (
+                    <button
+                      key={a}
+                      type="button"
+                      onClick={() => { setDAmount(a); setDCustom(""); }}
+                      style={{ padding: "16px 0", borderRadius: 16, border: `2px solid ${sel ? "#1B8A43" : "#ECE6D8"}`, background: sel ? "#1B8A43" : "#fff", color: sel ? "#fff" : "#16321F", fontWeight: 800, fontSize: 20, fontFamily: "var(--vu-font-display)", cursor: "pointer" }}
+                    >
+                      €{a}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div style={{ position: "relative", marginBottom: 18 }}>
+                <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", fontSize: 16, fontWeight: 700, color: "#7E8C7C", pointerEvents: "none" }}>€</span>
+                <input
+                  inputMode="numeric"
+                  value={dCustom}
+                  onChange={(e) => { setDCustom(e.target.value.replace(/[^0-9]/g, "")); setDAmount(null); }}
+                  placeholder={t.donate.custom}
+                  style={{ width: "100%", border: `2px solid ${dCustom.trim() !== "" ? "#1B8A43" : "#ECE6D8"}`, borderRadius: 16, padding: "14px 16px 14px 30px", fontFamily: "inherit", fontSize: 16, color: "#16321F", background: "#fff", outline: "none" }}
+                />
+              </div>
+
+              <div style={{ background: "#fff", border: "1px solid #ECE6D8", borderRadius: 20, padding: 17, marginBottom: 20 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 700, fontSize: 15.5, marginBottom: 4 }}>
+                  <Leaf size={18} stroke="#1B8A43" /> {t.donate.fundTitle}
+                </div>
+                <p style={{ fontSize: 13.5, color: "#7E8C7C", lineHeight: 1.45, margin: "0 0 8px" }}>{t.donate.fundBody}</p>
+                <button type="button" onClick={() => go("info")} style={{ background: "none", border: "none", color: "#1B8A43", fontWeight: 700, fontSize: 13.5, cursor: "pointer", padding: 0, fontFamily: "inherit" }}>{t.donate.how}</button>
+              </div>
+
+              <button
+                type="button"
+                onClick={confirmDonate}
+                disabled={effAmount <= 0}
+                style={{ width: "100%", cursor: effAmount > 0 ? "pointer" : "default", border: "none", background: effAmount > 0 ? "#1B8A43" : "#EDEFEA", color: effAmount > 0 ? "#fff" : "#5E6B5F", borderRadius: 18, padding: 17, fontWeight: 700, fontSize: 16.5, boxShadow: effAmount > 0 ? "0 10px 24px rgba(27,138,67,.3)" : "none", fontFamily: "inherit", transition: "background .2s ease, color .2s ease" }}
+              >
+                {effAmount > 0 ? `${t.donate.cta} €${fmt(effAmount)}` : t.donate.pick}
+              </button>
+              <p style={{ textAlign: "center", fontSize: 12.5, color: "#9AA59B", margin: "14px 0 0" }}>{t.donate.demo}</p>
+            </>
+          )}
         </>
       )}
     </div>
@@ -752,10 +1101,7 @@ export function VerdeUrbanoApp({ locale, entryScreen = "home", scrollRef }: Verd
                 <ReportMapArt />
                 {!rPlaced && (
                   <div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%,-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: 7, color: "#5E6B5F", pointerEvents: "none" }}>
-                    <svg width={26} height={26} viewBox="0 0 24 24" fill="none" aria-hidden>
-                      <path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke="#1B8A43" strokeWidth={2} strokeLinecap="round" />
-                      <circle cx="12" cy="12" r="4" stroke="#1B8A43" strokeWidth={2} />
-                    </svg>
+                    <CrosshairIcon />
                     <span style={{ fontSize: 12.5, fontWeight: 700, background: "rgba(255,255,255,.85)", padding: "5px 11px", borderRadius: 20 }}>{t.report.tapPlace}</span>
                   </div>
                 )}
@@ -766,6 +1112,7 @@ export function VerdeUrbanoApp({ locale, entryScreen = "home", scrollRef }: Verd
                   </div>
                 )}
               </div>
+              <p style={{ fontSize: 12.5, color: "#9AA59B", margin: "10px 0 0", lineHeight: 1.45 }}>{t.report.q1note}</p>
               {rPlaced ? (
                 <button type="button" onClick={() => { setRStep(2); toTop(); }} style={{ width: "100%", cursor: "pointer", border: "none", background: "#1B8A43", color: "#fff", borderRadius: 18, padding: 16, fontWeight: 700, fontSize: 16, marginTop: 18, fontFamily: "inherit" }}>{t.report.cont}</button>
               ) : (
@@ -802,7 +1149,7 @@ export function VerdeUrbanoApp({ locale, entryScreen = "home", scrollRef }: Verd
                 <VuPhoto label={t.report.photo} height={190} radius={20} bg="#EAF1E2" />
               </div>
               <textarea placeholder={t.report.notePh} style={{ width: "100%", minHeight: 96, resize: "none", border: "2px solid #ECE6D8", borderRadius: 18, padding: 15, fontFamily: "inherit", fontSize: 15, color: "#16321F", background: "#fff", outline: "none" }} />
-              <button type="button" onClick={() => { setRStep(4); toTop(); }} style={{ width: "100%", cursor: "pointer", border: "none", background: "#1B8A43", color: "#fff", borderRadius: 18, padding: 17, fontWeight: 700, fontSize: 16.5, marginTop: 18, boxShadow: "0 10px 24px rgba(27,138,67,.3)", fontFamily: "inherit" }}>{t.report.send}</button>
+              <button type="button" onClick={submitReport} style={{ width: "100%", cursor: "pointer", border: "none", background: "#1B8A43", color: "#fff", borderRadius: 18, padding: 17, fontWeight: 700, fontSize: 16.5, marginTop: 18, boxShadow: "0 10px 24px rgba(27,138,67,.3)", fontFamily: "inherit" }}>{t.report.send}</button>
             </>
           )}
         </>
@@ -815,7 +1162,6 @@ export function VerdeUrbanoApp({ locale, entryScreen = "home", scrollRef }: Verd
       <h1 style={{ fontFamily: "var(--vu-font-display)", fontWeight: 800, fontSize: 27, letterSpacing: -0.6, margin: 0 }}>{t.info.title}</h1>
       <p style={{ fontSize: 14.5, color: "#7E8C7C", margin: "6px 0 20px", lineHeight: 1.45 }}>{t.info.intro}</p>
 
-      {/* fund snapshot */}
       <div style={{ display: "flex", gap: 11, marginBottom: 24 }}>
         <div style={{ flex: 1, background: "linear-gradient(135deg,#163E22,#1F5E33)", color: "#fff", borderRadius: 20, padding: "16px 14px" }}>
           <div style={{ fontFamily: "var(--vu-font-display)", fontWeight: 800, fontSize: 24 }}>€{fmt(fundRaised)}</div>
@@ -827,12 +1173,11 @@ export function VerdeUrbanoApp({ locale, entryScreen = "home", scrollRef }: Verd
         </div>
       </div>
 
-      {/* 3 steps */}
       <div style={{ position: "relative", paddingLeft: 4, marginBottom: 8 }}>
         {t.info.steps.map((s, i) => (
           <div key={i} style={{ display: "flex", gap: 14, marginBottom: 16 }}>
             <div style={{ flex: "none", width: 40, height: 40, borderRadius: 13, background: "#E4F2DE", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              {i === 0 ? <Leaf size={22} stroke="#1B8A43" /> : i === 1 ? <PinIcon size={20} stroke="#1B8A43" /> : <InfoIcon size={22} stroke="#1B8A43" />}
+              {i === 0 ? <PinIcon size={20} stroke="#1B8A43" /> : i === 1 ? <Leaf size={22} stroke="#1B8A43" /> : <InfoIcon size={22} stroke="#1B8A43" />}
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 700, fontSize: 15.5, marginBottom: 2 }}>{s.t}</div>
@@ -842,7 +1187,6 @@ export function VerdeUrbanoApp({ locale, entryScreen = "home", scrollRef }: Verd
         ))}
       </div>
 
-      {/* allocation criteria */}
       <div style={{ background: "#fff", border: "1px solid #ECE6D8", borderRadius: 22, padding: "18px 18px 16px", marginTop: 16, marginBottom: 16 }}>
         <h2 style={{ ...sectionH2, fontSize: 18, marginBottom: 12 }}>{t.info.allocTitle}</h2>
         {t.info.alloc.map((a, i) => (
@@ -854,7 +1198,6 @@ export function VerdeUrbanoApp({ locale, entryScreen = "home", scrollRef }: Verd
         <p style={{ fontSize: 12.5, color: "#9AA59B", margin: "8px 0 0", lineHeight: 1.4 }}>{t.info.allocNote}</p>
       </div>
 
-      {/* transparency */}
       <div style={{ background: "#E4F2DE", borderRadius: 22, padding: 18, marginBottom: 24 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 700, fontSize: 16, color: "#16321F", marginBottom: 5 }}>
           <InfoIcon size={19} stroke="#1B8A43" /> {t.info.transpTitle}
@@ -862,7 +1205,7 @@ export function VerdeUrbanoApp({ locale, entryScreen = "home", scrollRef }: Verd
         <p style={{ fontSize: 13.5, color: "#41513F", lineHeight: 1.45, margin: 0 }}>{t.info.transpBody}</p>
       </div>
 
-      <button type="button" onClick={startDonate} style={{ width: "100%", cursor: "pointer", border: "none", background: "#1B8A43", color: "#fff", borderRadius: 18, padding: 17, fontWeight: 700, fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 10px 24px rgba(27,138,67,.28)", fontFamily: "inherit" }}>
+      <button type="button" onClick={() => startAiuta()} style={{ width: "100%", cursor: "pointer", border: "none", background: "#1B8A43", color: "#fff", borderRadius: 18, padding: 17, fontWeight: 700, fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 10px 24px rgba(27,138,67,.28)", fontFamily: "inherit" }}>
         <Leaf size={19} stroke="#fff" /> {t.info.cta}
       </button>
     </div>
@@ -886,22 +1229,24 @@ export function VerdeUrbanoApp({ locale, entryScreen = "home", scrollRef }: Verd
       <div style={{ background: "linear-gradient(135deg,#1F5E33,#163E22)", borderRadius: 24, padding: 22, color: "#fff", marginBottom: 24, position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", right: -20, top: -20, width: 120, height: 120, borderRadius: "50%", background: "rgba(52,184,90,.22)" }} />
         <div style={{ position: "relative", display: "flex", justifyContent: "space-between" }}>
-          <ProfileStat value={`€${fmt(totalDonated)}`} label={t.profile.donated} />
+          <ProfileStat value={`€${fmt(totalGiven)}`} label={t.profile.donated} />
           <ProfileStat value="2" label={t.profile.reports} />
-          <ProfileStat value={String(myDonations.length)} label={t.profile.donations} />
+          <ProfileStat value={String(myContributions.length)} label={t.profile.donations} />
         </div>
       </div>
 
       <h2 style={sectionH2}>{t.profile.myDonations}</h2>
       <div style={{ background: "#fff", border: "1px solid #ECE6D8", borderRadius: 20, padding: "6px 16px", marginBottom: 24 }}>
-        {myDonations.map((d, i) => (
-          <div key={d.id} style={{ display: "flex", alignItems: "center", gap: 13, padding: "14px 0", borderBottom: i === myDonations.length - 1 ? "none" : "1px solid #F1ECDF" }}>
+        {myContributions.map((d, i) => (
+          <div key={d.id} style={{ display: "flex", alignItems: "center", gap: 13, padding: "14px 0", borderBottom: i === myContributions.length - 1 ? "none" : "1px solid #F1ECDF" }}>
             <span style={{ flex: "none", width: 34, height: 34, borderRadius: 11, background: "#E4F2DE", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Leaf size={18} stroke="#1B8A43" />
             </span>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 700, fontSize: 15.5, fontFamily: "var(--vu-font-display)" }}>€{fmt(d.amount)}</div>
-              <div style={{ fontSize: 12.5, color: "#7E8C7C" }}>{t.profile.toFund}</div>
+              <div style={{ fontSize: 12.5, color: "#7E8C7C" }}>
+                {d.kind === "tree" && d.treeName ? `${ls(d.treeName)} · ${d.areaName ?? ""}` : `${t.profile.toFund}${d.areaName ? " · " + d.areaName : ""}`}
+              </div>
             </div>
             <span style={{ fontSize: 12.5, color: "#9AA59B", fontWeight: 600 }}>{ls(d.date)}</span>
           </div>
@@ -930,7 +1275,7 @@ export function VerdeUrbanoApp({ locale, entryScreen = "home", scrollRef }: Verd
         {body}
       </div>
 
-      {/* map bottom sheet — area info + give-to-fund */}
+      {/* map bottom sheet — area info + help-plant / report shortcuts */}
       {sheetArea && (
         <>
           <div onClick={() => setSheetArea(null)} style={{ position: "absolute", inset: 0, zIndex: 60, background: "rgba(20,51,30,.35)" }} />
@@ -946,7 +1291,7 @@ export function VerdeUrbanoApp({ locale, entryScreen = "home", scrollRef }: Verd
             <h2 style={{ fontFamily: "var(--vu-font-display)", fontWeight: 800, fontSize: 24, letterSpacing: -0.5, margin: "0 0 2px" }}>{sheetArea.name}</h2>
             <p style={{ fontSize: 14, color: "#7E8C7C", margin: "0 0 14px" }}>{ls(sheetArea.zona)} · <strong style={{ color: "#16321F" }}>{sheetArea.count}</strong> {t.sheet.needed}</p>
             <p style={{ fontSize: 13, color: "#7E8C7C", lineHeight: 1.45, margin: "0 0 16px" }}>{t.sheet.note}</p>
-            <button type="button" onClick={startDonate} style={{ width: "100%", cursor: "pointer", border: "none", background: "#1B8A43", color: "#fff", borderRadius: 16, padding: 16, fontWeight: 700, fontSize: 16, marginBottom: 10, fontFamily: "inherit" }}>{t.sheet.donate}</button>
+            <button type="button" onClick={() => startAiuta(sheetArea.id)} style={{ width: "100%", cursor: "pointer", border: "none", background: "#1B8A43", color: "#fff", borderRadius: 16, padding: 16, fontWeight: 700, fontSize: 15.5, marginBottom: 10, fontFamily: "inherit" }}>{t.sheet.donate}</button>
             <button type="button" onClick={startReport} style={{ width: "100%", cursor: "pointer", border: "2px solid #ECE6D8", background: "#fff", color: "#16321F", borderRadius: 16, padding: 13, fontWeight: 700, fontSize: 14.5, fontFamily: "inherit" }}>{t.sheet.report}</button>
           </div>
         </>
@@ -957,7 +1302,7 @@ export function VerdeUrbanoApp({ locale, entryScreen = "home", scrollRef }: Verd
         <>
           <div onClick={() => setFabOpen(false)} style={{ position: "absolute", inset: 0, zIndex: 62, background: "rgba(20,51,30,.4)" }} />
           <div className="vu-fabsheet" style={{ position: "absolute", left: 0, right: 0, bottom: 100, zIndex: 63, width: "100%", padding: "0 18px", animation: "vu-sheetUp .3s ease both" }}>
-            <button type="button" onClick={startDonate} style={fabItem}>
+            <button type="button" onClick={() => startAiuta()} style={fabItem}>
               <span style={{ flex: "none", width: 46, height: 46, borderRadius: 14, background: "#1B8A43", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Leaf size={24} stroke="#fff" />
               </span>
@@ -1054,18 +1399,6 @@ function LegendDot({ color, label }: { color: string; label: string }) {
     </span>
   );
 }
-function BackRow({ onBack, title, backLabel }: { onBack: () => void; title: string; backLabel: string }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
-      <button type="button" onClick={onBack} style={{ flex: "none", width: 42, height: 42, borderRadius: "50%", border: "1px solid #ECE6D8", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} aria-label={backLabel}>
-        <svg width={20} height={20} viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path d="M15 18l-6-6 6-6" stroke="#16321F" strokeWidth={2.1} strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </button>
-      <h1 style={{ fontFamily: "var(--vu-font-display)", fontWeight: 800, fontSize: 24, letterSpacing: -0.5, margin: 0 }}>{title}</h1>
-    </div>
-  );
-}
 function FlowHeader({ onBack, backLabel, kicker, prog, progColor }: { onBack: () => void; backLabel: string; kicker: string; prog: number; progColor: string }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
@@ -1089,6 +1422,14 @@ function FlowTitle({ title, sub }: { title: string; sub: string }) {
       <h1 style={{ fontFamily: "var(--vu-font-display)", fontWeight: 800, fontSize: 26, letterSpacing: -0.5, margin: "0 0 4px" }}>{title}</h1>
       <p style={{ fontSize: 14.5, color: "#7E8C7C", margin: "0 0 18px" }}>{sub}</p>
     </>
+  );
+}
+function SummaryRow({ k, v, vColor, last }: { k: string; v: string; vColor?: string; last?: boolean }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", padding: "15px 0", borderBottom: last ? "none" : "1px solid #F1ECDF" }}>
+      <span style={{ color: "#7E8C7C" }}>{k}</span>
+      <span style={{ fontWeight: 700, textAlign: "right", color: vColor }}>{v}</span>
+    </div>
   );
 }
 function ReportRow({ dot, title, sub, tag, tagColor, tagBg, last }: { dot: string; title: string; sub: string; tag: string; tagColor: string; tagBg: string; last?: boolean }) {

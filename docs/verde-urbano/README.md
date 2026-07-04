@@ -1,8 +1,10 @@
-# Verde Urbano — Design & UX (v2, flusso unico)
+# Verde Urbano — Design & UX (v3, doppia funzione: luogo + contributo)
 
 App-concept civica per rigenerare il verde di Roma. Demo interattiva installabile
-(PWA), bilingue IT/EN, full-screen. Questo documento descrive l'impostazione **v2**,
-che elimina i ruoli e adotta un **flusso unico** con **donazione libera a fondo comune**.
+(PWA), bilingue IT/EN, full-screen. Questo documento descrive l'impostazione
+**v3**: chi aiuta a piantare un albero indica **sempre anche il luogo** (uno già
+segnalato, o uno nuovo), e sceglie **cosa dare** — un albero specifico con il suo
+prezzo, oppure — come ultima opzione — un importo libero ("Dona quello che puoi").
 
 - **Codice app:** [`components/lab/verde-urbano-app.tsx`](../../components/lab/verde-urbano-app.tsx) (state machine + schermate), `verde-urbano-view.tsx` (shell/PWA), `verde-urbano.css`.
 - **Route (nascosta, noindex):** `/lab/verde-urbano` · `/en/lab/verde-urbano`.
@@ -12,237 +14,269 @@ che elimina i ruoli e adotta un **flusso unico** con **donazione libera a fondo 
 
 ## 1. Filosofia
 
-Ridurre al minimo la complessità e la frizione. L'utente **non deve chiedersi**
-_"sono un donatore?"_ o _"sono un segnalatore?"_: entra e basta, e può fare
-qualsiasi cosa in qualsiasi momento.
+Resta valido tutto il principio v2 (nessun ruolo, un solo flusso, minima
+frizione): l'utente non si chiede "sono un donatore o un segnalatore?", entra e
+basta, e può fare qualsiasi cosa in qualsiasi momento.
 
-Principi:
-- **Un solo flusso, nessun ruolo.** Nessuna schermata di scelta iniziale.
-- **Tutto dal menu.** Ogni funzione è raggiungibile dalla navigazione (tab bar + FAB).
-- **Donazione libera → fondo comune.** Non si "compra un albero": si dona quello che
-  si può; il fondo è gestito dall'associazione.
-- **Allocazione automatica e trasparente.** Il donatore non sceglie quale albero
-  finanziare; il sistema segue criteri semplici e pubblici.
-- **Naturale:** entro → esploro la mappa → segnalo se vedo un'area → dono se voglio.
+La v3 introduce una precisazione richiesta dal team: **donare (un albero
+specifico o un importo libero) e segnalare un luogo sono due facce della stessa
+azione**. Chi "aiuta a piantare un albero" fa sempre una **doppia funzione**:
 
-### Cosa è cambiato rispetto alla v1
-| v1 (prima) | v2 (adesso) |
+1. **Cosa dare** — un albero specifico (con prezzo) o un importo libero.
+2. **Dove** — un punto già segnalato da altri (o da sé), oppure un punto nuovo
+   inserito lì per lì.
+
+"Dona quello che puoi" **non sparisce**: resta disponibile, ma come **ultima
+voce** della lista degli alberi, per chi vuole contribuire con una piccola cifra
+senza legarsi a una specie precisa. È possibile donare **anche pochi euro** (chip
+da €1, €2, €5… o importo libero).
+
+### Cosa cambia rispetto alla v2
+| v2 (Home = "Dona quello che puoi") | v3 (Home = "Aiuta a piantare un albero") |
 |---|---|
-| Onboarding con scelta ruolo (Donatore / Informatore) | **Rimosso** — si entra direttamente in Home |
-| Donazione = wizard 4 step (area → specie → livello → riepilogo) | **"Dona quello che puoi"** — importo libero (1/2/5/10/20/50 € o custom) → conferma |
-| Il donatore sceglie albero e area | **Fondo comune**: allocazione automatica per priorità |
-| Tab "Diario" (albero personale) | Sostituito da **"Info"** (come funziona / trasparenza) |
-| Profilo con "I miei alberi" + doppio badge ruolo | **"Le mie donazioni"** + tag unico "Cittadino attivo" |
+| Un solo step: importo libero → fondo comune | **Step 1:** luogo (esistente o nuovo) → **Step 2:** albero con prezzo, o come ultima voce l'importo libero → **Step 3:** riepilogo/importo → conferma |
+| Nessuna scelta di specie né di luogo | Si sceglie sempre **dove** e **cosa** — anche per l'importo libero |
+| "Segnala un'area" e "Dona" erano percorsi separati e indipendenti | **Aiutare a piantare include già la segnalazione del luogo**; "Segnala un'area" resta comunque disponibile come azione a sé, per chi vuole solo segnalare senza contribuire economicamente |
+| Profilo: "Le mie donazioni" (solo importo) | Profilo: "I miei contributi" — mostra anche l'albero e/o il luogo quando presenti |
+
+### Cosa NON cambia (resta dalla v2/PS del team)
+- I punti sulla mappa rappresentano **luoghi dove un albero c'era ed ora manca**
+  (aiuola abbandonata, ceppo) — **non** nuove aree da rimboschire. Questo è
+  esplicitato sia nel flusso "Aiuta a piantare" (nota sotto la mini-mappa di
+  inserimento nuovo luogo) sia nella schermata **Segnala un'area** sia in **Info**.
+- Il rimboscamento di aree mai state alberate è un tema aperto, legato
+  all'approvazione del Comune: **fuori scope** per questa demo (v. nota in Info).
 
 ---
 
-## 2. Sitemap (mappa delle schermate)
+## 2. Sitemap
 
 ```
 Verde Urbano
 │
-├── Home ............... panoramica: obiettivo città, fondo comune, azioni, aree, "come funziona"
+├── Home ............... obiettivo città, fondo comune, azioni, aree, "come funziona"
 ├── Mappa .............. mappa partecipata dei bisogni (pin per priorità)
-│     └── (sheet area) . dettaglio necessità → "Dona al fondo" / "Segnala qui"
-├── [＋]  (azioni) ...... FAB centrale → { Dona quello che puoi · Segnala un'area }
-│     ├── Dona ......... importo libero → conferma → grazie
-│     └── Segnala ...... posiziona pin → tipo → dettagli/foto → inviata
-├── Info ............... come funziona, criteri di allocazione, trasparenza, fondo
-└── Profilo ........... utente, statistiche, Le mie donazioni, Le mie segnalazioni
+│     └── (sheet area) . dettaglio necessità → "Aiuta a piantare qui" (salta al passo 2, luogo preselezionato) / "Segnala qui"
+├── [＋] (azioni) ....... FAB centrale → { Aiuta a piantare un albero · Segnala un'area }
+│     ├── Aiuta ......... 1) Dove (esistente/nuovo) → 2) Cosa (albero con prezzo, o importo libero) → 3) riepilogo/importo → conferma → grazie
+│     └── Segnala ....... posiziona pin → tipo → dettagli/foto → inviata (azione indipendente, senza contributo)
+├── Info ............... come funziona, da dove vengono i punti, trasparenza, fondo
+└── Profilo ........... utente, statistiche, I miei contributi, Le mie segnalazioni
 ```
 
-**Bottom navigation (5 slot):** `Home · Mappa · ＋ · Info · Profilo`
-Le due **azioni** (Dona, Segnala) non sono tab: vivono nel **FAB ＋**, così sono
-raggiungibili da qualsiasi schermata. Donazione e Segnalazione sono _flussi_
-(nascondono la tab bar e mostrano un tasto Indietro).
+**Bottom navigation (5 slot):** `Home · Mappa · ＋ · Info · Profilo` (invariata dalla v2).
 
 ---
 
-## 3. UX flow
+## 3. UX flow — "Aiuta a piantare un albero"
 
 ```
-            ┌─────────────────────────────────────────────┐
-            │                  Ingresso                    │
-            │        (nessun ruolo, nessun onboarding)     │
-            └───────────────────────┬─────────────────────┘
-                                    ▼
-                                 [ HOME ]
-        ┌───────────────┬───────────┼───────────────┬───────────────┐
-        ▼               ▼           ▼               ▼               ▼
-     [ MAPPA ]      [ ＋ DONA ]  [ ＋ SEGNALA ]   [ INFO ]      [ PROFILO ]
-        │               │           │
-   tap pin              │           │
-        ▼               ▼           ▼
-   (sheet area)   importo libero  posiziona pin
-   ├ Dona ───────►  → conferma      → tipo problema
-   └ Segnala ────►  → GRAZIE        → foto/nota
-                    (fondo comune)   → INVIATA
-                         │               │
-                         └──► Info ◄──────┘  (capire come vengono usati i fondi)
+Home / FAB / sheet mappa
+        │
+        ▼
+┌───────────────────────────────────────────────────────────┐
+│ PASSO 1 DI 3 — Dove pianti?                                 │
+│  • lista aree già segnalate (da altri o da te)              │
+│  • [+ Aggiungi un nuovo luogo] → tocca la mappa → conferma   │
+│    (nota: solo punti dove un albero c'era ed ora manca)      │
+└───────────────────────────┬───────────────────────────────┘
+                            ▼
+┌───────────────────────────────────────────────────────────┐
+│ PASSO 2 DI 3 — Cosa doni?                                    │
+│  • Acero campestre  €45      • Tiglio  €70                  │
+│  • Leccio  €90                • Pino domestico  €120         │
+│  • Roverella  €150                                           │
+│  • ── Dona quello che puoi ──  (ultima voce, importo libero) │
+└───────────┬───────────────────────────────┬─────────────────┘
+      [ramo albero]                   [ramo importo libero]
+            ▼                                   ▼
+┌─────────────────────────┐        ┌───────────────────────────┐
+│ PASSO 3 — Riepilogo       │        │ PASSO 3 — Dona quello che  │
+│ Luogo · Albero · CO₂      │        │ puoi                       │
+│ Totale €90                │        │ €1 €2 €5 €10 €20 €50 / altro│
+│ [ Conferma €90 ]          │        │ [ Dona €X ]                │
+└───────────┬───────────────┘        └────────────┬────────────┘
+            ▼                                     ▼
+      Grazie! Il tuo albero arriva.        Grazie! Il tuo contributo conta.
+      (copy specifica per l'albero)        (copy per il fondo comune)
 ```
 
-Ogni nodo è reversibile: `Indietro`/tab per uscire da un flusso; il FAB è sempre a
-portata di pollice.
+Da qualsiasi punto: `Indietro` torna al passo precedente; dal passo 1, se si sta
+aggiungendo un nuovo luogo, `Annulla` chiude solo il pannello di inserimento
+(non esce dal flusso). Scegliendo "Aiuta a piantare qui" dallo sheet di
+un'area sulla mappa, il **passo 1 viene saltato** (luogo già impostato).
+
+**Punto chiave:** anche scegliendo "Dona quello che puoi" (importo libero), il
+passo 1 (luogo) resta obbligatorio — è così che si realizza la "doppia
+funzione" richiesta: *dare* + *segnalare/occupare un luogo* sono un'unica azione.
 
 ---
 
 ## 4. Wireframe (per schermata)
-
-Notazione: `[ ]` bottone, `( )` chip, `▓` progress, `≡` lista.
 
 ### Home
 ```
 ┌──────────────────────────────┐
 │ Ciao 👋                  (MR) │
 │ La tua Roma più verde         │
-│ ┌──────────────────────────┐ │
-│ │ ALBERI PIANTATI A ROMA   │ │  ← obiettivo collettivo
-│ │ 1.240   /5.000  ▓▓░░░░░░ │ │
-│ └──────────────────────────┘ │
-│ ┌──────────────────────────┐ │
-│ │ 🌱 Fondo comune          │ │  ← nuovo: fondo + alberi finanziati
-│ │ €12.480 raccolti · 166.. │ │
-│ └──────────────────────────┘ │
-│ [ Dona quello che puoi ][Segnala] │
-│ Aree che aspettano      Mappa→ │
-│ (Alta) Viale Pinciano  8 richiesti → │   ← informativo → Mappa
+│ [ obiettivo città ▓▓░░░░ ]    │
+│ [ 🌱 Fondo comune €12.480 ]   │
+│ [Aiuta a piantare un albero]  │
+│ [Segnala un'area]             │
+│ Aree che aspettano     Mappa→ │
 │ ┌ Come funziona ─────────┐   │
-│ │ Doni · segnali · piant.│→  │   ← teaser → Info
+│ │ ... → Info              │   │
 │ └────────────────────────┘   │
 ├──────────────────────────────┤
 │ Home  Mappa  [＋]  Info  Prof │
 └──────────────────────────────┘
 ```
 
-### Mappa → sheet area
+### Aiuta a piantare — Passo 1 (Dove)
 ```
-┌──────────────────────────────┐
-│ Mappa partecipata             │
-│ (Tutte le aree)(Priorità alta)│
-│ ┌── mappa illustrata ───────┐ │
-│ │   ⑪   ⑧      ⑥            │ │  ← pin = alberi richiesti, colore = priorità
-│ │      ◎(sei qui)   ⑤       │ │
-│ └───────────────────────────┘ │
-│ ● Alta ● Media ● Bassa        │
-└───────────────┬──────────────┘
-                ▼ tap pin
-   ┌────────────────────────────┐
-   │ (Priorità alta)  Piazza     │
-   │ Largo Valtournanche         │
-   │ Montesacro · 11 richiesti   │
-   │ "Il fondo comune viene usato│
-   │  qui in base alla priorità" │
-   │ [ Dona al fondo comune ]    │
-   │ [ Segnala un problema qui ] │
-   └────────────────────────────┘
+‹ PASSO 1 DI 3 ▓░░
+Dove pianti?
+Scegli un punto già segnalato, oppure aggiungine uno nuovo.
+• Viale del Pinciano · 8 alberi richiesti          →
+• Largo Valtournanche · 11 alberi richiesti        →
+• ... (altre aree)
+┌ + Aggiungi un nuovo luogo ┐   (tratteggiato)
+└───────────────────────────┘
+      ↓ tap
+┌── mini-mappa: tocca per posizionare ──┐
+│  nota: punti dove un albero c'era     │
+│  ed ora manca, non nuove aree         │
+│  [Annulla]        [Usa questo punto]  │
+└────────────────────────────────────────┘
 ```
 
-### Dona (importo libero) → Grazie
+### Aiuta a piantare — Passo 2 (Cosa)
 ```
-┌──────────────────────────────┐      ┌──────────────────────────────┐
-│ ‹ Dona quello che puoi        │      │            🌱                 │
-│ Scegli un importo: va nel     │      │        Grazie!                │
-│ fondo comune…                 │      │   Il tuo contributo conta.    │
-│ [ €1 ][ €2 ][ €5 ]            │  →   │  €10 entrano nel fondo comune │
-│ [ €10][ €20][ €50 ]          │      │  …in modo trasparente.        │
-│ € [ altro importo________ ]   │      │ [ Come vengono usati i fondi ]│
-│ ┌ 🌱 Fondo comune ─ come fnz→┐│      │ [ Torna alla home ]           │
-│ [ Dona €10 ]                  │      └──────────────────────────────┘
-│ Donazione simulata — demo.    │
-└──────────────────────────────┘
+‹ PASSO 2 DI 3 ▓▓░
+Cosa doni?
+Scegli un albero, oppure — come ultima opzione — un importo libero.
+🌳 Acero campestre   Acer campestre   Fino a 6–8 m · 18 kg CO₂/anno   €45  →
+🌳 Tiglio            ...                                              €70  →
+🌳 Leccio                                                              €90  →
+🌳 Pino domestico                                                     €120 →
+🌳 Roverella                                                          €150 →
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+🌱 Dona quello che puoi · Scegli tu l'importo                          →
 ```
 
-### Segnala (flusso 3 step)
+### Aiuta a piantare — Passo 3a (ramo albero)
 ```
-‹ SEGNALA ▓▓▓░░  →  1) Dov'è?  (tap mappa / usa posizione)
+Riepilogo
+Luogo         Viale del Pinciano
+Albero        Leccio · Quercus ilex
+CO₂ assorbita 31 kg / anno
+──────────────────────────
+Totale                €90
+[ Conferma €90 ]
+Interventi eseguiti da operatori incaricati dall'amministrazione.
+```
+
+### Aiuta a piantare — Passo 3b (ramo importo libero)
+```
+Dona quello che puoi
+Luogo: Viale del Pinciano
+[€1][€2][€5]
+[€10][€20][€50]
+€[ altro importo ______ ]
+┌ 🌱 Fondo comune — come funziona → ┐
+[ Dona €10 ]
+Contributo simulato — questa è una demo.
+```
+
+### Segnala un'area (invariata, azione indipendente)
+```
+‹ SEGNALA ▓▓▓░░  →  1) Dov'è? (tap mappa) — nota: punto dove un albero manca
                     2) Di che si tratta? (abbattuti / strada / spazio)
                     3) Dettagli: [foto] + nota  →  [ Invia ]  →  ✔ Inviata!
-```
-
-### Info (come funziona / trasparenza)
-```
-┌──────────────────────────────┐
-│ Come funziona                 │
-│ Un unico flusso, senza ruoli. │
-│ [€12.480 raccolti][166 alberi]│
-│ 1 · Doni quello che puoi      │
-│ 2 · I cittadini segnalano     │
-│ 3 · L'associazione pianta     │
-│ ┌ Come vengono assegnati i fondi ┐
-│ │ ① aree con maggiore necessità │
-│ │ ② ordine cronologico segnalaz.│
-│ │ ③ priorità amministratori     │
-│ │ "automatica e trasparente"    │
-│ └───────────────────────────────┘
-│ ┌ Trasparenza · ogni euro tracciato ┐
-│ [ Dona quello che puoi ]      │
-└──────────────────────────────┘
-```
-
-### Profilo
-```
-(MR) Marco Rossi · (Cittadino attivo)
-[ €35 donato ][ 2 segnalazioni ][ 3 donazioni ]
-Le mie donazioni:  €25 · 2 sett. fa   /  €10 · 1 mese fa   (al fondo comune)
-Le mie segnalazioni:  Piazzale Ostiense (In valutazione) / Via dei Gracchi (Pianificato)
 ```
 
 ---
 
 ## 5. Descrizione funzionale
 
-### Donazione a fondo comune
-- L'utente sceglie un **importo libero** (preset 1/2/5/10/20/50 € oppure valore custom).
-- Alla conferma l'importo **confluisce nel fondo comune** (nessuna scelta di albero/area).
-- La demo aggiorna in sessione: `fondo raccolto`, `alberi finanziati` (= fondo ÷ costo
-  medio albero, mostrato in modo trasparente), e la lista **Le mie donazioni**.
-- È una **donazione simulata** (demo, nessun pagamento reale) — dichiarato in schermata.
+### Doppia funzione: dare + indicare il luogo
+"Aiuta a piantare un albero" combina sempre due scelte:
+1. **Cosa dare** — un albero specifico (prezzo fisso, es. Leccio €90) oppure,
+   come ultima voce della lista, un **importo libero** ("Dona quello che
+   puoi": preset €1/2/5/10/20/50 o valore custom — permette anche **piccole
+   cifre**).
+2. **Dove** — un punto già segnalato (da altri utenti o da sé stessi in
+   precedenza), oppure un **nuovo punto** inserito al momento toccando la
+   mini-mappa.
 
-### Allocazione delle risorse (automatica e trasparente)
-Il fondo viene impiegato dall'associazione/ente gestore secondo criteri semplici e
-pubblici, **senza** che il donatore scelga:
-1. **Priorità delle aree** con maggiore necessità (dalla mappa partecipata).
-2. **Ordine cronologico** delle segnalazioni.
-3. **Priorità** eventualmente definite dagli amministratori.
+Il nuovo punto inserito diventa da subito visibile come pin sulla **Mappa
+partecipata** e nella lista "Aree che aspettano" in Home (demo in sessione).
 
-### Mappa & segnalazioni
-- La **mappa partecipata** mostra i bisogni segnalati (pin: numero = alberi richiesti,
-  colore = priorità alta/media/bassa). È **informativa**: alimenta i criteri di
-  allocazione, non è un catalogo d'acquisto.
-- La **segnalazione** (posiziona pin → tipo → foto/nota → invia) arricchisce la mappa.
+### Segnalare senza donare
+**Segnala un'area** resta un'azione indipendente e invariata: chi vuole solo
+segnalare un bisogno (senza contribuire economicamente in quel momento) lo può
+fare dal FAB, esattamente come in v2. I punti così segnalati confluiscono nella
+mappa e diventano scelte disponibili nel passo "Dove" del flusso di aiuto.
 
-### Trasparenza
-Ogni euro è tracciato; l'associazione pubblica rendiconti e aggiornamenti sulle
-piantumazioni finanziate. La schermata **Info** rende esplicito il modello.
+### Trasparenza sui luoghi (nota del team, importante)
+I punti segnalati/mostrati rappresentano **luoghi dove un albero esisteva ed
+ora manca** (piccola aiuola abbandonata, ceppo residuo) — **non** nuove aree
+mai state alberate. Questo è reso esplicito:
+- nella nota sotto la mini-mappa di inserimento nuovo luogo (flusso Aiuta);
+- nella nota sotto la mappa di segnalazione (flusso Segnala);
+- nella schermata **Info**, sezione "Da dove vengono i punti sulla mappa".
+
+Il **rimboscamento** di aree mai state alberate è un tema volutamente fuori
+scope per questa demo: richiederebbe un iter di approvazione con il Comune,
+diverso e più lungo. La demo lo segnala esplicitamente per non creare
+aspettative sbagliate nell'utente finale.
+
+### Trasparenza sui fondi
+Ogni euro (sia da un albero specifico sia da un contributo libero) confluisce
+nello stesso **fondo comune** mostrato in Home e in Info, con il derivato
+"alberi finanziati" (fondo ÷ costo medio). L'associazione pianta e rendiconta.
 
 ---
 
 ## 6. User journey
 
-**A — "Passavo di qui e voglio contribuire"**
-Apre l'app → Home → tocca **Dona quello che puoi** → sceglie €5 → Conferma → *Grazie*.
-Nessuna domanda su ruoli, aree o specie. < 15 secondi.
+**A — "Ho visto un'aiuola morta e voglio aiutare subito"**
+Home → **Aiuta a piantare un albero** → Passo 1: **+ Aggiungi un nuovo luogo**
+→ tocca la mappa → *Usa questo punto* → Passo 2: sceglie **Leccio €90** →
+Passo 3: riepilogo → *Conferma €90* → *Grazie! Il tuo albero arriva.*
 
-**B — "Ho visto un'aiuola morta"**
-Apre l'app → **＋ → Segnala un'area** → posiziona il pin → "Spazio pubblico da
-rinverdire" → foto + nota → *Segnalazione inviata*. La vede comparire sulla mappa.
+**B — "Voglio dare una piccola cifra, non mi interessa quale albero"**
+Home → **Aiuta a piantare un albero** → Passo 1: sceglie un'area già segnalata
+(es. Largo Valtournanche) → Passo 2: scorre la lista e in fondo tocca **Dona
+quello che puoi** → Passo 3: **€2** → *Dona €2* → *Grazie! Il tuo contributo
+conta.*
 
-**C — "Voglio capire dove finiscono i soldi"**
-Home → card **Come funziona** (o tab **Info**) → legge i 3 passi, i **criteri di
-allocazione** e la sezione **Trasparenza** → si convince → **Dona quello che puoi**.
+**C — "Ho visto un ceppo ma non voglio donare ora"**
+Home → **＋ → Segnala un'area** → posiziona il pin → tipo → foto/nota → *Inviata*.
+Il punto compare sulla mappa ed entra tra le scelte disponibili per chi vorrà
+aiutare in futuro (anche per sé stesso, più avanti).
 
-**D — "Esploro e poi decido"**
-**Mappa** → tocca un pin (priorità alta) → legge la necessità → dallo sheet
-**Dona al fondo comune** _oppure_ **Segnala un problema qui**.
+**D — "Parto dalla mappa"**
+**Mappa** → tocca un pin → sheet con la necessità → **Aiuta a piantare qui**
+(salta il passo 1, luogo già impostato) → Passo 2 → Passo 3 → Grazie.
 
-Tutte e quattro condividono lo **stesso ingresso** e lo **stesso menu**: nessun
-percorso separato per "tipo di utente".
+**E — "Voglio capire il modello prima di impegnarmi"**
+Home → card **Come funziona** (o tab **Info**) → legge i 3 passi, "da dove
+vengono i punti" (con la nota sul rimboscamento) e **Trasparenza** → torna e fa
+**Aiuta a piantare un albero**.
 
 ---
 
 ## 7. Note d'implementazione
-- Schermate: `home · map · donate · report · info · profile` (state machine in un solo
-  componente client). Nessuno stato `role`/`onboarding`.
-- Donazione: stato `dStep (1|2)`, `dAmount|dCustom`, `fundRaised`, `myDonations`.
-- Numeri localizzati con `toLocaleString` (it-IT / en-US) → deterministico, SSR-safe.
-- Demo/concept: dati fittizi, `noindex`, non in `sitemap`/menu `/lab` — link diretto.
+- Stato flusso "Aiuta": `dStep (1|2|3|4)`, `dArea`, `dAddingNew`/`dPendingPin`
+  (inserimento nuovo luogo), `dChoice ('tree'|'fund')`, `dTreeId`,
+  `dAmount`/`dCustom` (ramo importo libero), `dConfirmed` (importo confermato
+  per la schermata di grazie).
+- Nuovi luoghi: `customAreas: Area[]`, generati con coordinate deterministiche
+  (nessun `Math.random()`/`Date.now()` in fase di render — solo in risposta a
+  un click, quindi SSR-safe) e uniti a `AREAS` per pin/liste.
+- Profilo: `myContributions: MyContribution[]` con `kind: 'tree'|'fund'`,
+  mostra sempre il luogo e, se presente, l'albero.
+- Numeri localizzati con `toLocaleString` (it-IT / en-US).
+- Demo/concept: dati fittizi, `noindex`, non in `sitemap`/menu `/lab` — link
+  diretto condiviso privatamente.
