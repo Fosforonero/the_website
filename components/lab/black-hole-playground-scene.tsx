@@ -784,7 +784,7 @@ export default function BlackHolePlaygroundScene({ quality, spin, diskOn, dopple
     <Canvas
       camera={{ fov: 50, near: 0.01, far: 5000, position: [0, 6, 22] }}
       dpr={[1, dprCap]}
-      gl={{ antialias: false, alpha: true, preserveDrawingBuffer: true }}
+      gl={{ antialias: false, alpha: true, preserveDrawingBuffer: false }}
       style={{ position: "absolute", inset: 0, background: "transparent" }}
       onCreated={({ gl }) => gl.setClearAlpha(0)}
     >

@@ -235,7 +235,7 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
           spin: ctrl.spin, diskOn: ctrl.diskOn,
           diskBright: ctrl.volDisk
             ? 2.5 * (ctrl.dopplerOn ? 1.0 : 0.38)
-            : 14  * (ctrl.dopplerOn ? 1.0 : 0.38),
+            : 24  * (ctrl.dopplerOn ? 1.0 : 0.38), // matches the WebGL scene's restored default (see black-hole-scene.tsx)
           diskTemp: 10500, diskOuter: 16, dopplerOn: ctrl.dopplerOn,
           exposure: ctrl.exposure, steps: ctrl.steps,
           style: ctrl.starless ? 1 : 0,

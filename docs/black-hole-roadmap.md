@@ -5,6 +5,98 @@ Aggiornato durante la sessione di sviluppo lensing/Kerr + ottimizzazioni GPU.
 
 ---
 
+## 0.6 Sessione 2026-07-09 — governor mobile, luminosità disco, fonti nuove
+
+**Branch**: `fix/bh-mobile-disk` (worktree isolato da `origin/init`, `init` locale NON toccato —
+vedi nota branch strategy in CLAUDE.md). Verificato con `tsc --noEmit` pulito. `eslint` resta
+bloccato da debito pre-esistente non correlato: sul sottoinsieme black-hole rimangono errori in
+`black-hole-view.tsx` e `black-hole-webgpu-view.tsx`, righe non toccate da questa sessione
+(`react-hooks/set-state-in-effect` e `react-hooks/immutability`, da trattare a parte); il lint
+repo-wide trova inoltre errori storici in altri lab/componenti.
+
+**Contesto diagnosi**: nessun profiling on-device reale è stato possibile in questa sessione
+(GPU disponibile: Apple M3 Pro via ANGLE, troppo veloce per riprodurre il fill-rate ceiling
+mobile — frame-time misurato con `requestAnimationFrame` instrumentato, anche a CPU throttle
+4× via CDP: ~8ms/frame, nessun hitch). La diagnosi sotto viene dalla lettura del codice + dal
+confronto con il governor WebGPU (che aveva già risolto lo stesso problema).
+
+- **Fix — oscillazione del governor DPR mobile (probabile causa principale dello "scatti" persistente).**
+  `black-hole-scene.tsx` (governor mobile, dentro `useFrame`): mancava la logica anti-oscillazione
+  che il governor **WebGPU** aveva già (commit `0a5b77c`, mai portata qui). Senza un "tetto di
+  recupero" che ricorda la scala appena fallita + un cooldown, il governor scende e risale la DPR
+  ogni ~1s indefinitamente quando l'FPS oscilla intorno alle soglie 35/56 (quantizzazione vsync
+  60↔30 fps siede esattamente lì) — la riallocazione del framebuffer una volta al secondo **è**
+  lo stutter, non (solo) il costo di rendering. Portata la stessa logica (recoverCeil + cooldown
+  2.5s + reset EMA dopo ogni aggiustamento) dal governor WebGPU (`black-hole-webgpu-view.tsx`) al
+  governor WebGL. Non toccati `stepFloor`/`minSteps` (110 passi): abbassarli avrebbe aggravato il
+  bug aperto del photon-ring troncato su mobile (§0), un trade-off già documentato — se il device è
+  genuinely troppo debole anche al pavimento attuale, resta un problema architetturale (WebGPU +
+  accumulo temporale, §2), non risolvibile con altro tuning del governor.
+- **`preserveDrawingBuffer`**: portato a `false` in `black-hole-orbit-scene.tsx` e
+  `black-hole-playground-scene.tsx` (nessuna feature di cattura/share dipende da questi due canvas
+  — verificato via grep prima di cambiare). **NON toccato** in `black-hole-scene.tsx` (la scena
+  principale): `black-hole-view.tsx` ha un vero bottone "condividi" (`onShare` → `canvas.toBlob`)
+  che **dipende** da `preserveDrawingBuffer: true` per funzionare in modo affidabile (senza, la
+  cattura andrebbe fatta in modo sincrono dentro il render loop stesso — tecnica valida ma più
+  invasiva, rischio di rompere silenziosamente lo share su alcuni browser senza un test cross-device
+  reale). Lasciato com'è con la ragione esplicitata qui, invece di rompere una feature funzionante
+  per rincorrere un item della diagnosi. **Prossimo passo per chiuderlo davvero**: catturare il
+  canvas con un hook `useFrame` a *priority* più alta dell'EffectComposer (che disattiva
+  l'autorender di R3F quando presente), scattando `toBlob` in modo sincrono subito dopo il render —
+  su mobile (niente EffectComposer) serve chiamare `gl.render()` manualmente nello stesso hook.
+- **Fix — luminosità disco ("non sembra più luminoso di prima")**: causa root confermata nel
+  commit `958bb2f` (`diskBright` default 24→14, `uExposure` SDR 1.15→0.85 — combinato, un taglio
+  di luminosità lineare pre-tonemap di circa il 57%), giustificato all'epoca per evitare che il
+  disco clippasse a bianco piatto senza gradiente di colore. Notato che `diskBright=24` è anche il
+  **riferimento fisico** assunto dalla formula di temperatura effettiva in `black-hole-view.tsx`
+  (`effTemp = diskTemp·(diskBright/24)^0.25`) — il default a 14 introduceva quindi anche un
+  raffreddamento non intenzionale del colore, non solo un taglio di luminosità. Fix: `diskBright`
+  default ripristinato a **24** (in `black-hole-scene.tsx` e `black-hole-view.tsx`, così l'effTemp
+  torna neutro al default), e `uExposure` SDR ricalibrato **0.85→0.80** (non-starless) /
+  **0.82→0.77** (starless) come compenso — il prodotto risultante (~19.2) resta ben sotto il
+  livello che clippava (24×1.15=27.6) ma recupera la maggior parte della luminosità persa.
+  Stesso allineamento nel renderer **WebGPU** (`black-hole-webgpu-view.tsx`): costante
+  `diskBright` non-vol-disk 14→24. Verificato visivamente via screenshot Playwright: gradiente di
+  colore visibile (bianco-caldo interno → arancione tenue esterno, bande di turbolenza leggibili),
+  nessun clipping a bianco piatto.
+- **Disco "abbozzato" in tutte le simulazioni**: confermato che `black-hole-orbit-scene.tsx` e
+  `black-hole-playground-scene.tsx` non hanno un loro modello disco — importano `BlackHoleQuad`
+  da `black-hole-scene.tsx`, quindi un solo modello GLSL condiviso (più il WebGPU/WGSL separato).
+  Il modello di default (ovunque, `volDisk` off) è un **foglio sottile** alla crossing dell'equatore
+  + un "velo" verticale ad-hoc — non un vero volume: nessun self-shadowing reale, lo spessore
+  verticale è un'esponenziale finta scollegata dalla fisica del flusso. Il modello volumetrico vero
+  (`BH_VOLDISK`) esiste ed è fisicamente più credibile (Gaussiana idrostatica, auto-occlusione) ma
+  è disattivato di default quasi ovunque (solo GPU discrete non-Apple, tier "high") dopo una storia
+  di correzioni eccessive (0.10/6.0 → 0.03/0.9, ogni volta dopo un report "sfera gonfia"/"macchia
+  scura"). **Non toccato in questa sessione** — il rischio di un'altra oscillazione estrema è reale
+  e servirebbe verifica visiva iterativa su più dispositivi, non solo su questa GPU desktop.
+  **Scoperto in questa sessione**: le costanti del volumetrico sono **divergenti tra GLSL e WGSL**
+  (guadagno di emissione ~5× diverso, range di `H/r` diverso) — le due implementazioni si sono
+  scollegate nel tempo. Prossimo passo concreto: riconciliare le costanti WGSL↔GLSL prima di
+  toccare i valori assoluti, poi valutare se il foglio sottile di default meriti un octave di
+  turbulenza in più (rischio basso, additivo) prima di riprovare a riabilitare il volumetrico più
+  largamente.
+- **Fonti nuove aggiunte a `black-hole-about-view.tsx`** (IT+EN, citate con URL): NASA/Goddard
+  (2024) "New NASA Black Hole Visualization Takes Viewers Beyond the Brink" (numeri Sgr A*: massa
+  4,3M M☉, orizzonte ~25M km, spaghettificazione 12,8s/~128.000 km — usati per verificare/arricchire
+  le cifre già presenti, non per inventarne di nuove) e INAF (2026) "Un buco nero vicino per capire
+  il passato lontano" (SDSS J110546: buco nero in rapida crescita, emissione radio persistente da
+  8+ anni e getto relativistico di recente formazione — ancoraggio
+  osservativo reale per il toggle "Getti", finora solo dichiarato "stilizzato" senza un esempio).
+  **Scartato deliberatamente**: un testo virale sulla "retrocausalità quantistica" (nessuna fonte,
+  nessuno studio/istituzione nominati, nessun link) girato dall'utente insieme ai due articoli
+  sopra — verificato via web search: ripropone in forma sensazionalistica dibattiti di
+  retrocausalità/weak-measurement decennali (delayed-choice quantum eraser anni '90-2000), non un
+  risultato 2026 verificabile. Non aggiunto da nessuna parte, per la regola "fail loud, never fake".
+- **Bug scoperto, non correlato, non corretto in questa sessione**: `/lab/buco-nero/about` genera
+  un hydration mismatch React (SSR≠client) nei valori `ry`/coordinate delle ellissi SVG in
+  `PolarizationFigure` (`black-hole-about-figures.tsx`) — differenze di precisione in floating
+  point nell'ultima cifra, probabile calcolo trigonometrico non fissato a una precisione stabile
+  tra server e client. Non blocca la resa (React ripara nel DOM) ma va sistemato: da investigare
+  a parte, non toccato qui perché fuori scope.
+
+---
+
 ## 0. Bug aperto — PRIORITÀ
 
 ### Photon ring rotto

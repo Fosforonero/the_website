@@ -74,7 +74,7 @@ function fitNasaUrl(requested: string, maxTex: number): string {
 
 export function BlackHoleQuad({
   quality, diskOn, dopplerOn, spin, jetsOn, windOn = false,
-  diskTemp = 10500, diskBright = 14, diskOuter = 16, starless = false, pureBlack = false,
+  diskTemp = 10500, diskBright = 24, diskOuter = 16, starless = false, pureBlack = false,
   skyUrl = DEFAULT_SKY_URL, volDisk = false, hdrMode = false, profile, isMobile = false, eht = false, onFps,
   ringdownRef,
 }: BlackHoleSceneProps & { profile?: RenderProfile; isMobile?: boolean }) {
@@ -94,6 +94,15 @@ export function BlackHoleQuad({
   // The reduced mobile profile (140-180 steps) already keeps the analytic ring.
   const stepScale = useRef(isMobile ? 1.0 : 0.85);
   const resScale  = useRef(isMobile ? 0.75 : 1.0);
+  // Anti-oscillation for the mobile DPR governor: remembers the resScale that
+  // just failed (recoverCeil) and gates recovery with a cooldown (sinceAdjust).
+  // Without this, vsync-quantised frame times (60↔30fps sit right across the
+  // 35/56 thresholds) make the governor drop and re-raise DPR forever — the
+  // once-per-second canvas reallocation IS the stutter, not the render cost.
+  // Ported from the WebGPU governor (black-hole-webgpu-view.tsx), which hit
+  // and fixed the same failure mode first.
+  const recoverCeil = useRef(1.0);
+  const sinceAdjust = useRef(999);
   // Effective render profile: GPU-tuned in Auto (passed from the parent), else the
   // chosen manual preset. In Auto the volumetric disk follows the profile.
   const prof: RenderProfile = profile ?? {
@@ -103,6 +112,13 @@ export function BlackHoleQuad({
   // User's explicit toggle always wins: if they turn on "3D disk" we honour it even
   // on Auto quality (Apple Silicon / Intel where prof.vol is false by default).
   const effVol = quality === "auto" ? (prof.vol || volDisk) : volDisk;
+  useEffect(() => {
+    // A different workload deserves a fresh probe: don't let the recovery
+    // ceiling learned from the previous shader/profile keep the scene soft.
+    recoverCeil.current = 1.0;
+    sinceAdjust.current = 999;
+    fpsEma.current = 60;
+  }, [quality, effVol, prof.dprCap, prof.steps, isMobile, eht]);
   // 1×1 black placeholder so the sampler is always bound (some drivers warn on an
   // unbound sampler even when the branch using it is disabled).
   const placeholder = useMemo(() => {
@@ -205,6 +221,7 @@ export function BlackHoleQuad({
     const fpsSample = 1.0 / Math.max(delta, 1e-3);
     fpsEma.current = fpsEma.current * 0.92 + fpsSample * 0.08;
     sinceCheck.current += delta;
+    sinceAdjust.current += delta;
     const ticked = sinceCheck.current > 1.0;
     if (ticked) {
       sinceCheck.current = 0;
@@ -220,19 +237,32 @@ export function BlackHoleQuad({
           const dprCeil = effVol ? Math.min(prof.dprCap, 1.0) : prof.dprCap;
           if (fpsEma.current < 35) {
             if (resScale.current > dprFloor) {
-              // Stage 1: drop DPR
+              // Stage 1: drop DPR. Remember the scale that failed (minus a small
+              // margin) so recovery can't climb straight back to it and re-fail —
+              // that round-trip, repeated once a second, is itself the stutter.
+              recoverCeil.current = Math.max(dprFloor, resScale.current - 0.04);
               resScale.current = Math.max(dprFloor, resScale.current - 0.10);
               setDpr(Math.min(dprMax, dprCeil * resScale.current));
+              // A DPR change reallocates the framebuffer (a hitch that skews the
+              // next few frame times) — reset the EMA to neutral so the governor
+              // re-measures cleanly instead of cascading off the hitch itself.
+              fpsEma.current = 45;
+              sinceAdjust.current = 0;
             } else if (stepScale.current > stepFloor) {
               // Stage 2: DPR already at floor — reduce steps
               stepScale.current = Math.max(stepFloor, stepScale.current - 0.10);
             }
-          } else if (fpsEma.current > 56) {
-            // Scale DPR back up gently (steps recover automatically when DPR is ok)
-            if (resScale.current < 1.0) {
-              resScale.current = Math.min(1.0, resScale.current + 0.07);
-              setDpr(Math.min(dprMax, dprCeil * resScale.current));
-            }
+          } else if (
+            fpsEma.current > 56 &&
+            resScale.current < recoverCeil.current &&
+            sinceAdjust.current > 2.5
+          ) {
+            // Scale DPR back up gently, but never past the remembered ceiling,
+            // and only after a cooldown — both needed to stop the oscillation.
+            resScale.current = Math.min(recoverCeil.current, resScale.current + 0.07);
+            setDpr(Math.min(dprMax, dprCeil * resScale.current));
+            fpsEma.current = 45;
+            sinceAdjust.current = 0;
           }
         } else {
           // Desktop: scale steps. Floor keeps the photon ring intact.
@@ -260,7 +290,12 @@ export function BlackHoleQuad({
     u.uVolDisk.value = effVol ? 1 : 0;
     // HDR displays can render more dynamic range before clipping — give the
     // tonemapper extra headroom; on SDR reduce exposure to avoid ACES saturation.
-    u.uExposure.value = hdrMode ? (starless ? 1.12 : 1.1) : (starless ? 0.82 : 0.85);
+    // diskBright's default (24) is the physical reference the effTemp formula
+    // assumes (see black-hole-view.tsx), so exposure — not diskBright — is the
+    // knob that trades brightness for headroom: 0.80/0.77 keeps the product
+    // well under the pre-regression 24×1.15 that used to clip to flat white,
+    // while restoring most of the perceived brightness the default lost.
+    u.uExposure.value = hdrMode ? (starless ? 1.12 : 1.1) : (starless ? 0.77 : 0.80);
     u.uDiskOn.value = diskOn ? 1 : 0;
     u.uDoppler.value = dopplerOn ? 1 : 0;
     u.uSpin.value = spin;
@@ -282,9 +317,10 @@ export function BlackHoleQuad({
     const mat = matRef.current;
     if (!mat) return;
     const want = prof.tao;
-    const defs = (mat.defines ?? {}) as Record<string, string>;
-    const has = defs.BH_ULTRA !== undefined;
+    const currentDefs = (mat.defines ?? {}) as Record<string, string>;
+    const has = currentDefs.BH_ULTRA !== undefined;
     if (want !== has) {
+      const defs = { ...currentDefs };
       if (want) defs.BH_ULTRA = "";
       else delete defs.BH_ULTRA;
       mat.defines = defs;
@@ -298,9 +334,10 @@ export function BlackHoleQuad({
   useEffect(() => {
     const mat = matRef.current;
     if (!mat) return;
-    const defs = (mat.defines ?? {}) as Record<string, string>;
-    const has = defs.BH_VOLDISK !== undefined;
+    const currentDefs = (mat.defines ?? {}) as Record<string, string>;
+    const has = currentDefs.BH_VOLDISK !== undefined;
     if (effVol !== has) {
+      const defs = { ...currentDefs };
       if (effVol) defs.BH_VOLDISK = "";
       else delete defs.BH_VOLDISK;
       mat.defines = defs;

@@ -160,7 +160,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
   const [gridOn, setGridOn] = useState(false);
   const [spin, setSpin] = useState(0);
   const [diskTemp, setDiskTemp] = useState(10500);
-  const [diskBright, setDiskBright] = useState(14);
+  const [diskBright, setDiskBright] = useState(24);
   const [diskOuter, setDiskOuter] = useState(16);
   const [massSolar, setMassSolar] = useState(10);
   const [physOpen, setPhysOpen] = useState(false);
@@ -252,7 +252,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
     const p = new URLSearchParams();
     if (spin !== 0) p.set("s", spin.toFixed(2));
     if (quality !== "auto") p.set("q", quality);
-    if (diskBright !== 14) p.set("b", diskBright.toFixed(0));
+    if (diskBright !== 24) p.set("b", diskBright.toFixed(0));
     if (diskTemp !== 10500) p.set("t", diskTemp.toFixed(0));
     if (diskOuter !== 16) p.set("r", diskOuter.toFixed(1));
     if (!dopplerOn) p.set("d", "0");
