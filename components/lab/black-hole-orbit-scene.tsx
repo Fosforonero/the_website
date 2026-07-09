@@ -251,7 +251,7 @@ export default function BlackHoleOrbitScene({ quality, diskOn, params, apiRef, r
     <Canvas
       camera={{ fov: 50, near: 0.01, far: 5000, position: [0, 32, 10] }}
       dpr={[1, dprCap]}
-      gl={{ antialias: false, alpha: false, preserveDrawingBuffer: true }}
+      gl={{ antialias: false, alpha: false, preserveDrawingBuffer: false }}
       style={{ background: "#000003" }}
     >
       <BlackHoleQuad quality={quality} diskOn={diskOn} spin={0} dopplerOn jetsOn={false} />
