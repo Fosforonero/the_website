@@ -15,7 +15,8 @@
     "gen:icons": "tsx scripts/generate-icons.ts",
     "solar:audit": "tsx scripts/solar-system/audit-orbits.ts",
     "solar:fetch-catalog": "tsx scripts/solar-system/fetch-catalog.ts",
-    "ig:sync": "tsx scripts/instagram/sync.ts"
+    "ig:sync": "tsx scripts/instagram/sync.ts",
+    "black-hole:audit": "tsx scripts/black-hole/audit-playground-dynamics.ts"
   },
   "dependencies": {
     "@next/third-parties": "^16.2.6",
