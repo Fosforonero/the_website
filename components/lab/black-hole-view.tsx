@@ -82,7 +82,6 @@ const COPY = {
     pureBlack: "Nero puro",
     skySrc: "Sorgente cielo",
     volDisk: "Disco 3D",
-    diskParticles: "Disco particelle",
     hdr: "HDR",
     phys: {
       title: "Scala reale", mass: "Massa", close: "Chiudi",
@@ -127,7 +126,6 @@ const COPY = {
     pureBlack: "Pure black",
     skySrc: "Sky source",
     volDisk: "3D disk",
-    diskParticles: "Particle disk",
     hdr: "HDR",
     phys: {
       title: "Real scale", mass: "Mass", close: "Close",
@@ -170,7 +168,6 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
   const [pureBlackOn, setPureBlackOn] = useState(false);
   const [skySource, setSkySource] = useState<SkySource>("nasa8k");
   const [volDiskOn, setVolDiskOn] = useState(false);
-  const [diskParticlesOn, setDiskParticlesOn] = useState(false);
   const [distKpc, setDistKpc] = useState(8.1); // distance for shadow angle calc (kpc)
   // Ultra needs the 6th-order Tao integrator: only discrete desktop GPUs support
   // it without freezing. Apple Silicon and mobile get it disabled.
@@ -418,14 +415,6 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
           {t.volDisk}
         </button>
 
-        <button
-          className={`bh-control bh-toolbar__hide-sm${diskParticlesOn ? " bh-control--active" : ""}`}
-          onClick={() => setDiskParticlesOn((v) => !v)}
-          title={locale === "it" ? "Disco a particelle kepleriane (non lensato) sopra il disco" : "Keplerian particle disk (not lensed) over the disk"}
-        >
-          {t.diskParticles}
-        </button>
-
         <button className="bh-control bh-toolbar__hide-sm" onClick={onShare}>📷 {t.share}</button>
 
         <div className="bh-toolbar__sep" />
@@ -455,7 +444,7 @@ export function BlackHoleView({ locale = "it" }: { locale?: Locale }) {
       </div>
 
       <div className={`bh-canvas-wrap${ehtOn ? " bh-eht" : ""}`}>
-        <BlackHoleScene quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn} gridOn={gridOn} diskTemp={effTemp} diskBright={diskBright} diskOuter={diskOuter} eht={ehtOn} starless={starlessOn} pureBlack={pureBlackOn} skyUrl={SKY_SOURCES[skySource]} volDisk={volDiskOn} diskParticles={diskParticlesOn} hdrMode={hdrMode} onGpu={setGpu} onFps={setFps} />
+        <BlackHoleScene quality={quality} diskOn={diskOn} dopplerOn={dopplerOn} spin={spin} jetsOn={jetsOn} gridOn={gridOn} diskTemp={effTemp} diskBright={diskBright} diskOuter={diskOuter} eht={ehtOn} starless={starlessOn} pureBlack={pureBlackOn} skyUrl={SKY_SOURCES[skySource]} volDisk={volDiskOn} hdrMode={hdrMode} onGpu={setGpu} onFps={setFps} />
         <p className="bh-hint">{t.hint}</p>
 
         {controlsOpen && (

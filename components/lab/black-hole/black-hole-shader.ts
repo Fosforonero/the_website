@@ -1,3 +1,5 @@
+import { VOL_DISK_SPEC, vf } from "./disk-vol-spec";
+
 // ---------------------------------------------------------------------------
 // Kerr black-hole renderer — GLSL shader source
 // ---------------------------------------------------------------------------
@@ -76,12 +78,16 @@ uniform float uRingdown;   // QNM ringdown amplitude A(t) = exp(−γt)·cos(ω_
 const float RS = 1.0;
 const int   MAX_STEPS = 400;
 
-// Relativistic thin-disk radiative flux (Novikov–Thorne / Shakura–Sunyaev radial
-// profile with a zero-torque inner boundary): F ∝ (r_in/r)³·(1−√(r_in/r)). The
-// inner edge r_in is the spin-dependent ISCO, so the hot ring tracks the ISCO as
-// the hole spins up. Computed ANALYTICALLY in the shader — no lookup table, no
-// uniform array, no texture — so it renders on every WebGL device. Peaks at
-// ~0.057 near 1.36·r_in, matching the previous baked profile.
+// Newtonian Shakura–Sunyaev-style radial flux profile with a zero-torque inner
+// boundary: F ∝ (r_in/r)³·(1−√(r_in/r)). This is NOT the exact relativistic
+// Novikov–Thorne/Page–Thorne flux integral (which needs the disk's relativistic
+// specific energy/angular momentum and has no closed form this simple) — only
+// the inner edge r_in is genuinely relativistic, computed from the exact Kerr
+// ISCO (kerrISCO()), so the hot ring tracks the ISCO as the hole spins up while
+// the flux shape itself stays the classic Newtonian law. Computed ANALYTICALLY
+// in the shader — no lookup table, no uniform array, no texture — so it renders
+// on every WebGL device. Peaks at ~0.057 near 1.36·r_in, matching the previous
+// baked profile.
 float diskFlux(float rd, float rIn) {
   if (rd <= rIn) return 0.0;
   float x = rIn / rd;
@@ -421,9 +427,9 @@ void main() {
     if (uDiskOn > 0.5 && uVolDisk > 0.5) {
       float rhoS = length(pos.xz);
       if (rhoS > rIn && rhoS < uDiskOuter) {
-        float HhS = clamp(uVolThick * sqrt(rhoS), 0.012, 0.035) * rhoS;
-        if (abs(pos.y) < 3.0 * HhS + 0.1) {
-          dt = min(dt, max(0.025, 0.45 * HhS / max(abs(dir.y), 0.12)));
+        float HhS = clamp(uVolThick * sqrt(rhoS), ${vf(VOL_DISK_SPEC.horClampMin)}, ${vf(VOL_DISK_SPEC.horClampMax)}) * rhoS;
+        if (abs(pos.y) < ${vf(VOL_DISK_SPEC.refineVerticalMult)} * HhS + 0.1) {
+          dt = min(dt, max(${vf(VOL_DISK_SPEC.refineStepFloor)}, ${vf(VOL_DISK_SPEC.refineStepFactor)} * HhS / max(abs(dir.y), ${vf(VOL_DISK_SPEC.refineSlopeFloor)})));
         }
       }
     }
@@ -648,31 +654,43 @@ void main() {
 #ifdef BH_VOLDISK
     // Volumetric 3D disk: integrate the radiative-transfer equation (emission +
     // absorption) through an ANALYTIC plasma model along this geodesic step,
-    // instead of sampling a thin sheet. Vertical structure is a hydrostatic
-    // Gaussian ρ(r,z)=ρ₀(r)·exp(−z²/2H²) with scale height H≈c_s/Ω_K (the sound
-    // speed c_s comes from the local temperature we already compute). NOT GRMHD —
-    // an analytic slim-disk model — but a real volume: it self-occludes and
-    // limb-brightens. Gated behind a compile #define so the default shader stays
-    // small (mobile compile budget).
+    // instead of sampling a thin sheet. Vertical structure is a CALIBRATED
+    // Gaussian ρ(r,z)=ρ₀(r)·exp(−z²/2H²) — not a self-consistent hydrostatic
+    // solution: H/r is nominally ∝ sqrt(T·r) (the hydrostatic c_s/Ω_K shape) but
+    // is clamped to [0.012, 0.035], and that clamp saturates across almost the
+    // entire visible disk (see docs/black-hole-roadmap.md §0.7) — so in practice
+    // this renders as a near-constant-aspect-ratio thin disk, a deliberate
+    // visual proxy, not a physically varying thermal profile. Radial flux is
+    // the Newtonian Shakura–Sunyaev-style r⁻³(1−√(rIn/r)) law with the exact
+    // Kerr ISCO as its inner edge (see diskFlux() above) — NOT GRMHD, NOT the
+    // exact relativistic Novikov–Thorne/Page–Thorne flux integral — but a real
+    // volume: it self-occludes and limb-brightens. Gated behind a compile
+    // #define so the default shader stays small (mobile compile budget).
+    //
+    // Vertical clamp, radial taper, emission gain and opacity come from
+    // VOL_DISK_SPEC (disk-vol-spec.ts) — the single source of truth shared
+    // with the WGSL/WebGPU renderer so the two can't silently diverge again.
     if (uDiskOn > 0.5 && uVolDisk > 0.5 && accA < 0.99) {
       vec3  mid = 0.5 * (pos + posNext);
       float rho = length(mid.xz);                          // cylindrical radius (equatorial plane y=0)
       if (rho > rIn && rho < uDiskOuter) {
         float flux = diskFlux(rho, rIn);
         float T    = uDiskTemp * pow(flux, 0.25);
-        // H/r ≈ c_s/v_φ ∝ sqrt(T·r): a flared slim disk, clamped to a sane range.
+        // H/r ≈ c_s/v_φ ∝ sqrt(T·r) before the clamp below — see the note above:
+        // the clamp saturates almost everywhere, so this is a near-constant
+        // aspect ratio in practice, not a genuinely flared thermal profile.
         // Keep the slim disk genuinely THIN: a high H/r cap makes Hh=HoR·rho
         // balloon at large radius into a fat torus that, seen edge-on, fills the
         // frame and (once it clips to white) blooms into a diffuse haze.
-        // Upper clamp 0.035 (was 0.05) keeps the disk a narrow equatorial band.
-        float HoR  = clamp(uVolThick * sqrt(pow(flux, 0.25) * rho), 0.012, 0.035);
+        float HoR  = clamp(uVolThick * sqrt(pow(flux, 0.25) * rho), ${vf(VOL_DISK_SPEC.horClampMin)}, ${vf(VOL_DISK_SPEC.horClampMax)});
         float Hh   = HoR * rho;
         float zr   = mid.y / Hh;
-        if (abs(zr) < 2.2) {
-          float dens = exp(-0.5 * zr * zr);                // hydrostatic vertical profile
-          // Taper starts at 60% of outer radius (was 32%) so the disk stays at
-          // full density further out, then drops sharply — no diffuse outer haze.
-          float radial = 1.0 - smoothstep(uDiskOuter * 0.60, uDiskOuter * 0.95, rho);
+        if (abs(zr) < ${vf(VOL_DISK_SPEC.zClampSigma)}) {
+          float dens = exp(-0.5 * zr * zr);                // calibrated Gaussian vertical profile
+          // Taper starts well before the outer edge so the disk stays at full
+          // density through most of its extent, then drops sharply — no
+          // diffuse outer haze.
+          float radial = 1.0 - smoothstep(uDiskOuter * ${vf(VOL_DISK_SPEC.taperInner)}, uDiskOuter * ${vf(VOL_DISK_SPEC.taperOuter)}, rho);
           dens *= radial * radial * radial;               // cubic: crisp outer edge
           // Exact Kerr Doppler/redshift for the local circular orbit (as thin disk).
           float g = 1.0;
@@ -685,20 +703,55 @@ void main() {
             float lam = 2.0 * (mid.x * ps.z - mid.z * ps.x);
             g = 1.0 / (ut * max(1.0 - Om * lam, 1e-3));
           }
+          g = min(g, 3.0); // beaming safety cap, shared with the thin-sheet/WGSL paths
           float Tobs = T * g;
-          // Co-rotating turbulence (2 octaves), sheared by differential rotation.
-          float om = uTime * 1.4 / pow(rho, 1.5);
-          float ca = cos(om), sa = sin(om);
-          vec2  qd = mat2(ca, -sa, sa, ca) * mid.xz * 0.6;
-          float tb = 0.6 * gnoise(qd) + 0.4 * gnoise(qd * 2.03 + vec2(uTime * 0.1, 5.1));
-          tb = clamp(0.45 + 1.1 * tb, 0.0, 1.7);
+          // Co-rotating turbulence (2 octaves) at low spatial frequency (broad
+          // blobs, no fine rings when lensed) + a gentle domain warp + a mild
+          // orbital-phase asymmetry. Same technique as the thin-sheet turbulence
+          // above, ported from the WGSL volumetric shader where it was
+          // developed to avoid lensed-ring artifacts from finer octaves.
+          float om2 = uTime * 1.4 / pow(rho, 1.5);
+          float ca2 = cos(om2), sa2 = sin(om2);
+          mat2 rotm2 = mat2(0.80, -0.60, 0.60, 0.80);
+          vec2 pv = mat2(ca2, -sa2, sa2, ca2) * mid.xz * 0.30;
+          vec2 wv = vec2(gnoise(pv + 3.1), gnoise(pv + 7.7)) - 0.5;
+          pv += 0.30 * wv;
+          float turb2 = 0.60 * gnoise(pv); pv = rotm2 * pv * 2.03 + 11.5;
+          turb2 += 0.40 * gnoise(pv);
+          float orbX = ca2 * mid.x + sa2 * mid.z;
+          float wave = 0.75 + 0.25 * (rho > 0.05 ? orbX / rho : 0.0);
+          float tb = clamp(0.30 + 0.90 * turb2 * wave, 0.0, 1.60);
           float ds   = dt * length(vel);                   // path length of this step
-          float emis = pow(Tobs / uDiskTemp, 4.0) * dens * tb;   // emission coefficient (beaming ∝ T_obs⁴)
-          float dtau = uVolOpacity * dens * ds;            // optical depth of this segment
-          // Emission must dominate absorption (or the volume reads as a dark, muddy
-          // blob), but not so much it clips to white and feeds the bloom a screen-
-          // filling halo. Moderate gain now that the slab is thin.
-          vec3  j    = blackbody(Tobs) * (uDiskBright * 0.6 * emis * ds);
+          // Emission: full Stefan–Boltzmann beaming (Tobs/Tdisk)^4 — same term
+          // the thin-sheet model already used; both renderers now share it.
+          // Inner-lip flare: an edge-on/grazing ray accumulates opacity fairly
+          // uniformly per unit path length across most radii (density has no
+          // radial peak beyond the outer taper), so by the time it reaches the
+          // hot inner ring much of its (1-accA) "budget" is already spent on
+          // cooler outer gas — the disk reads as a flat wash with no visible
+          // core. This boost (stronger than the thin-sheet's 1.3×, which only
+          // has to survive a single crossing, not an averaged integral)
+          // restores a readable hot core without raising the overall gain
+          // enough to clip the cooler outer disk to white.
+          //
+          // edge0 must be < edge1 (GLSL smoothstep is undefined otherwise —
+          // the old rIn*3.0, rIn*1.15 ordering was inverted). The boost itself
+          // doesn't need to enforce zero emission at the ISCO: diskFlux() above
+          // already returns exactly 0 at rd<=rIn and peaks at rd = 1.36 * rIn
+          // (root of d/dx[x^3(1-sqrt(x))]=0 for x=rIn/rd), so emis below is
+          // already zero there regardless of lip. This just keeps the extra
+          // gain concentrated across the 1.15-3x rIn band that contains that
+          // physical peak, instead of the old formula's undefined shape.
+          float lip  = 1.0 + 2.0 * (1.0 - smoothstep(rIn * 1.15, rIn * 3.0, rho));
+          float emis = pow(Tobs / uDiskTemp, 4.0) * dens * tb * lip;
+          float dtau = uVolOpacity * dens * ds;            // optical depth of this segment (uniform; default from VOL_DISK_SPEC.opacity)
+          // "Pure black" preset: monochromatic saturated orange, matching the
+          // thin-sheet model above — this branch was missing here, so the
+          // volumetric disk ignored the preset and always rendered physical
+          // blackbody colour (washed/olive at cooler outer temperatures) even
+          // with "Nero puro" selected. Now shared with WGSL, which already had it.
+          vec3  jcol = uPureBlack > 0.5 ? vec3(1.0, 0.42, 0.12) : blackbody(Tobs);
+          vec3  j    = jcol * (uDiskBright * ${vf(VOL_DISK_SPEC.emissionGain)} * emis * ds);
           accCol += (1.0 - accA) * j;                      // emission, attenuated by gas already in front
           accA   += (1.0 - accA) * (1.0 - exp(-dtau));     // accumulate opacity (self-occlusion)
           if (!depthSet && accA > 0.30) { outDepth = depthFromWorld(mid); depthSet = true; hitDisk = true; }
