@@ -6,6 +6,8 @@ import Link from "next/link";
 import type { BlackHoleQuality } from "./black-hole/black-hole-shader";
 import type { PlaygroundHandle, BodyKind } from "./black-hole-playground-scene";
 import type { WebGPUBgHandle } from "./black-hole-webgpu-background";
+import type { Diagnostics } from "./black-hole/playground-physics";
+import { PlaygroundDebugOverlay } from "./black-hole/playground-debug-overlay";
 
 const WebGPUBackground = dynamic(
   () => import("./black-hole-webgpu-background").then(m => ({ default: m.BlackHoleWebGPUBackground })),
@@ -26,7 +28,10 @@ const COPY = {
     addStar: "Stella",
     addComet: "Cometa",
     reset: "Azzera",
-    systemBtn: "✦ Sistema",
+    systemBtn: "✦ Sistema planetario",
+    infallingBtn: "☄ Sistema stellare in caduta",
+    names: "Nomi",
+    trails: "Scie",
     quality: "Qualità",
     qualities: { ultra: "Ultra", high: "Alta", medium: "Media", low: "Bassa" },
     spin: "Spin ~",
@@ -53,7 +58,10 @@ const COPY = {
     addStar: "Star",
     addComet: "Comet",
     reset: "Reset",
-    systemBtn: "✦ System",
+    systemBtn: "✦ Planetary system",
+    infallingBtn: "☄ Infalling stellar system",
+    names: "Names",
+    trails: "Trails",
     quality: "Quality",
     qualities: { ultra: "Ultra", high: "High", medium: "Medium", low: "Low" },
     spin: "Spin ~",
@@ -94,9 +102,21 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
   const [gridOn, setGridOn] = useState(false);
   const [gwOn, setGwOn] = useState(false);
   const [diskParticlesOn, setDiskParticlesOn] = useState(true);
+  const [showNames, setShowNames] = useState(false);
+  const [showTrails, setShowTrails] = useState(false);
   const [activeKind, setActiveKind] = useState<BodyKind>("star");
+  const diagRef = useRef<Diagnostics | null>(null);
+  const autoFrameRef = useRef<number | null>(null);
   // Start collapsed; open the panel only on wider (non-mobile) screens.
   const [infoOpen, setInfoOpen] = useState(false);
+  // ?bhDebug=1 — a dev-only diagnostics overlay (body/particle counts, simDt,
+  // energy/momentum/angular-momentum, per-body Hill radii). Read once on
+  // mount; not meant to be toggled live.
+  const [bhDebug, setBhDebug] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (typeof window !== "undefined") setBhDebug(new URLSearchParams(window.location.search).get("bhDebug") === "1");
+  }, []);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (typeof window !== "undefined" && window.innerWidth >= 680) setInfoOpen(true);
@@ -133,7 +153,22 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
         <button className={`bh-control${activeKind === "star" ? " bh-control--active" : ""}`} onClick={() => setActiveKind("star")}>{t.addStar}</button>
         <button className={`bh-control${activeKind === "comet" ? " bh-control--active" : ""}`} onClick={() => setActiveKind("comet")}>{t.addComet}</button>
         <button className="bh-control bh-control--active" onClick={() => api.current?.system()}>{t.systemBtn}</button>
+        <button className="bh-control bh-control--active bh-toolbar__hide-sm" onClick={() => api.current?.infallingSystem()}>{t.infallingBtn}</button>
         <button className="bh-control" onClick={() => api.current?.reset()}>{t.reset}</button>
+
+        <button
+          className={`bh-control bh-toolbar__hide-sm${showNames ? " bh-control--active" : ""}`}
+          onClick={() => setShowNames((v) => !v)}
+        >
+          {t.names}
+        </button>
+
+        <button
+          className={`bh-control bh-toolbar__hide-sm${showTrails ? " bh-control--active" : ""}`}
+          onClick={() => setShowTrails((v) => !v)}
+        >
+          {t.trails}
+        </button>
 
         <button
           className={`bh-control${diskOn ? " bh-control--active" : ""}`}
@@ -237,7 +272,8 @@ export function BlackHolePlaygroundView({ locale = "it" }: { locale?: Locale }) 
             bgRef={bgRef}
           />
         )}
-        <PlaygroundScene quality={quality} spin={spin} diskOn={diskOn} dopplerOn={dopplerOn} jetsOn={jetsOn} windOn={windOn} gridOn={gridOn} gwOn={gwOn} diskParticlesOn={diskParticlesOn} activeKind={activeKind} apiRef={api} scaleRef={scaleRef} webgpuMode={webgpuMode} bgRef={bgRef} ringdownStartRef={ringdownStartRef} />
+        <PlaygroundScene quality={quality} spin={spin} diskOn={diskOn} dopplerOn={dopplerOn} jetsOn={jetsOn} windOn={windOn} gridOn={gridOn} gwOn={gwOn} diskParticlesOn={diskParticlesOn} activeKind={activeKind} apiRef={api} scaleRef={scaleRef} webgpuMode={webgpuMode} bgRef={bgRef} ringdownStartRef={ringdownStartRef} diagRef={diagRef} showNames={showNames} showTrails={showTrails} autoFrameRef={autoFrameRef} />
+        {bhDebug && <PlaygroundDebugOverlay diagRef={diagRef} />}
         {scaleBar.px > 0 && (
           <div className="bh-scalebar" aria-hidden>
             <span className="bh-scalebar__label">{scaleBar.label}</span>
