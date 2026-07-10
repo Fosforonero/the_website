@@ -5,6 +5,52 @@ Aggiornato durante la sessione di sviluppo lensing/Kerr + ottimizzazioni GPU.
 
 ---
 
+## 0.7 Sessione 2026-07-10 — riscrittura testata della dinamica N-corpi del Playground
+
+**Branch**: `fix/bh-playground-dynamics` (worktree isolato da `origin/init`). Commit `42859195`,
+non pushato, nessuna PR. Non tocca `feat/bh-flow-tracers` (resta locale, non pushata) né inizia il
+redesign WGSL dei filamenti, entrambi esplicitamente rimandati dall'utente.
+
+- **Fisica estratta in un modulo puro e testabile**: `components/lab/black-hole/playground-physics.ts`,
+  senza dipendenze React/R3F, usato sia dal componente di rendering sia dallo script di audit
+  headless (`scripts/black-hole/audit-playground-dynamics.ts`).
+- **Audit e fix applicati punto per punto**: seed deterministico (mulberry32, niente più
+  `Math.random()`); leapfrog kick-drift-kick con snapshot immutabile delle posizioni e somma
+  gravitazionale mutua accumulata in ordine canonico per id (verificato bit-esatto contro lo stesso
+  scenario con array invertito); un solo `SIM_DT` fisso (0.01s) per orbite/disruzione/detriti/
+  lifetime tramite accumulator a step fisso, sostituendo il vecchio `dtMax` calcolato dalla
+  distanza del corpo più vicino; corpi sotto `DOOM_RADIUS` esclusi dalla somma N-corpi mutua sia
+  come sorgente sia come bersaglio; gerarchia pianeta-luna reale (sfera di Hill istantanea,
+  distacco su invasione di raggio O energia relativa positiva, collisioni luna-qualsiasi-corpo,
+  reparenting dopo fusioni, ricattura in un host diverso); raggio visuale/massa/densità separati,
+  raggio mareale calcolato da `cbrt(3·M_bh/(4π·densità))`; coda cometaria con velocità propria +
+  spinta radiale; disruzione TDE con fase radiale→lungo-orbita e intensità legata a forza mareale/
+  perdita di massa; assorbimento particelle al secondo attraversamento del piano, mai al primo.
+- **Diagnostica `?bhDebug=1`** (`playground-debug-overlay.tsx`): corpi/particelle, simDt/substep/
+  fattore di rallentamento, energia, momento angolare, quantità di moto, baricentro, per-corpo
+  parent/distanza/raggio di Hill/accelerazione BH e mutua.
+- **Preset ridisegnati**: "Sistema planetario" (pianeti spaziati per raggi di Hill propri,
+  auto-inquadratura), "Sistema stellare in caduta" (stella con pianeti/lune legati su traiettoria
+  in caduta); aggiunta dimensione minima a schermo, aloni, nomi/scie disattivabili.
+- **7 scenari obbligatori implementati, 24 check totali, tutti verdi** — vedi report pubblicato
+  (link in memoria di sessione) per i numeri: deriva energetica 3e-11% dopo 22 orbite,
+  indipendenza dall'ordine bit-esatta (Δ=0.000e+0), distacco di Hill con causalità verificata, 24
+  corpi/60s senza NaN, due TDE simultanee con stream indipendenti e verifica bound/unbound.
+- **Audit indipendente (6 revisori + ri-verifica) ha trovato 3 bug reali, tutti corretti**:
+  (1) l'overlay di debug non applicava l'esclusione dei corpi "doomed" nell'accelerazione mutua,
+  mostrando numeri diversi da quelli usati dall'integratore reale; (2) una luna-di-pianeta-di-stella
+  usava il buco nero come perturbatore della sua sfera di Hill invece della stella, rischiando di
+  restare "legata" durante lo strippaggio mareale della stella stessa (violava l'ordine
+  luna→pianeta→stella richiesto per il preset "Sistema stellare in caduta"); (3) i pareggi in
+  `resolveCollisions`/ricattura gerarchica si risolvevano per posizione nell'array invece che per
+  id, un caso concreto (dimostrato riproducendolo) in cui invertire l'array cambiava quale corpo
+  sopravvive a una fusione. L'audit ha anche iniettato e smentito un'ipotesi (scambio massa
+  sorgente/bersaglio nella somma gravitazionale) dimostrando che la suite lo intercetta già.
+- **Igiene git**: `git diff --check`, `tsc --noEmit`, `eslint` sui file toccati tutti puliti;
+  commit con file espliciti, `.pnpm-store/` escluso.
+
+---
+
 ## 0.6 Sessione 2026-07-09 — governor mobile, luminosità disco, fonti nuove
 
 **Branch**: `fix/bh-mobile-disk` (worktree isolato da `origin/init`, `init` locale NON toccato —
