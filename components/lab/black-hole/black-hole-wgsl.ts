@@ -1,3 +1,5 @@
+import { VOL_DISK_SPEC, vf } from "./disk-vol-spec";
+
 // ---------------------------------------------------------------------------
 // Kerr black-hole renderer — WGSL (WebGPU)
 // ---------------------------------------------------------------------------
@@ -55,7 +57,9 @@ struct VOut { @builtin(position) pos: vec4f }
   return VOut(vec4f(x, y, 0., 1.));
 }
 
-// ── disk flux (Novikov–Thorne) ────────────────────────────────────────────────
+// ── disk flux — Newtonian Shakura–Sunyaev-style law, zero-torque inner boundary
+// at the exact Kerr ISCO (see black-hole-shader.ts's diskFlux for the full note;
+// NOT the exact relativistic Novikov–Thorne/Page–Thorne flux integral) ────────
 fn diskFlux(rd: f32, rIn: f32) -> f32 {
   if (rd <= rIn) { return 0.; }
   let x = rIn / rd;
@@ -320,9 +324,9 @@ fn kerrDoppler(rd: f32, ps_at_hit: vec3f, hit: vec3f) -> f32 {
       if (u.vol_disk > .5) {
         let rhoR = length(pos.xz);
         if (rhoR > rIn && rhoR < u.disk_outer) {
-          let HhR = clamp(u.vol_thick * sqrt(rhoR) * 0.22, 0.008, 0.18) * rhoR;
-          if (abs(pos.y) < 2.0 * HhR + 0.1) {
-            dt = min(dt, max(0.03, 0.22 * HhR / max(abs(dir.y), 0.15)));
+          let HhR = clamp(u.vol_thick * sqrt(rhoR), ${vf(VOL_DISK_SPEC.horClampMin)}, ${vf(VOL_DISK_SPEC.horClampMax)}) * rhoR;
+          if (abs(pos.y) < ${vf(VOL_DISK_SPEC.refineVerticalMult)} * HhR + 0.1) {
+            dt = min(dt, max(${vf(VOL_DISK_SPEC.refineStepFloor)}, ${vf(VOL_DISK_SPEC.refineStepFactor)} * HhR / max(abs(dir.y), ${vf(VOL_DISK_SPEC.refineSlopeFloor)})));
           }
         }
       }
@@ -386,18 +390,23 @@ fn kerrDoppler(rd: f32, ps_at_hit: vec3f, hit: vec3f) -> f32 {
       }
 
       // ── Volumetric 3D disk ────────────────────────────────────────────────
+      // Vertical clamp, radial taper, emission gain come from VOL_DISK_SPEC
+      // (disk-vol-spec.ts) — the single source of truth shared with the GLSL/
+      // WebGL renderer so the two can't silently diverge again. Opacity/
+      // thickness stay uniforms (u.vol_opacity / u.vol_thick); their JS-side
+      // defaults are now also sourced from VOL_DISK_SPEC.
       if (u.disk_on > .5 && u.vol_disk > .5 && !done && accA < .99) {
         let mid = (pos+posNext)*.5;
         let rho = length(mid.xz);
         if (rho > rIn && rho < u.disk_outer) {
           let flux  = diskFlux(rho, rIn);
           let T     = u.disk_temp*pow(flux,.25);
-          let HoR   = clamp(u.vol_thick*sqrt(pow(flux,.25)*rho)*0.22, 0.008, 0.18);
+          let HoR   = clamp(u.vol_thick*sqrt(pow(flux,.25)*rho), ${vf(VOL_DISK_SPEC.horClampMin)}, ${vf(VOL_DISK_SPEC.horClampMax)});
           let Hh    = HoR*rho;
           let zr    = mid.y/Hh;
-          if (abs(zr) < 1.5) {
+          if (abs(zr) < ${vf(VOL_DISK_SPEC.zClampSigma)}) {
             let dens   = exp(-.5*zr*zr);
-            let radial = 1.-smoothstep(u.disk_outer*.28, u.disk_outer*.82, rho);
+            let radial = 1.-smoothstep(u.disk_outer*${vf(VOL_DISK_SPEC.taperInner)}, u.disk_outer*${vf(VOL_DISK_SPEC.taperOuter)}, rho);
             let dens2  = dens*radial*radial*radial;
             // Project mid to equatorial plane for Doppler: off-plane lam gives extreme values
             let g      = select(1., min(kerrDoppler(rho, ps, vec3f(mid.x, 0., mid.z)), 3.0), u.doppler_on > .5);
@@ -420,9 +429,20 @@ fn kerrDoppler(rd: f32, ps_at_hit: vec3f, hit: vec3f) -> f32 {
             let tb     = clamp(0.30 + 0.90*turb2*wave, 0., 1.60);
             let ds   = dt*length(vel);
             let dtau = u.vol_opacity*dens2*ds;
+            // Full Stefan–Boltzmann beaming (Tobs/Tdisk)^4 — this term was
+            // previously missing here entirely, which meant this disk's
+            // brightness never tracked the radial flux profile or Doppler
+            // beaming, only density/turbulence. Now shared with the thin-sheet
+            // model and with the GLSL volumetric disk.
+            let beam = pow(Tobs/u.disk_temp, 4.);
+            // Inner-lip flare (see black-hole-shader.ts for the full rationale):
+            // restores a readable hot core against the averaging effect of
+            // integrating opacity fairly uniformly across most radii. low must
+            // be < high (the old rIn*3., rIn*1.15 ordering was inverted, UB).
+            let lip = 1. + 2.0*(1. - smoothstep(rIn*1.15, rIn*3., rho));
             var jv: vec3f;
-            if (u.pure_black > .5) { jv = vec3f(1.,0.42,0.12)*(u.disk_bright*0.12*tb*dens2*ds); }
-            else                   { jv = blackbody(Tobs)*(u.disk_bright*0.12*tb*dens2*ds); }
+            if (u.pure_black > .5) { jv = vec3f(1.,0.42,0.12)*(u.disk_bright*${vf(VOL_DISK_SPEC.emissionGain)}*beam*lip*tb*dens2*ds); }
+            else                   { jv = blackbody(Tobs)*(u.disk_bright*${vf(VOL_DISK_SPEC.emissionGain)}*beam*lip*tb*dens2*ds); }
             accCol += (1.-accA)*jv;
             accA   += (1.-accA)*(1.-exp(-dtau));
             if (accA > .99) { color=accCol; done=true; }
