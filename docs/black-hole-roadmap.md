@@ -5,7 +5,7 @@ Aggiornato durante la sessione di sviluppo lensing/Kerr + ottimizzazioni GPU.
 
 ---
 
-## 0.7 Sessione 2026-07-10 — riscrittura testata della dinamica N-corpi del Playground
+## 0.8 Sessione 2026-07-10 (pomeriggio) — riscrittura testata della dinamica N-corpi del Playground
 
 **Branch**: `fix/bh-playground-dynamics` (worktree isolato da `origin/init`). Commit `42859195`,
 non pushato, nessuna PR. Non tocca `feat/bh-flow-tracers` (resta locale, non pushata) né inizia il
@@ -48,6 +48,74 @@ redesign WGSL dei filamenti, entrambi esplicitamente rimandati dall'utente.
   sorgente/bersaglio nella somma gravitazionale) dimostrando che la suite lo intercetta già.
 - **Igiene git**: `git diff --check`, `tsc --noEmit`, `eslint` sui file toccati tutti puliti;
   commit con file espliciti, `.pnpm-store/` escluso.
+
+---
+
+## 0.7 Sessione 2026-07-10 (mattina) — qualità del disco volumetrico (GLSL/WGSL), audit rotazione, disco particellare
+
+**Branch**: `fix/bh-disk-quality` (worktree isolato, dopo il merge di PR #5). Non tocca il
+governor né `diskBright`/`uExposure` (vincolo esplicito di questa sessione).
+
+- **Falso allarme investigato e chiuso: "OrbitControls non ruota più con Disco 3D attivo"**
+  (segnalato nella sessione precedente come bug bloccante). Diagnosi Phase-1 (log temporaneo di
+  `OrbitControls.onChange` + `uCamPos`/`uCamBasis` per frame, rimosso a fine indagine): la camera
+  **si muove correttamente** e gli uniform si aggiornano correttamente in ogni caso — verificato
+  con drag orizzontali (azimutali) e verticali (polari) via Playwright, con lettura diretta di
+  posizione/quaternione. La causa del "sembra fermo" nella sessione precedente era che i test
+  precedenti usavano **solo drag orizzontali a spin=0**: per un buco nero di Schwarzschild (non
+  rotante) l'ombra e il photon ring sono **esattamente assialsimmetrici**, quindi un'orbita
+  puramente azimutale a distanza/elevazione costanti produce un'immagine quasi identica **per
+  fisica**, non per un bug — solo lo sfondo (stelle) e l'asimmetria Doppler ruotano, in modo
+  sottile e facile da non notare su screenshot "muddy". Un drag verticale di controllo (Δθ≈96°) ha
+  prodotto un cambio di inquadratura netto e corretto (da quasi-edge-on a quasi-top-down),
+  confermando che la pipeline camera→uniform→shader funziona. Nessuna modifica di codice necessaria.
+- **Root cause trovata e corretta per l'aspetto "sporco/lavato" del Nero puro specifico di WebGL**:
+  il termine di rinforzo "inner lip" in entrambi gli shader usava
+  `smoothstep(rIn*3.0, rIn*1.15, rho)` con **estremi invertiti** (edge0 > edge1) — comportamento
+  non definito per spec sia GLSL sia WGSL, con esito diverso a seconda del backend (ANGLE su
+  WebGL vs Dawn/Metal su WebGPU), il candidato più probabile per la divergenza visiva osservata a
+  fine sessione precedente. Corretto in entrambi i renderer a
+  `1.0 - smoothstep(rIn*1.15, rIn*3.0, rho)` (estremi in ordine corretto). Non serve che questo
+  termine annulli l'emissione esattamente all'ISCO: `diskFlux()` lo fa già (`rd<=rIn` → `0.0`) e il
+  suo picco fisico cade a **rd ≈ 1.36·rIn** (radice di `d/dx[x³(1−√x)]=0`, x=rIn/rd) — il lip ora
+  concentra il rinforzo nella banda 1.15–3×rIn che contiene quel picco, invece di avere una forma
+  non definita. Verificato visivamente: il Nero puro su WebGL è passato da un'apparenza
+  olivastra/lavata a un nucleo caldo saturo, coerente con il risultato WebGPU allo stesso angolo.
+- **Ray-step refinement unificato** tra GLSL e WGSL (soglia verticale di innesco, fattore di passo,
+  pavimento del passo, pavimento della pendenza — 4 costanti nuove in `disk-vol-spec.ts`): per
+  ciascuna, tenuto il valore che soddisfa davvero l'obiettivo dichiarato in codice ("≳4 campioni per
+  scala di altezza"), non una media dei due — il fattore di passo GLSL (0.45, ~2.2 campioni/H) è
+  stato sostituito dal valore WGSL (0.22, ~4.5 campioni/H) che rispetta l'obiettivo.
+- **Verifica H/r e silhouette (misurata, non solo impressione)**: il clamp `[0.012, 0.035]` è
+  rispettato per costruzione in entrambi gli shader (invariato). Nota tecnica: con
+  `thickCoef=0.03`, H/r pre-clamp supera il tetto 0.035 per quasi tutta l'estensione visibile del
+  disco (tranne una stretta fascia entro ~10% dal ISCO) — il disco è quindi, di fatto, a spessore
+  quasi costante piuttosto che genuinamente "flared" su gran parte del raggio; il clamp non è un
+  bug ma vale la pena saperlo se in futuro si vuole un flare più pronunciato. Silhouette misurata
+  via campionamento pixel (Playwright, riga/colonna centrale, soglia relativa al picco locale):
+  a **spin=0** l'ombra resta circolare (rapporto larghezza/altezza ≈0.95) sia a inclinazione ~15°
+  sia ~60°, come atteso per Schwarzschild; a **spin=0.9** emerge un'asimmetria sinistra/destra
+  misurabile (fino a ~37% a inclinazione 60°) coerente con la forma a "D" del frame-dragging —
+  conferma quantitativa, non solo visiva, che la fisica dello spin è implementata correttamente.
+- **Griglia di screenshot comparativa** catturata per entrambi i renderer, stessi framing: face-on
+  (~15°), 60°, edge-on (~85-88°) × spin {0, 0.9} × {cielo reale, nero puro}, più due scatti di
+  controllo con Doppler OFF a spin 0.9/60°. Risultato coerente tra WebGL e WebGPU: nucleo caldo
+  leggibile, gradiente radiale, asimmetria Doppler, self-occlusion, banda sottile leggermente
+  flared in edge-on, nessun effetto sfera/nebbia/blob.
+- **Audit del disco particellare (Playground)** — non toccato, solo documentato per lavoro futuro:
+  ogni particella ha oggi un'inclinazione orbitale **indipendente e casuale**
+  (`accretion-disk-particles.tsx`, Normal(0, σ≈7°) via Box–Muller, nodo ascendente anch'esso
+  casuale per particella) e viene renderizzata come uno sprite **circolare** (`gl_PointSize` +
+  `discard` a `d>0.5`). È quindi, per costruzione, uno **sciame collisionless di test-particle**
+  (ogni particella sul proprio piano orbitale leggermente inclinato) e non una rappresentazione
+  fisica alternativa del disco — molto più "spesso" del disco volumetrico proprio perché ogni
+  particella oscilla verticalmente sul proprio piano invece di condividere un piano medio comune.
+  **Direzione per un lavoro futuro** ("Traccianti del flusso", non implementata ora): stessa H(r)
+  del disco volumetrico condivisa da `disk-vol-spec.ts`; piano medio comune (niente più
+  inclinazione/nodo indipendenti per particella); distribuzione radiale legata a densità/emissività
+  invece che a un semplice `pow(·,4)` di raggio; splat allungati/ribbon filamentari al posto dei
+  punti sferici; dichiarare esplicitamente che non sono lensati (il disclosure esiste già nel
+  commento in testa al file, va solo esteso quando la forma cambia).
 
 ---
 
@@ -140,74 +208,6 @@ confronto con il governor WebGPU (che aveva già risolto lo stesso problema).
   point nell'ultima cifra, probabile calcolo trigonometrico non fissato a una precisione stabile
   tra server e client. Non blocca la resa (React ripara nel DOM) ma va sistemato: da investigare
   a parte, non toccato qui perché fuori scope.
-
----
-
-## 0.7 Sessione 2026-07-10 — qualità del disco volumetrico (GLSL/WGSL), audit rotazione, disco particellare
-
-**Branch**: `fix/bh-disk-quality` (worktree isolato, dopo il merge di PR #5). Non tocca il
-governor né `diskBright`/`uExposure` (vincolo esplicito di questa sessione).
-
-- **Falso allarme investigato e chiuso: "OrbitControls non ruota più con Disco 3D attivo"**
-  (segnalato nella sessione precedente come bug bloccante). Diagnosi Phase-1 (log temporaneo di
-  `OrbitControls.onChange` + `uCamPos`/`uCamBasis` per frame, rimosso a fine indagine): la camera
-  **si muove correttamente** e gli uniform si aggiornano correttamente in ogni caso — verificato
-  con drag orizzontali (azimutali) e verticali (polari) via Playwright, con lettura diretta di
-  posizione/quaternione. La causa del "sembra fermo" nella sessione precedente era che i test
-  precedenti usavano **solo drag orizzontali a spin=0**: per un buco nero di Schwarzschild (non
-  rotante) l'ombra e il photon ring sono **esattamente assialsimmetrici**, quindi un'orbita
-  puramente azimutale a distanza/elevazione costanti produce un'immagine quasi identica **per
-  fisica**, non per un bug — solo lo sfondo (stelle) e l'asimmetria Doppler ruotano, in modo
-  sottile e facile da non notare su screenshot "muddy". Un drag verticale di controllo (Δθ≈96°) ha
-  prodotto un cambio di inquadratura netto e corretto (da quasi-edge-on a quasi-top-down),
-  confermando che la pipeline camera→uniform→shader funziona. Nessuna modifica di codice necessaria.
-- **Root cause trovata e corretta per l'aspetto "sporco/lavato" del Nero puro specifico di WebGL**:
-  il termine di rinforzo "inner lip" in entrambi gli shader usava
-  `smoothstep(rIn*3.0, rIn*1.15, rho)` con **estremi invertiti** (edge0 > edge1) — comportamento
-  non definito per spec sia GLSL sia WGSL, con esito diverso a seconda del backend (ANGLE su
-  WebGL vs Dawn/Metal su WebGPU), il candidato più probabile per la divergenza visiva osservata a
-  fine sessione precedente. Corretto in entrambi i renderer a
-  `1.0 - smoothstep(rIn*1.15, rIn*3.0, rho)` (estremi in ordine corretto). Non serve che questo
-  termine annulli l'emissione esattamente all'ISCO: `diskFlux()` lo fa già (`rd<=rIn` → `0.0`) e il
-  suo picco fisico cade a **rd ≈ 1.36·rIn** (radice di `d/dx[x³(1−√x)]=0`, x=rIn/rd) — il lip ora
-  concentra il rinforzo nella banda 1.15–3×rIn che contiene quel picco, invece di avere una forma
-  non definita. Verificato visivamente: il Nero puro su WebGL è passato da un'apparenza
-  olivastra/lavata a un nucleo caldo saturo, coerente con il risultato WebGPU allo stesso angolo.
-- **Ray-step refinement unificato** tra GLSL e WGSL (soglia verticale di innesco, fattore di passo,
-  pavimento del passo, pavimento della pendenza — 4 costanti nuove in `disk-vol-spec.ts`): per
-  ciascuna, tenuto il valore che soddisfa davvero l'obiettivo dichiarato in codice ("≳4 campioni per
-  scala di altezza"), non una media dei due — il fattore di passo GLSL (0.45, ~2.2 campioni/H) è
-  stato sostituito dal valore WGSL (0.22, ~4.5 campioni/H) che rispetta l'obiettivo.
-- **Verifica H/r e silhouette (misurata, non solo impressione)**: il clamp `[0.012, 0.035]` è
-  rispettato per costruzione in entrambi gli shader (invariato). Nota tecnica: con
-  `thickCoef=0.03`, H/r pre-clamp supera il tetto 0.035 per quasi tutta l'estensione visibile del
-  disco (tranne una stretta fascia entro ~10% dal ISCO) — il disco è quindi, di fatto, a spessore
-  quasi costante piuttosto che genuinamente "flared" su gran parte del raggio; il clamp non è un
-  bug ma vale la pena saperlo se in futuro si vuole un flare più pronunciato. Silhouette misurata
-  via campionamento pixel (Playwright, riga/colonna centrale, soglia relativa al picco locale):
-  a **spin=0** l'ombra resta circolare (rapporto larghezza/altezza ≈0.95) sia a inclinazione ~15°
-  sia ~60°, come atteso per Schwarzschild; a **spin=0.9** emerge un'asimmetria sinistra/destra
-  misurabile (fino a ~37% a inclinazione 60°) coerente con la forma a "D" del frame-dragging —
-  conferma quantitativa, non solo visiva, che la fisica dello spin è implementata correttamente.
-- **Griglia di screenshot comparativa** catturata per entrambi i renderer, stessi framing: face-on
-  (~15°), 60°, edge-on (~85-88°) × spin {0, 0.9} × {cielo reale, nero puro}, più due scatti di
-  controllo con Doppler OFF a spin 0.9/60°. Risultato coerente tra WebGL e WebGPU: nucleo caldo
-  leggibile, gradiente radiale, asimmetria Doppler, self-occlusion, banda sottile leggermente
-  flared in edge-on, nessun effetto sfera/nebbia/blob.
-- **Audit del disco particellare (Playground)** — non toccato, solo documentato per lavoro futuro:
-  ogni particella ha oggi un'inclinazione orbitale **indipendente e casuale**
-  (`accretion-disk-particles.tsx`, Normal(0, σ≈7°) via Box–Muller, nodo ascendente anch'esso
-  casuale per particella) e viene renderizzata come uno sprite **circolare** (`gl_PointSize` +
-  `discard` a `d>0.5`). È quindi, per costruzione, uno **sciame collisionless di test-particle**
-  (ogni particella sul proprio piano orbitale leggermente inclinato) e non una rappresentazione
-  fisica alternativa del disco — molto più "spesso" del disco volumetrico proprio perché ogni
-  particella oscilla verticalmente sul proprio piano invece di condividere un piano medio comune.
-  **Direzione per un lavoro futuro** ("Traccianti del flusso", non implementata ora): stessa H(r)
-  del disco volumetrico condivisa da `disk-vol-spec.ts`; piano medio comune (niente più
-  inclinazione/nodo indipendenti per particella); distribuzione radiale legata a densità/emissività
-  invece che a un semplice `pow(·,4)` di raggio; splat allungati/ribbon filamentari al posto dei
-  punti sferici; dichiarare esplicitamente che non sono lensati (il disclosure esiste già nel
-  commento in testa al file, va solo esteso quando la forma cambia).
 
 ---
 
