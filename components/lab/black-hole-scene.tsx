@@ -19,6 +19,7 @@ import {
 import { BlackHoleGrid } from "./black-hole-grid";
 import { DitherEffect } from "./black-hole/dither-effect";
 import { AccretionDiskParticles } from "./black-hole/accretion-disk-particles";
+import { VOL_DISK_SPEC } from "./black-hole/disk-vol-spec";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -194,8 +195,8 @@ export function BlackHoleQuad({
       uSkyOn: { value: 0 },
       uSkyBright: { value: 1.7 },
       uVolDisk: { value: volDisk ? 1 : 0 },
-      uVolThick: { value: 0.03 },
-      uVolOpacity: { value: 0.9 },
+      uVolThick: { value: VOL_DISK_SPEC.thickCoef },
+      uVolOpacity: { value: VOL_DISK_SPEC.opacity },
     }),
     // Intentionally created once — toggle changes are applied in useFrame.
     // eslint-disable-next-line react-hooks/exhaustive-deps

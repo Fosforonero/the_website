@@ -6,6 +6,7 @@ import {
   initWebGPU, writeUniforms, makePlaceholderBindGroup, makeSkyBindGroup,
   type CoreGPU,
 } from "./black-hole/black-hole-webgpu-core";
+import { VOL_DISK_SPEC } from "./black-hole/disk-vol-spec";
 
 type Locale = "it" | "en";
 type SkySource = "nasa8k" | "nasa16k";
@@ -233,14 +234,14 @@ export function BlackHoleWebGPUView({ locale = "it" }: { locale?: Locale }) {
         writeUniforms(core.uniformData, {
           w: canvas.width, h: canvas.height, time,
           spin: ctrl.spin, diskOn: ctrl.diskOn,
-          diskBright: ctrl.volDisk
-            ? 2.5 * (ctrl.dopplerOn ? 1.0 : 0.38)
-            : 24  * (ctrl.dopplerOn ? 1.0 : 0.38), // matches the WebGL scene's restored default (see black-hole-scene.tsx)
+          // Same 24× base regardless of thin-sheet vs volumetric — matches the
+          // WebGL scene, which never had a separate vol-mode branch here either.
+          diskBright: 24 * (ctrl.dopplerOn ? 1.0 : 0.38),
           diskTemp: 10500, diskOuter: 16, dopplerOn: ctrl.dopplerOn,
           exposure: ctrl.exposure, steps: ctrl.steps,
           style: ctrl.starless ? 1 : 0,
           pureBlack: ctrl.pureBlack, jets: ctrl.jetsOn, jetStr: 0.5,
-          volDisk: ctrl.volDisk, volThick: 0.1, volOpacity: 0.08,
+          volDisk: ctrl.volDisk, volThick: VOL_DISK_SPEC.thickCoef, volOpacity: VOL_DISK_SPEC.opacity,
           skyOn: ctrl.skyOn, skyBright: 1.2,
           az: azRef.current, el: elRef.current, dist: distRef.current,
         });
