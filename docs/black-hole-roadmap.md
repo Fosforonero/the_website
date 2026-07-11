@@ -480,7 +480,8 @@ aprire dopo il merge di PR #8.
 implementazione divergano nel tempo senza che nessuno se ne accorga.
 
 **Deliverable**: una matrice `claim → equazione/codice reale → fonte → classificazione`, dove
-classificazione è una di: **esatto analitico** (formula chiusa nota, es. Bardeen per Schwarzschild)
+classificazione è una di: **esatto analitico** (formula chiusa nota, es. r_ph = 3M e
+b_c = 3√3 M per Schwarzschild; formule di Bardeen per le orbite critiche e l'ISCO di Kerr)
 / **integrato numericamente** (risultato di un'integrazione, non una formula chiusa) /
 **approssimato** (semplificazione dichiarata di un modello più completo) / **stilizzato**
 (rappresentazione didattica esplicitamente non fisica). Ogni riga della matrice deve poter essere
