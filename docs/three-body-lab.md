@@ -145,6 +145,149 @@ collegarsi fra loro come **"esperimenti correlati"** (un link o una card, in sti
 editoriale — non una dipendenza tecnica o di codice), ma questo è un collegamento di superficie,
 non un accoppiamento architetturale.
 
+## About scientifico e riproducibilità
+
+Le route `/lab/tre-corpi/about` e `/en/lab/three-body/about` sono già fissate in "Architettura di
+prodotto e route" — **ma la sola esistenza della route non basta**. Questa sezione specifica
+contenuto e rigore richiesti: l'About è la superficie pubblica in cui il laboratorio dichiara cosa
+è calcolato, cosa è approssimato e cosa è stilizzato — lo stesso principio di onestà già applicato
+in tutto questo documento, qui reso pubblico e verificabile da chiunque.
+
+**Livello e pubblico**: trattazione bilingue IT/EN di livello universitario avanzato, utile anche a
+studenti magistrali e dottorandi in meccanica celeste/dinamica non lineare, con un'introduzione
+accessibile per chi arriva senza background specifico. **Non deve copiare contenuti o UI
+dall'About del Buco Nero**: struttura, tono, componenti e identità visuale sono propri di questo
+laboratorio, coerenti con l'indipendenza già richiesta in "Architettura di prodotto e route".
+
+### Struttura minima dei contenuti
+
+1. **Abstract, obiettivi e domanda scientifica** — cosa il laboratorio permette di esplorare e
+   perché (nessun corpo privilegiato, imprevedibilità senza bisogno di relatività, vedi "Obiettivo
+   e motivazione"), in forma di abstract.
+2. **Equazioni newtoniane N-corpi e scelta delle unità** — l'equazione del moto (già in "Modello
+   fisico specifico del laboratorio", punto 1) e il sistema di unità del simulatore, dichiarato
+   esplicitamente, non lasciato implicito.
+3. **Riduzione al baricentro, quantità conservate, energia e momento angolare** — le formule usate
+   nei readout diagnostici (vedi "Rendering e diagnostica") e perché sono conservate in assenza di
+   collisioni.
+4. **Perché il problema non è generalmente integrabile; caos e tempo di Lyapunov** — la
+   distinzione fra le soluzioni esatte note (Lagrange, Euler, figure-eight) e il caso generico, e
+   il tempo di Lyapunov come limite di predicibilità (già in "Dominio di validità").
+5. **Soluzioni centrali di Lagrange ed Euler: esistenza, criterio Gascheau/Routh e stabilità** —
+   trattazione completa (non solo la sintesi già in "Modello fisico specifico del laboratorio",
+   punto 2), inclusa la derivazione concettuale del criterio `27` e perché masse uguali cadono
+   sotto la soglia.
+6. **Figure-eight: condizioni iniziali, simmetrie, monodromia e stabilità di Floquet** —
+   condizioni iniziali esatte del preset, gruppo di simmetria della coreografia, e spiegazione
+   concettuale (non solo il risultato) degli autovalori della matrice di monodromia citati nel
+   risultato di Simó.
+7. **Problema pitagorico: close encounter, formazione della binaria ed espulsione** —
+   configurazione 3:4:5 di Burrau, sequenza qualitativa di incontri ravvicinati che porta
+   all'esito noto (Szebehely & Peters), collegata ai grafici di distanza reciproca (vedi sotto).
+8. **Sistemi gerarchici e dinamica Kozai-Lidov, con dominio di validità** — quando il meccanismo
+   emerge (inclinazione relativa elevata) e onestamente quando NON è atteso emergere nella
+   semplice integrazione N-corpi diretta di questo laboratorio.
+9. **Pianeta aggiunto: differenza fra restricted/test-mass e vero problema a quattro corpi** — la
+   stessa distinzione già al centro di questo documento ("La distinzione test-mass vs pianeta
+   massivo"), qui con il rigore e i riferimenti di un'esposizione universitaria.
+10. **Scenario "tre soli": flusso combinato, temperatura di equilibrio e limiti climatici** —
+    derivazione della formula di temperatura di equilibrio (vedi "Modello fisico specifico del
+    laboratorio", punto 4) e sezione esplicita sui limiti (nessun modello climatico/atmosferico
+    reale, vedi Non-goals).
+11. **Metodi numerici: integratore scelto, controllo errore, regolarizzazione, collisioni ed
+    eventi** — RK adattivo ad alto ordine, perché non un KDK adattivo naive (vedi "Modello fisico
+    specifico del laboratorio", punto 1, e "Collisioni, espulsioni, close encounter"), come
+    funzionano controllo d'errore, regolarizzazione delle coordinate, sticky-sphere.
+12. **Validazione, convergenza e riproducibilità** — cosa il "Piano di test/verifica proposto" di
+    questo documento diventa, una volta implementato, in forma presentabile pubblicamente
+    (risultati dei test, non solo la loro progettazione).
+13. **Limiti fisici e numerici dichiarati** — la sezione "Dominio di validità" di questo documento,
+    riscritta per il pubblico dell'About (stesso contenuto, stessa onestà, registro adattato).
+14. **Bibliografia primaria completa con DOI/link verificati** — vedi "Citazioni" sotto.
+
+### Grafici minimi (calcolati, non decorativi)
+
+Nessuno di questi grafici è un'illustrazione stilizzata a scopo estetico: ognuno è l'output diretto
+di una computazione reale, o dichiarato esplicitamente come schema quando non lo è (vedi il
+requisito "calcolato dal simulatore / dato osservativo / schema" sotto). Elenco minimo:
+
+1. Traiettorie dei sei preset (figure-eight, Lagrange, Euler, Pythagorean, hierarchical, chaotic),
+   con condizioni iniziali dichiarate esplicitamente per ciascuno.
+2. Energia e momento angolare: errore relativo nel tempo (verifica visiva del test di
+   conservazione, vedi "Piano di test/verifica proposto").
+3. Convergenza al variare della tolleranza dell'integratore (l'errore diminuisce come atteso al
+   restringersi della tolleranza RK adattiva — verifica diretta della correttezza numerica).
+4. Separazione fra traiettorie perturbate su scala logaritmica (l'indicatore di divergenza
+   caotica di "Rendering e diagnostica", presentato come figura pubblicabile).
+5. Mappa di stabilità di Gascheau/Routh (il rapporto `(Σm)²/Σ(mᵢmⱼ)` su una griglia di rapporti di
+   massa, soglia `27` evidenziata, regione stabile/instabile colorata).
+6. Moltiplicatori di Floquet/monodromia della figure-eight (gli autovalori citati da Simó,
+   ricalcolati — o, se il ricalcolo non è alla portata dell'implementazione, dichiarati
+   esplicitamente come "dato dalla fonte primaria", vedi sotto — mai presentati come calcolati se
+   non lo sono davvero).
+7. Distanze reciproche e close encounter nel problema pitagorico (le tre distanze a coppie nel
+   tempo, con gli incontri ravvicinati visibili come minimi pronunciati).
+8. Dimensione del passo adattivo durante un incontro ravvicinato (il passo `h` dell'integratore RK
+   che si restringe visibilmente in corrispondenza di un close encounter — verifica diretta che
+   l'adattività funzioni come descritto in "Modello fisico specifico del laboratorio").
+9. Confronto test-mass vs pianeta massivo (stessa configurazione con un pianeta nelle due
+   modalità, traiettorie dei tre corpi primari sovrapposte per mostrare la non-backreazione nel
+   caso test-mass e la perturbazione nel caso massivo).
+10. Flusso e temperatura del pianeta nello scenario "tre soli" (serie temporale di entrambe le
+    grandezze mentre il pianeta orbita, con i picchi visibili ai passaggi ravvicinati alle stelle).
+
+**Ogni figura, senza eccezioni, deve avere**:
+- assi, unità e legenda;
+- i parametri e le condizioni iniziali usati per generarla;
+- l'equazione o il dataset esatto da cui deriva;
+- una didascalia interpretativa (cosa il lettore deve notare, non solo cosa mostra l'asse);
+- la fonte primaria pertinente (vedi "Citazioni");
+- un'indicazione esplicita — **"calcolato dal simulatore"**, **"dato osservativo"**, o
+  **"schema"** — nessuna figura può restare ambigua su quale di queste tre categorie sia;
+- una versione IT/EN equivalente (stesso dato, stessa figura, didascalia tradotta — non
+  rigenerata con parametri diversi);
+- **nessun numero scritto a mano se può essere prodotto dal core numerico**: se un valore compare
+  in una didascalia o un'etichetta ed è calcolabile dal motore fisico del laboratorio, deve essere
+  effettivamente calcolato da esso al momento della build/render, non trascritto a mano da
+  un'esecuzione precedente (che diverge silenziosamente dal codice reale alla prima modifica).
+
+### Architettura dati per i grafici
+
+I grafici di validazione **devono usare lo stesso core fisico del laboratorio**
+(`components/lab/three-body/three-body-physics.ts` o nome equivalente) **o fixture deterministiche
+condivise con esso** — mai una seconda implementazione delle formule scritta direttamente nel
+componente React della figura. È lo stesso principio dietro l'audit richiesto per l'About del Buco
+Nero esistente (vedi sotto, e `docs/black-hole-roadmap.md`): un grafico che reimplementa la fisica
+per conto proprio diverge silenziosamente dal motore reale alla prima modifica di quest'ultimo, e
+nessuno se ne accorge finché qualcuno non confronta manualmente i due.
+
+- **Seed, tolleranze e versione del modello devono essere riproducibili**: ogni figura dichiara
+  (in didascalia o metadata associato) il seed usato, la tolleranza dell'integratore, e un
+  identificatore di versione del modello fisico — così un lettore (o un futuro sviluppatore) può
+  rigenerare esattamente lo stesso risultato.
+- **Export CSV/JSON dei dati delle figure**: da prevedere come funzionalità dell'About (un
+  pulsante o link per scaricare i dati numerici dietro ciascun grafico) — coerente con il
+  principio di riproducibilità già raccomandato per il Buco Nero (`docs/black-hole-roadmap.md`,
+  §7.6, "Export delle geodetiche/dei dati in CSV").
+
+### Citazioni
+
+Citazioni **numerate, vicino alle affermazioni specifiche a cui si riferiscono** — non solo una
+lista bibliografica finale scollegata dal testo (lo stile usato in "Riferimenti concettuali" di
+questo documento di design è un punto di partenza, ma per l'About pubblicato non basta: lì le
+citazioni sono raggruppate a fine sezione, nell'About devono comparire vicino a ogni affermazione
+specifica che le richiede). Preferire paper originali, riviste peer-reviewed, monografie
+universitarie e documentazione istituzionale. **Ogni formula, ogni condizione iniziale storica e
+ogni affermazione sulla stabilità deve essere tracciabile** a una fonte precisa.
+
+**Vincolo non negoziabile per la versione pubblicata**: nessun riferimento marcato "da verificare"
+può restare nell'About effettivamente pubblicato. Questo documento di design (vedi "Riferimenti
+concettuali") si è permesso di lasciare un paio di dettagli bibliografici come "da confermare in
+sviluppo" proprio perché è un documento di design pre-implementazione, non una pagina pubblica —
+quella tolleranza **non si trasferisce** all'About: prima della pubblicazione, ogni citazione
+usata lì va verificata con titolo/DOI/edizione reali, esattamente come già fatto per la maggior
+parte delle fonti in "Riferimenti concettuali" durante la revisione di questo documento.
+
 ## La distinzione test-mass vs pianeta massivo
 
 Questa è la scelta di design più importante del documento, e va capita prima di tutto il resto:

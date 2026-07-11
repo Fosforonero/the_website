@@ -129,6 +129,118 @@ laboratorio "Tre Corpi" (`/lab/tre-corpi`, `/en/lab/three-body` — vedi `docs/t
 sono **tre prodotti separati**, sviluppati e navigabili indipendentemente; possono collegarsi come
 "esperimenti correlati" (link/card editoriale), mai come dipendenza tecnica.
 
+## About scientifico e riproducibilità
+
+Le route `/lab/buco-nero-binario/about` e `/en/lab/binary-black-hole/about` sono già fissate in
+"Architettura di prodotto e route" — **ma la sola esistenza della route non basta**. Stesso
+principio del laboratorio "Tre Corpi" (`docs/three-body-lab.md`, sezione omonima, stessa struttura
+qui replicata): l'About è la superficie pubblica in cui il laboratorio dichiara cosa è calcolato,
+cosa è approssimato e cosa è stilizzato.
+
+**Livello e pubblico**: trattazione bilingue IT/EN di livello universitario avanzato, utile anche a
+studenti magistrali e dottorandi in relatività numerica/astrofisica dei sistemi compatti, con
+un'introduzione accessibile per chi arriva senza background specifico. **Non deve copiare
+contenuti o UI dall'About del Kerr singolo esistente**: struttura, tono, componenti e identità
+visuale sono propri di questo laboratorio, coerenti con l'indipendenza già richiesta in
+"Architettura di prodotto e route".
+
+### Struttura minima dei contenuti
+
+1. **Abstract, obiettivi e domanda scientifica** — perché un binario mostra qualcosa che il Kerr
+   singolo non può mostrare (onde gravitazionali, decadimento orbitale, remnant con rinculo — vedi
+   "Obiettivo e motivazione"), in forma di abstract.
+2. **Dinamica baricentrica M1/M2**: equazioni newtoniane di partenza e scelta delle unità — la
+   riduzione al centro di massa (punto 1 del Modello fisico) e il sistema di unità del simulatore,
+   dichiarato esplicitamente.
+3. **Espansione post-newtoniana ibrida**: 1PN conservativo, 1.5PN spin-orbita (con la distinzione
+   esplicita fra precessione geodetica e Lense–Thirring, punto 2) e nota di gauge — dichiarando
+   esplicitamente che è una selezione didattica di termini, non un'espansione PN formalmente
+   completa (vedi punto 2).
+4. **Radiation reaction 2.5PN**: derivazione concettuale di Peters, decadimento secolare, ruolo
+   dell'eccentricità (`(1−e²)^(−7/2)`, punto 3) — con lo stesso avvertimento su cosa è verificato
+   solo in senso secolare, non campione per campione (vedi "Piano di test/verifica proposto").
+5. **Perché non esiste un'integrazione PN continua fino al merger**: il parametro
+   `x = (GMΩ/c³)^(2/3)`, la soglia di handoff, e perché la separazione da sola non basta come
+   criterio (punto 4).
+6. **Handoff fenomenologico**: cosa fa e cosa NON fa — in particolare la distinzione esplicita fra
+   modello di waveform (IMRPhenom) e traiettoria/geometria visiva del laboratorio, che l'About deve
+   ribadire con la stessa chiarezza di questo documento (punto 4), non solo come nota a piè
+   pagina.
+7. **Remnant**: fit NR (NRSur7dq4Remnant vs Healy, Lousto & Zlochower, distinti — punto 5), massa/
+   spin/velocità di rinculo, bound di Kerr sullo spin finale, e cosa succede fuori dal range
+   calibrato (rifiuto/warning, mai un numero silenziosamente estrapolato — vedi "Dominio di
+   validità").
+8. **Ringdown come sovrapposizione di QNM**: decadimento per modo (non della somma, vedi "Piano di
+   test/verifica proposto"), frequenze/tempi di smorzamento determinati da massa e spin del
+   remnant (punto 5).
+9. **Corpi-test e sistema circumbinario**: stabilità circumbinaria (Holman & Wiegert come
+   riferimento concettuale, punto 6), corpi-test vicini e il loro destino atteso durante
+   l'inspiral.
+10. **Perché nessun ray-tracing esatto della metrica binaria**: assenza di soluzione analitica
+    chiusa per due buchi neri in orbita (punto 7), e i limiti che questo impone al rendering (vedi
+    "Rendering").
+11. **Metodi numerici**: integratore RK adattivo, perché non il KDK newtoniano del Playground
+    (vedi "Core numerico condivisibile", sotto-sezione "Integratore"), controllo d'errore.
+12. **Validazione, convergenza e riproducibilità** — cosa il "Piano di test/verifica proposto" di
+    questo documento diventa, una volta implementato, in forma presentabile pubblicamente.
+13. **Limiti fisici e numerici dichiarati** — la sezione "Dominio di validità" di questo documento,
+    riscritta per il pubblico dell'About, incluso lo scope ristretto dell'MVP (quasi-circolare,
+    spin allineati, nessuna precessione visibile del piano orbitale in quel regime — punto 2).
+14. **Bibliografia primaria completa con DOI/link verificati** — vedi "Citazioni" sotto.
+
+### Grafici minimi (calcolati, non decorativi)
+
+1. Traiettoria del binario per un caso quasi-circolare e uno eccentrico (fuori MVP, se
+   implementato), con condizioni iniziali dichiarate.
+2. Energia e momento angolare orbitale: errore relativo nel tempo, con la distinzione esplicita fra
+   andamento istantaneo (può oscillare con termini PN attivi) e decadimento secolare (deve
+   decrescere monotonicamente con radiation reaction attiva — vedi "Piano di test/verifica
+   proposto").
+3. Precessione del periastro 1PN: angolo di avanzamento per orbita al variare di separazione e
+   masse, confrontato contro la direzione/ordine di grandezza atteso (non il coefficiente esatto).
+4. Decadimento della separazione nel tempo per radiation reaction (Peters), caso e=0 (scala
+   quartica) vs caso e>0 (accoppiamento `(1−e²)^(−7/2)`) a confronto esplicito.
+5. Convergenza al variare della tolleranza dell'integratore RK adattivo.
+6. Massa/spin/velocità di rinculo del remnant al variare di `q` e degli spin, con il range
+   calibrato del fit evidenziato graficamente e il comportamento fuori range (reject/warning, non
+   un valore silenzioso) mostrato esplicitamente, non solo descritto a parole.
+7. Inviluppo di ciascun modo QNM nel tempo (decadimento esponenziale per modo, non della somma —
+   coerente con "Piano di test/verifica proposto").
+8. Stabilità circumbinaria: mappa distanza-vs-esito (legato/instabile) per un corpo-test
+   circumbinario.
+9. Continuità della grandezza scelta per rappresentare "dove sono i due buchi neri" attraverso
+   l'handoff (nessun salto visibile oltre la tolleranza dichiarata, vedi punto 4 del Modello
+   fisico).
+10. `x`/frequenza orbitale nel tempo, per mostrare visivamente quando e perché scatta l'handoff
+    inspiral→merger.
+
+**Ogni figura, senza eccezioni, deve avere**: assi/unità/legenda; parametri e condizioni iniziali
+usati; l'equazione o il dataset esatto da cui deriva; una didascalia interpretativa; la fonte
+primaria pertinente; un'indicazione esplicita **"calcolato dal simulatore"** / **"dato
+osservativo"** / **"schema"**; una versione IT/EN equivalente (stesso dato, didascalia tradotta);
+**nessun numero scritto a mano se può essere prodotto dal core numerico** — stesso identico
+requisito di `docs/three-body-lab.md`, non ripetuto qui per esteso.
+
+### Architettura dati per i grafici
+
+I grafici di validazione **devono usare lo stesso core fisico del laboratorio**
+(`binary-physics.ts` o nome equivalente) **o fixture deterministiche condivise con esso** — mai
+una seconda implementazione delle formule PN scritta direttamente nel componente React della
+figura (lo stesso principio dietro l'audit richiesto per l'About del Buco Nero esistente, vedi
+`docs/black-hole-roadmap.md`). Seed, tolleranze dell'integratore e versione del modello fisico
+devono essere dichiarati e riproducibili per ogni figura; da prevedere export CSV/JSON dei dati
+(coerente con `docs/black-hole-roadmap.md`, §7.6).
+
+### Citazioni
+
+Stessa politica del laboratorio "Tre Corpi": citazioni **numerate, vicino alle affermazioni
+specifiche**, non solo una lista finale; preferire paper originali, riviste peer-reviewed,
+monografie universitarie e documentazione istituzionale; ogni formula, ogni fit NR citato e ogni
+affermazione sul dominio di validità deve essere tracciabile a una fonte precisa. **Nessun
+riferimento "da verificare" nella versione pubblicata** — la tolleranza che questo documento di
+design si concede in "Riferimenti concettuali" (dettagli bibliografici marcati "da confermare in
+sviluppo") non si trasferisce all'About pubblico.
+
 ## Modello fisico
 
 ### 1. Dinamica baricentrica con masse M1/M2

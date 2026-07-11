@@ -464,6 +464,73 @@ plasma o polarizzazione, dichiararli schematici come già si fa per la turbolenz
 
 ---
 
+## 8. Audit scientifico dell'About Buco Nero esistente (DA FARE — branch dedicato, dopo il merge di PR #8)
+
+**Origine**: emerso durante la revisione di `docs/black-hole-binary-lab.md` e
+`docs/three-body-lab.md` (PR #8, che resta esclusivamente documentale — nessun codice toccato lì).
+I due nuovi laboratori dovranno pubblicare un proprio About con un livello di rigore dichiarato
+esplicitamente (vedi la sezione "About scientifico e riproducibilità" in entrambi i documenti); a
+quel punto è emerso che **l'About del Buco Nero esistente non è mai stato verificato con lo stesso
+rigore**, e rischia di essere silenziosamente divergente dal codice reale dopo le sessioni
+recenti (in particolare PR #6 disk-quality e PR #7 playground-dynamics). Questo task **non fa
+parte dell'implementazione dei nuovi laboratori**: è un lavoro a sé, su un branch dedicato, da
+aprire dopo il merge di PR #8.
+
+**Obiettivo**: non allungare l'About — renderlo **verificabile** e impedire che testo e
+implementazione divergano nel tempo senza che nessuno se ne accorga.
+
+**Deliverable**: una matrice `claim → equazione/codice reale → fonte → classificazione`, dove
+classificazione è una di: **esatto analitico** (formula chiusa nota, es. Bardeen per Schwarzschild)
+/ **integrato numericamente** (risultato di un'integrazione, non una formula chiusa) /
+**approssimato** (semplificazione dichiarata di un modello più completo) / **stilizzato**
+(rappresentazione didattica esplicitamente non fisica). Ogni riga della matrice deve poter essere
+verificata da chiunque confrontando l'affermazione testuale con il file/linea di codice reale che
+la implementa.
+
+**Punti da verificare esplicitamente**:
+- "Equazioni esatte" mostrate nell'About vs. quelle che sono in realtà soluzioni numeriche
+  approssimate — nessuna formula può restare etichettata "esatta" se il renderer in realtà la
+  integra o la approssima.
+- Kerr, geodetiche, redshift e beaming: le affermazioni testuali contro il codice shader attuale
+  (`black-hole-shader.ts`/`black-hole-wgsl.ts`), non contro una versione precedente o ipotetica.
+- Il modello reale del disco **dopo PR #6** (unificazione GLSL/WGSL, root cause "inner lip"
+  corretta, ray-step refinement) — l'About descrive ancora il disco pre-PR #6?
+- **Page-Thorne mostrato come riferimento ma non effettivamente valutato nel renderer**: se l'About
+  cita il profilo di Page-Thorne, verificare se il renderer lo usa davvero o se è solo una
+  citazione di contesto — e se è solo contesto, l'About deve dirlo esplicitamente, non lasciarlo
+  ambiguo.
+- Terminologia di **photon ring / returning radiation**: coerenza fra il testo e cosa il renderer
+  effettivamente calcola, specialmente alla luce del bug aperto "Photon ring rotto" (vedi §0
+  sopra) — l'About non deve descrivere un effetto come corretto se è noto essere rotto.
+- **QNM e formula del quality factor**: se l'About del Buco Nero singolo cita già modi
+  quasi-normali o un quality factor, verificare la formula contro la letteratura reale (stessa
+  disciplina già applicata in `docs/black-hole-binary-lab.md`, punto 8 della sezione About) — non
+  dare per buono un numero perché "suona giusto".
+- Stato del **Playground dopo PR #7** (riscrittura N-corpi, gerarchia di Hill, TDE, audit
+  indipendente): l'About/FAQ esistente descrive ancora il comportamento pre-riscrittura?
+- **Grafici contro formule e unità**: i 4 grafici SVG già presenti
+  (`black-hole-about-figures.tsx`, vedi §7.1) — verificare che assi/unità/legenda siano corretti e
+  che il valore mostrato corrisponda davvero alla formula citata in didascalia.
+- **Parità scientifica IT/EN**: le due versioni linguistiche dell'About dicono la stessa cosa con
+  lo stesso rigore, o sono divergute nel tempo (una aggiornata, l'altra no)?
+- **Citazioni inline e DOI**: le fonti citate nell'About esistente hanno titoli/DOI verificabili
+  (stessa disciplina applicata ai due nuovi documenti di design durante la loro revisione), o sono
+  citazioni generiche/non verificate?
+- **Hydration mismatch della figura di polarizzazione**: un bug noto ma non ancora tracciato
+  formalmente in questo roadmap — l'overlay di polarizzazione (§7.5) produce output diverso fra
+  server e client al primo render? Va riprodotto, diagnosticato e tracciato come bug a sé se
+  confermato (non un problema di contenuto scientifico, ma va comunque nell'audit perché
+  un'affermazione visiva che "sbaglia" al caricamento mina la credibilità dell'intera pagina).
+- **Grafici responsive e accessibili su mobile**: i grafici SVG esistenti restano leggibili
+  (assi, legenda, testo) su viewport stretti, e sono utilizzabili con screen reader/tastiera
+  (stesso standard implicito di accessibilità del resto del sito)?
+
+**Non in scope per questo task**: riscrivere o allungare il contenuto dell'About (a meno che
+l'audit non riveli un'affermazione falsa da correggere) — l'obiettivo è la matrice di verifica, non
+un redesign editoriale.
+
+---
+
 ## Nota ambiente
 Il container cloud si è resettato più volte a un commit vecchio durante la sessione: il lavoro è
 sempre **salvo su `origin` (branch `claude/black-hole-solar-system-NWdiX` e `init`)**. In caso di
