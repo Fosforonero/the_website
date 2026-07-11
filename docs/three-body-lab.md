@@ -14,12 +14,15 @@ step fisso, accumulator, verifica per simmetrie/conservazione) ma il suo modello
 diverso fin dalla base: non c'è alcun corpo dominante fisso, tutti i corpi si attraggono fra loro
 simmetricamente.
 
-Il documento tiene deliberatamente separati tre livelli, da non mescolare in implementazione: il
-**core numerico condivisibile** (l'interfaccia di forza/potenziale, l'esecuzione in Web Worker —
-sezione "Core numerico condivisibile"), il **modello fisico specifico di questo laboratorio**
-(nessun potenziale centrale, i sei preset, il pianeta test-mass/massivo, lo scenario "tre soli",
-collisioni/espulsioni — sezione "Modello fisico specifico del laboratorio"), e il **rendering e
-la diagnostica** (scie, vettori, indicatori — sezione "Rendering e diagnostica").
+Il documento tiene deliberatamente separati quattro livelli, da non mescolare in implementazione:
+l'**architettura di prodotto** (route, componenti, indice Lab, identità visuale — sezione
+"Architettura di prodotto e route", **requisito esplicito**: questo laboratorio è un prodotto
+completamente separato dal laboratorio "Buco Nero", non una pagina/modalità/sottosezione del suo
+Playground), il **core numerico condivisibile** (l'interfaccia di forza/potenziale, l'esecuzione
+in Web Worker — sezione "Core numerico condivisibile"), il **modello fisico specifico di questo
+laboratorio** (nessun potenziale centrale, i sei preset, il pianeta test-mass/massivo, lo scenario
+"tre soli", collisioni/espulsioni — sezione "Modello fisico specifico del laboratorio"), e il
+**rendering e la diagnostica** (scie, vettori, indicatori — sezione "Rendering e diagnostica").
 
 ## Obiettivo e motivazione
 
@@ -57,6 +60,90 @@ centrale fisso — complementare a `SingleBlackHolePotential` (Playground) e
 - **Nessuna pretesa di calcolare un esponente di Lyapunov rigoroso e convergente.** L'indicatore di
   divergenza caotica (vedi "Rendering e diagnostica") è un aiuto visivo qualitativo/illustrativo,
   non uno strumento di analisi numerica pubblicabile.
+- **Non è una pagina, modalità o sottosezione del laboratorio "Buco Nero".** È un prodotto
+  completamente separato — vedi "Architettura di prodotto e route" per route, componenti e
+  identità visuale propri, e per cosa (poco, ed esplicitamente non subito) può essere condiviso.
+
+## Architettura di prodotto e route
+
+**Requisito di prodotto esplicito**: il laboratorio "Tre Corpi" è completamente separato dal
+laboratorio "Buco Nero" — non una pagina, una modalità o una sottosezione del suo Playground. È un
+prodotto a sé, che deve funzionare, essere navigabile ed essere sviluppato **indipendentemente**.
+Questa sezione fissa route e struttura ora, anche se l'implementazione resta fuori scope di questo
+documento (nessun file viene creato qui).
+
+### Route
+
+- **IT**: `/lab/tre-corpi` — nuova cartella di primo livello `app/(it)/lab/tre-corpi/`, sorella di
+  `app/(it)/lab/buco-nero/`, non annidata al suo interno. Stesso pattern già in uso per gli altri
+  laboratori del sito (`app/(it)/lab/sistema-solare/`, `app/(it)/lab/tavola-periodica/`,
+  `app/(it)/lab/verde-urbano/`).
+- **EN**: `/en/lab/three-body` — nuova cartella `app/(en)/en/lab/three-body/`, sorella di
+  `app/(en)/en/lab/black-hole/`.
+- **About IT**: `/lab/tre-corpi/about` (`app/(it)/lab/tre-corpi/about/`) — stesso pattern già in
+  uso (`app/(it)/lab/buco-nero/about/`, `app/(it)/lab/sistema-solare/about/`,
+  `app/(it)/lab/tavola-periodica/about/`).
+- **About EN**: `/en/lab/three-body/about` (`app/(en)/en/lab/three-body/about/`).
+
+Tutte e quattro le route sono **autonome sotto `app/(it)` e `app/(en)`**, non annidate sotto
+`app/(it)/lab/buco-nero/` né sotto nessun'altra route esistente.
+
+### Componenti
+
+- Cartella dedicata **sorella**, non annidata: `components/lab/three-body/` — stesso pattern di
+  `components/lab/black-hole/`, ma un albero separato.
+- **Nessun import da `components/lab/black-hole/` né da
+  `components/lab/black-hole/playground-physics.ts`.** Il motore fisico di questo laboratorio
+  (nome indicativo `components/lab/three-body/three-body-physics.ts`) vive interamente in
+  `components/lab/three-body/`.
+
+### Voce nell'indice Lab
+
+Card/voce **indipendente** nell'indice Lab IT (`app/(it)/lab/page.tsx`) e nel suo equivalente EN
+(`app/(en)/en/lab/page.tsx`), allo stesso livello delle card già esistenti per Buco Nero, Tavola
+Periodica, Sistema Solare, Verde Urbano — non un link secondario dentro la card del Buco Nero.
+
+### Metadata, titolo, navigazione
+
+- Metadata (`<title>`, descrizione, eventuali Open Graph) **propri** del laboratorio "Tre Corpi",
+  scritti per questo laboratorio specifico — non ereditati né derivati da quelli del Buco Nero.
+- Navigazione propria (breadcrumb/link di ritorno all'indice Lab, cambio lingua IT/EN, eventuale
+  link "About"/"Equazioni") che punta alle route di questo laboratorio, non a quelle del Buco Nero.
+
+### Identità visuale e toolbar
+
+Toolbar, palette, tipografia e terminologia **proprie**, non ereditate dal Buco Nero. In
+particolare: **nessun controllo, preset o etichetta del Playground del Buco Nero** (es. "Disco",
+"Doppler", "Getti", "Vento", "Onde grav.", "Ringdown" — concetti specifici del dominio buco nero)
+deve comparire in questa interfaccia, nemmeno come eredità accidentale di un componente condiviso.
+I preset di questo laboratorio (figure-eight, Lagrange, Euler, Pythagorean, hierarchical, chaotic)
+e i suoi controlli (test-mass/massivo, scenario "tre soli", indicatore di divergenza caotica) sono
+concettualmente e visivamente indipendenti dal vocabolario del Buco Nero.
+
+### Cosa può essere condiviso — e quando
+
+- **Solo primitive numeriche genuinamente generiche**, prive di qualunque nozione di dominio "buco
+  nero" (es. il tipo `Vec3`, operazioni vettoriali, un helper di integrazione RK adattivo puro),
+  estratte in un **modulo neutro senza dipendenze dal dominio black-hole** — se e quando servirà
+  davvero. L'interfaccia `PotentialModel`/`BodyState` descritta in "Core numerico condivisibile"
+  sopra è un candidato per questo modulo neutro, ma resta comunque solo una bozza di forma, non
+  un'implementazione condivisa.
+- **Non estrarre nulla in anticipo.** Questo documento non impegna a creare il modulo neutro ora,
+  né a spostare codice esistente. L'estrazione va fatta **solo quando l'implementazione dimostra
+  una condivisione reale** (es. quando sia il laboratorio binario sia questo laboratorio esistono
+  già come codice e si scopre che riusano davvero la stessa primitiva), non come preparazione
+  speculativa — un'estrazione prematura rischia di accoppiare due domini fisici diversi (buco nero
+  vs tre corpi puro) attorno a un'astrazione decisa troppo presto.
+
+### Relazione con gli altri laboratori
+
+Il laboratorio "Tre Corpi", il laboratorio "Buco Nero" (Playground incluso) e il futuro
+laboratorio "Buco Nero Binario" (route proprie `/lab/buco-nero-binario` e
+`/en/lab/binary-black-hole` — vedi `docs/black-hole-binary-lab.md`) sono **tre prodotti separati**:
+ciascuno funziona, è navigabile ed è sviluppato **indipendentemente** dagli altri. Possono
+collegarsi fra loro come **"esperimenti correlati"** (un link o una card, in stile navigazione/
+editoriale — non una dipendenza tecnica o di codice), ma questo è un collegamento di superficie,
+non un accoppiamento architetturale.
 
 ## La distinzione test-mass vs pianeta massivo
 
@@ -575,8 +662,11 @@ viene disegnato a schermo e di quali readout numerici mostra, non di come viene 
   pianeta a seconda della modalità, vedi sopra) come punto di riferimento visivo — per i preset
   Lagrange/Euler rimane vicino al centro della configurazione; per un sistema che sta per espellere
   un corpo, il suo comportamento nel tempo è un indicatore utile.
-- **Readout di energia e momento angolare totali**: stile debug overlay `?bhDebug=1` già presente
-  nel Playground — energia totale e momento angolare totale del sistema (compreso l'eventuale
+- **Readout di energia e momento angolare totali**: un proprio overlay diagnostico (nome/flag di
+  attivazione da definire in sviluppo, non `?bhDebug=1` — quel nome è specifico del dominio buco
+  nero, vedi "Architettura di prodotto e route"), concettualmente analogo per densità informativa
+  a quello già presente nel Playground ma un componente indipendente — energia totale e momento
+  angolare totale del sistema (compreso l'eventuale
   pianeta, se in modalità massiva; escluso, se in modalità test-mass, dato che per costruzione non
   contribuisce all'energia/momento angolare dei tre corpi primari; **compreso un eventuale corpo
   espulso**, che resta integrato e nei bilanci come descritto in "Collisioni, espulsioni, close
@@ -597,8 +687,9 @@ viene disegnato a schermo e di quali readout numerici mostra, non di come viene 
   1980) è citato come riferimento per un'eventuale versione più quantitativa in sviluppo, ma il
   deliverable base di questo laboratorio è la visualizzazione qualitativa della divergenza, non
   una stima numerica convergente dell'esponente (vedi "Non-goals").
-- **Nomi/etichette disattivabili**: coerente con l'opzione già presente nel Playground
-  (`Nomi`/`Scie` disattivabili), per non affollare la scena quando non servono.
+- **Nomi/etichette disattivabili**: scelta di UX propria di questo laboratorio, per non affollare
+  la scena quando non servono — non un controllo ereditato dal Playground del Buco Nero (vedi
+  "Architettura di prodotto e route": nessuna terminologia/controllo condiviso con quell'interfaccia).
 - **UI/camera — due modalità di focus distinte, non un solo auto-framing globale**: l'auto-framing
   del Playground (che inquadra semplicemente tutti i corpi presenti) **non basta** qui: nel
   preset Pitagorico, un corpo espulso che si allontana rapidamente farebbe crescere il campo

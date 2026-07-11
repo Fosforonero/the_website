@@ -15,7 +15,10 @@ implementazione potrà eventualmente riprendere alcuni pattern architetturali de
 (integratore a step fisso, accumulator, verifica per simmetrie/conservazione) ma non ne è
 un'estensione.
 
-Il documento tiene deliberatamente separati tre livelli, da non mescolare in implementazione: il
+Il documento tiene deliberatamente separati quattro livelli, da non mescolare in implementazione:
+l'**architettura di prodotto** (route, componenti, indice Lab, identità visuale — sezione
+"Architettura di prodotto e route", **requisito esplicito**: questo laboratorio è un prodotto
+completamente separato dal Kerr singolo attuale, non una modalità aggiunta al suo renderer), il
 **core numerico condivisibile** (l'interfaccia di forza/potenziale e i pattern di integrazione,
 potenzialmente riusabili anche dal laboratorio "Tre Corpi"), il **modello fisico specifico di
 questo laboratorio** (PN, radiation reaction, handoff di merger, fit del remnant — sezione
@@ -63,6 +66,68 @@ ma senza alcun potenziale centrale fisso.
 - **Nessuna pretesa di accuratezza osservativa nei fit del remnant.** I fit NR usati (surrogate o
   formule di fitting) sono scelti per plausibilità fisica e copertura del dominio dei parametri,
   non validati qui contro dati LIGO/Virgo reali.
+- **Non è una modalità aggiunta al renderer Kerr singolo attuale.** È un prodotto completamente
+  separato — vedi "Architettura di prodotto e route" per route, componenti e identità visuale
+  propri.
+
+## Architettura di prodotto e route
+
+**Requisito di prodotto esplicito**: il laboratorio "Buco Nero Binario" è completamente separato
+dal laboratorio Kerr singolo attuale — non una pagina, una modalità o un parametro aggiunto al suo
+renderer/Playground. È un prodotto a sé, che deve funzionare, essere navigabile ed essere
+sviluppato **indipendentemente**. Questa sezione fissa route e struttura ora, anche se
+l'implementazione resta fuori scope di questo documento (nessun file viene creato qui). Stesso
+principio, stessa struttura di sezione, del laboratorio "Tre Corpi" (`docs/three-body-lab.md`).
+
+### Route
+
+- **IT**: `/lab/buco-nero-binario` — nuova cartella di primo livello
+  `app/(it)/lab/buco-nero-binario/`, sorella di `app/(it)/lab/buco-nero/`, non annidata al suo
+  interno. Stesso pattern già in uso per gli altri laboratori del sito.
+- **EN**: `/en/lab/binary-black-hole` — nuova cartella `app/(en)/en/lab/binary-black-hole/`,
+  sorella di `app/(en)/en/lab/black-hole/`.
+- **About IT/EN**: `/lab/buco-nero-binario/about` e `/en/lab/binary-black-hole/about` — stesso
+  pattern già in uso (`app/(it)/lab/buco-nero/about/`, `app/(en)/en/lab/black-hole/about/`).
+
+Tutte le route sono **autonome sotto `app/(it)` e `app/(en)`**, non annidate sotto
+`app/(it)/lab/buco-nero/` (che resta il Kerr singolo attuale, invariato).
+
+### Componenti
+
+- Cartella dedicata **sorella**, non annidata: `components/lab/binary-black-hole/` (o nome
+  equivalente da fissare in sviluppo) — stesso pattern di `components/lab/black-hole/`, ma un
+  albero separato.
+- **Nessuna modifica a `black-hole-scene.tsx`, `black-hole-shader.ts`, `black-hole-wgsl.ts` né a
+  `playground-physics.ts`** (già dichiarato nei Non-goals) — il renderer e il motore fisico di
+  questo laboratorio vivono interamente nella propria cartella, non come parametri aggiuntivi su
+  quelli esistenti (vedi anche "Perché un renderer separato dal Kerr singolo" più sotto per i
+  motivi tecnici).
+
+### Voce nell'indice Lab, metadata, identità visuale
+
+- Card/voce **indipendente** negli indici Lab IT (`app/(it)/lab/page.tsx`) ed EN
+  (`app/(en)/en/lab/page.tsx`), allo stesso livello del Kerr singolo, non un link secondario dentro
+  la sua card.
+- Metadata, titolo, descrizione e navigazione **propri** di questo laboratorio, non ereditati dal
+  Kerr singolo.
+- Toolbar, palette e terminologia **proprie**: i controlli/preset specifici di questo laboratorio
+  (fase inspiral/merger/ringdown, `q`, spin `χ1`/`χ2`, corpi-test circumbinari) sono
+  concettualmente e visivamente indipendenti da quelli del Playground del Kerr singolo, anche dove
+  la fisica sottostante è imparentata.
+
+### Cosa può essere condiviso — e quando
+
+Stesso principio del laboratorio "Tre Corpi": **solo primitive numeriche genuinamente generiche**
+(es. `Vec3`, l'interfaccia `PotentialModel`/`BodyState`), estratte in un modulo neutro senza
+dipendenze dal dominio Kerr-singolo **se e quando l'implementazione dimostra una condivisione
+reale** — non estratte in anticipo come preparazione speculativa.
+
+### Relazione con gli altri laboratori
+
+Il laboratorio "Buco Nero Binario", il laboratorio "Buco Nero" (Kerr singolo/Playground) e il
+laboratorio "Tre Corpi" (`/lab/tre-corpi`, `/en/lab/three-body` — vedi `docs/three-body-lab.md`)
+sono **tre prodotti separati**, sviluppati e navigabili indipendentemente; possono collegarsi come
+"esperimenti correlati" (link/card editoriale), mai come dipendenza tecnica.
 
 ## Modello fisico
 
@@ -615,8 +680,8 @@ e non solo di comodità implementativa:
 - **UI/camera dedicate**: framing che deve includere entrambi i buchi neri più l'eventuale zona
   circumbinaria, diverso dalla logica di camera del Playground/Kerr singolo attuale.
 
-Il nome/percorso esatto del nuovo componente (route, i18n IT/EN, voce nel lab index) non è
-impegnato da questo documento: è una decisione dello sprint di implementazione futuro.
+Route, cartella componenti, i18n IT/EN e voce nell'indice Lab sono ora fissati in "Architettura di
+prodotto e route" (sopra) — non più una decisione rimandata allo sprint di implementazione.
 
 ## Corpi-test, sistema circumbinario e interazione con l'interfaccia utente
 
